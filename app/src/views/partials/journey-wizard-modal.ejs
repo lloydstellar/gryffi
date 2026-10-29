@@ -1,0 +1,1337 @@
+<!--
+  Journey Wizard Modal
+  The full multi-step wizard for guided journey creation.
+  Expects the following server-side locals:
+    - language           (current interface language)
+    - user               (maker info, incl. role)
+    - subscriptionUsage  (for guides limit check)
+    - existingGuides     (array of { id, name } — AI Guides already owned by this org)
+-->
+<div id="journeyWizardModal" class="jw-modal" style="display: none;" aria-hidden="true" role="dialog" aria-labelledby="jwTitle">
+  <div class="jw-modal-overlay" data-jw-close-overlay></div>
+  <div class="jw-modal-content">
+    <!-- Header -->
+    <div class="jw-modal-header">
+      <div class="jw-header-icon">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"></path>
+        </svg>
+      </div>
+      <div class="jw-header-text">
+        <h2 id="jwTitle"><%= t('journeys.wizard.modal.title') %></h2>
+        <p id="jwStepCounter" class="jw-header-subtitle"></p>
+      </div>
+      <button type="button" class="jw-modal-close" data-jw-close aria-label="<%= t('common.close') %>">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="jw-progress-track" aria-hidden="true">
+      <div class="jw-progress-fill" id="jwProgressFill"></div>
+    </div>
+
+    <!-- Body: pages -->
+    <div class="jw-modal-body" id="jwBody">
+
+      <!-- PAGE: resume -->
+      <section class="jw-page" data-jw-page="resume" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.resume.title') %></h3>
+        <p class="jw-explanation"><%= t('journeys.wizard.resume.description') %></p>
+        <div class="jw-btn-row">
+          <button type="button" class="jw-btn jw-btn-ghost" id="jwResumeFresh"><%= t('journeys.wizard.resume.startFreshButton') %></button>
+          <button type="button" class="jw-btn jw-btn-primary" id="jwResumeContinue"><%= t('journeys.wizard.resume.continueButton') %></button>
+        </div>
+      </section>
+
+      <!-- PAGE: source -->
+      <section class="jw-page" data-jw-page="source" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.steps.source.question') %></h3>
+        <div class="jw-card-list">
+          <label class="jw-card" data-jw-source-card="upload">
+            <input type="radio" name="jwSource" value="upload" class="jw-card-input">
+            <div class="jw-card-inner">
+              <div class="jw-card-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.9A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+              </div>
+              <div class="jw-card-body">
+                <h4><%= t('journeys.wizard.steps.source.uploadCard.title') %></h4>
+                <p><%= t('journeys.wizard.steps.source.uploadCard.description') %></p>
+              </div>
+            </div>
+          </label>
+          <label class="jw-card" data-jw-source-card="describe">
+            <input type="radio" name="jwSource" value="describe" class="jw-card-input">
+            <div class="jw-card-inner">
+              <div class="jw-card-icon">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              </div>
+              <div class="jw-card-body">
+                <h4><%= t('journeys.wizard.steps.source.describeCard.title') %></h4>
+                <p><%= t('journeys.wizard.steps.source.describeCard.description') %></p>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Upload area (shown when source=upload) -->
+        <div class="jw-upload-area" id="jwUploadArea" hidden>
+          <input type="file" id="jwFileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.csv,.png,.jpg,.jpeg,.webp,.gif" hidden>
+          <div class="jw-upload-idle" id="jwUploadIdle">
+            <button type="button" class="jw-btn jw-btn-primary" id="jwChooseFile">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m-4 4l4-4 4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"></path></svg>
+              <%= t('journeys.wizard.steps.source.uploadButton') %>
+            </button>
+            <p class="jw-upload-hint"><%= t('journeys.wizard.steps.source.uploadAccept') %></p>
+          </div>
+          <div class="jw-upload-busy" id="jwUploadBusy" hidden>
+            <div class="jw-spinner"></div>
+            <p class="jw-upload-hint"><%= t('journeys.wizard.steps.source.uploading') %></p>
+          </div>
+          <div class="jw-upload-done" id="jwUploadDone" hidden>
+            <div class="jw-upload-done-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div class="jw-upload-done-body">
+              <p class="jw-upload-done-title"><%= t('journeys.wizard.steps.source.uploadSuccess') %></p>
+              <p class="jw-upload-done-file" id="jwUploadFileName"></p>
+              <p class="jw-upload-hint" id="jwUploadPageHint" hidden><%= t('journeys.wizard.steps.source.uploadPageHint') %></p>
+            </div>
+            <button type="button" class="jw-btn jw-btn-ghost jw-btn-sm" id="jwChangeFile"><%= t('journeys.wizard.steps.source.uploadChangeButton') %></button>
+          </div>
+          <div class="jw-inline-error" id="jwUploadError" hidden></div>
+        </div>
+      </section>
+
+      <!-- PAGE: topic (only when source=describe) -->
+      <section class="jw-page" data-jw-page="topic" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.steps.topic.question') %></h3>
+        <textarea id="jwTopicText" rows="5" class="jw-textarea" placeholder="<%= t('journeys.wizard.steps.topic.placeholder') %>"></textarea>
+        <p class="jw-hint"><%= t('journeys.wizard.steps.topic.hint') %></p>
+        <div class="jw-inline-error" id="jwTopicError" hidden></div>
+      </section>
+
+      <!-- PAGE: purpose (now also asks for audience inline) -->
+      <section class="jw-page" data-jw-page="purpose" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.steps.purpose.question') %></h3>
+        <div class="jw-card-list" id="jwPurposeList">
+          <% const purposes = ['onboarding','compliance','product','tour','knowledge','guest']; %>
+          <% purposes.forEach(function(p){ %>
+            <label class="jw-card" data-jw-purpose="<%= p %>">
+              <input type="radio" name="jwPurpose" value="<%= p %>" class="jw-card-input">
+              <div class="jw-card-inner jw-card-inner-compact">
+                <div class="jw-card-body">
+                  <h4><%= t('journeys.wizard.steps.purpose.options.' + p + '.label') %></h4>
+                  <p><%= t('journeys.wizard.steps.purpose.options.' + p + '.description') %></p>
+                </div>
+              </div>
+            </label>
+          <% }); %>
+        </div>
+
+        <!-- Inline audience field — combined with purpose so the maker answers
+             both "what's it for?" and "who's it for?" on a single screen. -->
+        <div class="jw-subfield">
+          <label class="jw-label jw-label-spaced" for="jwAudienceText"><%= t('journeys.wizard.steps.audience.inlineLabel') %></label>
+          <input type="text" id="jwAudienceText" class="jw-input" placeholder="<%= t('journeys.wizard.steps.audience.placeholder') %>">
+          <p class="jw-hint"><%= t('journeys.wizard.steps.audience.hint') %></p>
+        </div>
+      </section>
+
+      <!-- PAGE: length -->
+      <section class="jw-page" data-jw-page="length" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.steps.length.question') %></h3>
+        <p class="jw-explanation"><%= t('journeys.wizard.steps.length.explanation') %></p>
+
+        <%
+          var lengthSteps = ['very-short','short','medium','long','very-long'];
+          var lengthTickKeys = ['veryShort','short','medium','long','veryLong'];
+        %>
+        <div class="jw-slider" data-jw-slider="length">
+          <div class="jw-slider-track-wrap">
+            <div class="jw-slider-track"></div>
+            <div class="jw-slider-fill" id="jwLengthFill"></div>
+            <input type="range"
+                   id="jwLengthSlider"
+                   class="jw-slider-input"
+                   min="0" max="4" step="1" value="2"
+                   aria-valuemin="0" aria-valuemax="4" aria-valuenow="2"
+                   aria-label="<%= t('journeys.wizard.steps.length.question') %>">
+            <div class="jw-slider-stops" aria-hidden="true">
+              <% lengthSteps.forEach(function(l, i){ %>
+                <span class="jw-slider-stop" data-jw-length-stop="<%= l %>"></span>
+              <% }); %>
+            </div>
+          </div>
+          <div class="jw-slider-ticks">
+            <% lengthSteps.forEach(function(l, i){ %>
+              <span class="jw-slider-tick" data-jw-length-tick="<%= l %>">
+                <%= t('journeys.wizard.steps.length.ticks.' + lengthTickKeys[i]) %>
+              </span>
+            <% }); %>
+          </div>
+        </div>
+
+        <p class="jw-hint"><%= t('journeys.wizard.steps.length.hint') %></p>
+      </section>
+
+      <!-- PAGE: components — multi-select of optional step types -->
+      <section class="jw-page" data-jw-page="components" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.steps.components.question') %></h3>
+        <p class="jw-explanation"><%= t('journeys.wizard.steps.components.explanation') %></p>
+
+        <%
+          var wizardGuides = (typeof existingGuides !== 'undefined' && Array.isArray(existingGuides)) ? existingGuides : [];
+          var hasExistingGuides = wizardGuides.length > 0;
+          var guidesAtLimit = typeof subscriptionUsage !== 'undefined' && subscriptionUsage && subscriptionUsage.guides && subscriptionUsage.guides.isAtLimit;
+          var componentDefs = [
+            { key: 'video' },
+            { key: 'image' },
+            { key: 'quiz' },
+            { key: 'poll' },
+            { key: 'form' },
+            { key: 'guide' },
+            { key: 'space' },
+            { key: 'reward' },
+            { key: 'branching' }
+          ];
+        %>
+        <div class="jw-check-list">
+          <% componentDefs.forEach(function(c){ %>
+            <% var disabled = (c.key === 'guide' && guidesAtLimit); %>
+            <label class="jw-check <%= disabled ? 'jw-check-disabled' : '' %>" data-jw-component="<%= c.key %>">
+              <input type="checkbox" name="jwComponent" value="<%= c.key %>" class="jw-check-input" <%= disabled ? 'disabled' : '' %>>
+              <div class="jw-check-inner">
+                <span class="jw-check-box" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 13 10 18 19 7"/></svg>
+                </span>
+                <span class="jw-check-body">
+                  <span class="jw-check-title"><%= t('journeys.wizard.steps.components.options.' + c.key + '.label') %></span>
+                  <span class="jw-check-desc"><%= t('journeys.wizard.steps.components.options.' + c.key + '.description') %></span>
+                  <% if (c.key === 'guide' && guidesAtLimit) { %>
+                    <span class="jw-card-tag"><%= t('journeys.wizard.steps.guide.guidesLimitReached') %> · <a href="/dashboard/subscription"><%= t('journeys.wizard.steps.guide.upgradeLink') %></a></span>
+                  <% } %>
+                </span>
+              </div>
+
+              <% if (c.key === 'guide') { %>
+                <!-- Inline sub-config: pick existing or name a new one -->
+                <div class="jw-subconfig" data-jw-subconfig="guide" hidden>
+                  <div class="jw-radio-row">
+                    <label class="jw-radio-pill <%= hasExistingGuides ? '' : 'jw-radio-pill-disabled' %>">
+                      <input type="radio" name="jwGuideMode" value="existing" <%= hasExistingGuides ? '' : 'disabled' %>>
+                      <span><%= t('journeys.wizard.steps.guide.options.existing.label') %></span>
+                    </label>
+                    <label class="jw-radio-pill">
+                      <input type="radio" name="jwGuideMode" value="newWithKb" data-jw-needs-upload="1">
+                      <span><%= t('journeys.wizard.steps.guide.options.newWithKb.label') %></span>
+                    </label>
+                    <label class="jw-radio-pill">
+                      <input type="radio" name="jwGuideMode" value="newNoKb" checked>
+                      <span><%= t('journeys.wizard.steps.guide.options.newNoKb.label') %></span>
+                    </label>
+                  </div>
+
+                  <div class="jw-subfield" id="jwGuideExistingField" hidden>
+                    <label class="jw-label" for="jwGuideExistingSelect"><%= t('journeys.wizard.steps.guide.selectExistingLabel') %></label>
+                    <select id="jwGuideExistingSelect" class="jw-input">
+                      <option value=""><%= t('journeys.wizard.steps.guide.selectExistingPlaceholder') %></option>
+                      <% wizardGuides.forEach(function(g){ %>
+                        <option value="<%= g.id %>"><%= g.name %></option>
+                      <% }); %>
+                    </select>
+                  </div>
+
+                  <div class="jw-subfield" id="jwGuideNameField">
+                    <label class="jw-label" for="jwGuideName"><%= t('journeys.wizard.steps.guide.nameLabel') %></label>
+                    <input type="text" id="jwGuideName" class="jw-input" placeholder="<%= t('journeys.wizard.steps.guide.namePlaceholder') %>">
+                    <p class="jw-hint" data-jw-needs-upload-tag hidden><%= t('journeys.wizard.steps.guide.kbDisabledHint') %></p>
+                  </div>
+                </div>
+              <% } %>
+
+              <% if (c.key === 'reward') { %>
+                <!-- Inline sub-config: reward type + optional details -->
+                <div class="jw-subconfig" data-jw-subconfig="reward" hidden>
+                  <div class="jw-radio-row jw-radio-row-wrap">
+                    <% ['voucher','certificate','thankyou','later'].forEach(function(r, i){ %>
+                      <label class="jw-radio-pill">
+                        <input type="radio" name="jwRewardType" value="<%= r %>" <%= i === 0 ? 'checked' : '' %>>
+                        <span><%= t('journeys.wizard.steps.reward.options.' + r + '.label') %></span>
+                      </label>
+                    <% }); %>
+                  </div>
+                  <div class="jw-subfield" id="jwRewardDetailsField">
+                    <label class="jw-label" for="jwRewardDetails"><%= t('journeys.wizard.steps.reward.detailsLabel') %></label>
+                    <input type="text" id="jwRewardDetails" class="jw-input" placeholder="<%= t('journeys.wizard.steps.reward.detailsPlaceholder') %>">
+                  </div>
+                </div>
+              <% } %>
+
+              <% if (c.key === 'branching') { %>
+                <!-- Inline sub-config: complexity slider for branching journeys.
+                     Five named stops, no exact branch-counts surfaced to the
+                     maker. The AI decides the actual shape based on this hint
+                     plus how rich the source material is. -->
+                <%
+                  var branchingStops = ['subtle','variation','routes','adventure','open'];
+                %>
+                <div class="jw-subconfig" data-jw-subconfig="branching" hidden>
+                  <p class="jw-label"><%= t('journeys.wizard.steps.branching.complexity.label') %></p>
+                  <div class="jw-slider jw-slider-compact" data-jw-slider="branching">
+                    <div class="jw-slider-track-wrap">
+                      <div class="jw-slider-track"></div>
+                      <div class="jw-slider-fill" id="jwBranchingFill"></div>
+                      <input type="range"
+                             id="jwBranchingSlider"
+                             class="jw-slider-input"
+                             min="0" max="4" step="1" value="2"
+                             aria-valuemin="0" aria-valuemax="4" aria-valuenow="2"
+                             aria-label="<%= t('journeys.wizard.steps.branching.complexity.label') %>">
+                      <div class="jw-slider-stops" aria-hidden="true">
+                        <% branchingStops.forEach(function(b){ %>
+                          <span class="jw-slider-stop" data-jw-branching-stop="<%= b %>"></span>
+                        <% }); %>
+                      </div>
+                    </div>
+                    <div class="jw-slider-ticks">
+                      <% branchingStops.forEach(function(b){ %>
+                        <span class="jw-slider-tick" data-jw-branching-tick="<%= b %>">
+                          <%= t('journeys.wizard.steps.branching.complexity.ticks.' + b) %>
+                        </span>
+                      <% }); %>
+                    </div>
+                  </div>
+                  <p class="jw-hint" id="jwBranchingDescription"></p>
+                </div>
+              <% } %>
+            </label>
+          <% }); %>
+        </div>
+
+        <p class="jw-hint"><%= t('journeys.wizard.steps.components.hint') %></p>
+      </section>
+
+      <!-- PAGE: language -->
+      <section class="jw-page" data-jw-page="language" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.steps.language.question') %></h3>
+        <select id="jwLanguage" class="jw-input">
+          <% const wizardLangs = [
+            { code: 'en', name: 'English' },
+            { code: 'nl', name: 'Nederlands' },
+            { code: 'de', name: 'Deutsch' },
+            { code: 'fr', name: 'Français' },
+            { code: 'es', name: 'Español' },
+            { code: 'it', name: 'Italiano' },
+            { code: 'pt', name: 'Português' },
+            { code: 'da', name: 'Dansk' },
+            { code: 'no', name: 'Norsk' },
+            { code: 'fi', name: 'Suomi' },
+            { code: 'sv', name: 'Svenska' },
+            { code: 'pl', name: 'Polski' },
+            { code: 'ro', name: 'Română' },
+            { code: 'tr', name: 'Türkçe' }
+          ]; %>
+          <% wizardLangs.forEach(function(l){ %>
+            <option value="<%= l.code %>" <%= l.code === language ? 'selected' : '' %>><%= l.name %></option>
+          <% }); %>
+        </select>
+        <p class="jw-hint"><%= t('journeys.wizard.steps.language.hint') %></p>
+      </section>
+
+      <!-- PAGE: summary -->
+      <section class="jw-page" data-jw-page="summary" hidden>
+        <h3 class="jw-question"><%= t('journeys.wizard.steps.summary.question') %></h3>
+        <p class="jw-explanation"><%= t('journeys.wizard.steps.summary.explanation') %></p>
+        <dl class="jw-summary-list" id="jwSummaryList"></dl>
+        <div class="jw-disclaimer">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span><%= t('journeys.wizard.steps.summary.disclaimer') %></span>
+        </div>
+      </section>
+
+      <!-- PAGE: progress -->
+      <section class="jw-page" data-jw-page="progress" hidden>
+        <div class="jw-progress-state">
+          <div class="jw-progress-spinner"></div>
+          <h3 class="jw-question"><%= t('journeys.wizard.progress.title') %></h3>
+          <p class="jw-progress-status" id="jwProgressStatus"><%= t('journeys.wizard.progress.status.thinking') %></p>
+          <div class="jw-progress-bar"><div class="jw-progress-bar-fill" id="jwProgressBarFill"></div></div>
+          <p class="jw-hint"><%= t('journeys.wizard.progress.doNotClose') %></p>
+        </div>
+      </section>
+
+      <!-- PAGE: success -->
+      <section class="jw-page" data-jw-page="success" hidden>
+        <div class="jw-success-state">
+          <div class="jw-success-icon">
+            <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <h3 class="jw-question"><%= t('journeys.wizard.success.title') %></h3>
+          <p class="jw-explanation"><%= t('journeys.wizard.success.description') %></p>
+          <div class="jw-whatnext">
+            <p class="jw-whatnext-title"><%= t('journeys.wizard.success.whatNowTitle') %></p>
+            <ul>
+              <li><%= t('journeys.wizard.success.bullet1') %></li>
+              <li><%= t('journeys.wizard.success.bullet2') %></li>
+              <li><%= t('journeys.wizard.success.bullet3') %></li>
+              <li><%= t('journeys.wizard.success.bullet4') %></li>
+            </ul>
+          </div>
+          <a href="#" id="jwOpenBuilder" class="jw-btn jw-btn-primary jw-btn-full"><%= t('journeys.wizard.success.openBuilder') %></a>
+        </div>
+      </section>
+
+      <!-- PAGE: error -->
+      <section class="jw-page" data-jw-page="error" hidden>
+        <div class="jw-error-state">
+          <div class="jw-error-icon">
+            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>
+          </div>
+          <h3 class="jw-question"><%= t('journeys.wizard.errors.title') %></h3>
+          <p class="jw-explanation" id="jwErrorMessage"><%= t('journeys.wizard.errors.generic') %></p>
+          <div class="jw-btn-row">
+            <button type="button" class="jw-btn jw-btn-ghost" id="jwErrorFallback"><%= t('journeys.wizard.errors.fallbackBlank') %></button>
+            <button type="button" class="jw-btn jw-btn-primary" id="jwErrorRetry"><%= t('journeys.wizard.errors.tryAgain') %></button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer: navigation -->
+    <div class="jw-modal-footer" id="jwFooter">
+      <p class="jw-footer-reminder"><%= t('journeys.wizard.modal.reminderFooter') %></p>
+      <div class="jw-footer-actions">
+        <button type="button" class="jw-btn jw-btn-ghost" id="jwBackBtn"><%= t('journeys.wizard.modal.backButton') %></button>
+        <button type="button" class="jw-btn jw-btn-primary" id="jwNextBtn" disabled><%= t('journeys.wizard.modal.nextButton') %></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .jw-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  /* Ensure the [hidden] attribute wins over flex/block display rules below */
+  #journeyWizardModal [hidden] { display: none !important; }
+  .jw-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 75, 52, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .jw-modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 640px;
+    max-height: calc(100vh - 40px);
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: jwSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes jwSlideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .jw-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 22px;
+    border-bottom: 1px solid rgba(11, 75, 52, 0.08);
+    flex-shrink: 0;
+  }
+  .jw-header-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--theme-primary, #0b4b34), var(--theme-accent, #78c503));
+    color: white;
+    border-radius: 12px;
+  }
+  .jw-header-text { flex: 1; min-width: 0; }
+  .jw-header-text h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0;
+    line-height: 1.2;
+  }
+  .jw-header-subtitle {
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.6;
+    margin: 2px 0 0 0;
+  }
+  .jw-modal-close {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 75, 52, 0.06);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--theme-primary, #0b4b34);
+    transition: background 0.15s;
+  }
+  .jw-modal-close:hover { background: rgba(11, 75, 52, 0.14); }
+
+  .jw-progress-track {
+    height: 4px;
+    background: rgba(11, 75, 52, 0.08);
+    flex-shrink: 0;
+  }
+  .jw-progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--theme-primary, #0b4b34), var(--theme-accent, #78c503));
+    transition: width 0.3s ease;
+  }
+
+  .jw-modal-body {
+    /* Sizing strategy: the body uses block layout (no flex) and an explicit
+       max-height tied to the viewport. Header (~88px) + progress bar (4px) +
+       footer (~85px) + outer padding (40px) ≈ 220px of chrome around the body,
+       so the body gets at most `100vh - 220px`. When the page's natural
+       content fits within that, the body sizes to its content and the modal
+       hugs it tightly. When it doesn't (e.g. components page with the Guide
+       sub-config expanded), the body hits its max-height and scrolls inside
+       — keeping the footer comfortably below.
+       This replaces an earlier `flex: 1` setup that did weird things in
+       Chrome / Safari at intermediate content sizes (footer floating mid-modal
+       with a white area beneath). Explicit max-height has zero ambiguity. */
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+    padding: 24px 26px 12px 26px;
+  }
+  .jw-page { animation: jwFade 0.25s ease; }
+  @keyframes jwFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .jw-question {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+  }
+  .jw-explanation {
+    font-size: 14px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.72;
+    margin: 0 0 18px 0;
+    line-height: 1.5;
+  }
+  .jw-hint {
+    font-size: 12.5px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.6;
+    margin: 10px 0 0 0;
+    line-height: 1.5;
+  }
+
+  .jw-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .jw-card {
+    display: block;
+    cursor: pointer;
+    position: relative;
+  }
+  .jw-card-input {
+    /* Same reason as .jw-check-input: pin to top-left + tiny size so focus
+       on the hidden radio never triggers the parent body to scroll. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .jw-card-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background: white;
+    border: 2px solid rgba(11, 75, 52, 0.1);
+    border-radius: 12px;
+    transition: all 0.15s ease;
+  }
+  .jw-card-inner-compact { gap: 0; padding: 12px 14px; }
+  .jw-card:hover:not(.jw-card-disabled) .jw-card-inner {
+    border-color: rgba(11, 75, 52, 0.35);
+    background: rgba(11, 75, 52, 0.02);
+  }
+  .jw-card-input:checked + .jw-card-inner,
+  .jw-card.is-selected .jw-card-inner {
+    border-color: var(--theme-primary, #0b4b34);
+    background: rgba(11, 75, 52, 0.04);
+    box-shadow: 0 2px 8px rgba(11, 75, 52, 0.08);
+  }
+  .jw-card-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .jw-card-disabled .jw-card-inner { background: rgba(11, 75, 52, 0.02); }
+  .jw-card-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 75, 52, 0.08);
+    border-radius: 10px;
+    color: var(--theme-primary, #0b4b34);
+  }
+  .jw-card-body { flex: 1; min-width: 0; }
+  .jw-card-body h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 2px 0;
+  }
+  .jw-card-body p {
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.7;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  /* ----- Slider (length page) ----- */
+  .jw-slider {
+    margin: 28px 6px 8px 6px;
+    user-select: none;
+  }
+  .jw-slider-track-wrap {
+    position: relative;
+    height: 28px;
+    display: flex;
+    align-items: center;
+  }
+  .jw-slider-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: rgba(11, 75, 52, 0.12);
+    border-radius: 999px;
+  }
+  .jw-slider-fill {
+    position: absolute;
+    left: 0;
+    height: 6px;
+    background: var(--theme-primary, #0b4b34);
+    border-radius: 999px;
+    width: 50%;
+    transition: width 0.18s ease;
+  }
+  .jw-slider-stops {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .jw-slider-stop {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: white;
+    border: 2px solid rgba(11, 75, 52, 0.25);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  }
+  .jw-slider-stop.is-active {
+    border-color: var(--theme-primary, #0b4b34);
+    background: var(--theme-primary, #0b4b34);
+  }
+  .jw-slider-input {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    height: 28px;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .jw-slider-input:focus { outline: none; }
+  .jw-slider-input::-webkit-slider-runnable-track {
+    height: 28px;
+    background: transparent;
+  }
+  .jw-slider-input::-moz-range-track {
+    height: 28px;
+    background: transparent;
+    border: none;
+  }
+  .jw-slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: white;
+    border: 3px solid var(--theme-primary, #0b4b34);
+    box-shadow: 0 2px 6px rgba(11, 75, 52, 0.18);
+    cursor: grab;
+    margin-top: 0;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .jw-slider-input:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.06); }
+  .jw-slider-input:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(11, 75, 52, 0.18), 0 2px 6px rgba(11, 75, 52, 0.18);
+  }
+  .jw-slider-input::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: white;
+    border: 3px solid var(--theme-primary, #0b4b34);
+    box-shadow: 0 2px 6px rgba(11, 75, 52, 0.18);
+    cursor: grab;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .jw-slider-input:active::-moz-range-thumb { cursor: grabbing; transform: scale(1.06); }
+  .jw-slider-input:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px rgba(11, 75, 52, 0.18), 0 2px 6px rgba(11, 75, 52, 0.18);
+  }
+
+  .jw-slider-ticks {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    margin-top: 14px;
+    gap: 4px;
+  }
+  .jw-slider-tick {
+    font-size: 12px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.55;
+    text-align: center;
+    line-height: 1.35;
+    transition: opacity 0.15s ease, font-weight 0.15s ease;
+  }
+  .jw-slider-tick:first-child { text-align: left; }
+  .jw-slider-tick:last-child { text-align: right; }
+  .jw-slider-tick.is-active {
+    opacity: 1;
+    font-weight: 600;
+  }
+  @media (max-width: 480px) {
+    .jw-slider-tick { font-size: 11px; }
+    /* On narrow viewports, hide the two intermediate labels so the active
+       label and the two extremes remain readable. */
+    .jw-slider-tick:nth-child(2),
+    .jw-slider-tick:nth-child(4) { visibility: hidden; }
+  }
+
+  /* Compact variant — used inside sub-configs (e.g. branching complexity).
+     Tighter margins, smaller thumb/stops, smaller tick text. */
+  .jw-slider-compact { margin: 14px 4px 4px 4px; }
+  .jw-slider-compact .jw-slider-track-wrap { height: 22px; }
+  .jw-slider-compact .jw-slider-track,
+  .jw-slider-compact .jw-slider-fill { height: 5px; }
+  .jw-slider-compact .jw-slider-stop { width: 8px; height: 8px; }
+  .jw-slider-compact .jw-slider-input { height: 22px; }
+  .jw-slider-compact .jw-slider-input::-webkit-slider-thumb { width: 18px; height: 18px; border-width: 2.5px; }
+  .jw-slider-compact .jw-slider-input::-moz-range-thumb { width: 18px; height: 18px; border-width: 2.5px; }
+  .jw-slider-compact .jw-slider-ticks { margin-top: 10px; gap: 2px; }
+  .jw-slider-compact .jw-slider-tick { font-size: 11px; }
+  .jw-card-tag {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(11, 75, 52, 0.08);
+    color: var(--theme-primary, #0b4b34);
+  }
+  .jw-card-tag a { color: var(--theme-primary, #0b4b34); font-weight: 600; text-decoration: underline; }
+
+  /* ----- Component checkboxes (components page) -----
+     Same visual language as the radio cards above, but with a checkbox glyph
+     on the left and inline sub-config that slides in below the row when the
+     box is ticked (only used by Guide and Reward today). */
+  .jw-check-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 8px 0 4px 0;
+  }
+  .jw-check {
+    display: block;
+    cursor: pointer;
+    background: white;
+    border: 2px solid rgba(11, 75, 52, 0.1);
+    border-radius: 12px;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .jw-check:hover:not(.jw-check-disabled) {
+    border-color: rgba(11, 75, 52, 0.35);
+    background: rgba(11, 75, 52, 0.02);
+  }
+  .jw-check.is-selected {
+    border-color: var(--theme-primary, #0b4b34);
+    background: rgba(11, 75, 52, 0.04);
+    box-shadow: 0 2px 8px rgba(11, 75, 52, 0.08);
+  }
+  .jw-check-disabled { opacity: 0.5; cursor: not-allowed; }
+  .jw-check-input {
+    /* Pin the visually-hidden checkbox to the top-left of its label so the
+       browser never auto-scrolls the modal-body to bring it "into view" when
+       the label receives focus or click. Without explicit top/left, an
+       absolute element falls back to its static position, which can sit
+       below the visible row when the row's content is taller than its line
+       box. That static position is what triggered the runaway scroll. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .jw-check-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .jw-check-box {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 2px solid rgba(11, 75, 52, 0.25);
+    border-radius: 6px;
+    color: white;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .jw-check-box svg { opacity: 0; transition: opacity 0.1s ease; }
+  .jw-check.is-selected .jw-check-box {
+    background: var(--theme-primary, #0b4b34);
+    border-color: var(--theme-primary, #0b4b34);
+  }
+  .jw-check.is-selected .jw-check-box svg { opacity: 1; }
+  .jw-check-body { flex: 1; min-width: 0; display: block; }
+  .jw-check-title {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--theme-primary, #0b4b34);
+    margin-bottom: 2px;
+  }
+  .jw-check-desc {
+    display: block;
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.7;
+    line-height: 1.45;
+  }
+  .jw-subconfig {
+    border-top: 1px solid rgba(11, 75, 52, 0.08);
+    padding: 12px 14px 14px 50px;
+    background: rgba(11, 75, 52, 0.02);
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+  .jw-radio-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .jw-radio-row-wrap { row-gap: 8px; }
+  .jw-radio-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: white;
+    border: 1.5px solid rgba(11, 75, 52, 0.18);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    user-select: none;
+  }
+  .jw-radio-pill input {
+    /* See note on .jw-check-input: pin position + tiny size so focus on
+       this hidden radio never causes the parent scroller to jump. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .jw-radio-pill:hover:not(.jw-radio-pill-disabled) { border-color: rgba(11, 75, 52, 0.45); }
+  .jw-radio-pill.is-selected {
+    border-color: var(--theme-primary, #0b4b34);
+    background: rgba(11, 75, 52, 0.06);
+    font-weight: 600;
+  }
+  .jw-radio-pill-disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .jw-input, .jw-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #1f2937;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+  }
+  .jw-textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  .jw-input:focus, .jw-textarea:focus {
+    outline: none;
+    border-color: var(--theme-primary, #0b4b34);
+    box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.12);
+  }
+  .jw-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--theme-primary, #0b4b34);
+    margin-bottom: 6px;
+  }
+  .jw-label-spaced { margin-top: 14px; }
+  .jw-subfield { margin-top: 14px; }
+
+  .jw-upload-area {
+    margin-top: 16px;
+    padding: 20px;
+    background: rgba(11, 75, 52, 0.03);
+    border: 1px dashed rgba(11, 75, 52, 0.2);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .jw-upload-hint {
+    font-size: 12.5px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.65;
+    margin: 8px 0 0 0;
+    line-height: 1.5;
+  }
+  .jw-upload-busy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .jw-spinner, .jw-progress-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(11, 75, 52, 0.15);
+    border-top-color: var(--theme-primary, #0b4b34);
+    border-radius: 50%;
+    animation: jwSpin 0.8s linear infinite;
+  }
+  .jw-progress-spinner { width: 48px; height: 48px; border-width: 4px; margin: 0 auto 18px auto; }
+  @keyframes jwSpin { to { transform: rotate(360deg); } }
+  .jw-upload-done {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+  }
+  .jw-upload-done-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(120, 197, 3, 0.15);
+    color: #5a9602;
+    border-radius: 10px;
+  }
+  .jw-upload-done-body { flex: 1; min-width: 0; }
+  .jw-upload-done-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 2px 0;
+  }
+  .jw-upload-done-file {
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.7;
+    word-break: break-all;
+    margin: 0;
+  }
+  .jw-inline-error {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #b91c1c;
+    line-height: 1.5;
+  }
+
+  .jw-summary-list {
+    margin: 0 0 16px 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .jw-summary-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 14px;
+    background: rgba(11, 75, 52, 0.03);
+    border-radius: 10px;
+  }
+  .jw-summary-item dt {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.65;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+    min-width: 110px;
+  }
+  .jw-summary-item dd {
+    font-size: 14px;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0;
+    flex: 1;
+    text-align: right;
+    word-break: break-word;
+  }
+  .jw-summary-edit {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--theme-primary, #0b4b34);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.8;
+  }
+  .jw-summary-edit:hover { opacity: 1; }
+
+  .jw-disclaimer {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(11, 75, 52, 0.05);
+    border: 1px solid rgba(11, 75, 52, 0.12);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    line-height: 1.5;
+  }
+  .jw-disclaimer svg { flex-shrink: 0; margin-top: 2px; opacity: 0.8; }
+
+  .jw-progress-state, .jw-success-state, .jw-error-state {
+    text-align: center;
+    padding: 24px 8px 8px 8px;
+  }
+  .jw-progress-status {
+    font-size: 14px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.75;
+    margin: 8px 0 18px 0;
+    min-height: 20px;
+  }
+  .jw-progress-bar {
+    width: 100%;
+    max-width: 360px;
+    height: 8px;
+    margin: 0 auto 12px auto;
+    background: rgba(11, 75, 52, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .jw-progress-bar-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--theme-primary, #0b4b34), var(--theme-accent, #78c503));
+    transition: width 0.4s ease;
+  }
+  .jw-success-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(120, 197, 3, 0.18);
+    color: #4b8000;
+    border-radius: 50%;
+  }
+  .jw-error-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 12px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef2f2;
+    color: #b91c1c;
+    border-radius: 50%;
+  }
+  .jw-whatnext {
+    text-align: left;
+    margin: 0 0 20px 0;
+    padding: 14px 16px;
+    background: rgba(11, 75, 52, 0.04);
+    border-radius: 12px;
+  }
+  .jw-whatnext-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 6px 0;
+  }
+  .jw-whatnext ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13.5px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.85;
+    line-height: 1.6;
+  }
+
+  .jw-modal-footer {
+    padding: 14px 22px 18px 22px;
+    border-top: 1px solid rgba(11, 75, 52, 0.08);
+    background: rgba(236, 242, 235, 0.4);
+    flex-shrink: 0;
+  }
+  .jw-footer-reminder {
+    font-size: 12px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.65;
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .jw-footer-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .jw-btn-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .jw-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .jw-btn-primary {
+    background: var(--theme-primary, #0b4b34);
+    color: white;
+  }
+  .jw-btn-primary:hover:not(:disabled) { background: #083e2b; transform: translateY(-1px); }
+  .jw-btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .jw-btn-ghost {
+    background: transparent;
+    color: var(--theme-primary, #0b4b34);
+    border: 1px solid rgba(11, 75, 52, 0.15);
+  }
+  .jw-btn-ghost:hover { background: rgba(11, 75, 52, 0.06); }
+  .jw-btn-full { width: 100%; padding: 12px 20px; }
+  .jw-btn-sm { padding: 6px 12px; font-size: 13px; }
+
+  @media (max-width: 640px) {
+    .jw-modal { padding: 0; }
+    .jw-modal-content { max-width: 100%; max-height: 100vh; border-radius: 0; }
+    .jw-modal-body { padding: 20px; }
+    .jw-modal-header { padding: 16px 18px; }
+    .jw-modal-footer { padding: 12px 18px 18px 18px; }
+    .jw-summary-item { flex-direction: column; }
+    .jw-summary-item dd { text-align: left; }
+  }
+</style>
+
+<script>
+  // i18n + initial config for the wizard. Rendered server-side.
+  window.GryffiWizardI18n = {
+    stepCounter: <%- safeJson(t('journeys.wizard.modal.stepCounter')) %>,
+    closeConfirm: <%- safeJson(t('journeys.wizard.modal.closeConfirm')) %>,
+    nextButton: <%- safeJson(t('journeys.wizard.modal.nextButton')) %>,
+    generateButton: <%- safeJson(t('journeys.wizard.modal.generateButton')) %>,
+    backButton: <%- safeJson(t('journeys.wizard.modal.backButton')) %>,
+    progressStatus: {
+      reading: <%- safeJson(t('journeys.wizard.progress.status.reading')) %>,
+      reading2: <%- safeJson(t('journeys.wizard.progress.status.reading2')) %>,
+      thinking: <%- safeJson(t('journeys.wizard.progress.status.thinking')) %>,
+      thinking2: <%- safeJson(t('journeys.wizard.progress.status.thinking2')) %>,
+      thinking3: <%- safeJson(t('journeys.wizard.progress.status.thinking3')) %>,
+      thinking4: <%- safeJson(t('journeys.wizard.progress.status.thinking4')) %>,
+      thinking5: <%- safeJson(t('journeys.wizard.progress.status.thinking5')) %>,
+      creating: <%- safeJson(t('journeys.wizard.progress.status.creating')) %>,
+      creating2: <%- safeJson(t('journeys.wizard.progress.status.creating2')) %>,
+      steps: <%- safeJson(t('journeys.wizard.progress.status.steps')) %>,
+      steps2: <%- safeJson(t('journeys.wizard.progress.status.steps2')) %>,
+      paths: <%- safeJson(t('journeys.wizard.progress.status.paths')) %>,
+      guide: <%- safeJson(t('journeys.wizard.progress.status.guide')) %>,
+      guide2: <%- safeJson(t('journeys.wizard.progress.status.guide2')) %>,
+      knowledge: <%- safeJson(t('journeys.wizard.progress.status.knowledge')) %>,
+      knowledge2: <%- safeJson(t('journeys.wizard.progress.status.knowledge2')) %>,
+      knowledge3: <%- safeJson(t('journeys.wizard.progress.status.knowledge3')) %>,
+      finishing: <%- safeJson(t('journeys.wizard.progress.status.finishing')) %>
+    },
+    errors: {
+      generic: <%- safeJson(t('journeys.wizard.errors.generic')) %>,
+      uploadTooLarge: <%- safeJson(t('journeys.wizard.errors.uploadTooLarge')) %>,
+      uploadTooManyPages: <%- safeJson(t('journeys.wizard.errors.uploadTooManyPages')) %>,
+      uploadUnsupportedType: <%- safeJson(t('journeys.wizard.errors.uploadUnsupportedType')) %>,
+      uploadNoText: <%- safeJson(t('journeys.wizard.errors.uploadNoText')) %>,
+      uploadGeneric: <%- safeJson(t('journeys.wizard.errors.uploadGeneric')) %>,
+      parserUnavailable: <%- safeJson(t('journeys.wizard.errors.parserUnavailable')) %>,
+      parserDisabled: <%- safeJson(t('journeys.wizard.errors.parserDisabled')) %>,
+      guidesLimit: <%- safeJson(t('journeys.wizard.errors.guidesLimit')) %>,
+      topicMinLength: <%- safeJson(t('journeys.wizard.steps.topic.minLengthError')) %>,
+      titleRequired: <%- safeJson(t('journeys.wizard.errors.titleRequired')) %>,
+      timeout: <%- safeJson(t('journeys.wizard.errors.timeout')) %>,
+      rateLimit: <%- safeJson(t('journeys.wizard.errors.rateLimit')) %>,
+      serviceUnavailable: <%- safeJson(t('journeys.wizard.errors.serviceUnavailable')) %>
+    },
+    guideKbDisabledHint: <%- safeJson(t('journeys.wizard.steps.guide.kbDisabledHint')) %>,
+    summaryLabels: <%- safeJson({
+      source: t('journeys.wizard.steps.summary.labels.source'),
+      sourceDocument: t('journeys.wizard.steps.summary.labels.sourceDocument'),
+      sourceDescribe: t('journeys.wizard.steps.summary.labels.sourceDescribe'),
+      purpose: t('journeys.wizard.steps.summary.labels.purpose'),
+      audience: t('journeys.wizard.steps.summary.labels.audience'),
+      components: t('journeys.wizard.steps.summary.labels.components'),
+      componentsNone: t('journeys.wizard.steps.summary.labels.componentsNone'),
+      guide: t('journeys.wizard.steps.summary.labels.guide'),
+      guideNone: t('journeys.wizard.steps.summary.labels.guideNone'),
+      guideExisting: t('journeys.wizard.steps.summary.labels.guideExisting'),
+      guideNewWithKb: t('journeys.wizard.steps.summary.labels.guideNewWithKb'),
+      guideNewNoKb: t('journeys.wizard.steps.summary.labels.guideNewNoKb'),
+      length: t('journeys.wizard.steps.summary.labels.length'),
+      branching: t('journeys.wizard.steps.summary.labels.branching'),
+      branchingYes: t('journeys.wizard.steps.summary.labels.branchingYes'),
+      branchingNo: t('journeys.wizard.steps.summary.labels.branchingNo'),
+      reward: t('journeys.wizard.steps.summary.labels.reward'),
+      language: t('journeys.wizard.steps.summary.labels.language'),
+      title: t('journeys.wizard.steps.summary.labels.title'),
+      titleAuto: t('journeys.wizard.steps.summary.labels.titleAuto'),
+      editLink: t('journeys.wizard.steps.summary.editLink')
+    }) %>,
+    componentLabels: <%- safeJson({
+      video:     t('journeys.wizard.steps.components.options.video.label'),
+      image:     t('journeys.wizard.steps.components.options.image.label'),
+      quiz:      t('journeys.wizard.steps.components.options.quiz.label'),
+      poll:      t('journeys.wizard.steps.components.options.poll.label'),
+      form:      t('journeys.wizard.steps.components.options.form.label'),
+      guide:     t('journeys.wizard.steps.components.options.guide.label'),
+      space:     t('journeys.wizard.steps.components.options.space.label'),
+      reward:    t('journeys.wizard.steps.components.options.reward.label'),
+      branching: t('journeys.wizard.steps.components.options.branching.label')
+    }) %>,
+    purposeLabels: <%- safeJson({
+      onboarding: t('journeys.wizard.steps.purpose.options.onboarding.label'),
+      compliance: t('journeys.wizard.steps.purpose.options.compliance.label'),
+      product: t('journeys.wizard.steps.purpose.options.product.label'),
+      tour: t('journeys.wizard.steps.purpose.options.tour.label'),
+      knowledge: t('journeys.wizard.steps.purpose.options.knowledge.label'),
+      guest: t('journeys.wizard.steps.purpose.options.guest.label')
+    }) %>,
+    lengthLabels: <%- safeJson({
+      'very-short': t('journeys.wizard.steps.length.ticks.veryShort'),
+      short:        t('journeys.wizard.steps.length.ticks.short'),
+      medium:       t('journeys.wizard.steps.length.ticks.medium'),
+      long:         t('journeys.wizard.steps.length.ticks.long'),
+      'very-long':  t('journeys.wizard.steps.length.ticks.veryLong')
+    }) %>,
+    rewardLabels: <%- safeJson({
+      voucher: t('journeys.wizard.steps.reward.options.voucher.label'),
+      certificate: t('journeys.wizard.steps.reward.options.certificate.label'),
+      thankyou: t('journeys.wizard.steps.reward.options.thankyou.label'),
+      later: t('journeys.wizard.steps.reward.options.later.label'),
+      none: t('journeys.wizard.steps.reward.options.none.label')
+    }) %>,
+    // Branching complexity slider labels — short tick text and longer per-stop
+    // hints. Both arrays are keyed by the stop token so the JS can look them
+    // up by current state.branchingComplexity without an index.
+    branchingTicks: <%- safeJson({
+      subtle:     t('journeys.wizard.steps.branching.complexity.ticks.subtle'),
+      variation:  t('journeys.wizard.steps.branching.complexity.ticks.variation'),
+      routes:     t('journeys.wizard.steps.branching.complexity.ticks.routes'),
+      adventure:  t('journeys.wizard.steps.branching.complexity.ticks.adventure'),
+      open:       t('journeys.wizard.steps.branching.complexity.ticks.open')
+    }) %>,
+    branchingDescriptions: <%- safeJson({
+      subtle:     t('journeys.wizard.steps.branching.complexity.descriptions.subtle'),
+      variation:  t('journeys.wizard.steps.branching.complexity.descriptions.variation'),
+      routes:     t('journeys.wizard.steps.branching.complexity.descriptions.routes'),
+      adventure:  t('journeys.wizard.steps.branching.complexity.descriptions.adventure'),
+      open:       t('journeys.wizard.steps.branching.complexity.descriptions.open')
+    }) %>
+  };
+  window.GryffiWizardConfig = {
+    interfaceLanguage: <%- safeJson(typeof language !== 'undefined' ? language : 'en') %>,
+    hasExistingGuides: <%= (typeof existingGuides !== 'undefined' && Array.isArray(existingGuides) && existingGuides.length > 0) ? 'true' : 'false' %>,
+    guidesAtLimit: <%= (typeof subscriptionUsage !== 'undefined' && subscriptionUsage && subscriptionUsage.guides && subscriptionUsage.guides.isAtLimit) ? 'true' : 'false' %>
+  };
+</script>
+<script src="/js/journey-wizard.js?v=<%= typeof appVersion !== 'undefined' ? appVersion : Date.now() %>" defer></script>

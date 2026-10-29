@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('pages.journeys') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .btn-secondary {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #374151;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    #copyTranslateModal select:focus,
+    #copyTranslateModal input:focus {
+      outline: none;
+      border-color: var(--gryffi-primary, #0b4b34);
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.1);
+    }
+
+    @keyframes ctSpin {
+      to { transform: translateY(-50%) rotate(360deg); }
+    }
+    
+    /* Kebab Menu Styles */
+    .kebab-menu-container {
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Ensure journey card with open menu is always on top */
+    .journey-card:has(.kebab-menu-dropdown.show) {
+      z-index: 100 !important;
+      transform: none !important;
+    }
+    .kebab-menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.15s;
+    }
+    .kebab-menu-btn:hover {
+      background: rgba(11, 75, 52, 0.08);
+      color: #0b4b34;
+    }
+    .kebab-menu-btn.active {
+      background: rgba(11, 75, 52, 0.12);
+      color: #0b4b34;
+    }
+    .kebab-menu-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 4px;
+      min-width: 180px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px) scale(0.95);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1001;
+      overflow: hidden;
+    }
+    .kebab-menu-dropdown.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+    .kebab-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #334155;
+      text-align: left;
+      transition: all 0.1s;
+    }
+    .kebab-menu-item:hover {
+      background: rgba(11, 75, 52, 0.06);
+      color: #0b4b34;
+    }
+    .kebab-menu-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .kebab-menu-item.publish-item {
+      color: #0b4b34;
+    }
+    .kebab-menu-item.publish-item:hover {
+      background: rgba(11, 75, 52, 0.1);
+    }
+    .kebab-menu-item.unpublish-item {
+      color: #d97706;
+    }
+    .kebab-menu-item.unpublish-item:hover {
+      background: rgba(217, 119, 6, 0.08);
+    }
+    .kebab-menu-item.delete-item {
+      color: #dc2626;
+    }
+    .kebab-menu-item.delete-item:hover {
+      background: rgba(220, 38, 38, 0.08);
+    }
+    .kebab-menu-item.restore-item {
+      color: #0b4b34;
+    }
+    .kebab-menu-item.restore-item:hover {
+      background: rgba(11, 75, 52, 0.1);
+    }
+    .kebab-menu-item.preview-item {
+      color: #0b4b34;
+    }
+    .kebab-menu-item.preview-item:hover {
+      background: rgba(11, 75, 52, 0.1);
+    }
+    .kebab-menu-divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 4px 0;
+      gap: 8px;
+    }
+    .btn-secondary:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+    
+    /* Public Journey Badge */
+    .badge-public {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: rgba(185, 70, 70, 0.12);
+      color: #a94442;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 50px;
+    }
+    
+    /* Kebab menu items for public/private */
+    .kebab-menu-item.public-item {
+      color: #5a9302;
+    }
+    .kebab-menu-item.public-item:hover {
+      background: rgba(120, 197, 3, 0.1);
+    }
+    .kebab-menu-item.private-item {
+      color: #6b7280;
+    }
+    .kebab-menu-item.private-item:hover {
+      background: rgba(107, 114, 128, 0.08);
+    }
+    
+    /* Demo Journey Section */
+    .demo-journey-section {
+      background: linear-gradient(135deg, rgba(11, 75, 52, 0.04) 0%, rgba(120, 197, 3, 0.06) 100%);
+      border: 1px dashed rgba(11, 75, 52, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    
+    .demo-journey-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .demo-journey-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(11, 75, 52, 0.1);
+      color: var(--theme-primary, #0b4b34);
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .demo-journey-hint {
+      font-size: 13px;
+      color: var(--theme-primary, #0b4b34);
+      opacity: 0.7;
+      margin: 0;
+    }
+    
+    .demo-journey-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      border: 1px solid rgba(11, 75, 52, 0.1);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    
+    .demo-journey-card:hover {
+      background: white;
+      border-color: var(--theme-primary, #0b4b34);
+      box-shadow: 0 4px 12px rgba(11, 75, 52, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .demo-journey-icon {
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--theme-primary, #0b4b34);
+      border-radius: 12px;
+      color: white;
+    }
+    
+    .demo-journey-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .demo-journey-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--theme-primary, #0b4b34);
+      margin: 0 0 6px 0;
+    }
+    
+    .demo-journey-description {
+      font-size: 14px;
+      color: var(--theme-primary, #0b4b34);
+      opacity: 0.7;
+      margin: 0 0 12px 0;
+      line-height: 1.5;
+    }
+    
+    .demo-journey-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--theme-primary, #0b4b34);
+    }
+    
+    .demo-journey-meta span:first-child {
+      opacity: 0.6;
+    }
+    
+    .demo-journey-cta {
+      font-weight: 600;
+      color: var(--theme-accent, #78c503);
+      opacity: 1 !important;
+    }
+    
+    .demo-journey-card:hover .demo-journey-cta {
+      color: var(--theme-primary, #0b4b34);
+    }
+    
+    @media (max-width: 640px) {
+      .demo-journey-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .demo-journey-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .demo-journey-icon {
+        margin: 0 auto;
+      }
+      
+      .demo-journey-meta {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
+  <%- include('../partials/tier-limit-styles') %>
+</head>
+<body class="bg-gryffi-bg">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+  <%- include('../partials/support-modal') %>
+  
+  <main class="main-content">
+    <%- include('../partials/free-tier-banner') %>
+    <%- include('../partials/ai-credits-banner') %>
+    
+    <div class="flex items-center justify-between mb-8">
+      <div class="page-header mb-0">
+        <h1 class="page-title"><%= (typeof isTrash !== 'undefined' && isTrash) ? t('journeys.trash.title') : t('journeys.title') %></h1>
+        <p class="page-subtitle"><%= (typeof isTrash !== 'undefined' && isTrash) ? t('journeys.trash.subtitle') : t('journeys.subtitle') %></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+          <a href="/dashboard/journeys" class="btn-secondary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <%= t('journeys.trash.backToJourneys') %>
+          </a>
+        <% } else { %>
+          <% if (user && (user.role === 'admin' || user.role === 'manager')) { %>
+            <a href="/dashboard/journeys/trash" class="btn-secondary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              <%= t('journeys.trash.viewTrash') %>
+            </a>
+          <% } %>
+          <% if (user && user.role === 'viewer') { %>
+            <span class="btn-primary opacity-50 cursor-not-allowed" title="<%= t('team.messages.viewerReadOnlyGeneric') %>">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <%= t('journeys.createJourney') %>
+            </span>
+          <% } else if (subscriptionUsage && subscriptionUsage.journeys && subscriptionUsage.journeys.isAtLimit) { %>
+            <!-- Journey limit reached -->
+            <div class="tier-limit-block">
+              <span class="btn-primary btn-disabled" title="<%= t('subscription.limits.limitReached') %>">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <%= t('journeys.createJourney') %>
+              </span>
+              <div class="tier-limit-message">
+                <span><%= t('subscription.limits.journeyLimitInfo', { limit: subscriptionUsage.journeys.limit }) %></span>
+                <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+              </div>
+            </div>
+          <% } else { %>
+            <button type="button" data-journey-create-trigger class="btn-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <%= t('journeys.createJourney') %>
+            </button>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (journeys && journeys.length > 0) { %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <% journeys.forEach(journey => { %>
+          <div class="journey-card group relative">
+            <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+            <div class="block cursor-default">
+            <% } else { %>
+            <a href="/dashboard/builder/<%= journey.id %>" class="block">
+            <% } %>
+              <div class="flex items-start justify-between relative">
+                <div class="flex-1 min-w-0">
+                  <h3 class="journey-card-title group-hover:text-gryffi-primary transition-colors"><%= journey.title %></h3>
+                  <p class="journey-card-meta">
+                    <%= journey.step_count || 0 %> <%= t('common.steps') %>
+                  </p>
+                </div>
+                <div class="flex items-start gap-2 flex-shrink-0 relative z-10">
+                  <!-- Badges stacked vertically -->
+                  <div class="flex flex-col items-end" style="gap: 6px;">
+                    <span class="<%= journey.status === 'published' ? 'badge-published' : 'badge-draft' %>">
+                      <%= t('journeys.status.' + (journey.status === 'archived' ? 'draft' : journey.status)) %>
+                    </span>
+                    <% if (journey.is_public) { %>
+                      <span class="badge-public">
+                        <svg style="width: 14px; height: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <%= t('journeys.public.badge') %>
+                      </span>
+                    <% } %>
+                  </div>
+                  
+                  <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+                    <!-- Trash view: Kebab menu for restore and delete -->
+                    <% if (user && (user.role === 'admin' || user.role === 'manager')) { %>
+                      <div class="kebab-menu-container">
+                        <button type="button" class="kebab-menu-btn" title="<%= t('common.actions') %>">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                          </svg>
+                        </button>
+                        <div class="kebab-menu-dropdown" data-journey-id="<%= journey.id %>" data-journey-title="<%= journey.title %>" data-journey-status="<%= journey.status %>">
+                          <button type="button" class="kebab-menu-item restore-item" data-action="restore">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <%= t('journeys.trash.restore') %>
+                          </button>
+                          <div class="kebab-menu-divider"></div>
+                          <button type="button" class="kebab-menu-item delete-item" data-action="delete-permanent">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <%= t('journeys.trash.deletePermanent') %>
+                          </button>
+                        </div>
+                      </div>
+                    <% } %>
+                  <% } else { %>
+                    <!-- Kebab Menu for regular journeys -->
+                    <% if (user && user.role !== 'viewer') { %>
+                      <div class="kebab-menu-container">
+                        <button type="button" class="kebab-menu-btn" title="<%= t('common.actions') %>">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                          </svg>
+                        </button>
+                        <div class="kebab-menu-dropdown" data-journey-id="<%= journey.id %>" data-journey-title="<%= journey.title %>" data-journey-status="<%= journey.status %>" data-journey-public="<%= journey.is_public %>" data-journey-public-token="<%= journey.public_token || '' %>">
+                          <!-- Preview option - available to all roles -->
+                          <button type="button" class="kebab-menu-item preview-item" data-action="preview">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <%= t('journeys.actions.preview') %>
+                          </button>
+                          
+                          <% if (journey.is_public && journey.public_token && journey.status === 'published') { %>
+                          <!-- Copy public link - only for published public journeys -->
+                          <button type="button" class="kebab-menu-item public-item copy-public-link-menu" data-action="copy-public-link" data-link="<%= typeof APP_URL !== 'undefined' ? APP_URL : '' %>/p/<%= journey.public_token %>">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
+                            <%= t('journeys.public.copyLink') %>
+                          </button>
+                          <% } %>
+                          
+                          <div class="kebab-menu-divider"></div>
+                          
+                          <!-- Status change options -->
+                          <% if (journey.status !== 'published') { %>
+                            <% if (user.role === 'admin' || user.role === 'manager') { %>
+                              <button type="button" class="kebab-menu-item publish-item" data-action="publish">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <%= t('journeys.actions.publish') %>
+                              </button>
+                            <% } %>
+                          <% } %>
+                          <% if (journey.status === 'published') { %>
+                            <% if (user.role === 'admin' || user.role === 'manager') { %>
+                              <button type="button" class="kebab-menu-item unpublish-item" data-action="unpublish">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <%= t('journeys.actions.unpublish') %>
+                              </button>
+                            <% } %>
+                          <% } %>
+                          <div class="kebab-menu-divider"></div>
+                          
+                          <!-- Copy -->
+                          <button type="button" class="kebab-menu-item" data-action="copy">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <%= t('journeys.actions.copy') %>
+                          </button>
+                          
+                          <!-- Copy & Translate -->
+                          <button type="button" class="kebab-menu-item" data-action="copy-translate">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                            </svg>
+                            <%= t('journeys.copyTranslate.menuItem') %>
+                          </button>
+                          
+                          <% if (user.role === 'admin' || user.role === 'manager') { %>
+                          <!-- Rename -->
+                          <button type="button" class="kebab-menu-item" data-action="rename">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            <%= t('journeys.actions.rename') %>
+                          </button>
+                          <% } %>
+                          
+                          <% /* Public journey conversion: tier feature public_journeys */ %>
+                          <% if ((user.role === 'admin' || user.role === 'manager') && subscriptionTier && subscriptionTier.features?.publicJourneys) { %>
+                            <div class="kebab-menu-divider"></div>
+                            
+                            <% if (journey.is_public) { %>
+                              <!-- Convert to Private -->
+                              <button type="button" class="kebab-menu-item private-item" data-action="convert-private">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                <%= t('journeys.public.convertToPrivate') %>
+                              </button>
+                            <% } else { %>
+                              <!-- Convert to Public -->
+                              <button type="button" class="kebab-menu-item public-item" data-action="convert-public">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <%= t('journeys.public.convertToPublic') %>
+                              </button>
+                            <% } %>
+                          <% } %>
+                          
+                          <% if (user.role === 'admin' || user.role === 'manager') { %>
+                            <div class="kebab-menu-divider"></div>
+                            
+                            <!-- Delete (move to trash) -->
+                            <button type="button" class="kebab-menu-item delete-item" data-action="delete">
+                              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                              <%= t('journeys.actions.delete') %>
+                            </button>
+                          <% } %>
+                        </div>
+                      </div>
+                    <% } %>
+                  <% } %>
+                </div>
+              </div>
+              
+              <% if (journey.description) { %>
+                <p class="text-zen-500 text-sm mt-3 line-clamp-2"><%= journey.description %></p>
+              <% } %>
+              
+              
+              <div class="flex items-center justify-between mt-4 pt-4 border-t border-zen-100">
+                <span class="text-xs text-zen-400">
+                  <%= t('common.by') %> <%= journey.created_by_name || t('common.unknown') %>
+                  <% if (typeof isTrash !== 'undefined' && isTrash && journey.deleted_at) { %>
+                    · <%= t('journeys.trash.deleted') %> <%= new Date(journey.deleted_at).toLocaleDateString(language) %>
+                  <% } %>
+                </span>
+                <% if (typeof isTrash !== 'undefined' && isTrash && journey.deleted_at && trashRetentionDays > 0) { %>
+                  <% 
+                    const deletedDate = new Date(journey.deleted_at);
+                    const permanentDeleteDate = new Date(deletedDate.getTime() + (trashRetentionDays * 24 * 60 * 60 * 1000));
+                    const daysRemaining = Math.ceil((permanentDeleteDate - new Date()) / (24 * 60 * 60 * 1000));
+                    const isUrgent = daysRemaining <= 3;
+                  %>
+                  <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-400' %>">
+                    <%= t('journeys.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString(language) %>
+                    <% if (daysRemaining > 0) { %>
+                      (<%= daysRemaining %> <%= t('subscription.days') %>)
+                    <% } %>
+                  </span>
+                <% } else if (typeof isTrash !== 'undefined' && isTrash && trashRetentionDays === -1) { %>
+                  <span class="text-xs text-zen-400">
+                    <%= t('journeys.trash.noAutoDelete') %>
+                  </span>
+                <% } %>
+                <% if (!(typeof isTrash !== 'undefined' && isTrash)) { %>
+                <span class="text-gryffi-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  <%= t('common.edit') %> →
+                </span>
+                <% } %>
+              </div>
+            <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+            </div>
+            <% } else { %>
+            </a>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="glass-card-solid p-12 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gryffi-accent/20 flex items-center justify-center">
+          <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+            <svg class="w-8 h-8 text-gryffi-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          <% } else { %>
+            <svg class="w-8 h-8 text-gryffi-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+            </svg>
+          <% } %>
+        </div>
+        <h3 class="text-lg font-semibold text-zen-900 mb-2">
+          <%= (typeof isTrash !== 'undefined' && isTrash) ? t('journeys.trash.empty') : t('journeys.noJourneys') %>
+        </h3>
+        <p class="text-zen-500 mb-6 max-w-sm mx-auto">
+          <%= (typeof isTrash !== 'undefined' && isTrash) ? t('journeys.trash.emptyDescription') : t('journeys.noJourneysDescription') %>
+        </p>
+        <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+          <a href="/dashboard/journeys" class="btn-secondary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <%= t('journeys.trash.backToJourneys') %>
+          </a>
+        <% } else { %>
+          <% if (user && user.role === 'viewer') { %>
+            <span class="btn-primary opacity-50 cursor-not-allowed" title="<%= t('team.messages.viewerReadOnlyGeneric') %>">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <%= t('journeys.createJourney') %>
+            </span>
+          <% } else if (subscriptionUsage && subscriptionUsage.journeys && subscriptionUsage.journeys.isAtLimit) { %>
+            <!-- Journey limit reached - empty state -->
+            <div class="tier-limit-block tier-limit-block-centered">
+              <span class="btn-primary btn-disabled" title="<%= t('subscription.limits.limitReached') %>">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <%= t('journeys.createJourney') %>
+              </span>
+              <div class="tier-limit-message">
+                <span><%= t('subscription.limits.journeyLimitInfo', { limit: subscriptionUsage.journeys.limit }) %></span>
+                <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+              </div>
+            </div>
+          <% } else { %>
+            <button type="button" data-journey-create-trigger class="btn-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <%= t('journeys.createJourney') %>
+            </button>
+          <% } %>
+        <% } %>
+      </div>
+    <% } %>
+
+    <% /* Demo Journey Card - Shown below user journeys */ %>
+    <% if (typeof demoJourney !== 'undefined' && demoJourney && !(typeof isTrash !== 'undefined' && isTrash)) { %>
+      <div class="mt-12">
+        <div class="demo-journey-section">
+          <div class="demo-journey-header">
+            <div class="demo-journey-badge">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <%= t('onboarding.demoJourney.badge') %>
+            </div>
+            <p class="demo-journey-hint"><%= t('onboarding.demoJourney.hint') %></p>
+          </div>
+          <a href="/dashboard/builder/<%= demoJourney.id %>" class="demo-journey-card group">
+            <div class="demo-journey-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+              </svg>
+            </div>
+            <div class="demo-journey-content">
+              <h3 class="demo-journey-title"><%= demoJourney.title %></h3>
+              <p class="demo-journey-description"><%= demoJourney.description || t('onboarding.demoJourney.defaultDescription') %></p>
+              <div class="demo-journey-meta">
+                <span><%= demoJourney.step_count %> <%= t('common.steps') %></span>
+                <span class="demo-journey-cta"><%= t('onboarding.demoJourney.viewBuilder') %> →</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    <% } %>
+  </main>
+  
+  <script src="/js/app.js"></script>
+  <script>
+    // Escape text for use in HTML, including attribute values
+    function escapeHtml(text) {
+      if (text == null) return '';
+      return String(text).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    // Helper function to decode HTML entities (including numeric entities like &#34;)
+    function decodeHtmlEntities(text) {
+      if (!text) return '';
+      
+      const str = String(text);
+      
+      // Create a temporary textarea element to decode all HTML entities
+      // This handles both named entities (&quot;) and numeric entities (&#34;)
+      const textarea = document.createElement('textarea');
+      textarea.innerHTML = str;
+      let decoded = textarea.value;
+      
+      // If textarea didn't decode numeric entities, manually decode them
+      if (decoded.includes('&#')) {
+        decoded = decoded
+          .replace(/&#(\d+);/g, function(match, dec) {
+            return String.fromCharCode(parseInt(dec, 10));
+          })
+          .replace(/&#x([a-f\d]+);/gi, function(match, hex) {
+            return String.fromCharCode(parseInt(hex, 16));
+          });
+      }
+      
+      return decoded;
+    }
+
+    // Initialize journey actions after page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Kebab Menus
+      initKebabMenus();
+    });
+
+    // Kebab Menu Logic
+    let activeMenu = null;
+
+    function initKebabMenus() {
+      // Toggle menu on button click
+      document.querySelectorAll('.kebab-menu-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const container = this.closest('.kebab-menu-container');
+          const dropdown = container.querySelector('.kebab-menu-dropdown');
+          
+          // Close any other open menus
+          if (activeMenu && activeMenu !== dropdown) {
+            activeMenu.classList.remove('show');
+            activeMenu.previousElementSibling?.classList.remove('active');
+          }
+          
+          // Toggle current menu
+          dropdown.classList.toggle('show');
+          this.classList.toggle('active');
+          activeMenu = dropdown.classList.contains('show') ? dropdown : null;
+        });
+      });
+
+      // Handle menu item clicks
+      document.querySelectorAll('.kebab-menu-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const dropdown = this.closest('.kebab-menu-dropdown');
+          const journeyId = dropdown.getAttribute('data-journey-id');
+          const journeyTitle = dropdown.getAttribute('data-journey-title');
+          const action = this.getAttribute('data-action');
+          
+          // Close menu
+          dropdown.classList.remove('show');
+          dropdown.previousElementSibling?.classList.remove('active');
+          activeMenu = null;
+          
+          // Execute action
+          switch(action) {
+            case 'preview':
+              // Navigate to preview mode
+              window.location.href = `/dashboard/preview/${journeyId}`;
+              break;
+            case 'publish':
+              changeJourneyStatus(journeyId, journeyTitle, 'published');
+              break;
+            case 'unpublish':
+              changeJourneyStatus(journeyId, journeyTitle, 'draft');
+              break;
+            case 'copy':
+              copyJourney(journeyId, journeyTitle);
+              break;
+            case 'copy-translate':
+              showCopyTranslateModal(journeyId, journeyTitle);
+              break;
+            case 'rename':
+              renameJourney(journeyId, journeyTitle);
+              break;
+            case 'convert-public':
+              showConvertToPublicModal(journeyId, journeyTitle);
+              break;
+            case 'convert-private':
+              convertToPrivate(journeyId, journeyTitle);
+              break;
+            case 'delete':
+              deleteJourney(journeyId, journeyTitle);
+              break;
+            case 'restore':
+              restoreJourney(journeyId, journeyTitle);
+              break;
+            case 'delete-permanent':
+              deleteJourneyPermanent(journeyId, journeyTitle);
+              break;
+          }
+        });
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (activeMenu && !e.target.closest('.kebab-menu-container')) {
+          activeMenu.classList.remove('show');
+          activeMenu.previousElementSibling?.classList.remove('active');
+          activeMenu = null;
+        }
+      });
+
+      // Close menu on escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && activeMenu) {
+          activeMenu.classList.remove('show');
+          activeMenu.previousElementSibling?.classList.remove('active');
+          activeMenu = null;
+        }
+      });
+    }
+    
+    // Copy public link from kebab menu
+    document.querySelectorAll('.copy-public-link-menu').forEach(btn => {
+      btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const link = this.dataset.link;
+        
+        try {
+          await navigator.clipboard.writeText(link);
+          window.gryffi.toast.success(<%-safeJson(t('journeys.public.linkCopied'))%>);
+          
+          // Close the menu
+          const menu = this.closest('.kebab-menu-dropdown');
+          if (menu) {
+            menu.classList.remove('show');
+            menu.previousElementSibling?.classList.remove('active');
+          }
+        } catch (err) {
+          // Fallback for older browsers
+          const tempInput = document.createElement('input');
+          tempInput.value = link;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          window.gryffi.toast.success(<%-safeJson(t('journeys.public.linkCopied'))%>);
+        }
+      });
+    });
+
+    // Change journey status (publish, unpublish)
+    async function changeJourneyStatus(journeyId, journeyTitle, newStatus) {
+      const title = decodeHtmlEntities(String(journeyTitle));
+      
+      // Get confirmation messages based on status
+      let confirmTemplate;
+      if (newStatus === 'published') {
+        confirmTemplate = <%-safeJson(t('journeys.actions.confirmPublish'))%>;
+      } else {
+        confirmTemplate = <%-safeJson(t('journeys.actions.confirmUnpublish'))%>;
+      }
+      
+      const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
+      
+      // Publish/unpublish/archive are not destructive actions
+      if (!await window.gryffi.modal.confirm(confirmMessage, { danger: false })) {
+        return false;
+      }
+
+      try {
+        const response = await fetch(`/api/journeys/${journeyId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Show success message based on new status
+          let successMsg;
+          if (newStatus === 'published') {
+            successMsg = <%-safeJson(t('journeys.actions.publishedSuccess'))%>;
+          } else {
+            successMsg = <%-safeJson(t('journeys.actions.unpublishedSuccess'))%>;
+          }
+          window.gryffi.toast.success(successMsg);
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          // Handle specific error codes
+          if (data.code === 'NO_START_STEP') {
+            await window.gryffi.modal.alert(<%-safeJson(t('journeys.publish.noStartStep'))%>, { type: 'error' });
+          } else if (data.code === 'NO_END_STEP') {
+            await window.gryffi.modal.alert(<%-safeJson(t('journeys.publish.noEndStep'))%>, { type: 'error' });
+          } else {
+            await window.gryffi.modal.alert(data.error || <%-safeJson(t('journeys.actions.statusError'))%>, { type: 'error' });
+          }
+        }
+      } catch (err) {
+        console.error('Status change error:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.actions.statusError'))%>, { type: 'error' });
+      }
+      
+      return false;
+    }
+
+    // Delete journey (move to trash)
+    async function deleteJourney(journeyId, journeyTitle) {
+      const title = decodeHtmlEntities(String(journeyTitle));
+      
+      try {
+        // First get impact analysis
+        const impactResponse = await fetch(`/api/journeys/${journeyId}/impact`);
+        const impactData = await impactResponse.json();
+        
+        if (!impactData.success) {
+          await window.gryffi.modal.alert(impactData.error || <%-safeJson(t('journeys.delete.error'))%>, { type: 'error' });
+          return false;
+        }
+        
+        const impact = impactData.impact;
+        
+        // Check if journey is published - must unpublish first
+        if (impact.mustUnpublishFirst) {
+          showImpactModal({
+            title: <%-safeJson(t('journeys.delete.cannotDelete'))%>,
+            message: <%-safeJson(t('journeys.delete.mustUnpublishFirst'))%>,
+            journeyTitle: title,
+            showActions: false,
+            icon: 'warning'
+          });
+          return false;
+        }
+        
+        // Build impact message
+        let impactItems = [];
+        
+        if (impact.activeInvitations > 0) {
+          const invitationText = impact.activeInvitations === 1 
+            ? <%-safeJson(t('journeys.delete.activeInvitations_one'))%>: <%-safeJson(t('journeys.delete.activeInvitations_other'))%>;
+          impactItems.push(`• ${impact.activeInvitations} ${invitationText}`);
+        }
+        
+        if (impact.hasActiveRewards) {
+          const claimedText = impact.totalClaimedCodes === 1
+            ? <%-safeJson(t('journeys.delete.claimedCodes_one'))%>: <%-safeJson(t('journeys.delete.claimedCodes_other'))%>;
+          impactItems.push(`• ${impact.totalClaimedCodes} ${claimedText}`);
+          if (impact.totalUnclaimedCodes > 0) {
+            const unclaimedText = impact.totalUnclaimedCodes === 1
+              ? <%-safeJson(t('journeys.delete.unclaimedCodesWillBeCancelled_one'))%>: <%-safeJson(t('journeys.delete.unclaimedCodesWillBeCancelled_other'))%>;
+            impactItems.push(`• ${impact.totalUnclaimedCodes} ${unclaimedText}`);
+          }
+        }
+        
+        // Determine if we need to show modal
+        const hasImpact = impactItems.length > 0 || impact.hasActiveRewards || impact.hasPolls;
+        let archivePolls = false;
+        
+        // Show impact modal if there's any impact
+        if (hasImpact) {
+          const confirmMsgTemplate = <%-safeJson(t('journeys.delete.confirm'))%>;
+          const confirmMsg = confirmMsgTemplate.replace(/\{\{title\}\}/g, title);
+          const result = await showImpactModal({
+            title: <%-safeJson(t('journeys.delete.confirmTitle'))%>,
+            journeyTitle: title,
+            message: impactItems.length > 0 
+              ? <%-safeJson(t('journeys.delete.impactWarning'))%>: confirmMsg,
+            impactItems: impactItems,
+            rewards: impact.rewards.filter(r => r.claimedCount > 0),
+            polls: impact.polls,
+            totalPollResponses: impact.totalPollResponses,
+            hasPolls: impact.hasPolls,
+            showActions: true,
+            confirmText: <%-safeJson(t('journeys.delete.confirmButton'))%>,
+            cancelText: <%-safeJson(t('common.cancel'))%>,
+            icon: (impact.hasActiveRewards || impact.hasPolls) ? 'warning' : 'info'
+          });
+          
+          if (!result) return false;
+          archivePolls = result.archivePolls || false;
+        } else {
+          // Simple confirmation for journeys without impact
+          const confirmTemplate = <%-safeJson(t('journeys.delete.confirm'))%>;
+          const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
+          if (!await window.gryffi.modal.confirm(confirmMessage)) return false;
+        }
+        
+        // Proceed with deletion
+        const response = await fetch(`/api/journeys/${journeyId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            confirmRewardsArchive: true,
+            archivePolls: archivePolls
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          let message = <%-safeJson(t('journeys.delete.movedToTrash'))%>;
+          const archived = [];
+          if (data.archivedRewards > 0) {
+            const rewardsText = data.archivedRewards === 1
+              ? <%-safeJson(t('journeys.delete.rewardsArchived_one'))%>: <%-safeJson(t('journeys.delete.rewardsArchived_other'))%>;
+            archived.push(`${data.archivedRewards} ${rewardsText}`);
+          }
+          if (data.archivedPolls > 0) {
+            const pollsText = data.archivedPolls === 1
+              ? <%-safeJson(t('journeys.delete.pollsArchived_one'))%>: <%-safeJson(t('journeys.delete.pollsArchived_other'))%>;
+            archived.push(`${data.archivedPolls} ${pollsText}`);
+          }
+          if (archived.length > 0) {
+            message += ` (${archived.join(', ')})`;
+          }
+          window.gryffi.toast.success(message);
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          if (data.code === 'MUST_UNPUBLISH_FIRST') {
+            showImpactModal({
+              title: <%-safeJson(t('journeys.delete.cannotDelete'))%>,
+              message: data.error,
+              journeyTitle: title,
+              showActions: false,
+              icon: 'warning'
+            });
+          } else {
+            await window.gryffi.modal.alert(data.error || <%-safeJson(t('journeys.delete.error'))%>, { type: 'error' });
+          }
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.delete.error'))%>, { type: 'error' });
+      }
+      
+      return false;
+    }
+    
+    // Show impact modal for journey deletion
+    function showImpactModal(options) {
+      return new Promise((resolve) => {
+        // Remove existing modal if any
+        document.getElementById('impactModal')?.remove();
+        
+        const iconSvg = options.icon === 'warning' 
+          ? `<svg style="width: 24px; height: 24px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>`
+          : `<svg style="width: 24px; height: 24px; color: var(--gryffi-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>`;
+        
+        let rewardsHtml = '';
+        if (options.rewards && options.rewards.length > 0) {
+          rewardsHtml = `
+            <div style="margin-top: 12px;">
+              <p style="font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;"><%= t('journeys.delete.activeRewards') %>:</p>
+              ${options.rewards.map(r => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ecf2eb; border-radius: 8px; font-size: 14px; margin-bottom: 4px;">
+                  <span style="font-weight: 500; color: #374151;">${escapeHtml(r.title)}</span>
+                  <span style="color: #64748b;">${r.claimedCount} <%= t('journeys.delete.claimed') %></span>
+                </div>
+              `).join('')}
+              <p style="font-size: 12px; color: #64748b; margin-top: 8px;"><%= t('journeys.delete.rewardsWillBeArchivedNote') %></p>
+            </div>
+          `;
+        }
+        
+        // Polls section with archive choice
+        let pollsHtml = '';
+        if (options.hasPolls && options.polls && options.polls.length > 0) {
+          pollsHtml = `
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+              <p style="font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;"><%= t('journeys.delete.pollsFound') %>:</p>
+              ${options.polls.map(p => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 14px; margin-bottom: 4px;">
+                  <span style="color: #374151;">${escapeHtml(p.question || p.stepTitle)}</span>
+                  <span style="color: #64748b;">${p.responseCount} <%= t('journeys.delete.responses') %></span>
+                </div>
+              `).join('')}
+              
+              <div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                <p style="font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 8px;"><%= t('journeys.delete.pollDataQuestion') %></p>
+                <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin-bottom: 8px;">
+                  <input type="radio" name="pollChoice" value="archive" checked style="margin-top: 3px; accent-color: var(--gryffi-primary, #0b4b34);">
+                  <div>
+                    <span style="font-size: 13px; font-weight: 500; color: #374151;"><%= t('journeys.delete.archivePolls') %></span>
+                    <p style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= t('journeys.delete.archivePollsDesc') %></p>
+                  </div>
+                </label>
+                <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                  <input type="radio" name="pollChoice" value="delete" style="margin-top: 3px; accent-color: var(--gryffi-primary, #0b4b34);">
+                  <div>
+                    <span style="font-size: 13px; font-weight: 500; color: #374151;"><%= t('journeys.delete.deletePolls') %></span>
+                    <p style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= t('journeys.delete.deletePollsDesc') %></p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          `;
+        }
+        
+        const impactListHtml = options.impactItems && options.impactItems.length > 0
+          ? `<ul style="margin-top: 12px; list-style: none; padding: 0;">${options.impactItems.map(item => `<li style="font-size: 14px; color: #4b5563; margin-bottom: 4px;">${escapeHtml(item)}</li>`).join('')}</ul>`
+          : '';
+        
+        const actionsHtml = options.showActions
+          ? `<div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+              <button id="impactModalCancel" style="padding: 8px 16px; color: #64748b; background: transparent; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                ${options.cancelText || <%-safeJson(t('common.cancel'))%>}
+              </button>
+              <button id="impactModalConfirm" style="padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                ${options.confirmText || <%-safeJson(t('common.confirm'))%>}
+              </button>
+            </div>`
+          : `<div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+              <button id="impactModalClose" style="padding: 8px 16px; background: var(--gryffi-primary, #0b4b34); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                <%= t('common.ok') %>
+              </button>
+            </div>`;
+        
+        const modal = document.createElement('div');
+        modal.id = 'impactModal';
+        modal.style.cssText = 'position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);';
+        modal.innerHTML = `
+          <div style="background: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-width: 28rem; width: calc(100% - 32px); margin: 16px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+              <div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: ${options.icon === 'warning' ? '#fef3c7' : '#ecf2eb'}; display: flex; align-items: center; justify-content: center;">
+                ${iconSvg}
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <h3 style="font-size: 18px; font-weight: 600; color: #1f2937;">${options.title}</h3>
+                <p style="font-size: 14px; color: #4b5563; margin-top: 4px;">"${escapeHtml(options.journeyTitle)}"</p>
+                <p style="font-size: 14px; color: #4b5563; margin-top: 12px;">${escapeHtml(options.message)}</p>
+                ${impactListHtml}
+                ${rewardsHtml}
+                ${pollsHtml}
+              </div>
+            </div>
+            ${actionsHtml}
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Event handlers
+        document.getElementById('impactModalCancel')?.addEventListener('click', () => {
+          modal.remove();
+          resolve(false);
+        });
+        
+        document.getElementById('impactModalConfirm')?.addEventListener('click', () => {
+          // Get poll choice if polls exist
+          const pollChoice = modal.querySelector('input[name="pollChoice"]:checked')?.value;
+          modal.remove();
+          resolve({ 
+            confirmed: true, 
+            archivePolls: pollChoice === 'archive' 
+          });
+        });
+        
+        document.getElementById('impactModalClose')?.addEventListener('click', () => {
+          modal.remove();
+          resolve(false);
+        });
+        
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.remove();
+            resolve(false);
+          }
+        });
+      });
+    }
+
+    // Show limit exceeded modal with upgrade CTA
+    async function showLimitExceededModal(limitType) {
+      const resourceLabels = {
+        journeys: <%-safeJson(t('subscription.features.journeys'))%>,
+        guides: <%-safeJson(t('subscription.features.guides'))%>,
+        endUsers: <%-safeJson(t('subscription.features.endUsers'))%>,
+        makers: <%-safeJson(t('subscription.features.makers'))%>
+      };
+      
+      const resourceName = resourceLabels[limitType] || limitType;
+      const message = <%-safeJson(t('subscription.banner.limitReached'))%>.replace('{{resource}}', resourceName);
+      
+      const result = await window.gryffi.modal.confirm(
+        `<div style="text-align: center;">
+          <p style="margin: 0 0 16px; color: #4b5563;">${message}</p>
+          <p style="margin: 0; font-size: 13px; color: #6b7280;">${<%-safeJson(t('subscription.limits.wantMore'))%>}</p>
+        </div>`,
+        {
+          title: <%-safeJson(t('subscription.limits.limitReached'))%>,
+          type: 'warning',
+          danger: false,
+          okText: <%-safeJson(t('subscription.cta.upgradeNow'))%>,
+          cancelText: <%-safeJson(t('common.cancel'))%>
+        }
+      );
+      
+      if (result) {
+        window.location.href = '/dashboard/subscription';
+      }
+      
+      return result;
+    }
+
+    // Copy journey
+    async function renameJourney(journeyId, journeyTitle) {
+      const currentTitle = decodeHtmlEntities(String(journeyTitle));
+
+      const newTitleRaw = await window.gryffi.modal.prompt(
+        <%-safeJson(t('journeys.rename.message'))%>,
+        {
+          title: <%-safeJson(t('journeys.rename.title'))%>,
+          defaultValue: currentTitle,
+          placeholder: <%-safeJson(t('journeys.rename.placeholder'))%>
+        }
+      );
+
+      // User cancelled (null) or closed via Esc/backdrop
+      if (newTitleRaw === null || newTitleRaw === undefined) return false;
+
+      const newTitle = String(newTitleRaw).trim();
+
+      if (!newTitle) {
+        await window.gryffi.modal.alert(
+          <%-safeJson(t('journeys.rename.emptyError'))%>,
+          { type: 'error' }
+        );
+        return false;
+      }
+
+      // No-op if unchanged
+      if (newTitle === currentTitle) return false;
+
+      try {
+        const response = await fetch(`/api/journeys/${journeyId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.ok && data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('journeys.rename.success'))%>);
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          await window.gryffi.modal.alert(
+            data.error || <%-safeJson(t('journeys.rename.error'))%>,
+            { type: 'error' }
+          );
+        }
+      } catch (err) {
+        console.error('Rename error:', err);
+        await window.gryffi.modal.alert(
+          <%-safeJson(t('journeys.rename.error'))%>,
+          { type: 'error' }
+        );
+      }
+
+      return false;
+    }
+
+    async function copyJourney(journeyId, journeyTitle) {
+      const title = decodeHtmlEntities(String(journeyTitle));
+      const confirmTemplate = <%-safeJson(t('journeys.copy.confirm'))%>;
+      const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
+      
+      // Copy is a positive action
+      if (!await window.gryffi.modal.confirm(confirmMessage, { danger: false })) {
+        return false;
+      }
+
+      try {
+        const response = await fetch(`/api/journeys/${journeyId}/copy`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.ok && data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('journeys.copy.success'))%>);
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else if (data.code === 'LIMIT_EXCEEDED') {
+          await showLimitExceededModal(data.limitType || 'journeys');
+        } else {
+          await window.gryffi.modal.alert(data.error || <%-safeJson(t('journeys.copy.error'))%>, { type: 'error' });
+        }
+      } catch (err) {
+        console.error('Copy error:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.copy.error'))%>, { type: 'error' });
+      }
+      
+      return false;
+    }
+
+    // Show copy & translate modal
+    async function showCopyTranslateModal(journeyId, journeyTitle) {
+      const title = decodeHtmlEntities(String(journeyTitle));
+      
+      // Fetch supported languages
+      let languages = [];
+      try {
+        const langResponse = await fetch('/api/languages/supported');
+        const langData = await langResponse.json();
+        if (langData.success) {
+          languages = langData.languages;
+        }
+      } catch (err) {
+        console.error('Failed to fetch languages:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.copyTranslate.error'))%>, { type: 'error' });
+        return;
+      }
+      
+      // Create language options HTML
+      const languageOptionsHtml = languages.map(lang => 
+        `<option value="${lang.code}">${lang.name}</option>`
+      ).join('');
+      
+      const modalHtml = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5);" id="copyTranslateModal">
+          <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" style="animation: modalSlideIn 0.2s ease-out;">
+            <div class="p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(11, 75, 52, 0.1);">
+                  <svg class="w-6 h-6" style="color: var(--gryffi-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-zen-900"><%= t('journeys.copyTranslate.title') %></h3>
+                  <p class="text-sm text-zen-500">${escapeHtml(title)}</p>
+                </div>
+              </div>
+              
+              <!-- Form State -->
+              <div id="copyTranslateForm">
+                <div class="space-y-4">
+                  <div>
+                    <label for="targetLanguage" class="block text-sm font-medium text-zen-700 mb-1.5"><%= t('journeys.copyTranslate.selectLanguage') %></label>
+                    <select id="targetLanguage" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#1f2937;background:white;transition:border-color 0.15s,box-shadow 0.15s;box-sizing:border-box;appearance:auto;">
+                      ${languageOptionsHtml}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label for="newJourneyTitle" class="block text-sm font-medium text-zen-700 mb-1.5"><%= t('journeys.copyTranslate.newTitle') %></label>
+                    <div style="position:relative;">
+                      <input type="text" id="newJourneyTitle" value="${escapeHtml(title)}" style="width:100%;padding:10px 14px;padding-right:38px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#1f2937;background:white;transition:border-color 0.15s,box-shadow 0.15s;box-sizing:border-box;" placeholder="<%= t('journeys.copyTranslate.newTitle') %>">
+                      <div id="titleTranslateSpinner" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border:2px solid #e5e7eb;border-top-color:var(--gryffi-primary,#0b4b34);border-radius:50%;animation:ctSpin .6s linear infinite;"></div>
+                    </div>
+                    <p id="titleTranslateHint" style="display:none;margin-top:4px;font-size:12px;color:#6b7280;"><%= t('journeys.copyTranslate.autoTranslatedHint') %></p>
+                  </div>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                  <button type="button" id="copyTranslateCancel" class="flex-1 btn-secondary">
+                    <%= t('common.cancel') %>
+                  </button>
+                  <button type="button" id="copyTranslateConfirm" class="flex-1 btn-primary">
+                    <%= t('journeys.copyTranslate.translate') %>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Progress State (hidden initially) -->
+              <div id="copyTranslateProgress" style="display: none;">
+                <div class="mb-4">
+                  <div class="flex justify-between text-sm mb-2">
+                    <span id="progressStatus" class="text-zen-600"><%= t('journeys.copyTranslate.progress.starting') %></span>
+                    <span id="progressPercent" class="font-medium text-zen-900">0%</span>
+                  </div>
+                  <div class="w-full bg-zen-100 rounded-full h-2.5 overflow-hidden">
+                    <div id="progressBar" class="h-full rounded-full transition-all duration-300" style="width: 0%; background: var(--gryffi-primary, #0b4b34);"></div>
+                  </div>
+                </div>
+                <p class="text-sm text-zen-500 text-center"><%= t('journeys.copyTranslate.progress.doNotClose') %></p>
+              </div>
+              
+              <!-- Success State (hidden initially) -->
+              <div id="copyTranslateSuccess" style="display: none;">
+                <div class="text-center py-4">
+                  <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background: rgba(34, 197, 94, 0.1);">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <h4 class="text-lg font-semibold text-zen-900 mb-1"><%= t('journeys.copyTranslate.success') %></h4>
+                  <p class="text-sm text-zen-500"><%= t('journeys.copyTranslate.successDescription') %></p>
+                </div>
+                <button type="button" id="copyTranslateClose" class="w-full btn-primary mt-4">
+                  <%= t('common.close') %>
+                </button>
+              </div>
+              
+              <!-- Error State (hidden initially) -->
+              <div id="copyTranslateError" style="display: none;">
+                <div class="text-center py-4">
+                  <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background: rgba(239, 68, 68, 0.1);">
+                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </div>
+                  <h4 class="text-lg font-semibold text-zen-900 mb-1"><%= t('journeys.copyTranslate.error') %></h4>
+                  <p id="errorMessage" class="text-sm text-zen-500"></p>
+                </div>
+                <button type="button" id="copyTranslateRetry" class="w-full btn-primary mt-4">
+                  <%= t('common.tryAgain') %>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      const modal = document.getElementById('copyTranslateModal');
+      
+      const formState = document.getElementById('copyTranslateForm');
+      const progressState = document.getElementById('copyTranslateProgress');
+      const successState = document.getElementById('copyTranslateSuccess');
+      const errorState = document.getElementById('copyTranslateError');
+      
+      const progressBar = document.getElementById('progressBar');
+      const progressPercent = document.getElementById('progressPercent');
+      const progressStatus = document.getElementById('progressStatus');
+      
+      // Status messages
+      const statusMessages = {
+        starting: <%-safeJson(t('journeys.copyTranslate.progress.starting'))%>,
+        loading: <%-safeJson(t('journeys.copyTranslate.progress.loading'))%>,
+        translating: <%-safeJson(t('journeys.copyTranslate.progress.translating'))%>,
+        translating_guide: <%-safeJson(t('journeys.copyTranslate.progress.translatingGuide'))%>,
+        creating: <%-safeJson(t('journeys.copyTranslate.progress.creating'))%>,
+        creating_steps: <%-safeJson(t('journeys.copyTranslate.progress.creatingSteps'))%>,
+        creating_paths: <%-safeJson(t('journeys.copyTranslate.progress.creatingPaths'))%>,
+        finishing: <%-safeJson(t('journeys.copyTranslate.progress.finishing'))%>};
+      
+      // Handle cancel
+      document.getElementById('copyTranslateCancel').addEventListener('click', () => {
+        modal.remove();
+      });
+      
+      // Handle backdrop click (only when in form state)
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal && formState.style.display !== 'none') {
+          modal.remove();
+        }
+      });
+
+      // Auto-translate title when language changes
+      let translateAbort = null;
+      let userEditedTitle = false;
+      const titleInput = document.getElementById('newJourneyTitle');
+      const spinner = document.getElementById('titleTranslateSpinner');
+      const hint = document.getElementById('titleTranslateHint');
+
+      titleInput.addEventListener('input', () => { userEditedTitle = true; hint.style.display = 'none'; });
+
+      document.getElementById('targetLanguage').addEventListener('change', async () => {
+        if (userEditedTitle) return;
+        const targetLang = document.getElementById('targetLanguage').value;
+        if (translateAbort) translateAbort.abort();
+        translateAbort = new AbortController();
+        spinner.style.display = 'block';
+        hint.style.display = 'none';
+        try {
+          const resp = await fetch('/api/translate-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: title, targetLang }),
+            signal: translateAbort.signal
+          });
+          const data = await resp.json();
+          if (data.success && data.translated && !userEditedTitle) {
+            titleInput.value = data.translated;
+            hint.style.display = 'block';
+          }
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('[CopyTranslate] Title translate failed:', e);
+        } finally {
+          spinner.style.display = 'none';
+        }
+      });
+      
+      // Handle confirm/translate
+      document.getElementById('copyTranslateConfirm').addEventListener('click', async () => {
+        const targetLanguage = document.getElementById('targetLanguage').value;
+        const newTitle = document.getElementById('newJourneyTitle').value.trim();
+        
+        // Switch to progress state
+        formState.style.display = 'none';
+        progressState.style.display = 'block';
+        
+        let reader = null;
+        let isCompleted = false;
+        
+        try {
+          // Use fetch with streaming to get SSE updates
+          const response = await fetch(`/api/journeys/${journeyId}/copy-translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target_language: targetLanguage,
+              new_title: newTitle || null
+            })
+          });
+          
+          // Check for HTTP errors
+          if (!response.ok && !response.headers.get('content-type')?.includes('text/event-stream')) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+          
+          reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          
+          console.log('[CopyTranslate] Starting to read SSE stream');
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              console.log('[CopyTranslate] SSE stream finished');
+              break;
+            }
+            
+            const chunk = decoder.decode(value, { stream: true });
+            console.log('[CopyTranslate] Received chunk:', chunk);
+            buffer += chunk;
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            
+            console.log('[CopyTranslate] Processing', lines.length, 'lines');
+            
+            for (const line of lines) {
+              console.log('[CopyTranslate] Line:', line);
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  console.log('[CopyTranslate] Parsed data:', data);
+                  
+                  // Update progress
+                  if (data.progress !== undefined) {
+                    progressBar.style.width = data.progress + '%';
+                    progressPercent.textContent = data.progress + '%';
+                  }
+                  
+                  // Update status message
+                  if (data.status && statusMessages[data.status]) {
+                    progressStatus.textContent = statusMessages[data.status];
+                  }
+                  
+                  // Handle completion
+                  if (data.done) {
+                    isCompleted = true;
+                    progressState.style.display = 'none';
+                    successState.style.display = 'block';
+                    
+                    // Cancel reader first
+                    if (reader) {
+                      try { reader.cancel(); } catch (e) {}
+                      reader = null;
+                    }
+                    
+                    // Navigate after delay - Connection: close header should prevent HTTP/2 reuse
+                    setTimeout(() => {
+                      window.location.href = '/dashboard/journeys';
+                    }, 2000);
+                    return; // Exit the handler
+                  }
+                  
+                  // Handle error
+                  if (data.status === 'error') {
+                    if (reader) {
+                      try { reader.cancel(); } catch (e) {}
+                    }
+                    
+                    // Check for limit exceeded error
+                    if (data.code === 'LIMIT_EXCEEDED') {
+                      modal.remove();
+                      await showLimitExceededModal(data.limitType || 'journeys');
+                      return;
+                    }
+                    
+                    progressState.style.display = 'none';
+                    errorState.style.display = 'block';
+                    document.getElementById('errorMessage').textContent = data.error || <%-safeJson(t('journeys.copyTranslate.error'))%>;
+                    return; // Exit the handler
+                  }
+                } catch (parseError) {
+                  console.error('[CopyTranslate] Failed to parse SSE data:', parseError, 'Line:', line);
+                }
+              }
+            }
+          }
+          
+          // Stream ended without done signal - show success anyway if completed
+          if (!isCompleted) {
+            console.log('[CopyTranslate] Stream ended without explicit done, showing success');
+            progressState.style.display = 'none';
+            successState.style.display = 'block';
+            setTimeout(() => {
+              window.location.href = '/dashboard/journeys';
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Copy translate error:', err);
+          if (reader) {
+            try { reader.cancel(); } catch (e) {}
+          }
+          progressState.style.display = 'none';
+          errorState.style.display = 'block';
+          document.getElementById('errorMessage').textContent = <%-safeJson(t('journeys.copyTranslate.error'))%>;
+        }
+      });
+      
+      // Handle close (success state)
+      document.getElementById('copyTranslateClose').addEventListener('click', () => {
+        window.location.href = '/dashboard/journeys';
+      });
+      
+      // Handle retry (error state)
+      document.getElementById('copyTranslateRetry').addEventListener('click', () => {
+        errorState.style.display = 'none';
+        formState.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
+      });
+      
+      // Handle escape key (only when in form state)
+      const escHandler = (e) => {
+        if (e.key === 'Escape' && formState.style.display !== 'none') {
+          modal.remove();
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+    }
+
+    // Show convert to public modal with warning
+    async function showConvertToPublicModal(journeyId, journeyTitle) {
+      const title = decodeHtmlEntities(String(journeyTitle));
+      
+      // Create custom modal with warning and checkbox
+      const modalHtml = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5);" id="publicModal">
+          <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" style="animation: modalSlideIn 0.2s ease-out;">
+            <div class="p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(234, 179, 8, 0.1);">
+                  <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-zen-900"><%= t('journeys.public.modal.title') %></h3>
+                  <p class="text-sm text-zen-500">${escapeHtml(title)}</p>
+                </div>
+              </div>
+              
+              <div class="rounded-lg p-4 mb-4" style="background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2);">
+                <p class="text-sm font-medium text-yellow-800 mb-3"><%= t('journeys.public.modal.warning') %></p>
+                <ul class="space-y-2 text-sm text-yellow-700">
+                  <li class="flex items-start gap-2">
+                    <svg style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span><%= t('journeys.public.modal.warningItems.anyone') %></span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span><%= t('journeys.public.modal.warningItems.aiGuides') %></span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span><%= t('journeys.public.modal.warningItems.forms') %></span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span><%= t('journeys.public.modal.warningItems.rewards') %></span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span><%= t('journeys.public.modal.warningItems.polls') %></span>
+                  </li>
+                </ul>
+              </div>
+              
+              <label class="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-zen-200 hover:border-zen-300 transition-colors mb-4">
+                <input type="checkbox" id="publicConfirmCheckbox" class="mt-0.5 w-5 h-5 rounded border-zen-300 text-gryffi-primary focus:ring-gryffi-primary">
+                <span class="text-sm text-zen-700"><%= t('journeys.public.modal.checkbox') %></span>
+              </label>
+              
+              <div class="flex gap-3">
+                <button type="button" id="publicModalCancel" class="flex-1 btn-secondary">
+                  <%= t('journeys.public.modal.cancel') %>
+                </button>
+                <button type="button" id="publicModalConfirm" disabled class="flex-1 btn-primary" style="opacity: 0.5; cursor: not-allowed;">
+                  <%= t('journeys.public.modal.convert') %>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <style>
+          @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+          }
+        </style>
+      `;
+      
+      // Add modal to DOM
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      const modal = document.getElementById('publicModal');
+      const checkbox = document.getElementById('publicConfirmCheckbox');
+      const confirmBtn = document.getElementById('publicModalConfirm');
+      
+      // Enable/disable confirm button based on checkbox
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          confirmBtn.disabled = false;
+          confirmBtn.style.opacity = '1';
+          confirmBtn.style.cursor = 'pointer';
+        } else {
+          confirmBtn.disabled = true;
+          confirmBtn.style.opacity = '0.5';
+          confirmBtn.style.cursor = 'not-allowed';
+        }
+      });
+      
+      // Handle cancel
+      document.getElementById('publicModalCancel').addEventListener('click', () => {
+        modal.remove();
+      });
+      
+      // Handle backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+      
+      // Handle confirm
+      confirmBtn.addEventListener('click', async () => {
+        if (!checkbox.checked) return;
+        
+        modal.remove();
+        await convertToPublic(journeyId, journeyTitle);
+      });
+      
+      // Handle escape key
+      const escHandler = (e) => {
+        if (e.key === 'Escape') {
+          modal.remove();
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+    }
+
+    // Convert journey to public
+    async function convertToPublic(journeyId, journeyTitle) {
+      try {
+        const response = await fetch(`/api/journeys/${journeyId}/convert-public`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('journeys.public.convertedToPublic'))%>);
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          await window.gryffi.modal.alert(data.error || <%-safeJson(t('journeys.public.convertError'))%>, { type: 'error' });
+        }
+      } catch (err) {
+        console.error('Convert to public error:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.public.convertError'))%>, { type: 'error' });
+      }
+    }
+
+    // Convert journey to private
+    async function convertToPrivate(journeyId, journeyTitle) {
+      const title = decodeHtmlEntities(String(journeyTitle));
+      
+      if (!await window.gryffi.modal.confirm(`<%= t('journeys.public.convertToPrivate') %> "${title}"?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/journeys/${journeyId}/convert-private`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('journeys.public.convertedToPrivate'))%>);
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          await window.gryffi.modal.alert(data.error || <%-safeJson(t('journeys.public.convertError'))%>, { type: 'error' });
+        }
+      } catch (err) {
+        console.error('Convert to private error:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.public.convertError'))%>, { type: 'error' });
+      }
+    }
+
+    // Restore journey from trash
+    async function restoreJourney(journeyId, journeyTitle) {
+      // Decode HTML entities - getAttribute automatically decodes, but we need to handle numeric entities
+      const title = decodeHtmlEntities(String(journeyTitle));
+      // Get the translation string and replace the placeholder
+      const confirmTemplate = <%-safeJson(t('journeys.restore.confirm'))%>;
+      // Replace {{title}} with the decoded title
+      const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
+      
+      // Restore is a positive action
+      if (!await window.gryffi.modal.confirm(confirmMessage, { danger: false })) {
+        return false;
+      }
+
+      try {
+        const response = await fetch(`/api/journeys/${journeyId}/restore`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.ok && data.success) {
+          // Show success message
+          window.gryffi.toast.success(<%-safeJson(t('journeys.restore.success'))%>);
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else if (data.code === 'LIMIT_EXCEEDED') {
+          // Show special modal for limit exceeded
+          await showLimitExceededModal(data.limitType || 'journeys');
+        } else {
+          await window.gryffi.modal.alert(data.error || <%-safeJson(t('journeys.restore.error'))%>, { type: 'error' });
+        }
+      } catch (err) {
+        console.error('Restore error:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.restore.error'))%>, { type: 'error' });
+      }
+      
+      return false;
+    }
+
+    // Permanently delete journey
+    async function deleteJourneyPermanent(journeyId, journeyTitle) {
+      // Decode HTML entities - getAttribute automatically decodes, but we need to handle numeric entities
+      const title = decodeHtmlEntities(String(journeyTitle));
+      // Get the translation string and replace the placeholder
+      const confirmTemplate = <%-safeJson(t('journeys.delete.permanentConfirm'))%>;
+      // Replace {{title}} with the decoded title
+      const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
+      
+      if (!await window.gryffi.modal.confirm(confirmMessage)) {
+        return false;
+      }
+
+      try {
+        const response = await fetch(`/api/journeys/${journeyId}/permanent`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Show success message
+          window.gryffi.toast.success(<%-safeJson(t('journeys.delete.permanentSuccess'))%>);
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          await window.gryffi.modal.alert(data.error || <%-safeJson(t('journeys.delete.error'))%>, { type: 'error' });
+        }
+      } catch (err) {
+        console.error('Permanent delete error:', err);
+        await window.gryffi.modal.alert(<%-safeJson(t('journeys.delete.error'))%>, { type: 'error' });
+      }
+      
+      return false;
+    }
+  </script>
+
+  <%# Journey creation: choice modal + full wizard (non-viewer, no limit) %>
+  <% if (user && user.role !== 'viewer' && !(subscriptionUsage && subscriptionUsage.journeys && subscriptionUsage.journeys.isAtLimit)) { %>
+    <%- include('../partials/journey-create-choice-modal') %>
+    <%- include('../partials/journey-wizard-modal') %>
+    <script>
+      // Deep link from the dashboard tip: /dashboard/journeys?create=1 opens the create dialog
+      (function() {
+        if (new URLSearchParams(window.location.search).get('create') !== '1') return;
+        if (window.GryffiJourneyChoice && typeof window.GryffiJourneyChoice.open === 'function') {
+          window.GryffiJourneyChoice.open();
+        }
+        history.replaceState(null, '', window.location.pathname);
+      })();
+    </script>
+  <% } %>
+</body>
+</html>

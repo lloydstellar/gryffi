@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('team.inviteAccept.title') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .terms-label a {
+      color: var(--gryffi-primary, #0b4b34);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    .terms-label a:hover {
+      color: var(--gryffi-accent, #2d8b60);
+    }
+  </style>
+  <script src="/js/app.js"></script>
+</head>
+<body class="min-h-screen bg-gryffi-bg flex items-center justify-center p-4">
+  <!-- Background decoration -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-gryffi-accent/10 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-gryffi-primary/10 to-transparent rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="w-full max-w-md relative">
+    <!-- Logo and title -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center gap-3 mb-4">
+        <img src="/images/logos/Logo---illustration-only-cropped-transparant.png" alt="Gryffi" class="w-16 h-16">
+      </div>
+      <h1 class="text-3xl font-display font-bold text-gryffi-primary"><%= t('team.inviteAccept.title') %></h1>
+      <p class="text-zen-500 mt-2"><%= t('team.inviteAccept.subtitle') %></p>
+    </div>
+
+    <div class="glass-card-solid p-8">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert-error animate-fade-in mb-4">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <% if (invite) { %>
+        <div class="mb-5 p-4 rounded-lg bg-zen-50 border border-zen-100">
+          <div class="text-sm text-zen-600">
+            <div><strong><%= t('team.inviteAccept.company') %>:</strong> <%= invite.org_name %></div>
+            <div class="mt-1"><strong><%= t('team.inviteAccept.email') %>:</strong> <%= invite.email %></div>
+            <div class="mt-1"><strong><%= t('team.inviteAccept.role') %>:</strong>
+              <% if (invite.role === 'admin') { %><%= t('team.roles.admin.name') %><% } %>
+              <% if (invite.role === 'manager') { %><%= t('team.roles.manager.name') %><% } %>
+              <% if (invite.role === 'member') { %><%= t('team.roles.member.name') %><% } %>
+              <% if (invite.role === 'viewer') { %><%= t('team.roles.viewer.name') %><% } %>
+            </div>
+          </div>
+          <p class="text-xs text-zen-500 mt-3">
+            <% if (invite.role === 'admin') { %><%= t('team.roles.admin.description') %><% } %>
+            <% if (invite.role === 'manager') { %><%= t('team.roles.manager.description') %><% } %>
+            <% if (invite.role === 'member') { %><%= t('team.roles.member.description') %><% } %>
+            <% if (invite.role === 'viewer') { %><%= t('team.roles.viewer.description') %><% } %>
+          </p>
+        </div>
+      <% } %>
+
+      <form action="/invite" method="POST" class="space-y-5">
+        <input type="hidden" name="token" value="<%= token || '' %>">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="first_name" class="input-label"><%= t('team.inviteAccept.firstName') %></label>
+            <input id="first_name" name="first_name" class="input" autocomplete="given-name" required>
+          </div>
+          <div>
+            <label for="last_name" class="input-label"><%= t('team.inviteAccept.lastName') %></label>
+            <input id="last_name" name="last_name" class="input" autocomplete="family-name" required>
+          </div>
+        </div>
+
+        <div>
+          <label for="password" class="input-label"><%= t('team.inviteAccept.newPassword') %></label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="input"
+            autocomplete="new-password"
+            minlength="8"
+            required
+          >
+          <p class="text-xs text-zen-400 mt-2"><%= t('team.inviteAccept.passwordHint') %></p>
+        </div>
+
+        <div>
+          <label for="password_confirm" class="input-label"><%= t('team.inviteAccept.confirmPassword') %></label>
+          <input
+            type="password"
+            id="password_confirm"
+            name="password_confirm"
+            class="input"
+            autocomplete="new-password"
+            minlength="8"
+            required
+          >
+        </div>
+
+        <% if (!locals.isCommunity) { %>
+        <%# Terms and tips from Gryffi Cloud; a self-hosted installation has its own %>
+        <div class="flex items-start gap-3 pt-2">
+          <input
+            type="checkbox"
+            id="terms_agree"
+            name="terms_agree"
+            class="mt-1 w-4 h-4 shrink-0 text-gryffi-primary bg-white border-zen-300 rounded focus:ring-gryffi-primary focus:ring-2"
+            required
+          >
+          <label for="terms_agree" class="text-sm text-zen-600 terms-label">
+            <%- t('team.inviteAccept.termsAgree') %>
+          </label>
+        </div>
+
+        <div class="flex items-start gap-3 pt-1">
+          <input
+            type="checkbox"
+            id="marketing_consent"
+            name="marketing_consent"
+            class="mt-1 w-4 h-4 shrink-0 text-gryffi-primary bg-white border-zen-300 rounded focus:ring-gryffi-primary focus:ring-2"
+          >
+          <label for="marketing_consent" class="text-sm text-zen-500">
+            <%= t('auth.marketingConsent') %>
+          </label>
+        </div>
+        <% } %>
+
+        <button type="submit" class="btn-primary w-full py-3" <%= invite ? '' : 'disabled' %>>
+          <%= t('team.inviteAccept.acceptButton') %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-6 border-t border-zen-200">
+        <a href="/login" class="flex items-center justify-center gap-2 text-sm text-zen-500 hover:text-gryffi-primary transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          <%= t('auth.backToLogin') %>
+        </a>
+      </div>
+    </div>
+
+    <p class="text-center text-zen-400 text-sm mt-6">
+      Gryffi - <%= t('footer.tagline') %>
+    </p>
+  </div>
+
+  <script>
+    // Client-side password confirmation
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const password = document.getElementById('password').value;
+      const confirmPwd = document.getElementById('password_confirm').value;
+      if (password !== confirmPwd) {
+        e.preventDefault();
+        window.gryffi.modal.alert(<%-safeJson(t("team.inviteAccept.passwordsDoNotMatch"))%>, { type: 'error' });
+      }
+    });
+  </script>
+</body>
+</html>
+
+

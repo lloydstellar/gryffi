@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('settings.title') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .settings-section {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 24px;
+    }
+    .settings-section-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .settings-section-body {
+      padding: 24px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .settings-row-label {
+      flex: 1;
+    }
+    .settings-row-label h3 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 2px;
+    }
+    .settings-row-label p {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .language-select {
+      position: relative;
+      min-width: 200px;
+    }
+    .language-select-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 10px 14px;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .language-select-btn:hover {
+      border-color: #9ca3af;
+    }
+    .language-select-btn:focus {
+      outline: none;
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+    }
+    .language-select-btn .flag {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .language-select-btn .name {
+      flex: 1;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+    }
+    .language-select-btn .chevron {
+      width: 16px;
+      height: 16px;
+      color: #9ca3af;
+      transition: transform 0.2s;
+    }
+    .language-select.open .chevron {
+      transform: rotate(180deg);
+    }
+    .language-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+      z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: all 0.15s ease;
+    }
+    .language-select.open .language-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .language-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .language-option:first-child {
+      border-radius: 7px 7px 0 0;
+    }
+    .language-option:last-child {
+      border-radius: 0 0 7px 7px;
+    }
+    .language-option:hover {
+      background: #f9fafb;
+    }
+    .language-option.selected {
+      background: rgba(120, 197, 3, 0.08);
+    }
+    .language-option .flag {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .language-option .name {
+      flex: 1;
+      font-size: 14px;
+      color: #374151;
+    }
+    .language-option .check {
+      width: 16px;
+      height: 16px;
+      color: #78c503;
+    }
+    .settings-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .settings-note svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: #9ca3af;
+    }
+
+    .settings-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .settings-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .settings-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+      background: #fff;
+      transition: all 0.15s;
+    }
+    .settings-input:focus {
+      outline: none;
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+    }
+    .settings-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .settings-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: #0b4b34;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .settings-btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .settings-btn-primary:hover:not(:disabled) {
+      filter: brightness(1.02);
+    }
+    .settings-btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      cursor: pointer;
+    }
+    .toggle-switch input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      z-index: 2;
+      margin: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #d1ddd0;
+      transition: 0.3s;
+      border-radius: 26px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #0b4b34;
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+    }
+  </style>
+  <script src="/js/app.js"></script>
+</head>
+<body class="bg-gryffi-bg">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+  <%- include('../partials/support-modal') %>
+  
+  <main class="main-content">
+    <%- include('../partials/free-tier-banner') %>
+    <%- include('../partials/ai-credits-banner') %>
+    
+    <div class="page-header">
+      <h1 class="page-title"><%= t('settings.title') %></h1>
+      <p class="page-subtitle"><%= t('settings.subtitle') %></p>
+    </div>
+      
+    <!-- Settings Content -->
+    <div class="max-w-2xl">
+      <!-- Language Settings Section -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('settings.language.title') %></h2>
+        </div>
+        
+        <div class="settings-section-body">
+          <div class="settings-row">
+            <div class="settings-row-label">
+              <h3><%= t('settings.language.selectLanguage') %></h3>
+              <p><%= t('settings.language.description') %></p>
+            </div>
+            
+            <div class="language-select" id="languageSelect">
+              <button type="button" class="language-select-btn" id="languageSelectBtn">
+                <span class="flag">
+                  <% if (language === 'en') { %>🇬🇧<% } %>
+                  <% if (language === 'nl') { %>🇳🇱<% } %>
+                  <% if (language === 'de') { %>🇩🇪<% } %>
+                  <% if (language === 'fr') { %>🇫🇷<% } %>
+                  <% if (language === 'es') { %>🇪🇸<% } %>
+                </span>
+                <span class="name"><%= languageNames[language] %></span>
+                <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              <div class="language-dropdown">
+                <% languages.forEach(lang => { %>
+                  <div class="language-option <%= language === lang ? 'selected' : '' %>" data-lang="<%= lang %>">
+                    <span class="flag">
+                      <% if (lang === 'en') { %>🇬🇧<% } %>
+                      <% if (lang === 'nl') { %>🇳🇱<% } %>
+                      <% if (lang === 'de') { %>🇩🇪<% } %>
+                      <% if (lang === 'fr') { %>🇫🇷<% } %>
+                      <% if (lang === 'es') { %>🇪🇸<% } %>
+                    </span>
+                    <span class="name"><%= languageNames[lang] %></span>
+                    <% if (language === lang) { %>
+                      <svg class="check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    <% } %>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          </div>
+          
+          <div class="settings-note">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span><%= t('settings.language.note') %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Section -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('settings.profile.title') %></h2>
+        </div>
+        <div class="settings-section-body">
+          <div class="settings-row">
+            <div class="settings-row-label">
+              <h3><%= t('settings.profile.nameTitle') %></h3>
+              <p><%= t('settings.profile.description') %></p>
+            </div>
+          </div>
+
+          <form id="profileForm" class="mt-3">
+            <div class="settings-form-grid">
+              <div>
+                <label class="text-sm font-medium text-zen-700" for="firstName"><%= t('settings.profile.firstName') %></label>
+                <input class="settings-input mt-2" id="firstName" name="firstName" autocomplete="given-name" value="<%= user?.firstName || '' %>">
+              </div>
+              <div>
+                <label class="text-sm font-medium text-zen-700" for="lastName"><%= t('settings.profile.lastName') %></label>
+                <input class="settings-input mt-2" id="lastName" name="lastName" autocomplete="family-name" value="<%= user?.lastName || '' %>">
+              </div>
+            </div>
+            <div class="settings-actions">
+              <button type="submit" class="settings-btn-primary" id="saveProfileBtn"><%= t('common.save') %></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Security Section -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('settings.security.title') %></h2>
+        </div>
+        <div class="settings-section-body">
+          <div class="settings-row">
+            <div class="settings-row-label">
+              <h3><%= t('settings.security.changePasswordTitle') %></h3>
+              <p><%= t('settings.security.description') %></p>
+            </div>
+          </div>
+
+          <form id="passwordForm" class="mt-3">
+            <div class="mt-3">
+              <label class="text-sm font-medium text-zen-700" for="currentPassword"><%= t('settings.security.currentPassword') %></label>
+              <input class="settings-input mt-2" id="currentPassword" name="currentPassword" type="password" autocomplete="current-password">
+            </div>
+            <div class="settings-form-grid">
+              <div>
+                <label class="text-sm font-medium text-zen-700" for="newPassword"><%= t('settings.security.newPassword') %></label>
+                <input class="settings-input mt-2" id="newPassword" name="newPassword" type="password" autocomplete="new-password">
+              </div>
+              <div>
+                <label class="text-sm font-medium text-zen-700" for="confirmPassword"><%= t('settings.security.confirmPassword') %></label>
+                <input class="settings-input mt-2" id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password">
+              </div>
+            </div>
+            <div class="settings-actions">
+              <button type="submit" class="settings-btn-primary" id="savePasswordBtn"><%= t('settings.security.updatePassword') %></button>
+            </div>
+          </form>
+          
+          <!-- Two-Factor Authentication -->
+          <div class="settings-row mt-6" style="padding-top: 24px; border-top: 1px solid rgba(11, 75, 52, 0.1);">
+            <div class="settings-row-label">
+              <h3><%= t('settings.security.twoFactorTitle') %></h3>
+              <p><%= t('settings.security.twoFactorDescription') %></p>
+            </div>
+          </div>
+          
+          <div class="mt-3" style="display: flex; align-items: center; gap: 16px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="twoFactorToggle" <%= twoFactorEnabled ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" id="twoFactorLabel">
+              <%= twoFactorEnabled ? t('settings.security.twoFactorOn') : t('settings.security.twoFactorOff') %>
+            </span>
+          </div>
+          
+          <div class="two-factor-info mt-3" style="padding: 12px 16px; background: rgba(11, 75, 52, 0.04); border-radius: 8px; font-size: 13px; color: #374151;">
+            <svg style="width: 16px; height: 16px; vertical-align: middle; margin-right: 8px; stroke: #0b4b34;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <%= t('settings.security.twoFactorHint') %>
+          </div>
+        </div>
+      </div>
+      
+      <% if (!locals.isCommunity) { %>
+      <!-- Email Preferences Section (tips and news from Gryffi Cloud) -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('settings.emailPreferences.title') %></h2>
+        </div>
+        <div class="settings-section-body">
+          <div class="settings-row">
+            <div class="settings-row-label">
+              <h3><%= t('settings.emailPreferences.marketingTitle') %></h3>
+              <p><%= t('settings.emailPreferences.marketingDescription') %></p>
+            </div>
+          </div>
+          
+          <div class="mt-3" style="display: flex; align-items: center; gap: 16px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="marketingConsentToggle" <%= marketingConsent ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" id="marketingConsentLabel">
+              <%= marketingConsent ? t('settings.emailPreferences.marketingOn') : t('settings.emailPreferences.marketingOff') %>
+            </span>
+          </div>
+
+          <div class="settings-row mt-6">
+            <div class="settings-row-label">
+              <h3><%= t('settings.emailPreferences.lifecycleTitle') %></h3>
+              <p><%= t('settings.emailPreferences.lifecycleDescription') %></p>
+            </div>
+          </div>
+
+          <div class="mt-3" style="display: flex; align-items: center; gap: 16px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="lifecycleEmailsToggle" <%= lifecycleEmailsEnabled ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" id="lifecycleEmailsLabel">
+              <%= lifecycleEmailsEnabled ? t('settings.emailPreferences.lifecycleOn') : t('settings.emailPreferences.lifecycleOff') %>
+            </span>
+          </div>
+        </div>
+      </div>
+      <% } %>
+      
+      <!-- Support Section -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('support.title') %></h2>
+        </div>
+        <div class="settings-section-body">
+          <div class="settings-row">
+            <div class="settings-row-label">
+              <h3><%= t('support.settingsLink') %></h3>
+              <p><%= t('support.settingsDescription') %></p>
+            </div>
+            <button type="button" class="settings-btn-secondary" id="openSupportFromSettings" style="white-space: nowrap;">
+              <svg style="width: 16px; height: 16px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <%= t('support.settingsLink') %>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const languageSelect = document.getElementById('languageSelect');
+      const languageSelectBtn = document.getElementById('languageSelectBtn');
+      const languageOptions = document.querySelectorAll('.language-option');
+      
+      // Toggle dropdown
+      languageSelectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        languageSelect.classList.toggle('open');
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', () => {
+        languageSelect.classList.remove('open');
+      });
+      
+      // Prevent dropdown from closing when clicking inside
+      languageSelect.querySelector('.language-dropdown').addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      
+      // Handle language selection
+      languageOptions.forEach(option => {
+        option.addEventListener('click', async () => {
+          const lang = option.dataset.lang;
+          
+          // Close dropdown
+          languageSelect.classList.remove('open');
+          
+          // Show loading state
+          languageSelectBtn.style.opacity = '0.5';
+          languageSelectBtn.style.pointerEvents = 'none';
+          
+          try {
+            const res = await fetch('/api/language', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ language: lang })
+            });
+            
+            if (res.ok) {
+              // Reload page to apply new language
+              window.location.reload();
+            } else {
+              languageSelectBtn.style.opacity = '1';
+              languageSelectBtn.style.pointerEvents = 'auto';
+              console.error('Failed to change language');
+            }
+          } catch (err) {
+            languageSelectBtn.style.opacity = '1';
+            languageSelectBtn.style.pointerEvents = 'auto';
+            console.error('Failed to change language:', err);
+          }
+        });
+      });
+      
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          languageSelect.classList.remove('open');
+        }
+      });
+
+      // ===== Profile + Password Settings =====
+      const profileForm = document.getElementById('profileForm');
+      const saveProfileBtn = document.getElementById('saveProfileBtn');
+      profileForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const firstName = document.getElementById('firstName')?.value || '';
+        const lastName = document.getElementById('lastName')?.value || '';
+
+        saveProfileBtn.disabled = true;
+        try {
+          const res = await fetch('/api/me', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName, lastName })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) {
+            window.gryffi.toast.success(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+            return;
+          }
+          window.gryffi.toast.success(data.message || <%-safeJson(t("settings.messages.profileSaved"))%>);
+          // Keep sidebar name consistent without a reload
+          const userNameEl = document.querySelector('[data-user-fullname]');
+          if (userNameEl && data.user) {
+            const fullName = [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') || data.user.email;
+            userNameEl.textContent = fullName;
+          }
+        } catch (err) {
+          window.gryffi.toast.success(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+        } finally {
+          saveProfileBtn.disabled = false;
+        }
+      });
+
+      const passwordForm = document.getElementById('passwordForm');
+      const savePasswordBtn = document.getElementById('savePasswordBtn');
+      passwordForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = document.getElementById('currentPassword')?.value || '';
+        const newPassword = document.getElementById('newPassword')?.value || '';
+        const confirmPassword = document.getElementById('confirmPassword')?.value || '';
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          window.gryffi.toast.success(<%-safeJson(t("settings.messages.fillAllFields"))%>, true);
+          return;
+        }
+        if (newPassword.length < 8) {
+          window.gryffi.toast.success(<%-safeJson(t("settings.messages.passwordTooShort"))%>, true);
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          window.gryffi.toast.success(<%-safeJson(t("settings.messages.passwordsDoNotMatch"))%>, true);
+          return;
+        }
+
+        savePasswordBtn.disabled = true;
+        try {
+          const res = await fetch('/api/me/password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) {
+            window.gryffi.toast.success(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+            return;
+          }
+          window.gryffi.toast.success(data.message || <%-safeJson(t("settings.messages.passwordUpdated"))%>);
+          // Clear fields
+          document.getElementById('currentPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('confirmPassword').value = '';
+        } catch (err) {
+          window.gryffi.toast.success(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+        } finally {
+          savePasswordBtn.disabled = false;
+        }
+      });
+
+      // ===== Two-Factor Authentication Toggle =====
+      const twoFactorToggle = document.getElementById('twoFactorToggle');
+      const twoFactorLabel = document.getElementById('twoFactorLabel');
+      
+      const updateTwoFactorLabel = (enabled) => {
+        if (!twoFactorLabel) return;
+        twoFactorLabel.textContent = enabled
+          ? <%-safeJson(t("settings.security.twoFactorOn"))%>
+          : <%-safeJson(t("settings.security.twoFactorOff"))%>;
+      };
+      
+      const persistTwoFactorSetting = async (enabled) => {
+        if (!twoFactorToggle) return;
+        twoFactorToggle.disabled = true;
+        updateTwoFactorLabel(enabled);
+        
+        try {
+          const res = await fetch('/api/me/two-factor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled })
+          });
+          const data = await res.json().catch(() => ({}));
+          
+          if (!res.ok || !data.success) {
+            twoFactorToggle.checked = !enabled;
+            updateTwoFactorLabel(!enabled);
+            window.gryffi?.toast?.success?.(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+            return;
+          }
+          
+          window.gryffi?.toast?.success?.(data.message);
+        } catch (err) {
+          twoFactorToggle.checked = !enabled;
+          updateTwoFactorLabel(!enabled);
+          window.gryffi?.toast?.success?.(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+        } finally {
+          twoFactorToggle.disabled = false;
+        }
+      };
+      
+      // Sync label on load
+      if (twoFactorToggle) {
+        updateTwoFactorLabel(twoFactorToggle.checked);
+      }
+      
+      // Handle checkbox change (mouse + keyboard)
+      twoFactorToggle?.addEventListener('change', async () => {
+        persistTwoFactorSetting(twoFactorToggle.checked);
+      });
+      
+      // ===== Email preference toggles (marketing + getting-started help) =====
+      // Each toggle PATCHes its own endpoint with { enabled } and reverts on failure.
+      const bindEmailPreferenceToggle = ({ toggleId, labelId, endpoint, onText, offText }) => {
+        const toggle = document.getElementById(toggleId);
+        const label = document.getElementById(labelId);
+        if (!toggle) return;
+
+        const updateLabel = (enabled) => {
+          if (label) label.textContent = enabled ? onText : offText;
+        };
+
+        toggle.addEventListener('change', async () => {
+          const enabled = toggle.checked;
+          toggle.disabled = true;
+          updateLabel(enabled);
+
+          try {
+            const res = await fetch(endpoint, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ enabled })
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok || !data.success) {
+              toggle.checked = !enabled;
+              updateLabel(!enabled);
+              window.gryffi?.toast?.success?.(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+              return;
+            }
+
+            window.gryffi?.toast?.success?.(data.message);
+          } catch (err) {
+            toggle.checked = !enabled;
+            updateLabel(!enabled);
+            window.gryffi?.toast?.success?.(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+          } finally {
+            toggle.disabled = false;
+          }
+        });
+      };
+
+      bindEmailPreferenceToggle({
+        toggleId: 'marketingConsentToggle',
+        labelId: 'marketingConsentLabel',
+        endpoint: '/api/me/marketing-consent',
+        onText: <%-safeJson(t("settings.emailPreferences.marketingOn"))%>,
+        offText: <%-safeJson(t("settings.emailPreferences.marketingOff"))%>
+      });
+
+      bindEmailPreferenceToggle({
+        toggleId: 'lifecycleEmailsToggle',
+        labelId: 'lifecycleEmailsLabel',
+        endpoint: '/api/me/lifecycle-emails',
+        onText: <%-safeJson(t("settings.emailPreferences.lifecycleOn"))%>,
+        offText: <%-safeJson(t("settings.emailPreferences.lifecycleOff"))%>
+      });
+
+      // Support button - open support modal
+      const openSupportBtn = document.getElementById('openSupportFromSettings');
+      if (openSupportBtn) {
+        openSupportBtn.addEventListener('click', function() {
+          if (typeof window.openSupportModal === 'function') {
+            window.openSupportModal();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

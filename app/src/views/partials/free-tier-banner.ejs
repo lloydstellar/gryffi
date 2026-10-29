@@ -1,0 +1,98 @@
+<%# 
+  Free Tier Banner Partial
+  Shows a call-to-action banner for organizations on the free tier.
+  Requires: subscriptionTier variable to be passed from the route.
+%>
+<% if (typeof subscriptionTier !== 'undefined' && subscriptionTier && subscriptionTier.name === 'free') { %>
+<div class="free-tier-banner">
+  <div class="free-tier-banner-content">
+    <div class="free-tier-banner-icon">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+      </svg>
+    </div>
+    <div class="free-tier-banner-text">
+      <h3><%= t('subscription.banner.freeTitle') %></h3>
+      <p><%= t('subscription.banner.freeMessage') %></p>
+    </div>
+  </div>
+  <a href="/dashboard/subscription" class="free-tier-banner-cta">
+    <%= t('subscription.cta.viewPlans') %>
+  </a>
+</div>
+<style>
+  .free-tier-banner {
+    background: linear-gradient(135deg, rgba(120, 197, 3, 0.1), rgba(11, 75, 52, 0.05));
+    border: 1px solid rgba(120, 197, 3, 0.3);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .free-tier-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .free-tier-banner-icon {
+    width: 44px;
+    height: 44px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #78c503;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .free-tier-banner-text h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 2px 0;
+  }
+  
+  .free-tier-banner-text p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+  
+  .free-tier-banner-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: #0b4b34;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+  }
+  
+  .free-tier-banner-cta:hover {
+    background: #083d2a;
+  }
+  
+  @media (max-width: 640px) {
+    .free-tier-banner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .free-tier-banner-cta {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+<% } %>

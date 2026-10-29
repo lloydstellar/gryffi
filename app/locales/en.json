@@ -1,0 +1,4065 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "journeys": "Journeys",
+    "guides": "Guides",
+    "invitations": "Invitations",
+    "settings": "Settings",
+    "systemSettings": "System Settings",
+    "team": "Makers",
+    "analytics": "Analytics",
+    "signOut": "Sign out",
+    "comingSoon": "Coming Soon",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "languages": {
+    "en": "English",
+    "nl": "Dutch",
+    "de": "German",
+    "fr": "French",
+    "es": "Spanish"
+  },
+  "emailTemplate": {
+    "greeting": "Hello",
+    "partOfJourney": "Part of your journey",
+    "sentVia": "Sent via",
+    "poweredBy": "Powered by",
+    "interactiveJourneyBuilder": "Interactive Journey Builder",
+    "emailSentVia": "This email was sent via",
+    "partOf": "Part of",
+    "clickHere": "Click here"
+  },
+  "pages": {
+    "dashboard": "Dashboard",
+    "journeys": "Journeys",
+    "guides": "AI Guides",
+    "settings": "Settings",
+    "createJourney": "Create New Journey",
+    "editJourney": "Edit: {{title}}",
+    "error": "Error",
+    "notFound": "Not Found"
+  },
+  "emails": {
+    "teamInvite": {
+      "subject": "You're invited to join {{companyName}} on Gryffi",
+      "introWithInviter": "{{inviterName}} invited you to join {{companyName}}'s Journey Makers on Gryffi.",
+      "intro": "You have been invited to join {{companyName}}'s Journey Makers on Gryffi.",
+      "roleLine": "Role: {{roleName}}",
+      "instructions": "Click the button below to create your account and set a password. This invitation expires in {{expiresInDays}} days.",
+      "ignore": "If you weren't expecting this, you can safely ignore this email.",
+      "cta": "Accept invitation"
+    },
+    "passwordReset": {
+      "subject": "Reset your password for {{companyName}}",
+      "body": "Hi {{userName}},\n\nWe received a request to reset your password for {{companyName}}.\n\nClick the button below to set a new password.\n\nIf you didn't request this, you can safely ignore this email.",
+      "cta": "Reset password"
+    },
+    "organizationVerification": {
+      "subject": "Verify your email for {{companyName}}",
+      "intro": "Hi {{firstName}}, your Gryffi organization {{companyName}} is ready.",
+      "instructions": "Click the button below to verify your work email and finish setting up your organization.",
+      "readOnlyNote": "Until your email is verified, your account stays read-only.",
+      "reminder": "After verification you'll get admin access and can invite other makers.",
+      "cta": "Verify email"
+    }
+  },
+  "imagePicker": {
+    "title": "Choose Image",
+    "suggested": "Suggested",
+    "search": "Search",
+    "library": "Library",
+    "upload": "Upload",
+    "searchPlaceholder": "Search for images...",
+    "searchHint": "Search for images on Pexels",
+    "dropHere": "Drop image here or click to upload",
+    "fileTypes": "JPEG, PNG, GIF, WebP up to 10MB",
+    "uploading": "Uploading...",
+    "loading": "Loading...",
+    "pexelsCredit": "Photos provided by <a href=\"https://www.pexels.com\" target=\"_blank\" class=\"underline hover:text-zen-600\">Pexels</a>",
+    "noSuggestions": "No suggestions available. Try searching.",
+    "loadFailed": "Failed to load suggestions",
+    "noResults": "No images found for \"{{query}}\"",
+    "searchFailed": "Search failed",
+    "emptyLibrary": "No images in your library yet. Search Pexels or upload your own.",
+    "libraryFailed": "Failed to load library",
+    "noImages": "No images found",
+    "noLibraryImages": "No images in library",
+    "uploaded": "Uploaded",
+    "invalidType": "Invalid file type. Please upload JPEG, PNG, GIF, or WebP.",
+    "fileTooLarge": "File too large. Maximum size is 10MB.",
+    "uploadFailed": "Upload failed. Please try again.",
+    "downloadFailed": "Failed to download image. Please try again."
+  },
+  "cropper": {
+    "title": "Crop Avatar",
+    "subtitle": "Drag to reposition, scroll to zoom",
+    "cropAndSave": "Crop & Save",
+    "cancel": "Cancel",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "reset": "Reset"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "syncing": "Syncing...",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "settings": "Settings",
+    "language": "Language",
+    "user": "User",
+    "steps": "steps",
+    "sources": "sources",
+    "by": "by",
+    "unknown": "Unknown",
+    "updated": "Updated",
+    "actions": "Actions",
+    "change": "Change",
+    "remove": "Remove",
+    "add": "Add",
+    "title": "Title",
+    "continue": "Continue",
+    "more": "more",
+    "copyOf": "Copy of",
+    "comingSoon": "Coming Soon",
+    "viewAll": "View all",
+    "manage": "Manage",
+    "details": "Details",
+    "ok": "OK",
+    "understood": "I Understand",
+    "tryAgain": "Try Again",
+    "upload": "Upload",
+    "saved": "Saved"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signInToAccount": "Sign in to your account",
+    "email": "Email address",
+    "emailPlaceholder": "you@company.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "forgotPassword": "Forgot password?",
+    "welcomeToGryffi": "Welcome to Gryffi",
+    "tagline": "Transform information chaos into clarity",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link",
+    "backToLogin": "Back to login",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "passwordReset": "Password Reset",
+    "enterNewPassword": "Enter your new password below",
+    "termsAgree": "I agree to the <a href=\"https://gryffi.com/terms\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a> and <a href=\"https://gryffi.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a>.",
+    "marketingConsent": "I would like to receive product updates and tips by email. You can unsubscribe at any time.",
+    "signUp": "Create organization",
+    "signUpTitle": "Create your organization",
+    "signUpSubtitle": "Start a new Gryffi workspace",
+    "firstName": "First name",
+    "firstNamePlaceholder": "Jane",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Doe",
+    "workEmail": "Work email address",
+    "workEmailPlaceholder": "you@company.com",
+    "companyName": "Company name",
+    "companyNamePlaceholder": "Your company",
+    "companyNameHint": "This becomes the name shown across Gryffi.",
+    "defaultOrgLanguage": "Default organization language",
+    "defaultOrgLanguageHint": "You can change this later in System Settings.",
+    "country": "Country",
+    "countryPlaceholder": "Select your country",
+    "countryHint": "Used for pricing and subscription settings.",
+    "popularCountries": "Popular countries",
+    "allCountries": "All countries",
+    "signUpButton": "Create organization",
+    "createOrgLink": "Create a new organization",
+    "existingOrgHelp": "If your organization already exists, ask the colleague who created it to invite you.",
+    "signUpSuccess": "Thanks! We've sent a verification email. Verify your email to activate your organization and get admin access.",
+    "checkYourEmail": "Check your inbox",
+    "checkYourEmailHint": "Click the link in the verification email to activate your organization. The email may take a few minutes to arrive.",
+    "verifyEmailTitle": "Verify your email",
+    "verifyEmailSubtitle": "Finish setting up {{orgName}}",
+    "verifyEmailSubtitleGeneric": "Verify your account",
+    "verifyEmailButton": "Verify and set password",
+    "verifyEmailNote": "You'll get admin access after verification. Until then your account stays read-only.",
+    "verifyEmailSuccess": "Your email is verified. You can now sign in.",
+    "verifyEmailAlready": "This email is already verified. You can sign in.",
+    "errors": {
+      "missingFields": "Please fill in all required fields.",
+      "invalidEmail": "Please enter a valid work email address.",
+      "invalidLanguage": "Please choose a valid language.",
+      "invalidCountry": "Please select a valid country.",
+      "organizationExists": "This organization already exists. Ask the colleague who created it to invite you.",
+      "emailInUse": "This email is already in use. Ask your administrator to invite you.",
+      "signUpFailed": "Failed to create the organization. Please try again.",
+      "invalidVerificationLink": "This verification link is invalid or already used.",
+      "verificationExpired": "This verification link has expired. Please sign up again.",
+      "verificationFailed": "Verification failed. Please try again.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "enterEmailPassword": "Please enter your email and password.",
+      "invalidCredentials": "Invalid email or password.",
+      "accountDeactivated": "Your account has been deactivated. Please contact your administrator.",
+      "accountLocked": "Your account is temporarily locked. Please try again in {{minutes}} minutes.",
+      "tooManyAttempts": "Too many failed attempts. Please wait {{seconds}} seconds.",
+      "tooManyAttemptsCountdown": "Too many failed attempts. Please wait <span id=\"countdown\">{{seconds}}</span> seconds.",
+      "disposable": "Please use a permanent email address. Temporary or disposable email addresses are not allowed.",
+      "rate_limit": "Too many signups from this email domain. Please try again later.",
+      "termsRequired": "You must agree to the Terms of Service and Privacy Policy to sign up."
+    },
+    "loginVerification": {
+      "title": "Verify your login",
+      "subtitle": "Enter the code sent to your email",
+      "codeLabel": "Enter 4-digit code",
+      "sentTo": "Code sent to",
+      "submit": "Verify",
+      "verifying": "Verifying...",
+      "resend": "Resend code",
+      "noCode": "Didn't receive a code?",
+      "resent": "A new code has been sent to your email.",
+      "invalidCode": "Invalid code. Please try again.",
+      "codeExpired": "Code expired. Please request a new one.",
+      "backToLogin": "Back to login",
+      "explanation2fa": "You have two-factor authentication enabled. Enter the 4-digit code we sent to your email to complete your login.",
+      "explanationBruteForce": "For your security, we need to verify it's really you. Enter the 4-digit code we sent to your email.",
+      "explanationDefault": "Enter the 4-digit verification code we sent to your email.",
+      "reason2fa": "Two-factor authentication is enabled on your account.",
+      "reasonBruteForce": "Multiple failed login attempts were detected.",
+      "emailSubject": "Your Gryffi login verification code",
+      "emailBody": "Hi {{userName}},\n\nYour verification code is: {{code}}\n\nThis code expires in 10 minutes.\n\n{{reason}}\n\nIf you didn't try to sign in, please ignore this email or contact your administrator.",
+      "tooManyAttempts": "Too many attempts. Log in again to get a new code."
+    }
+  },
+  "dashboard": {
+    "welcomeBack": "Welcome back, {{name}}!",
+    "subtitle": "Here's what's happening with your journeys",
+    "totalJourneys": "Total Journeys",
+    "published": "Published",
+    "drafts": "Drafts",
+    "recentJourneys": "Recent Journeys",
+    "createJourney": "Create Journey",
+    "noJourneys": "No journeys yet",
+    "noJourneysYet": "No journeys yet",
+    "noJourneysDescription": "Create your first interactive journey to guide employees through onboarding, training, or any process.",
+    "createFirstJourney": "Create Your First Journey",
+    "quickActions": "Quick Actions",
+    "invitationOverview": "Invitations Overview",
+    "completionRate": "Completion Rate",
+    "journeyCompletionRate": "Journey completion rate",
+    "stats": {
+      "journeys": "Journeys",
+      "published": "Published",
+      "endUsers": "End Users",
+      "guides": "AI Guides",
+      "publicJourneys": "Public",
+      "privateJourneys": "Private"
+    },
+    "actions": {
+      "newJourney": "New Journey",
+      "sendInvitation": "Send Invitation",
+      "addEndUser": "Add End User"
+    },
+    "invitations": {
+      "pending": "Pending",
+      "active": "Active",
+      "completed": "Completed",
+      "expired": "Expired"
+    },
+    "rewards": {
+      "title": "Rewards",
+      "active": "Active",
+      "claimed": "Claimed",
+      "remaining": "Remaining",
+      "lowStock": "{{count}} codes remaining",
+      "noActiveRewards": "No active rewards",
+      "archivedCount": "{{count}} archived ({{claimed}} claimed)"
+    },
+    "alerts": {
+      "expiringInvitations_one": "{{count}} invitation expiring in the next 3 days",
+      "expiringInvitations_other": "{{count}} invitations expiring in the next 3 days",
+      "newFormResponses_one": "{{count}} new form response this week",
+      "newFormResponses_other": "{{count}} new form responses this week",
+      "staleDrafts_one": "{{count}} draft journey hasn't been updated in over a week",
+      "staleDrafts_other": "{{count}} draft journeys haven't been updated in over a week"
+    },
+    "team": {
+      "title": "Makers",
+      "activeMembers": "Active",
+      "pendingInvites": "Pending"
+    },
+    "systemStatus": {
+      "title": "System Status",
+      "connected": "Connected",
+      "notConnected": "Not connected",
+      "active": "Active",
+      "notConfigured": "Not configured"
+    },
+    "usage": {
+      "title": "Usage",
+      "journeys": "Journeys",
+      "endUsers": "End Users",
+      "guides": "AI Guides",
+      "makers": "Makers",
+      "aiCredits": "AI Credits",
+      "currentPlan": "Current plan"
+    },
+    "guides": {
+      "title": "AI Guides",
+      "chunks": "chunks",
+      "notUsed": "Not used in any journey"
+    },
+    "forms": {
+      "title": "Form Submissions",
+      "thisWeek": "This week",
+      "withFile": "With file",
+      "total": "Total",
+      "untitledForm": "Untitled form",
+      "hasAttachment": "Includes uploaded file(s)",
+      "noSubmissions": "No form submissions yet"
+    },
+    "tips": {
+      "label": "Tip",
+      "dismiss": "Don't show this tip again",
+      "items": {
+        "first_journey": {
+          "title": "Create your first journey",
+          "body": "A journey is a series of short steps that your employees follow. Start with the wizard: upload a document and Gryffi builds a first version for you.",
+          "action": "Create a journey"
+        },
+        "add_end_users": {
+          "title": "Add the people who will follow your journeys",
+          "body": "Makers build journeys. End users follow them. End users are not makers, so you add them separately: by hand or with a CSV file. You find them under System settings, tab Users.",
+          "action": "Add end users"
+        },
+        "add_end_users_sync": {
+          "title": "Add the people who will follow your journeys",
+          "body": "Makers build journeys. End users follow them. End users are not makers, so you add them separately. Connect Microsoft 365 or Google Workspace to add them automatically, or add them by hand or with a CSV file.",
+          "action": "Add end users"
+        },
+        "invite": {
+          "title": "Invite people to \"{{journey_title}}\"",
+          "body": "Your journey is published, but nobody has been invited yet. Send an invitation. Each person receives an email with a personal link. No password is needed.",
+          "action": "Send invitations"
+        },
+        "add_guide": {
+          "title": "Add an AI Guide to your journey",
+          "body": "An AI Guide answers questions from your participants, based on documents you upload. Create a Guide first. Then add it to a journey as a Guide step.",
+          "action": "Create an AI Guide"
+        },
+        "fill_knowledge": {
+          "title": "Give \"{{guide_name}}\" something to work with",
+          "body": "Your AI Guide has no knowledge yet, so it cannot answer questions. Upload a document, such as a PDF or Word file, to fill its knowledge base.",
+          "action": "Upload documents"
+        },
+        "first_completion": {
+          "title": "Someone completed a journey for the first time",
+          "body": "Your analytics now show real results: where people stop, how long steps take and how quizzes went. Use this to improve your journey.",
+          "action": "View analytics"
+        },
+        "create_groups": {
+          "title": "Organize your end users in groups",
+          "body": "You have quite a few end users now. Put them in groups, for example by team or location. Then you can invite a whole group at once and compare groups in analytics.",
+          "action": "Create a group"
+        },
+        "add_interaction": {
+          "title": "Make \"{{journey_title}}\" interactive",
+          "body": "This journey only shows information. Add a Quiz, Poll or Form step. Short questions keep attention and show you what people have learned.",
+          "action": "Open the builder"
+        }
+      }
+    }
+  },
+  "journeys": {
+    "title": "Journeys",
+    "subtitle": "Create and manage interactive journeys for your organization",
+    "createJourney": "Create Journey",
+    "noJourneys": "No journeys yet",
+    "noJourneysDescription": "Get started by creating your first interactive journey.",
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "delete": {
+      "title": "Delete Journey",
+      "confirm": "Are you sure you want to move \"{{title}}\" to trash? You can restore it later from the trash.",
+      "confirmTitle": "Delete Journey",
+      "movedToTrash": "Journey moved to trash",
+      "permanentConfirm": "Are you sure you want to permanently delete \"{{title}}\"? This action cannot be undone.",
+      "permanentSuccess": "Journey permanently deleted",
+      "error": "Failed to delete journey",
+      "noPermission": "You don't have permission to delete journeys",
+      "cannotDelete": "Cannot Delete Journey",
+      "mustUnpublishFirst": "This journey is published. Please unpublish it first before moving to trash.",
+      "impactWarning": "This action will have the following impact:",
+      "activeInvitations_one": "active invitation will be cancelled",
+      "activeInvitations_other": "active invitations will be cancelled",
+      "claimedCodes_one": "reward code has been claimed",
+      "claimedCodes_other": "reward codes have been claimed",
+      "unclaimedCodesWillBeCancelled_one": "unclaimed code will be cancelled",
+      "unclaimedCodesWillBeCancelled_other": "unclaimed codes will be cancelled",
+      "activeRewards": "Active Rewards",
+      "claimed": "claimed",
+      "rewardsWillBeArchived": "Rewards with claimed codes will be archived. They will remain visible in Analytics.",
+      "rewardsWillBeArchivedNote": "These rewards will be archived. Claimed codes remain valid and visible in Analytics.",
+      "rewardsArchived_one": "reward archived",
+      "rewardsArchived_other": "rewards archived",
+      "confirmButton": "Move to Trash",
+      "pollsFound": "Poll results found",
+      "responses": "responses",
+      "pollDataQuestion": "What do you want to do with the poll data?",
+      "archivePolls": "Archive poll results",
+      "archivePollsDesc": "Poll results will remain visible in Analytics",
+      "deletePolls": "Delete poll results permanently",
+      "deletePollsDesc": "Poll results will be permanently deleted",
+      "pollsArchived_one": "poll archived",
+      "pollsArchived_other": "polls archived"
+    },
+    "restore": {
+      "confirm": "Restore \"{{title}}\" back to journeys?",
+      "success": "Journey restored successfully",
+      "error": "Failed to restore journey",
+      "limitExceeded": "Cannot restore journey: you've reached your journey limit. Upgrade your plan or delete an active journey first."
+    },
+    "copy": {
+      "title": "Copy Journey",
+      "confirm": "Create a copy of \"{{title}}\"?",
+      "success": "Journey copied successfully",
+      "error": "Failed to copy journey",
+      "noPermission": "You don't have permission to copy journeys"
+    },
+    "copyTranslate": {
+      "menuItem": "Copy to another language",
+      "title": "Copy & Translate Journey",
+      "selectLanguage": "Target language",
+      "newTitle": "Title of the translated copy",
+      "translate": "Create translated copy",
+      "progress": {
+        "starting": "Starting translation...",
+        "loading": "Loading journey content...",
+        "translating": "Translating content...",
+        "creating": "Creating translated journey...",
+        "translatingGuide": "Translating AI Guide greeting...",
+        "creatingSteps": "Creating steps...",
+        "creatingPaths": "Creating paths...",
+        "finishing": "Finishing up...",
+        "doNotClose": "Please do not close this window during translation"
+      },
+      "success": "Translated copy created successfully",
+      "successDescription": "Your translated journey has been created and is ready to edit.",
+      "error": "Failed to create translated copy",
+      "translationServiceUnavailable": "Translation service is temporarily unavailable. Please try again in a few minutes.",
+      "translationAuthError": "Translation service authentication failed. Please contact support.",
+      "translationRateLimit": "Translation rate limit reached. Please wait a moment and try again.",
+      "translationFailed": "Translation failed. The translation service may be experiencing issues. Please try again later.",
+      "invalidLanguage": "Please select a valid target language",
+      "noContent": "This journey has no translatable content",
+      "autoTranslatedHint": "Auto-translated — feel free to edit"
+    },
+    "trash": {
+      "title": "Trash",
+      "subtitle": "Deleted journeys can be restored or permanently deleted",
+      "viewTrash": "View Trash",
+      "backToJourneys": "Back to Journeys",
+      "deleted": "Deleted",
+      "restore": "Restore",
+      "deletePermanent": "Delete Permanently",
+      "empty": "Trash is empty",
+      "emptyDescription": "Deleted journeys will appear here",
+      "cannotEdit": "Journey in Trash",
+      "cannotEditMessage": "This journey is in the trash and cannot be edited. Restore it first to make changes.",
+      "permanentDeleteOn": "Permanently deleted on",
+      "noAutoDelete": "No automatic deletion"
+    },
+    "publish": {
+      "noStartStep": "Cannot publish: Please set a Start Step in the journey. Open the builder and mark a step as the starting point.",
+      "noEndStep": "Cannot publish: Please set at least one End Step in the journey. Open the builder and mark a step as the end point."
+    },
+    "actions": {
+      "preview": "Preview",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "archive": "Archive",
+      "copy": "Copy",
+      "rename": "Rename",
+      "delete": "Move to Trash",
+      "confirmPublish": "Publish \"{{title}}\"? It will become visible to end users.",
+      "confirmUnpublish": "Unpublish \"{{title}}\"? It will no longer be visible to end users.",
+      "cannotUnpublishNested": "Cannot unpublish: This journey is used as a sub-journey in \"{{journeyTitle}}\". Remove it from that journey first.",
+      "cannotUnpublishNestedMultiple": "Cannot unpublish: This journey is used as a sub-journey in {{count}} other journeys. Remove it from those journeys first.",
+      "cannotDeleteNested": "Cannot move to trash: This journey is used as a sub-journey in \"{{journeyTitle}}\". Remove it from that journey first.",
+      "cannotDeleteNestedMultiple": "Cannot move to trash: This journey is used as a sub-journey in {{count}} other journeys. Remove it from those journeys first.",
+      "cannotChangeVisibilityNested": "Cannot make private: This journey is used as a sub-journey in the public journey \"{{journeyTitle}}\". Remove it from that journey first, or make that journey private.",
+      "cannotChangeVisibilityNestedMultiple": "Cannot make private: This journey is used as a sub-journey in {{count}} public journeys. Remove it from those journeys first, or make those journeys private.",
+      "cannotAddPrivateSubjourney": "Cannot add this sub-journey: Public journeys can only use sub-journeys that are also public and published.",
+      "cannotMakePublicWithPrivateSubjourneys": "Cannot make public: This journey uses private sub-journeys. Make those sub-journeys public first, or remove them.",
+      "confirmArchive": "Archive \"{{title}}\"? It will be hidden from the main list.",
+      "publishedSuccess": "Journey published successfully",
+      "unpublishedSuccess": "Journey unpublished",
+      "archivedSuccess": "Journey archived",
+      "statusError": "Failed to update journey status"
+    },
+    "rename": {
+      "title": "Rename journey",
+      "message": "Choose a new name for this journey.",
+      "placeholder": "Enter a new name",
+      "success": "Journey renamed",
+      "error": "Failed to rename journey",
+      "emptyError": "The name cannot be empty"
+    },
+    "new": {
+      "title": "Create New Journey",
+      "journeyTitle": "Journey Title",
+      "titlePlaceholder": "e.g., Employee Onboarding",
+      "description": "Description",
+      "descriptionPlaceholder": "Briefly describe what this journey is about",
+      "category": "Category",
+      "categoryPlaceholder": "e.g., Onboarding, Training",
+      "createButton": "Create Journey",
+      "creating": "Creating...",
+      "categories": {
+        "onboarding": "Onboarding",
+        "training": "Training",
+        "compliance": "Compliance",
+        "process": "Process Guide",
+        "support": "Support Playbook",
+        "general": "General"
+      }
+    },
+    "wizard": {
+      "choice": {
+        "modalTitle": "Create a new journey",
+        "modalSubtitle": "How would you like to start?",
+        "blankCard": {
+          "title": "Start with a blank canvas",
+          "description": "Build your journey step by step yourself, exactly the way you want it."
+        },
+        "wizardCard": {
+          "title": "Start with the Wizard",
+          "description": "Answer a few questions and Gryffi prepares a first draft for you."
+        }
+      },
+      "modal": {
+        "title": "Journey Wizard",
+        "subtitle": "Answer a few simple questions",
+        "stepCounter": "Step {{current}} of {{total}}",
+        "backButton": "Back",
+        "nextButton": "Next",
+        "generateButton": "Build my journey",
+        "cancelButton": "Cancel",
+        "closeConfirm": "Close the wizard? Your answers so far will be lost.",
+        "reminderFooter": "Gryffi prepares a starting point. You still fine-tune texts, images and order in the builder."
+      },
+      "resume": {
+        "title": "Continue where you left off?",
+        "description": "We saved your earlier answers. Would you like to continue, or start fresh?",
+        "continueButton": "Continue",
+        "startFreshButton": "Start fresh"
+      },
+      "steps": {
+        "source": {
+          "question": "Do you have a document, or do you want to start from scratch?",
+          "uploadCard": {
+            "title": "I have a document",
+            "description": "For example a PDF of a procedure, a handbook or a PowerPoint. Gryffi reads it and turns it into steps."
+          },
+          "describeCard": {
+            "title": "I describe it briefly myself",
+            "description": "No document needed. Tell us in a few sentences what your journey should cover."
+          },
+          "uploadButton": "Choose a file",
+          "uploadChangeButton": "Choose a different file",
+          "uploadAccept": "PDF, Word, PowerPoint, Excel, text or image — up to 50 MB and 60 pages",
+          "uploading": "Reading your document...",
+          "uploadSuccess": "Document ready",
+          "uploadPageHint": "We only use the first 60 pages."
+        },
+        "topic": {
+          "question": "What should your journey be about?",
+          "placeholder": "For example: How we onboard new warehouse employees, including a safety briefing and a short tour of the floor.",
+          "hint": "A few sentences is enough. The more specific, the better the result.",
+          "minLengthError": "Please describe your topic in at least 30 characters."
+        },
+        "purpose": {
+          "question": "What will this journey be used for?",
+          "options": {
+            "onboarding": {
+              "label": "Onboarding new employees",
+              "description": "Welcome, team info, first-week to-do's."
+            },
+            "compliance": {
+              "label": "Compliance or safety training",
+              "description": "Rules, protocols and a knowledge check."
+            },
+            "product": {
+              "label": "Product or procedure training",
+              "description": "Explain how a product or process works."
+            },
+            "tour": {
+              "label": "Tour or location introduction",
+              "description": "Show a workspace, office or facility."
+            },
+            "knowledge": {
+              "label": "Knowledge sharing",
+              "description": "Share internal know-how or customer information."
+            },
+            "guest": {
+              "label": "Welcoming guests or visitors",
+              "description": "Hotel guests, campsite visitors, event attendees or other people you host on location."
+            }
+          }
+        },
+        "audience": {
+          "question": "Who is this journey for?",
+          "inlineLabel": "Who is this journey for? (optional)",
+          "placeholder": "For example: new warehouse employees, customers of our SaaS, interns in hospitality...",
+          "hint": "Optional. Helps Gryffi match the tone of voice to your audience."
+        },
+        "components": {
+          "question": "What goes in your journey?",
+          "explanation": "Pick the building blocks you'd like Gryffi to include. Reading sections are always added — these are extras on top.",
+          "options": {
+            "video": {
+              "label": "Video",
+              "description": "Add a content step that embeds a video. We drop in a placeholder you can replace with your own."
+            },
+            "image": {
+              "label": "Image",
+              "description": "Add a content step with an image. We use a free \"Coming soon\" placeholder you can swap out."
+            },
+            "quiz": {
+              "label": "Knowledge check",
+              "description": "A quick multiple-choice question so users can test what they learned."
+            },
+            "poll": {
+              "label": "Poll",
+              "description": "A short, friendly opinion question — no right or wrong answer."
+            },
+            "form": {
+              "label": "Form",
+              "description": "A small form to collect a name, email or short answer from your users."
+            },
+            "guide": {
+              "label": "AI Guide",
+              "description": "A chat panel where users can ask questions, powered by Gryffi's AI."
+            },
+            "space": {
+              "label": "Location step",
+              "description": "Introduce a place, room or venue with a short description and an image."
+            },
+            "reward": {
+              "label": "Reward",
+              "description": "A nice closing gift — a voucher, certificate or thank-you note."
+            },
+            "branching": {
+              "label": "Choice moment",
+              "description": "A question with two paths so different users can take different routes."
+            }
+          },
+          "hint": "Don't worry — you can add or remove these later in the builder."
+        },
+        "guide": {
+          "question": "Would you like an AI Guide in your journey?",
+          "explanation": "An AI Guide is a chat panel inside your journey where users can ask questions. You can build one from your document, or use one you already have.",
+          "options": {
+            "existing": {
+              "label": "Use one of my existing AI Guides",
+              "description": "Pick a Guide you already set up."
+            },
+            "newWithKb": {
+              "label": "Create a new AI Guide from my document",
+              "description": "Gryffi builds a fresh Guide using your uploaded document as its starting knowledge."
+            },
+            "newNoKb": {
+              "label": "Create a new AI Guide — I'll add knowledge later",
+              "description": "We add an empty Guide. You can feed it documents afterwards."
+            },
+            "none": {
+              "label": "No AI Guide",
+              "description": "You can always add one later in the builder."
+            }
+          },
+          "selectExistingLabel": "Which AI Guide should we use?",
+          "selectExistingPlaceholder": "Select a Guide...",
+          "noExistingGuidesHint": "You don't have any AI Guides yet.",
+          "nameLabel": "What should your new AI Guide be called?",
+          "namePlaceholder": "For example: Gryffi Assistant",
+          "kbDisabledHint": "Only available when you upload a document on the first step.",
+          "guidesLimitReached": "You have reached your AI Guide limit on your current plan.",
+          "upgradeLink": "See plans"
+        },
+        "length": {
+          "question": "How long should your journey feel?",
+          "explanation": "Drag the slider to give Gryffi a feel for the length. Gryffi will pick the right number of steps based on this and how much there is to cover in your material.",
+          "ticks": {
+            "veryShort": "Very compact",
+            "short": "Compact",
+            "medium": "Balanced",
+            "long": "Extensive",
+            "veryLong": "Very extensive"
+          },
+          "hint": "You can always add or remove steps later in the builder."
+        },
+        "branching": {
+          "question": "May Gryffi add a choice moment?",
+          "explanation": "A choice moment is a question with two paths. Each path can lead to different next steps. Paths are always clearly named so users know what they pick.",
+          "options": {
+            "yes": {
+              "label": "Yes, add a choice moment",
+              "description": "Makes your journey feel more interactive."
+            },
+            "no": {
+              "label": "No, keep it linear",
+              "description": "A straight path from start to finish."
+            }
+          },
+          "complexity": {
+            "label": "How adventurous may the routes be?",
+            "ticks": {
+              "subtle": "Subtle",
+              "variation": "Variation",
+              "routes": "Separate routes",
+              "adventure": "Adventure",
+              "open": "Open ending"
+            },
+            "descriptions": {
+              "subtle": "One choice moment, paths merge again right away. Just a small accent.",
+              "variation": "One choice moment, each path gets a step or two of its own before merging.",
+              "routes": "One choice moment with genuinely different routes a few steps long. Routes merge at the end.",
+              "adventure": "Two choice moments spread through the journey. Routes stay largely separate.",
+              "open": "Several choice moments. Routes don't have to merge — different endings are fine."
+            }
+          }
+        },
+        "reward": {
+          "question": "Would you like to end with a reward?",
+          "explanation": "A reward is a nice closing gift for users who finish the journey.",
+          "options": {
+            "voucher": {
+              "label": "A voucher or discount code",
+              "description": "You'll be able to add the code in the builder."
+            },
+            "certificate": {
+              "label": "A completion certificate",
+              "description": "A digital pat on the back for finishing."
+            },
+            "thankyou": {
+              "label": "A simple thank-you message",
+              "description": "A warm closing note after the journey."
+            },
+            "later": {
+              "label": "Add a reward step — I'll fill it in later",
+              "description": "We insert an empty Reward step you can customise afterwards."
+            },
+            "none": {
+              "label": "No reward",
+              "description": "End the journey with a simple closing step."
+            }
+          },
+          "detailsLabel": "Anything to add about the reward? (optional)",
+          "detailsPlaceholder": "For example: a 10% discount for our own webshop"
+        },
+        "language": {
+          "question": "In which language should the journey be written?",
+          "hint": "You can always translate later with Copy & Translate."
+        },
+        "title": {
+          "question": "Give your journey a name",
+          "titleLabel": "Name",
+          "titlePlaceholder": "For example: Welcome at our team",
+          "descriptionLabel": "Short description (optional)",
+          "descriptionPlaceholder": "What will users learn or experience?"
+        },
+        "summary": {
+          "question": "Ready to build your journey?",
+          "explanation": "Here is a quick overview. Use the links to go back and change anything.",
+          "editLink": "Change",
+          "labels": {
+            "source": "Starting point",
+            "sourceDocument": "Document: {{name}}",
+            "sourceDescribe": "Your own description",
+            "purpose": "Purpose",
+            "audience": "Audience",
+            "components": "Includes",
+            "componentsNone": "Reading sections only",
+            "guide": "AI Guide",
+            "guideNone": "None",
+            "guideExisting": "Existing: {{name}}",
+            "guideNewWithKb": "New Guide \"{{name}}\" — with knowledge from your document",
+            "guideNewNoKb": "New Guide \"{{name}}\" — without knowledge base",
+            "length": "Length",
+            "branching": "Choice moment",
+            "branchingYes": "Yes",
+            "branchingNo": "No",
+            "reward": "Reward",
+            "language": "Language",
+            "title": "Name",
+            "titleAuto": "Gryffi picks a fitting name — rename it later in the builder."
+          },
+          "disclaimer": "Gryffi now prepares a starting point for your journey, including a suggested name. Afterwards you open the builder to adjust the name, texts, images and the order of steps. Think of it as a template — not a finished journey."
+        }
+      },
+      "progress": {
+        "title": "Building your journey",
+        "status": {
+          "reading": "Reading your document...",
+          "reading2": "Scanning the pages for key information...",
+          "thinking": "Thinking of the best steps...",
+          "thinking2": "Picking out the main topics...",
+          "thinking3": "Drafting an engaging journey...",
+          "thinking4": "Choosing the right step types...",
+          "thinking5": "Polishing the wording...",
+          "creating": "Creating your journey...",
+          "creating2": "Setting up the structure...",
+          "guide": "Preparing your AI Guide...",
+          "guide2": "Giving your Guide a voice...",
+          "knowledge": "Processing your knowledge base...",
+          "knowledge2": "Reading the document for your Guide...",
+          "knowledge3": "Saving knowledge for your Guide...",
+          "steps": "Adding the steps...",
+          "steps2": "Placing the steps on the canvas...",
+          "paths": "Connecting the paths...",
+          "finishing": "Almost done..."
+        },
+        "doNotClose": "Please do not close this window while Gryffi is working."
+      },
+      "success": {
+        "title": "Your journey is ready to edit",
+        "description": "We built a starting point for you. Now you can make it your own.",
+        "whatNowTitle": "What's next?",
+        "bullet1": "Check the texts on every step",
+        "bullet2": "Add your own images",
+        "bullet3": "Add extra steps if you need them",
+        "bullet4": "Only publish when you're happy with it",
+        "openBuilder": "Open in the builder"
+      },
+      "errors": {
+        "title": "Something went wrong",
+        "generic": "We couldn't build your journey. Please try again.",
+        "tryAgain": "Try again",
+        "fallbackBlank": "Create a blank journey with this name instead",
+        "uploadTooLarge": "This file is too large. The maximum is 50 MB.",
+        "uploadTooManyPages": "This document has too many pages. The maximum is 60 pages.",
+        "uploadUnsupportedType": "This file type is not supported. Try PDF, Word, PowerPoint, Excel, text or an image.",
+        "uploadNoText": "We couldn't read any text from this document. Try a different file.",
+        "uploadGeneric": "We couldn't read this file. Please try another one.",
+        "parserUnavailable": "The document reader is temporarily unavailable. Please try again in a minute or ask your administrator.",
+        "guidesLimit": "You have reached your AI Guide limit.",
+        "titleRequired": "Please give your journey a name.",
+        "timeout": "Building your journey took longer than expected. Try again, or pick a slightly less extensive length.",
+        "rateLimit": "Our AI service is busy right now. Please wait a moment and try again.",
+        "serviceUnavailable": "Our AI service is temporarily unavailable. Please try again in a few minutes.",
+        "parserDisabled": "This file could not be read: reading PDF, Word and PowerPoint files is switched off on this installation. Upload a text or Excel file, or ask your administrator to turn on the document parser."
+      }
+    },
+    "public": {
+      "badge": "Public",
+      "privateBadge": "Private",
+      "convertToPublic": "Convert to Public",
+      "convertToPrivate": "Convert to Private",
+      "publicLink": "Public Link",
+      "publicLinkDescription": "Share this link on your intranet or website. Anyone with this link can start the journey.",
+      "copyLink": "Copy Link",
+      "linkCopied": "Link copied!",
+      "convertedToPublic": "Journey converted to public",
+      "convertedToPrivate": "Journey converted to private",
+      "convertError": "Failed to convert journey",
+      "notAvailable": "Not available for invitations",
+      "notAvailableDescription": "Public journeys cannot be sent through personal invitations. Share the public link instead.",
+      "modal": {
+        "title": "Convert to Public Journey",
+        "warning": "You are about to make this journey publicly accessible.",
+        "warningItems": {
+          "anyone": "Anyone with the link can access this journey",
+          "aiGuides": "AI Guides used in this journey and their knowledge base will be publicly accessible",
+          "forms": "Forms will require users to identify themselves with name and email",
+          "rewards": "Rewards require email verification before claiming",
+          "polls": "Polls can only be answered once per email address"
+        },
+        "checkbox": "I confirm there is no sensitive company information in this journey or the knowledge bases of the AI Guides used in it",
+        "cancel": "Cancel",
+        "convert": "Convert to Public"
+      },
+      "identify": {
+        "title": "Identify Yourself",
+        "description": "Please enter your details to continue",
+        "poll": {
+          "title": "One vote per person",
+          "description": "To keep the poll fair, we need your name and email address. This way everyone can only vote once."
+        },
+        "reward": {
+          "title": "Claim your reward",
+          "description": "To send you the reward, we need your name and email address. Your reward code will be delivered straight to your inbox."
+        },
+        "form": {
+          "title": "Almost there!",
+          "description": "Please enter your details so we know who submitted this form. Your information will be included with your response."
+        },
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email Address",
+        "rememberMe": "Remember my details so I don't have to fill them in next time",
+        "submit": "Continue",
+        "skipPreview": "Skip (preview only)",
+        "alreadyParticipated": "This email has already participated in this journey",
+        "alreadyVoted": "This email has already voted in this poll",
+        "alreadyClaimed": "This email has already claimed a reward"
+      },
+      "verify": {
+        "title": "Verify Your Email",
+        "description": "We've sent a verification code to {{email}}",
+        "code": "Verification Code",
+        "submit": "Verify",
+        "resend": "Resend Code",
+        "codeSent": "Verification code sent",
+        "invalidCode": "Invalid verification code",
+        "codeExpired": "Verification code expired",
+        "tooManyAttempts": "Too many incorrect codes. Enter your details again to get a new code."
+      },
+      "closeWindowMessage": "You can close this tab to return to where you came from."
+    }
+  },
+  "guides": {
+    "title": "AI Guides",
+    "subtitle": "Create and manage your AI assistants for journeys",
+    "createGuide": "Create Guide",
+    "noGuides": "No guides yet",
+    "noGuidesDescription": "Create your first AI Guide to help users through your journeys.",
+    "createNew": {
+      "title": "Create New Guide",
+      "subtitle": "Set up your AI assistant's identity and personality",
+      "name": "Name",
+      "namePlaceholder": "e.g., Sarah, Alex, Max",
+      "nameHint": "Give your guide a friendly, memorable name",
+      "role": "Role",
+      "rolePlaceholder": "e.g., HR Assistant, IT Support Specialist",
+      "roleHint": "What role does this guide play in your organization?",
+      "personality": "Personality",
+      "greeting": "Greeting Message",
+      "greetingPlaceholder": "Hi! I'm here to help you. What would you like to know?",
+      "greetingHint": "The first message users will see when they open the chat",
+      "instructions": "AI Instructions",
+      "instructionsPlaceholder": "You are a helpful assistant who specializes in...",
+      "instructionsHint": "Optional: Custom instructions for how the AI should behave"
+    },
+    "detail": {
+      "backToGuides": "Back to Guides",
+      "identity": "Identity",
+      "identitySubtitle": "Configure your guide's name and appearance",
+      "name": "Name",
+      "role": "Role",
+      "rolePlaceholder": "e.g., HR Assistant",
+      "avatar": "Avatar",
+      "avatarHint": "Give your guide a friendly face",
+      "chooseAvatar": "Choose Avatar",
+      "changeAvatar": "Change",
+      "removeAvatar": "Remove",
+      "personality": "Personality",
+      "personalitySubtitle": "How your guide communicates with users",
+      "personalityType": "Personality Type",
+      "language": "Language",
+      "languageHint": "The language in which the AI Guide will respond",
+      "greeting": "Greeting Message",
+      "greetingPlaceholder": "The first message users see",
+      "instructions": "AI Instructions",
+      "instructionsPlaceholder": "Custom instructions for behavior",
+      "instructionsHint": "Advanced: Custom system prompt for the AI",
+      "knowledgeBase": "Knowledge Base",
+      "knowledgeBaseSubtitle": "Add documents and information for your guide to learn from",
+      "addText": "Add Text",
+      "uploadHint": "Click to upload or drag files here",
+      "uploadFormats": "PDF, DOC, TXT, MD, CSV, PPTX, Images",
+      "noKnowledge": "No knowledge sources yet. Upload files or add text to teach your guide.",
+      "chunks": "chunks",
+      "added": "Added",
+      "status": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "dangerZone": "Danger Zone",
+      "dangerZoneSubtitle": "Irreversible actions",
+      "deleteGuide": "Delete this guide",
+      "deleteGuideWarning": "Once deleted, this guide and all its knowledge cannot be recovered.",
+      "deleteButton": "Delete Guide",
+      "addTextTitle": "Add Text Knowledge",
+      "addTextSubtitle": "Add information directly without uploading a file",
+      "editText": "Edit",
+      "editTextTitle": "Edit Text Knowledge",
+      "editTextSubtitle": "Update the information for your guide",
+      "textTitle": "Title",
+      "textTitlePlaceholder": "e.g., Company Policies",
+      "textContent": "Content",
+      "textContentPlaceholder": "Enter the information you want your guide to know...",
+      "addKnowledge": "Add Knowledge",
+      "changesSaved": "Changes saved",
+      "confirmDelete": "Are you sure you want to delete this knowledge source?",
+      "confirmDeleteGuide": "Are you sure you want to delete this guide? This action cannot be undone.",
+      "confirmDeleteKnowledge": "This will permanently delete all knowledge associated with this guide. Continue?",
+      "parserDisabled": "This file could not be read: reading PDF, Word and PowerPoint files is switched off on this installation. Add the text as a text source, or ask your administrator to turn on the document parser.",
+      "fileTooLarge": "This file is larger than {{max}} MB. Upload a smaller file, or split the document into parts.",
+      "uploadFailed": "The upload did not work. Try again in a moment. If it keeps failing, try a smaller file."
+    },
+    "personalities": {
+      "friendly": "Friendly",
+      "professional": "Professional",
+      "helpful": "Helpful",
+      "cheerful": "Cheerful",
+      "wise": "Wise",
+      "calm": "Calm",
+      "technical": "Technical",
+      "custom": "Custom"
+    },
+    "stats": {
+      "journey": "journey",
+      "journeys": "journeys",
+      "knowledgeSources": "knowledge sources",
+      "usedIn": "Used in",
+      "notUsed": "Not in use"
+    },
+    "inactive": "inactive",
+    "copy": {
+      "title": "Copy Guide",
+      "confirm": "Create a copy of \"{{name}}\"?",
+      "success": "Guide copied successfully",
+      "error": "Failed to copy guide",
+      "noPermission": "You don't have permission to copy guides"
+    },
+    "delete": {
+      "title": "Delete Guide",
+      "confirm": "Are you sure you want to move \"{{name}}\" to trash? You can restore it later.",
+      "confirmPermanent": "Are you sure you want to permanently delete \"{{name}}\"? This action cannot be undone.",
+      "success": "Guide moved to trash",
+      "permanentSuccess": "Guide permanently deleted",
+      "error": "Failed to delete guide",
+      "noPermission": "You don't have permission to delete guides",
+      "assignedToJourneys": "Cannot delete guide that is assigned to journeys. Remove from journeys first."
+    },
+    "restore": {
+      "confirm": "Restore \"{{name}}\" back to guides?",
+      "success": "Guide restored successfully",
+      "error": "Failed to restore guide",
+      "limitExceeded": "Cannot restore guide: you've reached your AI Guide limit. Upgrade your plan or delete an active guide first."
+    },
+    "trash": {
+      "title": "Trash",
+      "subtitle": "Deleted guides can be restored or permanently deleted",
+      "viewTrash": "View Trash",
+      "backToGuides": "Back to Guides",
+      "deleted": "Deleted",
+      "restore": "Restore",
+      "deletePermanent": "Delete Permanently",
+      "empty": "Trash is empty",
+      "emptyDescription": "Deleted guides will appear here",
+      "cannotEdit": "Guide in Trash",
+      "cannotEditMessage": "This guide is in the trash and cannot be edited. Restore it first to make changes.",
+      "permanentDeleteOn": "Permanently deleted on",
+      "noAutoDelete": "No automatic deletion"
+    }
+  },
+  "forms": {
+    "emailIntro": "A new form has been submitted by {{name}}.",
+    "emailFooter": "Submitted by: {{email}}",
+    "newSubmission": "New form submission",
+    "formSubmission": "Form Submission",
+    "untitled": "Untitled Form",
+    "download": {
+      "notFoundTitle": "File not found",
+      "notFoundMessage": "This download link is invalid or the file has been removed.",
+      "expiredTitle": "Link expired",
+      "expiredMessage": "This download link has expired. Ask your organization admin to retrieve the file from the Analytics dashboard."
+    }
+  },
+  "builder": {
+    "stepTypes": {
+      "space": "Space",
+      "spaceDesc": "A location to explore",
+      "guide": "Guide",
+      "guideDesc": "AI-powered character",
+      "content": "Content",
+      "contentDesc": "Information and media",
+      "challenge": "Challenge",
+      "challengeDesc": "Quiz or verification",
+      "form": "Form",
+      "formDesc": "Collect information",
+      "poll": "Poll",
+      "pollDesc": "Anonymous voting",
+      "reward": "Reward",
+      "rewardDesc": "Give away prizes",
+      "nestedJourney": "Sub-Journey",
+      "nestedJourneyShort": "Sub",
+      "nestedJourneyDesc": "Embed another journey",
+      "aiGuide": "AI Guide",
+      "step": "Step"
+    },
+    "defaults": {
+      "newSpace": "New Space",
+      "newGuide": "New Guide",
+      "newContent": "New Content",
+      "newChallenge": "New Challenge",
+      "newForm": "New Form",
+      "newStep": "New Step",
+      "spaceDescription": "Describe this space...",
+      "guideName": "Guide",
+      "guideRole": "Helpful Guide",
+      "guideGreeting": "Hello! How can I help you?",
+      "guidePersonality": "Friendly and helpful",
+      "contentBody": "Add your content here...",
+      "challengeQuestion": "What is your question?",
+      "challengeOptionA": "Option A",
+      "challengeOptionB": "Option B",
+      "formDescription": "",
+      "formEmailSubject": "Form submission: {{journey_title}}",
+      "formFieldLabel": "Question",
+      "newPoll": "New Poll",
+      "pollQuestion": "What do you think?",
+      "pollOption1": "Option 1",
+      "pollOption2": "Option 2",
+      "newReward": "New Reward",
+      "newNestedJourney": "New Sub-Journey"
+    },
+    "toolbar": {
+      "addStep": "+ Add Step",
+      "clickToAdd": "Click to add {{type}}",
+      "journeySettings": "Journey Settings",
+      "undoRedo": "Undo / Redo",
+      "undo": "Undo",
+      "redo": "Redo",
+      "manageResources": "Manage Resources",
+      "preview": "Preview",
+      "save": "Save"
+    },
+    "tabs": {
+      "basic": "Basic",
+      "advanced": "Advanced"
+    },
+    "panel": {
+      "stepProperties": "Step Properties",
+      "deleteStep": "Delete step",
+      "closePanel": "Close panel",
+      "previewFromHere": "Preview from this step"
+    },
+    "settings": {
+      "general": "General",
+      "automations": "Automations",
+      "journeyTitle": "Journey Title",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what this journey is about...",
+      "status": "Status",
+      "journeyFlow": "Journey Flow",
+      "startStep": "Start Step",
+      "endStep": "End Step",
+      "endSteps": "End Steps",
+      "selectStartStep": "— Select start step —",
+      "selectEndStep": "— Select end step —",
+      "whereBegins": "Where the journey begins",
+      "whereEnds": "Where the journey can end (can be multiple)",
+      "addEndStep": "Add another end step",
+      "addStepsFirst": "Add steps first",
+      "welcomeMessage": "Welcome Message",
+      "welcomeMessagePlaceholder": "Optional message shown at journey start...",
+      "completionMessage": "Completion Message",
+      "completionMessagePlaceholder": "Optional message shown at journey end...",
+      "allowSkipSteps": "Allow users to skip steps",
+      "trackProgress": "Track user progress",
+      "created": "Created",
+      "lastUpdated": "Last updated",
+      "languageSettings": "Interface Language",
+      "languageDescription": "Set the language for buttons, labels and navigation in this journey.",
+      "organizationLanguage": "Organization default",
+      "overrideLanguage": "Use a different language",
+      "overrideLanguageHint": "Override the organization language for this journey",
+      "selectLanguage": "Journey language",
+      "baseLanguages": "Base languages",
+      "extendedLanguages": "Extended languages",
+      "overrideGuideLanguage": "Override AI Guide language",
+      "overrideGuideLanguageHint": "Set a different language for AI Guide responses",
+      "selectGuideLanguage": "AI Guide language",
+      "guideOpeningOverride": "Opening sentence override",
+      "guideOpeningOverrideHint": "Optional: Set a translated opening sentence to use instead of generating one dynamically. This is faster and more reliable.",
+      "guideOpeningOverridePlaceholder": "e.g., Hello! I'm here to help you..."
+    },
+    "props": {
+      "title": "Title",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe this space...",
+      "image": "Image",
+      "addImage": "Add image",
+      "chooseImage": "Choose an image",
+      "selectGuide": "Select AI Guide",
+      "chooseGuide": "— Choose a guide —",
+      "noGuidesAvailable": "No guides available yet. Create one first!",
+      "selectFromLibrary": "Select an AI Guide from your library",
+      "guideName": "Guide Name",
+      "guideRole": "Role",
+      "manageGuides": "Manage AI Guides",
+      "manageGuidesDesc": "Create new guides and teach them in the Guides library",
+      "whatToShare": "What would you like to share?",
+      "text": "Text",
+      "video": "Video",
+      "yourContent": "Your content",
+      "writeContent": "Write your content here...",
+      "youtubeVideo": "YouTube video",
+      "pasteYoutubeLink": "Paste a YouTube link to embed the video",
+      "question": "Question",
+      "answerOptions": "Answer Options",
+      "markCorrect": "Mark as correct",
+      "addOption": "Add option",
+      "noDescription": "No description",
+      "noContent": "No content",
+      "questionFallback": "Question",
+      "yourGuide": "Your Guide",
+      "newOption": "New option",
+      "markAsCorrect": "Mark as correct",
+      "bulletList": "Bullet list",
+      "largeText": "Large text",
+      "normalText": "Normal text",
+      "spaceImage": "Space image",
+      "imageType": "Image type",
+      "normalImage": "Normal image",
+      "normalImageDesc": "Standard photo or illustration",
+      "panoramaImage": "360° Panorama",
+      "panoramaImageDesc": "Interactive panoramic view",
+      "panoramaUpload": "Upload 360° photo",
+      "panoramaHint": "Most smartphones can capture 360° photos. On iPhone use 'Panorama' mode, on Android use 'Photo Sphere' or '360°' mode in your camera app.",
+      "panoramaInvalid": "This image doesn't appear to be a panorama. Please upload a wide panoramic photo (landscape orientation).",
+      "panoramaDragHint": "Drag to look around",
+      "floorplan": "Floor plan",
+      "floorplanEnabled": "Show floor plan",
+      "floorplanEnabledDesc": "Display a map showing the location of this space",
+      "selectFloorplan": "Select floor plan",
+      "noFloorplans": "No floor plans yet",
+      "uploadFloorplan": "Upload floor plan",
+      "uploadNewFloorplan": "Upload new floor plan",
+      "floorplanName": "Floor plan name",
+      "floorplanNamePlaceholder": "e.g. Ground floor, Building A, 2nd Floor",
+      "floorplanDescription": "Description (optional)",
+      "floorplanDescriptionPlaceholder": "e.g. Main entrance area",
+      "clickToPlaceMarker": "Click to place marker",
+      "markerPlaced": "Marker placed",
+      "moveMarker": "Click elsewhere to move",
+      "floorplanLibrary": "Floor plan library",
+      "manageFloorplans": "Manage floor plans",
+      "deleteFloorplan": "Delete floor plan",
+      "deleteFloorplanConfirm": "Are you sure you want to delete this floor plan? This will remove it from all spaces using it.",
+      "viewFloorplan": "View floor plan",
+      "youAreHere": "You are here",
+      "contentImage": "Content image",
+      "videoThumbnail": "Video thumbnail",
+      "connect": "Connect",
+      "clickToEditAutomations": "Click to edit email automations",
+      "startStepTitle": "Start step - Click to edit in Journey Settings",
+      "endStepTitle": "End step - Click to edit in Journey Settings",
+      "emailSubjectPlaceholder": "Email subject...",
+      "emailMessagePlaceholder": "Email message...",
+      "uploadFailed": "Upload failed",
+      "processingFailed": "Processing failed",
+      "failedToSendTestEmail": "Failed to send test email",
+      "unknownError": "Unknown error",
+      "contentLabel": "Content",
+      "enterInformationPlaceholder": "Enter the information you want the AI to know about...",
+      "textWillBeUsed": "This text will be used by the AI to answer questions",
+      "parkingInformationExample": "e.g., Parking Information",
+      "bold": "Bold",
+      "italic": "Italic",
+      "mediaDescription": "Description (optional)",
+      "mediaDescriptionPlaceholder": "Add a description to accompany the media...",
+      "mediaDescriptionHint": "This text will be shown with the video or image",
+      "textPosition": "Text position",
+      "aboveMedia": "Above",
+      "belowMedia": "Below",
+      "selectNestedJourney": "Select journey to embed",
+      "chooseNestedJourney": "— Choose a journey —",
+      "noPublishedJourneys": "No published journeys available",
+      "nestedJourneySteps": "{{count}} steps",
+      "nestedJourneyPreview": "This journey will be embedded as part of the current journey",
+      "nestedJourneyWarning": "The selected journey must remain published for this step to work",
+      "enteringNestedJourney": "Starting: {{title}}",
+      "returnedFromNestedJourney": "Returned to: {{title}}",
+      "startNestedJourney": "Start: {{title}}"
+    },
+    "quiz": {
+      "title": "Quiz",
+      "questions": "Questions",
+      "addQuestion": "+ Add Question",
+      "question": "Question",
+      "questionNumber": "Question {{number}}",
+      "questionPlaceholder": "Enter your question...",
+      "options": "Answer Options",
+      "addOption": "+ Add Option",
+      "optionPlaceholder": "Enter option...",
+      "markCorrect": "Mark as correct",
+      "removeQuestion": "Remove question",
+      "removeOption": "Remove option",
+      "duplicateQuestion": "Duplicate question",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "noQuestions": "No questions yet",
+      "addFirstQuestion": "Add your first question to get started",
+      "questionCount": "{{count}} question",
+      "questionCountPlural": "{{count}} questions",
+      "optionCount": "{{count}} option",
+      "optionCountPlural": "{{count}} options",
+      "correctAnswer": "Correct",
+      "noCorrectAnswer": "No correct answer selected",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "shuffleQuestions": "Randomize question order",
+      "shuffleQuestionsHint": "Each participant sees questions in a different random order",
+      "preview": {
+        "questionOf": "Question {{current}} of {{total}}",
+        "checkAnswer": "Check Answer",
+        "next": "Next",
+        "previous": "Previous",
+        "finish": "Submit answers",
+        "correct": "Correct!",
+        "incorrect": "Not quite right",
+        "tryAgain": "Try again",
+        "score": "Your score",
+        "passed": "Quiz passed!",
+        "nextStepHint": "The journey continues. Pick the next step below.",
+        "failed": "You need {{required}} correct answers to continue",
+        "questionsCorrect": "{{correct}} of {{total}} correct",
+        "retake": "Retake Quiz",
+        "continue": "Continue",
+        "completeQuizToContinue": "Complete the quiz to continue"
+      },
+      "settings": {
+        "passingScore": "Passing Score",
+        "passingScoreDesc": "Minimum correct answers to continue",
+        "noRequirement": "No requirement (always pass)",
+        "requireAll": "All questions ({{count}})",
+        "requireMinimum": "At least {{count}} correct",
+        "showFeedback": "Show feedback after each answer",
+        "showFeedbackDesc": "Users see if their answer is correct immediately",
+        "allowRetake": "Allow retake on failure",
+        "allowRetakeDesc": "Users can try again if they don't pass"
+      }
+    },
+    "form": {
+      "formFields": "Form Fields",
+      "addField": "Add Field",
+      "fieldCount": "{{count}} field",
+      "fieldCountPlural": "{{count}} fields",
+      "fieldLabel": "Field label",
+      "fieldLabelPlaceholder": "Enter field label...",
+      "descriptionPlaceholder": "Describe what this form is for...",
+      "fieldTypes": {
+        "text": "Text",
+        "shortText": "Short text",
+        "textarea": "Long text",
+        "longText": "Long text",
+        "email": "Email",
+        "number": "Number",
+        "select": "Dropdown",
+        "checkbox": "Checkbox",
+        "date": "Date",
+        "yesno": "Yes / No",
+        "file": "File upload"
+      },
+      "fileUpload": {
+        "subtype": "File type",
+        "subtypes": {
+          "image": "Image",
+          "document": "Document",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "MP3 only"
+        },
+        "dropzone": "Drop file here or click to browse",
+        "dragActive": "Drop the file here",
+        "maxSize": "Max {{size}} MB",
+        "uploadCount": "{{count}}/2 upload fields",
+        "maxUploadsReached": "Maximum 2 upload fields allowed per form",
+        "invalidType": "Invalid file type. Allowed: {{types}}",
+        "fileTooLarge": "File too large. Maximum size: {{size}} MB",
+        "totalTooLarge": "Total attachment size exceeds limit (38 MB)",
+        "removeFile": "Remove file",
+        "noFileSelected": "No file selected",
+        "fileSelected": "File selected: {{name}}"
+      },
+      "alreadySubmitted": {
+        "title": "You've already submitted this form",
+        "message": "You submitted this form on {{date}}. You can submit it again or continue without filling it out.",
+        "skipButton": "Continue without submitting",
+        "submitAgain": "Submit again"
+      },
+      "placeholder": "Placeholder",
+      "required": "Required",
+      "options": "Options (one per line)",
+      "optionsPlaceholder": "Options (comma separated)",
+      "dropdownOptions": "Dropdown options",
+      "optionPlaceholder": "Option text...",
+      "addOption": "Add option",
+      "removeOption": "Remove option",
+      "removeField": "Remove field",
+      "emailSettings": "Email Settings",
+      "sendTo": "Send form to",
+      "sendToPlaceholder": "email@company.com",
+      "emailSubject": "Email subject",
+      "emailSubjectPlaceholder": "New form submission: {{title}}",
+      "confirmationMessage": "Confirmation Message",
+      "confirmationPlaceholder": "Thank you for your submission!",
+      "completion": {
+        "title": "Form Requirement",
+        "subtitle": "When can users continue to the next step?",
+        "afterSubmit": "After submitting",
+        "afterSubmitDesc": "Users must fill in and submit the form first",
+        "immediately": "Always",
+        "immediatelyDesc": "Users can skip the form",
+        "submitToContinue": "Submit the form to continue"
+      }
+    },
+    "poll": {
+      "question": "Question",
+      "questionPlaceholder": "Ask your question...",
+      "options": "Answer Options",
+      "optionCount": "{{count}} option",
+      "optionCountPlural": "{{count}} options",
+      "optionPlaceholder": "Option text...",
+      "addOption": "Add option",
+      "removeOption": "Remove option",
+      "settings": "Poll Settings",
+      "isRequired": "Required to continue",
+      "isRequiredDesc": "Users must vote before proceeding to the next step",
+      "allowMultiple": "Allow multiple answers",
+      "showResults": "Show results after voting",
+      "showResultsDesc": "Users see the poll results after they vote",
+      "votes": "votes",
+      "votesCount": "{{count}} vote",
+      "votesCountPlural": "{{count}} votes",
+      "respondents": "{{count}} respondent",
+      "respondentsPlural": "{{count}} respondents",
+      "alreadyVoted": "You have already voted",
+      "submitVote": "Submit vote",
+      "completePollToContinue": "Complete the poll to continue",
+      "noResults": "No results yet",
+      "yourVote": "Your vote",
+      "resetSection": "Reset Poll",
+      "resetDesc": "Clear all responses and start fresh. Use this after testing.",
+      "resetButton": "Reset all votes",
+      "resetSuccess": "Poll has been reset successfully",
+      "resetError": "Failed to reset poll",
+      "voteRecorded": "Your vote has been recorded"
+    },
+    "reward": {
+      "title": "Reward Title",
+      "titlePlaceholder": "e.g., Free lunch voucher",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what the reward is...",
+      "redemptionLocation": "Where to redeem",
+      "redemptionLocationPlaceholder": "e.g., Company cafeteria, Online shop...",
+      "termsConditions": "Terms & Conditions",
+      "termsConditionsPlaceholder": "e.g., One per person, Valid for 30 days...",
+      "validUntil": "Valid until",
+      "validUntilPlaceholder": "Leave empty for no expiration",
+      "codeSettings": "Code Settings",
+      "randomCodes": "Generate random codes",
+      "randomCodesDesc": "Unique codes will be generated automatically",
+      "manualCodes": "Use custom codes",
+      "manualCodesDesc": "Enter your own codes",
+      "maxRecipients": "Maximum recipients",
+      "maxRecipientsPlaceholder": "Leave empty for unlimited",
+      "limitRecipients": "Limit number of recipients",
+      "limitRecipientsDesc": "By default, everyone who reaches this step gets a reward",
+      "maxRecipientsDesc": "First X users to reach this step get a reward",
+      "maxRecipientsExceedsCodes": "Cannot exceed the number of codes entered",
+      "codePrefix": "Code prefix",
+      "codePrefixPlaceholder": "e.g., LUNCH-",
+      "enterCodes": "Enter codes (comma-separated or one per line)",
+      "enterCodesPlaceholder": "Enter codes separated by commas or one per line...",
+      "codesCount": "{{count}} code entered",
+      "codesCountPlural": "{{count}} codes entered",
+      "codesClaimedStatus": "{{claimed}} of {{total}} codes have been claimed",
+      "codeSettingsLocked": "Some settings are locked because codes have been claimed",
+      "usingRandomCodes": "Using automatically generated codes",
+      "usingManualCodes": "Using custom codes",
+      "claimedCodes": "Claimed codes",
+      "claimedCodesDesc": "These codes have been issued and cannot be changed",
+      "unclaimedCodes": "Unclaimed codes",
+      "unclaimedCodesDesc": "These codes can still be removed",
+      "addNewCodes": "Add new codes",
+      "addNewCodesPlaceholder": "Enter additional codes...",
+      "existingCodesCount": "{{claimed}} claimed, {{unclaimed}} available",
+      "maxRecipientsMinDesc": "Cannot be lower than {{min}} (codes already claimed)",
+      "preview": {
+        "congratulations": "Congratulations!",
+        "youAreNumber": "You are #{{position}} to claim this reward!",
+        "yourCode": "Your reward code",
+        "redeemAt": "Redeem at",
+        "terms": "Terms & Conditions",
+        "validUntil": "Valid until",
+        "downloadCoupon": "Download coupon",
+        "emailSent": "A copy has been sent to your email",
+        "alreadyClaimed": "You have already claimed a reward for this journey",
+        "noMoreRewards": "Sorry, all rewards have been claimed",
+        "previewMode": "Preview mode - No real code generated"
+      },
+      "soldOut": {
+        "title": "What a pity!",
+        "message": "Unfortunately, you were too late to receive a reward. All rewards have already been handed out.",
+        "continueJourney": "Continue journey"
+      },
+      "cannotDelete": "Cannot Delete Reward Step",
+      "cannotDeleteWithClaims": "This reward step cannot be deleted because codes have been claimed.",
+      "cannotDeleteExplanation": "This reward step has codes that have been claimed by end users. To protect the integrity of issued rewards, this step cannot be deleted.",
+      "claimedCodesCount": "Codes claimed",
+      "cannotDeleteHint": "You can deactivate this journey or archive it instead of deleting. Claimed codes will remain visible in Analytics."
+    },
+    "pacing": {
+      "title": "Pacing",
+      "subtitle": "When can users continue to the next step?",
+      "immediately": "Immediately",
+      "immediatelyDesc": "Users can continue right away",
+      "immediatelySkip": "Users can skip the conversation",
+      "immediatelyVideo": "Users can skip the video",
+      "after10sec": "After 10 seconds",
+      "after10secDesc": "Short pause to read",
+      "after10secImage": "Time to view the image",
+      "after30sec": "After 30 seconds",
+      "after30secSpace": "Time to look around",
+      "after30secImage": "For detailed images",
+      "after30secText": "Time to read",
+      "after1min": "After 1 minute",
+      "after1minSpace": "For detailed introductions",
+      "after1minVideo": "Time to start watching",
+      "after1minText": "For longer content",
+      "after2min": "After 2 minutes",
+      "after2minVideo": "For short videos",
+      "after2minText": "For detailed content",
+      "after5min": "After 5 minutes",
+      "after5minVideo": "For longer videos",
+      "messages2": "After 2 messages",
+      "messages2Desc": "Quick introduction",
+      "messages4": "After 4 messages",
+      "messages4Desc": "Meaningful conversation",
+      "messages6": "After 6 messages",
+      "messages6Desc": "In-depth discussion"
+    },
+    "assistant": {
+      "title": "Step Assistant",
+      "subtitle": "Add a guide to help users during this step",
+      "noGuides": "No guides available",
+      "createFirst": "Create a guide first →",
+      "noAssistant": "No assistant for this step",
+      "userWillSee": "Users will see \"💬 Ask {{name}}\" during this step"
+    },
+    "advanced": {
+      "entryMessage": "Entry Message",
+      "entryMessageDesc": "Shown when user enters this space",
+      "exitMessage": "Exit Message",
+      "stepContext": "Step-specific Context (Optional)",
+      "stepContextPlaceholder": "e.g., Focus on explaining the benefits package in this step...",
+      "stepContextDesc": "Extra context for the guide in this specific step",
+      "givesResource": "Gives Resource",
+      "none": "None",
+      "givesResourceDesc": "Unlock a resource when conversation completes",
+      "hint": "Hint",
+      "hintDesc": "Shown after a wrong answer",
+      "passMessage": "Pass Message",
+      "failMessage": "Fail Message",
+      "confirmationMessage": "Confirmation Message",
+      "confirmationMessageDefault": "Thank you! Your response has been submitted.",
+      "confirmationMessageDesc": "Shown after the form is submitted",
+      "welcomeMessage": "Welcome Message",
+      "welcomeMessagePlaceholder": "Optional message shown at journey start...",
+      "completionMessage": "Completion Message",
+      "completionMessagePlaceholder": "Optional message shown at journey end...",
+      "image": "Image"
+    },
+    "connections": {
+      "connect": "Connect",
+      "deleteConnection": "Delete connection?",
+      "deleteConnectionLabel": "Delete Connection",
+      "pathLabel": "Path label",
+      "continue": "Continue"
+    },
+    "badges": {
+      "startStep": "Start step - Click to edit in Journey Settings",
+      "endStep": "End step - Click to edit in Journey Settings",
+      "emailAutomation": "Click to edit email automations"
+    },
+    "automations": {
+      "title": "Email Automations",
+      "noAutomations": "No automations yet",
+      "addFirst": "Add email triggers for journey events",
+      "addAutomation": "Add Automation",
+      "addAutomationButton": "+ Add automation",
+      "editAutomation": "Edit Email Automation",
+      "trigger": "Trigger",
+      "addEmailAutomation": "Add Email Automation",
+      "setUpAutomaticEmails": "Set up automatic emails for journey-wide events.",
+      "sendTo": "Send to",
+      "emailTemplate": "Email template",
+      "selectTemplate": "— Select template —",
+      "subject": "Subject",
+      "message": "Message",
+      "insertVariable": "Insert variable",
+      "variableCategories": {
+        "endUser": "End User",
+        "organization": "Organization",
+        "journey": "Journey"
+      },
+      "variableLabels": {
+        "first_name": "First name",
+        "last_name": "Last name",
+        "email": "Email address",
+        "company_name": "Company name",
+        "journey_title": "Journey title",
+        "step_title": "Current step"
+      },
+      "variableExamples": {
+        "first_name": "John",
+        "last_name": "Smith",
+        "email": "john@company.com",
+        "company_name": "Acme Corp",
+        "journey_title": "Onboarding 2025",
+        "step_title": "IT Setup"
+      },
+      "preview": "Preview",
+      "showPreview": "Show preview",
+      "hidePreview": "Hide preview",
+      "previewNote": "This is how the email will look with example values.",
+      "customEmail": "Custom email",
+      "emailAddress": "Email address",
+      "daysOfInactivity": "Days of inactivity",
+      "triggers": {
+        "whenJourneyStarts": "When journey starts",
+        "whenJourneyCompletes": "When journey completes",
+        "afterInactivity": "After inactivity",
+        "whenUserEntersStep": "When user enters this step",
+        "whenUserCompletesStep": "When user completes this step",
+        "whenUserChoosesPath": "When user chooses",
+        "whenStepStarts": "When step starts",
+        "whenStepCompletes": "When step completes",
+        "whenUserEntersSpace": "When user enters space",
+        "whenUserExitsSpace": "When user exits space",
+        "whenChallengePassed": "When challenge passed",
+        "whenChallengeFailed": "When challenge failed",
+        "whenFormSubmitted": "When form submitted"
+      },
+      "template": "Template",
+      "templates": {
+        "welcome": "Welcome",
+        "info": "Information",
+        "confirmation": "Confirmation",
+        "reminder": "Reminder",
+        "credentials": "Login Credentials",
+        "completion": "Journey Complete",
+        "custom": "Custom"
+      },
+      "templateDefaults": {
+        "welcome": {
+          "subject": "Welcome to {company_name}, {user_first_name}!",
+          "body": "We're thrilled to have you join us at {company_name}!\n\nYour {journey_title} journey is ready to guide you through everything you need to know.\n\nWe're excited to have you with us!"
+        },
+        "info": {
+          "subject": "Important information about {journey_title}",
+          "body": "We wanted to share some important information with you as part of your {journey_title} journey.\n\nPlease review the details and let us know if you have any questions."
+        },
+        "confirmation": {
+          "subject": "Confirmed: {step_title}",
+          "body": "Great news! You have successfully completed this step in your {journey_title} journey.\n\nKeep up the great work!"
+        },
+        "reminder": {
+          "subject": "Friendly reminder: {journey_title}",
+          "body": "Just a friendly reminder about your {journey_title} journey.\n\nThere are still some steps waiting for you. We're here to help!"
+        },
+        "credentials": {
+          "subject": "Your login credentials for {company_name}",
+          "body": "Here are your login credentials to get started.\n\nPlease keep this information secure and change your password after your first login."
+        },
+        "completion": {
+          "subject": "Congratulations! You've completed {journey_title}",
+          "body": "Amazing work! 🎉\n\nYou've successfully completed the {journey_title} journey.\n\nWelcome!"
+        },
+        "custom": {
+          "subject": "",
+          "body": ""
+        }
+      },
+      "recipient": "Recipient",
+      "sendTest": "Send test email",
+      "testSent": "Test email sent!",
+      "sendAutomaticEmails": "Send automatic emails when users interact with this step.",
+      "noAutomationsYet": "No automations yet",
+      "addEmailTrigger": "+ Add email trigger",
+      "currentUser": "Current user",
+      "sendTestEmail": "Send test email",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "preview": {
+      "mode": "Preview Mode",
+      "exit": "Exit Preview",
+      "title": "Journey Preview",
+      "startedFromStep": "Preview started from \"{{step}}\". This is a partial test run, not the full journey.",
+      "pressPlay": "Press play to start watching",
+      "watchingRemaining": "Watching time remaining",
+      "seconds": "seconds",
+      "canContinue": "You can now continue",
+      "typeMessage": "Type your message...",
+      "typeQuestion": "Type your question...",
+      "askGuide": "Ask {{name}}",
+      "send": "Send",
+      "noGuideSelected": "No guide selected",
+      "pleaseSelectGuide": "Please select an AI Guide in the step settings",
+      "selectGuideForStep": "Please select a guide for this step.",
+      "invalidVideoUrl": "Invalid video URL",
+      "noContentYet": "No content added yet",
+      "challenge": "Challenge",
+      "question": "Question",
+      "hint": "Hint",
+      "form": "Form",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "defaultConfirmation": "Thank you! Your response has been submitted.",
+      "journeyComplete": "Journey Complete!",
+      "whenReady": "When you're ready:",
+      "defaultGreeting": "Hello! How can I help you?",
+      "chatError": "Sorry, I couldn't process that.",
+      "connectionError": "I'm having trouble connecting right now. Please try again.",
+      "formSubmitFailed": "Failed to submit form",
+      "formSubmitted": "Form submitted successfully",
+      "selectOption": "Select an option...",
+      "yes": "Yes",
+      "no": "No",
+      "field": "Field",
+      "correct": "Correct!",
+      "incorrect": "Not quite right.",
+      "guide": "Guide",
+      "aiAssistant": "AI Assistant",
+      "leaveJourney": "Leave expedition?",
+      "leaveJourneyMessage": "Are you sure you want to leave this expedition? Your progress has been saved.",
+      "leaveConfirm": "Leave",
+      "stayContinue": "Stay",
+      "sourceDrawer": {
+        "title": "Source Information",
+        "page": "Page",
+        "type": "Type",
+        "file": "File",
+        "excerpt": "Excerpt",
+        "close": "Close",
+        "unknownSource": "Unknown Source",
+        "sourceNotFound": "Source not found. Please try again.",
+        "noExcerpt": "No excerpt available",
+        "typeFile": "File",
+        "typeText": "Text",
+        "typeUrl": "URL"
+      },
+      "citation": {
+        "clickToView": "Click to view source",
+        "source": "Source"
+      },
+      "chatWithGuide": "Chat with the guide ({{count}}/{{total}} messages)",
+      "takeYourTimeMinutes": "Take your time: {{minutes}} minute{{plural}} to go",
+      "takeYourTimeSeconds": "Take your time: {{seconds}} seconds to go",
+      "readyToContinue": "✓ Ready to continue!",
+      "keepWatching": "Keep watching: {{seconds}} seconds left",
+      "pressPlayToStart": "▶ Press play to start watching",
+      "askGuideButton": "Ask Guide"
+    },
+    "mobileWarning": {
+      "title": "Best on larger screens",
+      "message": "The journey builder is designed for laptop or desktop computer. On a phone, some features may be difficult to use.",
+      "continueAnyway": "Continue anyway",
+      "goBack": "Go back"
+    },
+    "messages": {
+      "saved": "Journey saved!",
+      "savedShort": "Saved",
+      "savedOpeningGuides": "Journey saved! Opening Guides...",
+      "saveFailed": "Failed to save journey",
+      "stepCreated": "Step created",
+      "stepCreateFailed": "Failed to create step",
+      "stepDeleted": "Step deleted",
+      "deleteStepConfirm": "Delete this step? All connections to it will also be removed.",
+      "deleteKnowledgeConfirm": "Delete this knowledge source?",
+      "deleteFailed": "Failed to delete",
+      "knowledgeSourceDeleted": "Knowledge source deleted",
+      "fileUploaded": "File uploaded! Processing...",
+      "knowledgeProcessed": "Knowledge processed successfully!",
+      "knowledgeAdded": "Knowledge added! Processing...",
+      "knowledgeAddFailed": "Failed to add knowledge",
+      "fillBothFields": "Please fill in both fields",
+      "deleteAutomationConfirm": "Delete this automation?",
+      "deleteResourceConfirm": "Delete this resource?",
+      "resetPollConfirm": "Reset this poll? All votes will be permanently deleted.",
+      "connectionCreated": "Connection created",
+      "connectionDeleted": "Connection deleted",
+      "automationAdded": "Automation added",
+      "automationDeleted": "Automation deleted",
+      "automationTriggered": "Email automation triggered",
+      "testEmailSent": "Test email sent successfully!",
+      "maxOptionsPerQuestion": "Maximum 6 options per question",
+      "createStepFirst": "Create another step first to connect to.",
+      "undoRedoFailed": "Failed to apply undo/redo",
+      "addStepsFirst": "Add at least one step to preview.",
+      "enterTestEmail": "Enter email address to send test email to:",
+      "readOnly": "View-only: you can view this journey but not edit it."
+    },
+    "status": {
+      "saving": "Saving...",
+      "lastSaved": "Last saved at {{time}}",
+      "saveFailed": "Save failed"
+    },
+    "resources": {
+      "title": "Journey Resources",
+      "subtitle": "Add helpful files and links for this journey",
+      "noResources": "No resources yet",
+      "addResource": "Add Resource",
+      "fileName": "File name",
+      "fileUrl": "File URL",
+      "fileType": "File type"
+    }
+  },
+  "errors": {
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundMessage": "The page you are looking for does not exist.",
+    "serverError": "Server Error",
+    "unexpectedError": "An unexpected error occurred.",
+    "somethingWrong": "Something went wrong",
+    "tryAgain": "Please try again later",
+    "failedToCreate": "Failed to create",
+    "failedToUpdate": "Failed to update",
+    "failedToDelete": "Failed to delete",
+    "failedToLoad": "Failed to load",
+    "no_file_uploaded": "No file uploaded",
+    "upload_failed": "Upload failed",
+    "floorplan_name_required": "Floorplan name is required",
+    "nsfw_content": "This image appears to contain inappropriate content and cannot be uploaded.",
+    "invalid_image_type": "This file is not a supported image. Upload a JPG, PNG, GIF or WebP file.",
+    "test_email_not_team_member": "Test emails can only go to members of your team. Enter the email address of a team member.",
+    "image_check_unavailable": "We could not check this image right now. Try again in a few minutes.",
+    "upload_too_large": "This file is too large. Choose a smaller file."
+  },
+  "footer": {
+    "tagline": "Interactive Journey Builder"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your preferences and account settings",
+    "organization": {
+      "title": "Organization",
+      "subtitle": "Your company settings. Only visible to administrators.",
+      "nameLabel": "Company name",
+      "namePlaceholder": "Your company name",
+      "nameHint": "This name is used across Gryffi and in emails.",
+      "language": {
+        "label": "Default organization language",
+        "modeAuto": "Use each user's browser language",
+        "modeFixed": "Use one language for the whole organization",
+        "modeHint": "Users can still change their own language in Settings.",
+        "fixedHint": "This is the default language for new sessions.",
+        "emailHint": "System emails are sent in this language. If not set, English is used."
+      },
+      "country": {
+        "label": "Country",
+        "placeholder": "Select country",
+        "hint": "Used for pricing and subscription settings.",
+        "validationInvalid": "Please select a valid country."
+      },
+      "validationEmpty": "Please enter a company name",
+      "saveFailed": "Failed to save organization settings",
+      "saved": "Organization settings saved"
+    },
+    "profile": {
+      "title": "Profile",
+      "nameTitle": "Your name",
+      "description": "Used across the interface and in emails.",
+      "firstName": "First name",
+      "lastName": "Last name"
+    },
+    "security": {
+      "title": "Security",
+      "changePasswordTitle": "Change password",
+      "description": "Choose a strong password you don't use elsewhere.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "updatePassword": "Update password",
+      "twoFactorTitle": "Two-factor authentication",
+      "twoFactorDescription": "Add an extra layer of security to your account. When enabled, you'll need to enter a code sent to your email each time you sign in.",
+      "twoFactorOn": "Enabled",
+      "twoFactorOff": "Disabled",
+      "twoFactorHint": "A 4-digit code will be sent to your email address each time you log in.",
+      "twoFactorEnabled": "Two-factor authentication enabled",
+      "twoFactorDisabled": "Two-factor authentication disabled"
+    },
+    "messages": {
+      "profileSaved": "Profile saved",
+      "passwordUpdated": "Password updated",
+      "fillAllFields": "Please fill in all fields",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "currentPasswordIncorrect": "Current password is incorrect",
+      "nameTooLong": "Name is too long"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language for the interface",
+      "selectLanguage": "Select language",
+      "note": "This changes only your personal interface language. It does not affect others, the organization default or the journey content."
+    },
+    "emailPreferences": {
+      "title": "Email preferences",
+      "marketingTitle": "Product updates and tips",
+      "marketingDescription": "Receive occasional emails about new features, tips, and product updates.",
+      "marketingOn": "Subscribed",
+      "marketingOff": "Not subscribed",
+      "marketingUpdated": "Email preferences updated",
+      "lifecycleTitle": "Help getting started",
+      "lifecycleDescription": "A few short emails with tips while you build and share your first journey.",
+      "lifecycleOn": "On",
+      "lifecycleOff": "Off"
+    }
+  },
+  "team": {
+    "title": "Journey Makers",
+    "subtitle": "Manage the people who can build and maintain journeys for your organization",
+    "organization": {
+      "title": "Organization",
+      "subtitle": "Your company name is used across Gryffi (and later for billing).",
+      "nameLabel": "Company name",
+      "namePlaceholder": "Company name",
+      "saveButton": "Save",
+      "adminHint": "Only admins can change this. It applies to everyone in this organization.",
+      "nonAdminHint": "Only admins can change the company name.",
+      "language": {
+        "label": "Default organization language",
+        "modeAuto": "Use each user's browser language",
+        "modeFixed": "Use one language for the whole organization",
+        "modeHint": "Users can still change their own language in Settings.",
+        "fixedHint": "This is the default language for new sessions in this organization.",
+        "emailHint": "System emails are sent in the organization's default language. If not set, English is used.",
+        "adminOnlyHint": "Only admins can change the organization's default language.",
+        "validationMode": "Invalid language mode",
+        "validationLanguage": "Invalid language selection"
+      },
+      "saved": "Company name saved",
+      "saveFailed": "Failed to save company name",
+      "validationEmpty": "Please enter a company name",
+      "validationTooLong": "Company name is too long"
+    },
+    "roles": {
+      "title": "Roles (what each role can do)",
+      "admin": {
+        "name": "Admin",
+        "badge": "Full access",
+        "description": "Full access: manage makers, subscription & system settings. Create, edit and publish journeys and AI guides. Send invitations and view analytics."
+      },
+      "manager": {
+        "name": "Journey Manager",
+        "badge": "Publish",
+        "description": "Create, edit and publish journeys and AI guides. Send invitations and view subscription & analytics. Cannot manage makers or system settings."
+      },
+      "member": {
+        "name": "Editor",
+        "badge": "Build & edit",
+        "description": "Create and edit journeys and AI guides. Cannot publish, send invitations, or access subscription settings."
+      },
+      "viewer": {
+        "name": "Viewer",
+        "badge": "View only",
+        "description": "View journeys, AI guides and personal settings only. Cannot create, edit, publish or send invitations."
+      }
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "members": {
+      "title": "Makers",
+      "subtitle": "People with access to the Journey Builder in this organization",
+      "endUserHint": "Looking for end users who complete journeys? Manage them in System Settings → Users.",
+      "empty": "No makers found",
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "actions": {
+        "changeRole": "Change role",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "noAccess": "No access"
+      },
+      "promptRole": "Enter the new role for this maker",
+      "you": "you"
+    },
+    "invites": {
+      "title": "Invite maker",
+      "subtitle": "Invite a colleague by email. They will receive a secure link to set a password.",
+      "endUserHint": "Want to invite end users to complete a journey? Go to Invitations instead.",
+      "email": "Email",
+      "emailPlaceholder": "name@company.com",
+      "role": "Role",
+      "send": "Send invite",
+      "pendingTitle": "Pending invitations",
+      "empty": "No pending invitations",
+      "confirmRevoke": "Revoke this invitation?",
+      "table": {
+        "email": "Email",
+        "role": "Role",
+        "expires": "Expires",
+        "actions": "Actions"
+      },
+      "actions": {
+        "resend": "Resend",
+        "revoke": "Revoke"
+      }
+    },
+    "inviteAccept": {
+      "title": "Accept invitation",
+      "subtitle": "Create your Gryffi account to start building journeys",
+      "company": "Company",
+      "email": "Email",
+      "role": "Role",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "passwordHint": "Minimum 8 characters.",
+      "acceptButton": "Create account",
+      "invalidLink": "Invalid invitation link",
+      "invalidOrExpired": "This invitation is invalid or has expired.",
+      "somethingWrong": "Something went wrong. Please try again later.",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "termsAgree": "I agree to the <a href=\"https://gryffi.com/terms\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a> and <a href=\"https://gryffi.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a>.",
+      "termsRequired": "You must agree to the Terms of Service and Privacy Policy.",
+      "emailInOtherOrg": "Your email address already has an account at another Gryffi organization. Ask the person who invited you to use a different email address."
+    },
+    "messages": {
+      "loadFailed": "Failed to load makers data",
+      "noPermission": "You don't have permission to do that",
+      "adminOnly": "This page is only available to admins.",
+      "teamAccessDenied": "You don't have access to the Makers page.",
+      "viewerReadOnly": "Your role is view-only. Ask an admin to upgrade your access if you need to edit or publish journeys.",
+      "viewerReadOnlyGeneric": "View-only: you can view, but you can't create or edit content.",
+      "publishNotAllowed": "Your role cannot publish journeys",
+      "invalidEmail": "Please enter a valid email address",
+      "alreadyMember": "This email already belongs to an active maker",
+      "inviteSent": "Invitation sent",
+      "inviteResent": "Invitation resent",
+      "inviteRevoked": "Invitation revoked",
+      "inviteNotFound": "Invitation not found",
+      "inviteFailed": "Failed to send invitation",
+      "memberUpdated": "Maker updated",
+      "memberNotFound": "Maker not found",
+      "updateFailed": "Failed to update",
+      "cannotEditSelf": "You can't change your own role or access here",
+      "needAnotherAdmin": "Keep at least one active admin in your organization",
+      "confirmDeleteMember": "Permanently delete this maker account? Their created journeys and content will remain, but the creator reference will be removed. This action cannot be undone.",
+      "confirmDeleteSelf": "Permanently delete your own account? You will be logged out immediately and lose access to this organization. Your created journeys and content will remain. This action cannot be undone.",
+      "memberDeleted": "Maker account deleted",
+      "deleteFailed": "Failed to delete maker account",
+      "cannotDeleteLastAdmin": "Cannot delete the last admin. Transfer the admin role to another maker first.",
+      "deleteAccount": "Delete account",
+      "deleteMyAccount": "Delete my account",
+      "confirmSelfDemote": "Are you sure you want to lower your own role? You will immediately lose your admin permissions and cannot undo this change yourself.",
+      "confirmSelfDemoteTitle": "Change your own role",
+      "lastAdminSelf": "You are currently the only admin of this organization. To make sure someone can always manage the system, there must always be at least one admin. First give another maker the admin role; after that you can change your own role.",
+      "lastAdminTitle": "At least one admin required",
+      "emailInOtherOrg": "This email address already belongs to another Gryffi organization. Invite this person with a different email address."
+    }
+  },
+  "language": {
+    "en": "English",
+    "nl": "Nederlands",
+    "de": "Deutsch",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "systemSettings": {
+    "title": "Advanced System Settings",
+    "subtitle": "Configure system integrations and manage end users",
+    "tabs": {
+      "general": "General",
+      "users": "Users",
+      "api": "API",
+      "themes": "Themes"
+    },
+    "themes": {
+      "title": "Journey Themes",
+      "subtitle": "Customize the look and feel of your journeys",
+      "activeTheme": "Active Theme",
+      "gryffiDefault": "Gryffi Default",
+      "gryffiDefaultDesc": "The standard Gryffi color scheme",
+      "customTheme": "Custom Theme",
+      "createTheme": "Create Custom Theme",
+      "editTheme": "Edit Theme",
+      "deleteTheme": "Delete Theme",
+      "deleteConfirm": "Are you sure you want to delete this theme? This action cannot be undone.",
+      "activateTheme": "Set as Active",
+      "deactivateTheme": "Use Default",
+      "presets": "Preset Themes",
+      "presetsDesc": "Start with a professionally designed theme",
+      "customThemes": "Your Custom Themes",
+      "noCustomThemes": "No custom themes yet",
+      "createFirst": "Create your first custom theme to personalize your journeys",
+      "editor": {
+        "title": "Theme Editor",
+        "preview": "Live Preview",
+        "settings": "Theme Settings",
+        "themeName": "Theme Name",
+        "themeNamePlaceholder": "e.g. Company Brand",
+        "description": "Description (optional)",
+        "descriptionPlaceholder": "e.g. Our official brand colors",
+        "logo": "Logo",
+        "logoDesc": "Upload a PNG with transparent background for best results",
+        "uploadLogo": "Upload Logo",
+        "removeLogo": "Remove Logo",
+        "logoHint": "Recommended: PNG format with transparent background",
+        "logoPreviewTitle": "Logo Preview",
+        "lightBackground": "Light background",
+        "darkBackground": "Dark background",
+        "logoAutoConvert": "A white version is automatically generated for dark backgrounds",
+        "pngOnly": "Please upload a PNG file",
+        "colors": "Colors",
+        "basicColors": "Basic Colors",
+        "primary": "Primary Color",
+        "accent": "Accent Color",
+        "background": "Background",
+        "textColors": "Text Colors",
+        "textPrimary": "Primary Text",
+        "textSecondary": "Secondary Text",
+        "uiElements": "UI Elements",
+        "cardBackground": "Card Background",
+        "cardBorder": "Card Border",
+        "buttonText": "Button Text",
+        "journeySpecific": "Journey Specific",
+        "headerBackground": "Header Background",
+        "progressBar": "Progress Bar",
+        "chatBubbleUser": "Your Messages",
+        "chatBubbleGuide": "Guide Messages",
+        "advanced": "Advanced",
+        "borderRadius": "Border Radius",
+        "shadowStrength": "Shadow Strength",
+        "shadowNone": "None",
+        "shadowLight": "Light",
+        "shadowMedium": "Medium",
+        "shadowStrong": "Strong",
+        "previewTabs": {
+          "space": "Space Step",
+          "guide": "Guide Step",
+          "content": "Content Step",
+          "email": "Email"
+        },
+        "save": "Save Theme",
+        "cancel": "Cancel",
+        "saved": "Theme saved successfully",
+        "saveError": "Failed to save theme",
+        "deleted": "Theme deleted"
+      },
+      "tierLocked": "Custom themes are available for Enterprise and Custom plans",
+      "upgradeToUnlock": "Upgrade to unlock"
+    },
+    "warning": {
+      "title": "Technical Settings",
+      "description": "These settings are intended for IT administrators. If you're not sure what something does, please consult a friendly IT colleague before making changes."
+    },
+    "dataExport": {
+      "title": "Data Export",
+      "subtitle": "Download all your organization data (GDPR Art. 20)",
+      "description": "Export a complete copy of all data associated with your organization. The download is a ZIP file containing:",
+      "includesOrg": "Organization settings, journeys, steps, guides, polls, and rewards (JSON)",
+      "includesTeam": "Team members with names and roles (CSV)",
+      "includesEndUsers": "End users (CSV)",
+      "includesJourneys": "Analytics data, form submissions, and quiz results (JSON)",
+      "includesMedia": "All uploaded media files (images, videos, documents)",
+      "includesKnowledge": "AI Guide knowledge base files",
+      "buttonText": "Download Organization Data",
+      "preparing": "Preparing export…",
+      "success": "Download started successfully.",
+      "error": "Export failed. Please try again."
+    },
+    "dangerZone": {
+      "title": "Delete Organization",
+      "description": "Permanently delete your organization and all its data. This action cannot be undone.",
+      "warning": "This will permanently delete all users, end-users, journeys, guides, media files, analytics, and all other data associated with your organization.",
+      "buttonText": "Delete Organization",
+      "confirmTitle": "Delete Organization",
+      "confirmStep1": "Are you sure you want to permanently delete <strong>{{orgName}}</strong>? This action cannot be undone.",
+      "confirmStep1Detail": "All users, journeys, guides, media, and analytics will be permanently removed.",
+      "confirmStep2": "To confirm, type the name of your organization below:",
+      "confirmPlaceholder": "Type organization name",
+      "confirmMismatch": "The name you entered does not match.",
+      "deleting": "Deleting organization...",
+      "success": "Organization deleted. You will be redirected.",
+      "error": "Failed to delete organization. Please try again or contact support.",
+      "activeSubscription": "This organization still has an active subscription. Contact support to cancel it. After that you can delete the organization."
+    },
+    "endUsers": {
+      "title": "End Users",
+      "description": "End users are the people who will participate in your journeys. They can be added manually, imported from a file, or synced from Microsoft 365 or Google Workspace.",
+      "methods": {
+        "manual": {
+          "title": "Manual Entry",
+          "description": "Add users one by one"
+        },
+        "csv": {
+          "title": "CSV/Excel Import",
+          "description": "Import from spreadsheet"
+        },
+        "microsoft": {
+          "title": "Microsoft 365",
+          "description": "Sync with Azure AD"
+        },
+        "google": {
+          "title": "Google Workspace",
+          "description": "Sync with Google Directory"
+        }
+      },
+      "addManually": "Add a new end user",
+      "fields": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email Address",
+        "name": "Name",
+        "source": "Source",
+        "actions": "Actions"
+      },
+      "placeholders": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "email": "john.smith@company.com"
+      },
+      "addUser": "Add User",
+      "editUser": "Edit User",
+      "totalUsers_one": "{{count}} end user",
+      "totalUsers_other": "{{count}} end users",
+      "noUsers": "No end users yet",
+      "noUsersDescription": "Add your first end user using the form above.",
+      "noSearchResults": "No users found matching your search",
+      "searchPlaceholder": "Search by name or email...",
+      "pageOf": "Page {{current}} of {{total}}",
+      "sources": {
+        "manual": "Manual",
+        "csv": "CSV Import",
+        "microsoft": "Microsoft",
+        "google": "Google",
+        "api": "API"
+      },
+      "confirmDelete": {
+        "title": "Delete End User",
+        "message": "Are you sure you want to delete this end user? This action cannot be undone."
+      },
+      "validation": {
+        "invalidEmail": "Please enter a valid email address",
+        "firstNameRequired": "First name is required",
+        "lastNameRequired": "Last name is required",
+        "emailExists": "A user with this email already exists"
+      },
+      "created": "End user added successfully",
+      "updated": "End user updated successfully",
+      "deleted": "End user deleted successfully",
+      "loadFailed": "Failed to load end users",
+      "createFailed": "Failed to add end user",
+      "updateFailed": "Failed to update end user",
+      "deleteFailed": "Failed to delete end user",
+      "notFound": "End user not found",
+      "cannotEditSynced": "Users synced from external sources cannot be edited",
+      "bulkDeleted_one": "Successfully deleted {{count}} {{source}} user",
+      "bulkDeleted_other": "Successfully deleted {{count}} {{source}} users",
+      "noUsersToDelete": "No users to delete",
+      "invalidSource": "Invalid source specified"
+    },
+    "groups": {
+      "title": "Groups",
+      "name": "Name",
+      "descriptionLabel": "Description",
+      "manageMembers": "Manage members",
+      "description": "Organize end users into groups for easier invitation management.",
+      "createGroup": "Create Group",
+      "editGroup": "Edit Group",
+      "deleteGroup": "Delete Group",
+      "groupName": "Group Name",
+      "groupDescription": "Description (optional)",
+      "members": "Members",
+      "memberCount_one": "{{count}} member",
+      "memberCount_other": "{{count}} members",
+      "noMembers": "No members yet",
+      "noGroups": "No groups yet",
+      "noGroupsDescription": "Create your first group to organize end users.",
+      "addMembers": "Add Members",
+      "removeFromGroup": "Remove from group",
+      "addToGroup": "Add to group",
+      "searchUsers": "Search users to add...",
+      "selectUsers": "Select users to add",
+      "allUsersInGroup": "All users are already in this group",
+      "viewMembers": "View Members",
+      "validation": {
+        "nameRequired": "Group name is required",
+        "nameExists": "A group with this name already exists",
+        "noUsersSelected": "Please select at least one user"
+      },
+      "created": "Group created successfully",
+      "updated": "Group updated successfully",
+      "deleted": "Group deleted successfully",
+      "loadFailed": "Failed to load groups",
+      "createFailed": "Failed to create group",
+      "updateFailed": "Failed to update group",
+      "deleteFailed": "Failed to delete group",
+      "noGroupsToDelete": "No groups to delete",
+      "groupsDeleted_one": "{{count}} group has been deleted",
+      "groupsDeleted_other": "{{count}} groups have been deleted",
+      "invalidSource": "Invalid source specified",
+      "notFound": "Group not found",
+      "membersAdded_one": "Added {{count}} member to group",
+      "membersAdded_other": "Added {{count}} members to group",
+      "memberRemoved": "Member removed from group",
+      "memberAddFailed": "Failed to add members",
+      "memberRemoveFailed": "Failed to remove member",
+      "confirmDelete": {
+        "title": "Delete Group",
+        "message": "Are you sure you want to delete this group? The members will not be deleted, only the group."
+      },
+      "sources": {
+        "manual": "Manual",
+        "microsoft": "Microsoft",
+        "google": "Google"
+      }
+    },
+    "import": {
+      "title": "Import End Users",
+      "subtitle": "Upload a CSV or Excel file to import multiple users at once",
+      "instructions": {
+        "title": "File Format Requirements",
+        "format": "Supported formats: CSV, Excel (.xlsx, .xls), OpenDocument (.ods)",
+        "columns": "Your file should have 3 columns:",
+        "columnA": "Column A: First Name",
+        "columnB": "Column B: Last Name",
+        "columnC": "Column C: Email Address",
+        "headerNote": "A header row is optional and will be automatically detected",
+        "maxSize": "Maximum file size: 10MB"
+      },
+      "dropzone": {
+        "title": "Drop your file here",
+        "subtitle": "or click to browse",
+        "formats": "CSV, Excel, OpenDocument"
+      },
+      "preview": {
+        "title": "Import Preview",
+        "newUsers_one": "{{count}} new user to import",
+        "newUsers_other": "{{count}} new users to import",
+        "duplicates_one": "{{count}} user already exists (will be skipped)",
+        "duplicates_other": "{{count}} users already exist (will be skipped)",
+        "skippedHeader": "Header row detected and skipped",
+        "samplePreview": "Sample of users to import:",
+        "duplicateEmails": "Duplicate emails (will be skipped):"
+      },
+      "confirm": {
+        "title": "Confirm Import",
+        "message_one": "Are you sure you want to import {{count}} end user?",
+        "message_other": "Are you sure you want to import {{count}} end users?",
+        "importBtn": "Yes, Import Users",
+        "cancelBtn": "Cancel"
+      },
+      "success_one": "Successfully imported {{count}} end user!",
+      "success_other": "Successfully imported {{count}} end users!",
+      "successWithLimit_one": "Imported {{count}} end user. {{skipped}} user(s) were not imported due to your plan limit.",
+      "successWithLimit_other": "Imported {{count}} end users. {{skipped}} user(s) were not imported due to your plan limit.",
+      "errors": {
+        "noFile": "Please select a file to upload",
+        "invalidFileType": "Invalid file type. Please upload a CSV, Excel (.xlsx, .xls), or OpenDocument (.ods) file.",
+        "fileTooLarge": "File is too large. Maximum size is 10MB.",
+        "noSheets": "The file contains no data sheets. Please check your file.",
+        "emptyFile": "The file is empty. Please add some data and try again.",
+        "noData": "No valid data rows found in the file. Make sure you have data in columns A, B, and C.",
+        "parseError": "Could not read the file. Please make sure it's a valid spreadsheet file and try again.",
+        "validationError": "Row {{row}}: {{details}}",
+        "noUsersToImport": "No users to import",
+        "noValidUsers": "No valid users found in the submitted data",
+        "importFailed": "Import failed. Please try again.",
+        "serverError": "A server error occurred. Please try again later."
+      },
+      "warnings": {
+        "extraColumns": "Some rows have data beyond column C. Only columns A, B, C are used."
+      }
+    },
+    "google": {
+      "title": "Google Workspace Integration",
+      "connectTitle": "Connect Google Workspace",
+      "connectDescription": "Connect your Google Workspace account to automatically sync users from your organization's directory.",
+      "connectButton": "Connect with Google",
+      "connectedTitle": "Google Workspace Connected",
+      "connectedAs": "Connected as",
+      "domain": "Domain",
+      "syncDescription": "Sync users and groups from your Google Workspace directory. Existing users will be updated, new users will be added. Users removed from the sync scope will also be removed here.",
+      "syncButton": "Sync Now",
+      "syncedUsers": "Synced Users",
+      "syncedGroups": "Synced Groups",
+      "lastSync": "Last Sync",
+      "autoSync": "Auto Sync",
+      "every15min": "Every 15 minutes",
+      "syncConfigTitle": "Sync Configuration",
+      "syncModeAll": "Sync all users",
+      "syncModeAllDesc": "Synchronize all active users from your Google Workspace directory.",
+      "syncModeGroups": "Sync users from specific groups",
+      "syncModeGroupsDesc": "Only synchronize users who are members of selected groups.",
+      "syncGroupsOption": "Also sync groups",
+      "syncGroupsDesc": "Import groups and their memberships alongside users.",
+      "selectGroupsToSync": "Select which groups to synchronize:",
+      "importGroupMembersOption": "Also import members of selected groups as users",
+      "importGroupMembersDesc": "Users from selected groups will be added to your end users list.",
+      "saveConfig": "Save Configuration",
+      "configSaved": "Sync configuration saved successfully",
+      "noGroupsFound": "No groups found in your Google Workspace",
+      "noGroupsSelected": "Please select at least one group to sync",
+      "membersLabel": "members",
+      "justNow": "Just now",
+      "minutesAgo": "min ago",
+      "hoursAgo": "hours ago",
+      "daysAgo": "days ago",
+      "disconnectButton": "Disconnect",
+      "disconnectConfirm": "Are you sure you want to disconnect Google Workspace? Synced users will remain in the system.",
+      "requirementsTitle": "Requirements",
+      "requirement1": "You must be a Google Workspace administrator",
+      "requirement2": "You need to grant permission to read user directory data",
+      "requirement3": "Only active (non-suspended) users will be synced",
+      "notConfiguredTitle": "Google Integration Not Configured",
+      "notConfiguredDescription": "Google Workspace integration has not been configured for this installation. Please contact your system administrator.",
+      "notConfigured": "Google OAuth is not configured",
+      "notConnected": "Google Workspace is not connected",
+      "connected": "Successfully connected to Google Workspace!",
+      "connectFailed": "Failed to connect to Google. Please try again.",
+      "disconnected": "Google Workspace disconnected successfully",
+      "disconnectFailed": "Failed to disconnect Google Workspace",
+      "syncSuccess_one": "Successfully synced {{count}} user from Google Workspace",
+      "syncSuccess_other": "Successfully synced {{count}} users from Google Workspace",
+      "syncDeleted_one": "{{count}} user removed (no longer in Google Workspace).",
+      "syncDeleted_other": "{{count}} users removed (no longer in Google Workspace).",
+      "syncDeleteSkipped": "Some deletions were skipped for safety (>10% would be removed).",
+      "syncFailed": "Failed to sync users from Google Workspace",
+      "insufficientPermissions": "Insufficient permissions. Make sure you are a Google Workspace administrator with access to the directory.",
+      "tokenExpired": "Your Google session has expired. Please reconnect.",
+      "accessDenied": "Access was denied. Please grant the required permissions to continue.",
+      "orphanedUsersTitle": "Google Users Without Connection",
+      "orphanedUsersDescription": "You have {{count}} end users that were imported from Google Workspace, but the connection has been disconnected. You can reconnect to sync again, or delete these users if no longer needed.",
+      "viewOrphanedUsers": "View Users",
+      "deleteAllOrphanedUsers": "Delete All",
+      "confirmDeleteAllOrphaned": "Are you sure you want to delete ALL end users that were imported from Google Workspace? This action cannot be undone.",
+      "orphanedUsersDeleted": "All Google-imported users have been deleted",
+      "orphanedGroupsTitle": "Google Groups Without Connection",
+      "orphanedGroupsDescription": "You have {{count}} groups that were imported from Google Workspace, but the connection has been disconnected. You can reconnect to sync again, or delete these groups if no longer needed.",
+      "deleteAllOrphanedGroups": "Delete Groups",
+      "confirmDeleteAllOrphanedGroups": "Are you sure you want to delete ALL groups that were imported from Google Workspace? This action cannot be undone.",
+      "orphanedGroupsDeleted": "All Google-imported groups have been deleted",
+      "setupGuide": {
+        "title": "Setup Guide",
+        "subtitle": "Before connecting, your Google Workspace administrator needs to authorize this application.",
+        "showGuide": "Show setup instructions",
+        "hideGuide": "Hide setup instructions",
+        "step1Title": "Step 1: Open Google Admin Console",
+        "step1Description": "Go to admin.google.com and sign in with your administrator account.",
+        "step2Title": "Step 2: Navigate to API Controls",
+        "step2Description": "Go to Security → Access and data control → API controls → Domain-wide delegation.",
+        "step3Title": "Step 3: Add API Client",
+        "step3Description": "Click 'Add new' and enter the following details:",
+        "clientIdLabel": "Client ID",
+        "clientIdCopied": "Client ID copied!",
+        "scopeLabel": "OAuth Scopes",
+        "scopeValue": "https://www.googleapis.com/auth/admin.directory.user.readonly, https://www.googleapis.com/auth/admin.directory.group.readonly",
+        "scopeCopied": "Scopes copied!",
+        "step4Title": "Step 4: Authorize",
+        "step4Description": "Click 'Authorize' to save the settings. You can now connect your Google Workspace account.",
+        "importantNote": "Important",
+        "importantNoteText": "Only a Google Workspace Super Admin can configure domain-wide delegation. If you're not the admin, please share these instructions with them.",
+        "learnMore": "Learn more about domain-wide delegation",
+        "copyButton": "Copy"
+      }
+    },
+    "microsoft": {
+      "title": "Microsoft 365 Integration",
+      "connectTitle": "Connect Microsoft 365",
+      "connectDescription": "Connect your Microsoft 365 tenant to automatically sync users and groups from Azure Active Directory.",
+      "connectButton": "Connect with Microsoft",
+      "connectedTitle": "Microsoft 365 Connected",
+      "connectedAs": "Tenant",
+      "syncDescription": "Sync users and groups from your Microsoft 365 directory. Existing users will be updated, new users will be added. Users removed from the sync scope will also be removed here.",
+      "syncButton": "Sync Now",
+      "syncedUsers": "Synced Users",
+      "syncedGroups": "Synced Groups",
+      "lastSync": "Last Sync",
+      "autoSync": "Auto Sync",
+      "every15min": "Every 15 minutes",
+      "disconnectButton": "Disconnect",
+      "disconnectConfirm": "Are you sure you want to disconnect Microsoft 365? Synced users and groups will remain in the system.",
+      "requirementsTitle": "Requirements",
+      "requirement1": "You must be a Microsoft 365 Global Administrator or have admin consent privileges",
+      "requirement2": "You need to grant admin consent for the application to read users and groups",
+      "requirement3": "Only enabled (non-disabled) accounts will be synced",
+      "notConfiguredTitle": "Microsoft 365 Integration Not Configured",
+      "notConfiguredDescription": "Microsoft 365 integration has not been configured for this installation. Please contact your system administrator.",
+      "notConfigured": "Microsoft 365 OAuth is not configured",
+      "notConnected": "Microsoft 365 is not connected",
+      "connected": "Successfully connected to Microsoft 365!",
+      "connectFailed": "Failed to connect to Microsoft 365. Please try again.",
+      "disconnected": "Microsoft 365 disconnected successfully",
+      "disconnectFailed": "Failed to disconnect Microsoft 365",
+      "syncSuccess_one": "Successfully synced {{count}} user from Microsoft 365",
+      "syncSuccess_other": "Successfully synced {{count}} users from Microsoft 365",
+      "syncDeleted_one": "{{count}} user removed (no longer in sync scope).",
+      "syncDeleted_other": "{{count}} users removed (no longer in sync scope).",
+      "syncDeleteSkipped": "Some deletions were skipped for safety (>10% would be removed).",
+      "groupsSynced_one": "{{count}} group synced.",
+      "groupsSynced_other": "{{count}} groups synced.",
+      "syncFailed": "Failed to sync from Microsoft 365",
+      "insufficientPermissions": "Insufficient permissions. Make sure you have admin consent for User.Read.All and Group.Read.All.",
+      "tokenExpired": "Your Microsoft session has expired. Please reconnect.",
+      "accessDenied": "Access was denied. Please grant admin consent to continue.",
+      "orphanedUsersTitle": "Microsoft Users Without Connection",
+      "orphanedUsersDescription": "You have {{count}} end users that were imported from Microsoft 365, but the connection has been disconnected. You can reconnect to sync again, or delete these users if no longer needed.",
+      "viewOrphanedUsers": "View Users",
+      "deleteAllOrphanedUsers": "Delete All",
+      "confirmDeleteAllOrphaned": "Are you sure you want to delete ALL end users that were imported from Microsoft 365? This action cannot be undone.",
+      "orphanedUsersDeleted": "All Microsoft-imported users have been deleted",
+      "orphanedGroupsTitle": "Microsoft Groups Without Connection",
+      "orphanedGroupsDescription": "You have {{count}} groups that were imported from Microsoft 365, but the connection has been disconnected. You can reconnect to sync again, or delete these groups if no longer needed.",
+      "deleteAllOrphanedGroups": "Delete Groups",
+      "confirmDeleteAllOrphanedGroups": "Are you sure you want to delete ALL groups that were imported from Microsoft 365? This action cannot be undone.",
+      "orphanedGroupsDeleted": "All Microsoft-imported groups have been deleted",
+      "groupsFailed": "Failed to load groups from Microsoft 365",
+      "noGroupsFound": "No groups found in your Microsoft 365 tenant",
+      "noGroupsSelected": "Please select at least one group to sync",
+      "syncConfigTitle": "Sync Configuration",
+      "syncModeAll": "Sync all users",
+      "syncModeAllDesc": "Import all enabled users from your Microsoft 365 tenant",
+      "syncModeGroups": "Sync specific groups only",
+      "syncModeGroupsDesc": "Import only users that are members of selected groups",
+      "syncGroupsOption": "Also import groups as end user groups",
+      "syncGroupsDesc": "Import groups and their memberships alongside users.",
+      "selectGroupsToSync": "Select which groups to synchronize:",
+      "importGroupMembersOption": "Also import members of selected groups as users",
+      "importGroupMembersDesc": "Users from selected groups will be added to your end users list.",
+      "configSaved": "Sync configuration saved successfully",
+      "configFailed": "Failed to save sync configuration",
+      "setupGuide": {
+        "title": "Setup Guide",
+        "showGuide": "Show setup instructions",
+        "hideGuide": "Hide setup instructions",
+        "step1Title": "Step 1: Grant Admin Consent",
+        "step1Description": "When you click Connect, you will be redirected to Microsoft to grant admin consent for your organization. This allows Gryffi to read users and groups.",
+        "step2Title": "Step 2: Sign in as Administrator",
+        "step2Description": "Sign in with a Microsoft 365 Global Administrator account or an account with permissions to grant admin consent.",
+        "step3Title": "Step 3: Accept Permissions",
+        "step3Description": "Review and accept the requested permissions: User.Read.All (read all users), Group.Read.All (read all groups), and GroupMember.Read.All (read group memberships).",
+        "importantNote": "Important",
+        "importantNoteText": "Only a Global Administrator or Privileged Role Administrator can grant admin consent. If you're not the admin, please share this page with them."
+      },
+      "tenantInUse": "This Microsoft 365 environment is already connected to another Gryffi organization. Disconnect it there first, or contact support."
+    }
+  },
+  "invitations": {
+    "title": "Invitations",
+    "subtitle": "Send journey invitations to end users via magic link",
+    "pageTitle": "Invitations",
+    "sendInvitations": "Send Invitations",
+    "noPermission": {
+      "title": "You don't have permission to send invitations",
+      "description": "Only Admins and Journey Managers can send invitations to end users. Please ask a colleague with one of these roles to send the invitations for you.",
+      "hint": "You can still view sent invitations and their status below."
+    },
+    "steps": {
+      "selectJourney": "Select Journey",
+      "setOptions": "Set Options",
+      "selectUsers": "Select Users",
+      "review": "Review & Send"
+    },
+    "journey": {
+      "title": "Which journey do you want to send?",
+      "subtitle": "Only published journeys can be sent to end users",
+      "selectPlaceholder": "— Select a journey —",
+      "noPublished": "No published journeys available",
+      "noPublishedDescription": "You need to publish a journey before you can invite end users. Go to the Journey Builder and change the status to \"Published\".",
+      "noPrivatePublished": "No private published journeys available",
+      "noPrivatePublishedDescription": "Invitations can only be sent for private journeys. Public journeys are accessible to everyone without an invitation.",
+      "goToJourneys": "Go to Journeys",
+      "status": {
+        "published": "Published",
+        "draft": "Draft"
+      },
+      "draftWarning": "This journey is still a draft. Please publish it first before sending invitations.",
+      "publishFirst": "Publish journey first"
+    },
+    "options": {
+      "title": "Invitation Options",
+      "subtitle": "Configure how the invitation works",
+      "validity": {
+        "label": "How long is the link valid?",
+        "hint": "After this period, the link expires and can no longer be used",
+        "1week": "1 week",
+        "2weeks": "2 weeks",
+        "1month": "1 month",
+        "3months": "3 months"
+      },
+      "completions": {
+        "label": "How many times can the journey be completed?",
+        "hint": "Set how often a user can go through the journey",
+        "once": "Once (default)",
+        "twice": "Twice",
+        "unlimited": "Unlimited"
+      },
+      "reminder": {
+        "label": "Send reminder email?",
+        "hint": "Send a reminder to users who haven't completed the journey",
+        "on": "Yes, send reminder",
+        "off": "No reminder",
+        "infoText": "Reminder will be sent after {{days}} days if not completed"
+      }
+    },
+    "users": {
+      "title": "Who do you want to invite?",
+      "subtitle": "Select individual users or entire groups",
+      "tabs": {
+        "individuals": "Individual Users",
+        "groups": "Groups"
+      },
+      "searchPlaceholder": "Search by name or email...",
+      "searchGroupsPlaceholder": "Search groups...",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "selected": "{{count}} selected",
+      "selected_one": "{{count}} selected",
+      "selected_other": "{{count}} selected",
+      "selectedUsers_one": "{{count}} user selected",
+      "selectedUsers_other": "{{count}} users selected",
+      "selectedGroups": "{{count}} groups selected",
+      "selectedGroups_one": "{{count}} group selected",
+      "selectedGroups_other": "{{count}} groups selected",
+      "groupMembers": "{{count}} members",
+      "groupMembers_one": "{{count}} member",
+      "groupMembers_other": "{{count}} members",
+      "noUsers": "No end users found",
+      "noUsersDescription": "Add end users in System Settings before you can send invitations.",
+      "noGroups": "No groups found",
+      "noGroupsDescription": "Create groups in System Settings to invite multiple users at once.",
+      "goToSystemSettings": "Go to System Settings",
+      "alreadyInvited": "Already has active invitation",
+      "completed": "Already completed this journey",
+      "groupNote": "Each member will receive their own personal invitation link."
+    },
+    "review": {
+      "title": "Review & Send",
+      "subtitle": "Check the details before sending",
+      "journey": "Journey",
+      "validity": "Valid for",
+      "completions": "Completions allowed",
+      "recipients": "Recipients",
+      "reminder": "Reminder",
+      "recipientCount_one": "{{count}} end user",
+      "recipientCount_other": "{{count}} end users",
+      "sendButton": "Send {{count}} Invitations",
+      "sendButton_one": "Send {{count}} Invitation",
+      "sendButton_other": "Send {{count}} Invitations",
+      "sending": "Sending...",
+      "success": "{{count}} invitations sent successfully!",
+      "success_one": "{{count}} invitation sent successfully!",
+      "success_other": "{{count}} invitations sent successfully!",
+      "error": "Failed to send invitations. Please try again.",
+      "sentOf": "invitations sent of"
+    },
+    "list": {
+      "title": "Sent Invitations",
+      "subtitle": "Overview of all sent invitations",
+      "empty": "No invitations sent yet",
+      "emptyDescription": "Send your first invitation using the form above",
+      "table": {
+        "user": "User",
+        "journey": "Journey",
+        "status": "Status",
+        "sent": "Sent",
+        "expires": "Expires",
+        "actions": "Actions"
+      },
+      "status": {
+        "pending": "Pending",
+        "active": "Active",
+        "completed": "Completed",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "actions": {
+        "revoke": "Revoke",
+        "resend": "Resend"
+      },
+      "confirmRevoke": "Revoke this invitation? The user will no longer be able to access the journey.",
+      "revoked": "Invitation revoked",
+      "resent": "Invitation resent",
+      "showing": "Showing",
+      "of": "of",
+      "invitationsCount": "invitations"
+    },
+    "email": {
+      "subject": "You're invited to {{journeyTitle}}",
+      "greeting": "Hello {{firstName}},",
+      "intro": "You've been invited to participate in \"{{journeyTitle}}\" at {{companyName}}.",
+      "instructions": "Click the button below to start your journey. This link is personal and valid for {{validity}}.",
+      "button": "Start Journey",
+      "footer": "If you weren't expecting this invitation, you can safely ignore this email.",
+      "validUntil": "This link is valid until {{date}}"
+    },
+    "magicLink": {
+      "welcome": "Welcome, {{firstName}}!",
+      "startJourney": "Start Journey",
+      "continueJourney": "Continue Journey",
+      "expired": {
+        "title": "Link Expired",
+        "message": "This invitation link has expired. Please contact the sender for a new invitation."
+      },
+      "completed": {
+        "title": "Journey Completed",
+        "message": "You have already completed this journey. Thank you for participating!"
+      },
+      "revoked": {
+        "title": "Invitation Revoked",
+        "message": "This invitation is no longer valid. Please contact the sender if you need access."
+      },
+      "verification": {
+        "title": "Verify Your Identity",
+        "subtitle": "We noticed you're accessing from a new device or location",
+        "explanation": "For your security, we've sent a 4-digit code to your email address.",
+        "codeLabel": "Enter verification code",
+        "codePlaceholder": "0000",
+        "submit": "Verify",
+        "resend": "Resend code",
+        "resent": "New code sent!",
+        "invalid": "Invalid code. Please try again.",
+        "expired": "Code expired. Please request a new one.",
+        "tooManyAttempts": "Too many attempts. Please request a new code.",
+        "lockedWait": "Too many incorrect codes. Wait 10 minutes, then click Resend code to get a new one."
+      },
+      "verificationEmail": {
+        "subject": "Your verification code for {{journeyTitle}}",
+        "greeting": "Hello {{firstName}},",
+        "intro": "You requested access to \"{{journeyTitle}}\" from a new device.",
+        "code": "Your verification code is:",
+        "expiry": "This code expires in 10 minutes.",
+        "ignore": "If you didn't request this, you can safely ignore this email."
+      },
+      "completedCanRestart": {
+        "title": "Journey Completed!",
+        "message": "Congratulations! Would you like to go through this journey again?",
+        "restartButton": "Start Again"
+      },
+      "welcomeBack": {
+        "title": "Welcome back, {{firstName}}!",
+        "message": "You have already completed this journey.",
+        "restartButton": "Start Again",
+        "reviewButton": "Review Previous Attempt"
+      }
+    },
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "active": "Active",
+      "completed": "Completed",
+      "expired": "Expired"
+    },
+    "validation": {
+      "selectJourney": "Please select a journey",
+      "selectUsers": "Please select at least one user",
+      "journeyNotPublished": "Selected journey is not published"
+    }
+  },
+  "expedition": {
+    "welcome": {
+      "title": "Welcome, {{firstName}}!",
+      "greeting": "Welcome, {{firstName}}!",
+      "startButton": "Start Journey",
+      "continueButton": "Continue Journey"
+    },
+    "navigation": {
+      "next": "Next",
+      "previous": "Previous",
+      "submit": "Submit"
+    },
+    "completion": {
+      "title": "Journey Completed",
+      "message": "Congratulations! You have successfully completed this journey."
+    },
+    "quiz": {
+      "correct": "Correct!",
+      "incorrect": "Incorrect, try again."
+    },
+    "guide": {
+      "send": "Send",
+      "placeholder": "Type your message..."
+    },
+    "steps": {
+      "space": "Space",
+      "guide": "Guide",
+      "content": "Content",
+      "challenge": "Challenge",
+      "form": "Form",
+      "poll": "Poll"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "View insights and statistics for your journeys",
+    "tabs": {
+      "overview": "Overview",
+      "journeys": "Journeys",
+      "users": "Users",
+      "groups": "Groups",
+      "polls": "Polls",
+      "rewards": "Rewards",
+      "reports": "Reports",
+      "forms": "Forms"
+    },
+    "dateRange": {
+      "last7days": "Last 7 days",
+      "last30days": "Last 30 days",
+      "last90days": "Last 90 days"
+    },
+    "kpi": {
+      "journeysStarted": "Journeys Started",
+      "completionRate": "Completion Rate",
+      "avgDuration": "Avg. Duration",
+      "activeUsers": "Active Users",
+      "started": "Started",
+      "completed": "Completed"
+    },
+    "chart": {
+      "started": "Started",
+      "completed": "Completed"
+    },
+    "overview": {
+      "journeyPerformance": "Journey Performance",
+      "completionTrend": "Completion Trend",
+      "topJourneys": "Top Performing Journeys",
+      "noJourneyData": "No journey data available for this period"
+    },
+    "journeys": {
+      "title": "Journey Analytics",
+      "selectJourney": "Select a journey...",
+      "selectToView": "Select a journey to view analytics",
+      "selectDescription": "Choose a journey from the dropdown above to see detailed funnel analysis and step performance.",
+      "funnel": "User Progression Funnel",
+      "stepPerformance": "Step Performance",
+      "dailyTrend": "Daily Activity",
+      "noStepData": "No step data available"
+    },
+    "users": {
+      "title": "User Analytics",
+      "searchPlaceholder": "Search by name or email...",
+      "allGroups": "All Groups",
+      "noUsers": "No users found",
+      "loadError": "Failed to load user details",
+      "userDetails": "User Details",
+      "journeyActivity": "Journey Activity",
+      "stepsCompleted": "steps completed",
+      "completed": "Completed",
+      "quizPerformance": "Quiz Performance"
+    },
+    "replay": {
+      "title": "Journey Replay",
+      "timeline": "Timeline",
+      "viewReplay": "View Replay",
+      "loadError": "Failed to load journey replay",
+      "noData": "No journey data available",
+      "steps": "Steps",
+      "totalTime": "Total Time",
+      "quizzes": "Quizzes",
+      "chats": "AI Chats",
+      "status": "Status",
+      "timing": "Timing",
+      "started": "Started",
+      "completed": "Completed",
+      "duration": "Duration",
+      "quizResults": "Quiz Results",
+      "correctAnswers": "Correct",
+      "score": "Score",
+      "result": "Result",
+      "passed": "Passed",
+      "failed": "Failed",
+      "quizTime": "Quiz Time",
+      "question": "Q",
+      "aiGuide": "AI Guide Chat",
+      "messages": "Messages",
+      "chatTime": "Chat Time",
+      "videoEngagement": "Video",
+      "watched": "Watched",
+      "watchTime": "Watch Time",
+      "formSubmission": "Form",
+      "fieldsFilled": "Fields Filled",
+      "fillTime": "Fill Time",
+      "submitted": "Submitted",
+      "notSubmitted": "Not Submitted",
+      "pollVote": "Poll",
+      "voted": "Voted",
+      "noAdditionalData": "No additional data for this step"
+    },
+    "groups": {
+      "title": "Group Analytics",
+      "noGroups": "No groups found",
+      "loadError": "Failed to load group details",
+      "groupDetails": "Group Details",
+      "members": "members",
+      "orgBenchmarks": "Organization Benchmarks",
+      "orgAvgQuiz": "Org. Avg. Quiz Score",
+      "orgCompletion": "Org. Completion Rate",
+      "selectGroup": "Select a group...",
+      "comparison": "Group Comparison",
+      "completionRate": "Completion Rate",
+      "avgQuizScore": "Avg. Quiz Score",
+      "activeUsers": "Active Users",
+      "journeysCompleted": "Journeys Completed",
+      "quizStats": "Quiz Statistics",
+      "avgScore": "Avg. Score",
+      "passRate": "Pass Rate",
+      "totalAttempts": "Total Attempts",
+      "topPerformers": "Top Performers"
+    },
+    "table": {
+      "journey": "Journey",
+      "started": "Started",
+      "completed": "Completed",
+      "completionRate": "Rate",
+      "actions": "Actions",
+      "step": "Step",
+      "type": "Type",
+      "reached": "Reached",
+      "avgTime": "Avg. Time",
+      "dropOff": "Drop-off",
+      "user": "User",
+      "group": "Group",
+      "journeysCompleted": "Journeys",
+      "avgQuizScore": "Quiz Score",
+      "lastActivity": "Last Activity",
+      "members": "Members",
+      "activeUsers": "Active",
+      "vsBenchmark": "vs Benchmark",
+      "quiz": "Quiz",
+      "attempts": "Attempts",
+      "bestScore": "Best",
+      "avgScore": "Avg"
+    },
+    "actions": {
+      "viewDetails": "View Details"
+    },
+    "time": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "days ago"
+    },
+    "emptyStates": {
+      "polls": {
+        "title": "No poll results yet",
+        "description": "Add a poll step to your journey to collect and view participant responses here.",
+        "action": "Go to Journeys"
+      },
+      "rewards": {
+        "title": "No rewards yet",
+        "description": "Add a reward step to your journey to distribute codes and track claims here.",
+        "action": "Go to Journeys"
+      },
+      "forms": {
+        "title": "No form submissions yet",
+        "description": "Add a form step to your journey to collect and view submitted responses and files here.",
+        "action": "Go to Journeys"
+      }
+    },
+    "reports": {
+      "journeyPerformance": {
+        "title": "Journey Performance Report",
+        "description": "Detailed analysis of a specific journey with completion funnel and participant data"
+      },
+      "periodOverview": {
+        "title": "Periodic Overview Report",
+        "description": "Summary of all activity over a selected time period with trends"
+      },
+      "userProgress": {
+        "title": "User & Group Progress Report",
+        "description": "Individual user or group journey progress, quiz scores, and engagement metrics"
+      },
+      "engagement": {
+        "title": "Engagement Report",
+        "description": "Quiz, video, and AI Guide statistics across all journeys"
+      },
+      "selectJourney": "Select a journey",
+      "chooseJourney": "Choose a journey...",
+      "selectUser": "Select a user",
+      "chooseUser": "Choose a user...",
+      "searchUserGroup": "Search user or group",
+      "searchPlaceholder": "Search by name or email...",
+      "noResults": "No results found",
+      "user": "User",
+      "group": "Group",
+      "members": "Members",
+      "groupProgress": "Group Progress Report",
+      "groupInfo": "Group Information",
+      "groupPerformance": "Group Performance",
+      "topPerformers": "Top Performers",
+      "engagementMetrics": "Engagement Metrics",
+      "selectPeriod": "Select period",
+      "preview": "Preview",
+      "downloadPdf": "Download PDF",
+      "exportPdf": "Export PDF",
+      "exportError": "Failed to export report",
+      "generating": "Generating report...",
+      "noData": "No data available",
+      "periods": {
+        "week": "Last 7 days",
+        "month": "Last 30 days",
+        "quarter": "Last 90 days",
+        "year": "Last 365 days"
+      },
+      "labels": {
+        "invitations": "Invitations",
+        "completed": "Completed",
+        "completionRate": "Completion Rate",
+        "avgTime": "Avg. Time",
+        "days": "days",
+        "hours": "hours",
+        "funnel": "Completion Funnel",
+        "activity": "Activity Over Time",
+        "topJourneys": "Top Journeys",
+        "pollResults": "Poll Results",
+        "participants": "Participants",
+        "name": "Name",
+        "status": "Status",
+        "completedAt": "Completed At",
+        "generatedAt": "Generated",
+        "trend": "Trend",
+        "newUsers": "New Users",
+        "totalUsers": "Total Users",
+        "pollResponses": "Poll Responses",
+        "journey": "Journey",
+        "vsPrevious": "vs previous period",
+        "page": "Page",
+        "reportFooter": "Gryffi Report",
+        "engaged": "Engaged"
+      },
+      "userInfo": "User Information",
+      "firstSeen": "First seen",
+      "journeyActivity": "Journey Activity",
+      "quizPerformance": "Quiz Performance",
+      "attempts": "Attempts",
+      "passRate": "Pass Rate",
+      "bestScore": "Best Score",
+      "videoEngagement": "Video Engagement",
+      "avgWatched": "Average Watched",
+      "videosWatched": "Videos watched",
+      "totalWatchTime": "Total watch time",
+      "aiGuideUsage": "AI Guide Usage",
+      "sessions": "Sessions",
+      "messages": "Messages",
+      "totalTime": "Total Time",
+      "avgPerSession": "Avg/Session",
+      "engagementReport": "Engagement Report",
+      "quizAttempts": "Quiz Attempts",
+      "inPeriod": "in period",
+      "aiChats": "AI Chats",
+      "avgQuizScore": "Avg Quiz Score",
+      "allAttempts": "all attempts",
+      "videoCompletion": "Video Completion",
+      "avgChatDuration": "Avg Chat Duration",
+      "perSession": "per session",
+      "quizStatistics": "Quiz Statistics",
+      "totalAttempts": "Total Attempts",
+      "uniqueUsers": "Unique Users",
+      "scoreDistribution": "Score Distribution",
+      "topQuizzes": "Most Attempted Quizzes",
+      "videoStatistics": "Video Statistics",
+      "totalViews": "Total Views",
+      "topVideos": "Most Watched Videos",
+      "aiGuideStatistics": "AI Guide Statistics",
+      "totalSessions": "Total Sessions",
+      "totalMessages": "Total Messages",
+      "avgDuration": "Avg Duration",
+      "topAiGuideSteps": "Most Active AI Guide Steps",
+      "journeysStarted": "Journeys Started",
+      "journeysCompleted": "Journeys Completed"
+    },
+    "polls": {
+      "title": "Poll Results",
+      "subtitle": "See how users voted in polls",
+      "noPollsYet": "No poll data yet",
+      "selectPoll": "Select a poll to view results",
+      "totalVotes": "Total votes",
+      "lastVote": "Last vote",
+      "archived": "Archived Polls",
+      "archivedDescription": "Poll results from deleted journeys. Can be permanently deleted.",
+      "archivedLabel": "Archived",
+      "archivedOn": "Archived on",
+      "totalResponses": "responses",
+      "selectAll": "Select all",
+      "deleteSelected": "Delete selected",
+      "deleteConfirm_one": "Are you sure you want to permanently delete {{count}} poll? This cannot be undone.",
+      "deleteConfirm_other": "Are you sure you want to permanently delete {{count}} polls? This cannot be undone.",
+      "deleteSuccess": "Archived polls deleted successfully",
+      "deleteError": "Failed to delete archived polls",
+      "restorable": "Restorable",
+      "permanent": "Permanent",
+      "willRestoreWith": "Will restore with journey"
+    },
+    "rewards": {
+      "title": "Rewards",
+      "subtitle": "Track reward codes and claims",
+      "noRewardsYet": "No rewards yet",
+      "createRewardFirst": "Add a reward step to a journey to start distributing codes",
+      "claimed": "Claimed",
+      "remaining": "Remaining",
+      "validUntil": "Valid until",
+      "redeemAt": "Redeem at",
+      "terms": "Terms",
+      "viewCodes": "View codes",
+      "downloadPDF": "Download PDF",
+      "codesTitle": "Reward Codes",
+      "code": "Code",
+      "status": "Status",
+      "claimedBy": "Claimed by",
+      "claimedAt": "Claimed at",
+      "notClaimedYet": "Not claimed yet",
+      "emailSent": "Email sent",
+      "archived": "Archived Rewards",
+      "archivedDescription": "Rewards from deleted journeys or deactivated steps. Claimed codes remain valid.",
+      "archivedLabel": "Archived",
+      "archivedOn": "Archived on",
+      "totalClaimed": "Total claimed",
+      "wasValidUntil": "Was valid until",
+      "restorable": "Restorable",
+      "permanent": "Permanent",
+      "willRestoreWith": "Will restore with journey"
+    },
+    "forms": {
+      "title": "Form submissions",
+      "subtitle": "Submitted forms from your journeys, including uploaded files.",
+      "allJourneys": "All journeys",
+      "notAnswered": "Not answered",
+      "uploadedFiles": "Uploaded files",
+      "download": "Download",
+      "public": "Public",
+      "private": "Private",
+      "emailSent": "Email sent",
+      "emailNotSent": "Email not sent",
+      "untitledForm": "Untitled form",
+      "loadError": "Failed to load form submissions",
+      "allSubmitters": "All people",
+      "sortNewest": "Newest first",
+      "sortOldest": "Oldest first",
+      "sortBySubmitter": "By person (A-Z)",
+      "sortByForm": "By form (A-Z)",
+      "noFilterResults": "No submissions match the selected filters."
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "currentPlan": "Current Plan",
+    "usage": "Usage",
+    "upgrade": "Upgrade",
+    "upgradePlan": "Upgrade Plan",
+    "managePlan": "Manage Plan",
+    "freeTier": "Free",
+    "professionalTier": "Professional",
+    "enterpriseTier": "Enterprise",
+    "customTier": "Custom",
+    "tierDescriptions": {
+      "free": "Perfect for testing and individual use",
+      "professional": "For small teams and growing businesses",
+      "enterprise": "For larger organizations",
+      "custom": "Tailored solutions for enterprise needs"
+    },
+    "perMonth": "/month",
+    "perYear": "/year",
+    "billing": {
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "oneMonthFree": "1 month free",
+      "saveOneMonth": "Pay yearly and get 1 month free"
+    },
+    "unlimited": "Unlimited",
+    "current": "Current",
+    "mostPopular": "Most Popular",
+    "contactSales": "Contact Sales",
+    "features": {
+      "journeys": "Journeys",
+      "guides": "AI Guides",
+      "makers": "Makers",
+      "endUsers": "End Users",
+      "knowledgeChunks": "AI knowledge",
+      "aiCredits": "AI credits",
+      "sync": "Microsoft 365 / Google Workspace sync",
+      "support": "Support",
+      "trashRetention": "Trash retention",
+      "dailyBackup": "Backup retention",
+      "apiEndUserManagement": "API for end user management",
+      "customThemes": "Custom themes (your branding)",
+      "publicJourneys": "Public journeys (share by link)"
+    },
+    "days": "days",
+    "supportLevels": {
+      "selfService": "Self-service",
+      "email": "Email support",
+      "priority": "Priority support",
+      "dedicated": "Dedicated support"
+    },
+    "limits": {
+      "journeysExceeded": "You've reached your journey limit. Upgrade your plan to create more journeys.",
+      "guidesExceeded": "You've reached your AI Guide limit. Upgrade your plan to create more guides.",
+      "makersExceeded": "You've reached your maker limit. Upgrade your plan to invite more makers.",
+      "endUsersExceeded": "You've reached your end user limit. Upgrade your plan to invite more participants.",
+      "chunksExceeded": "You've reached your knowledge base limit. Upgrade your plan for more storage.",
+      "aiCreditsExceeded": "You've used all your AI credits for this month. Upgrade your plan or wait until next billing cycle.",
+      "upgradeRequired": "Upgrade required",
+      "limitReached": "Limit reached",
+      "nearLimit": "You're approaching your limit",
+      "used": "used",
+      "of": "of",
+      "remaining": "remaining",
+      "journeyLimitInfo": "You've reached your limit of {{limit}} journeys.",
+      "guideLimitInfo": "You've reached your limit of {{limit}} AI Guides.",
+      "makerLimitInfo": "You've reached your limit of {{limit}} makers.",
+      "endUserLimitInfo": "You've reached your limit of {{limit}} end users.",
+      "chunkLimitInfo": "You've reached your limit of {{limit}} knowledge chunks.",
+      "knowledgeSourceTooLarge": "This source is too large for the space you have left. It needs {{needed}} knowledge chunks and {{available}} are available. Delete sources you no longer need or upgrade your plan.",
+      "knowledgeCopyTooLarge": "This guide's knowledge base is too large to copy with the space you have left. It needs {{needed}} knowledge chunks and {{available}} are available. Delete sources you no longer need or upgrade your plan.",
+      "syncLocked": "Sync with Microsoft 365 and Google Workspace requires a paid plan.",
+      "syncEndUsersSkipped_one": "{{count}} new user was not added. Your plan allows {{limit}} end users. Upgrade your plan to add more.",
+      "syncEndUsersSkipped_other": "{{count}} new users were not added. Your plan allows {{limit}} end users. Upgrade your plan to add more.",
+      "wantMore": "Want more?",
+      "upgradeToUnlock": "Upgrade to unlock"
+    },
+    "cta": {
+      "upgradeNow": "Upgrade Now",
+      "viewPlans": "View Plans",
+      "viewUsage": "View Usage",
+      "learnMore": "Learn More",
+      "startFreeTrial": "Start Free Trial"
+    },
+    "downgrade": {
+      "contactSupport": "Contact support for changes",
+      "emailSubject": "Subscription change request"
+    },
+    "banner": {
+      "freeTitle": "You're on the Free plan",
+      "freeMessage": "Upgrade to unlock more features and higher limits.",
+      "limitWarning": "You're approaching your {{resource}} limit ({{percentage}}% used)",
+      "limitReached": "You've reached your {{resource}} limit",
+      "aiNearTitle": "Your AI guides have answered {{used}} of {{limit}} questions this month",
+      "aiNearMessage": "The counter resets on {{date}}. Expecting more questions? Upgrade your plan so your guides keep answering.",
+      "aiLimitTitle": "Your AI guides have used all questions for this month",
+      "aiLimitMessage": "End users can still ask about {{extra}} more questions. After that, guides stop answering until {{date}}. In the preview they stop now.",
+      "aiPausedMessage": "Guides do not answer end users until {{date}}. Upgrade your plan to turn them back on now."
+    },
+    "usageCard": {
+      "title": "Your Usage",
+      "billingPeriod": "Billing Period",
+      "resetDate": "Resets on {{date}}"
+    },
+    "pricing": {
+      "title": "Choose Your Plan",
+      "subtitle": "Scale your journey creation with the right plan for your organization",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "savePercent": "Save {{percent}}%"
+    },
+    "adminOnly": "Only admins can upgrade",
+    "confirmUpgrade": "Are you sure you want to upgrade to {{tier}}?",
+    "paymentComingSoon": "Payment integration coming soon. Contact sales@gryffi.com for now.",
+    "upgradeFailed": "Failed to upgrade. Please try again.",
+    "upgradeSuccess": "Upgrade successful! Your new plan is now active.",
+    "processing": "Processing...",
+    "notifications": {
+      "limitApproaching": "You're at {{percentage}}% of your {{resource}} limit",
+      "limitReached": "You've reached your {{resource}} limit. Upgrade to continue.",
+      "upgraded": "Successfully upgraded to {{tier}}!",
+      "downgraded": "Your plan has been changed to {{tier}}"
+    },
+    "email": {
+      "limitSubject": "Action needed: {{resource}} limit reached",
+      "limitBody": "Your organization has reached its {{resource}} limit on the {{tier}} plan. Upgrade to continue using Gryffi without interruption."
+    },
+    "enterpriseModal": {
+      "title": "Request Custom Plan",
+      "subtitle": "Tell us about your organization so we can create a custom plan for you.",
+      "companySize": "Company size",
+      "companySizeOptions": {
+        "1-10": "1-10 employees",
+        "11-50": "11-50 employees",
+        "51-200": "51-200 employees",
+        "201-500": "201-500 employees",
+        "500-2000": "500-2000 employees",
+        "2000+": "2000+ employees"
+      },
+      "expectedJourneys": "Expected number of journeys",
+      "expectedPrivateUsers": "Expected private end users",
+      "expectedPublicUsers": "Expected yearly public end users (optional)",
+      "primaryUseCase": "Primary use case",
+      "useCaseOptions": {
+        "onboarding": "Employee onboarding",
+        "training": "Training & education",
+        "marketing": "Marketing & engagement",
+        "customerService": "Customer service",
+        "other": "Other"
+      },
+      "useCaseDescription": "Describe your use case",
+      "useCaseDescriptionPlaceholder": "Tell us how you plan to use Gryffi...",
+      "specificRequirements": "Specific requirements or features (optional)",
+      "specificRequirementsPlaceholder": "Any specific features or integrations you need...",
+      "timeline": "When do you want to start?",
+      "timelineOptions": {
+        "asap": "As soon as possible",
+        "1month": "Within 1 month",
+        "3months": "Within 3 months",
+        "later": "Later / just exploring"
+      },
+      "submit": "Send Request",
+      "submitting": "Sending...",
+      "success": "Your request has been sent! We'll contact you within 2 business days.",
+      "error": "Failed to send request. Please try again or email us directly."
+    },
+    "upgradeModal": {
+      "title": "Confirm Upgrade",
+      "subtitle": "Review your plan change before confirming.",
+      "currentPlan": "Current Plan",
+      "newPlan": "New Plan",
+      "prorationNote": "The prorated difference will be calculated and charged automatically. Your billing date stays the same.",
+      "confirmUpgrade": "Confirm Upgrade"
+    },
+    "downgradeModal": {
+      "title": "Request Plan Change",
+      "subtitle": "Tell us about your request and we'll help you make the change.",
+      "targetTier": "Which plan would you like?",
+      "reason": "Main reason for changing",
+      "reasonOptions": {
+        "tooExpensive": "Current plan is too expensive",
+        "lessUsage": "Using less than expected",
+        "featuresNotNeeded": "Don't need all the features",
+        "projectEnded": "Project or trial ended",
+        "other": "Other reason"
+      },
+      "explanation": "Please explain your situation",
+      "explanationPlaceholder": "Help us understand your needs...",
+      "feedback": "What could we improve? (optional)",
+      "feedbackPlaceholder": "Your feedback helps us improve Gryffi...",
+      "warningTitle": "Please note",
+      "warningUsage": "You currently have {{current}} {{resource}}, but {{tier}} only allows {{limit}}.",
+      "warningFeatures": "The following features will no longer be available:",
+      "warningFeatureThemes": "Custom journey themes",
+      "warningFeaturePublic": "Public journeys",
+      "warningFeatureSync": "Microsoft/Google sync",
+      "warningFeatureBackup": "Daily backups",
+      "confirmation": "I understand that some features and data may become unavailable",
+      "submit": "Send Request",
+      "submitting": "Sending...",
+      "success": "Your request has been sent! We'll review it and contact you soon.",
+      "error": "Failed to send request. Please try again or email us directly."
+    },
+    "groups": {
+      "limits": "Limits",
+      "features": "Features",
+      "service": "Service"
+    },
+    "knowledgePagesHint": "about {{min}} to {{max}} pages",
+    "aiCreditsUnit": "questions per month",
+    "notInPlan": "Not in this plan",
+    "featureInfoAria": "More information about {{feature}}",
+    "featureInfo": {
+      "journeys": "A journey is an interactive experience you build yourself, like an onboarding path or a compliance course. The number is how many journeys you can keep active at the same time. You share each one with as many end users as your plan allows.",
+      "guides": "An AI Guide is a chatbot you train with your own documents. End users ask questions in plain language and get answers from your content, with the source cited. The number is how many guides you can have active at the same time.",
+      "makers": "Makers are the colleagues who build and manage journeys and log in to this dashboard: HR, L&D, trainers. Each maker has a role (Admin, Journey Manager, Editor or Viewer).",
+      "endUsers": "End users are the people who follow your journeys, such as new employees. You add them by name and email, by spreadsheet or via sync. They never need a password: they get a magic link by email.",
+      "knowledgeChunks": "Documents you upload to an AI Guide are split into chunks of roughly a paragraph. The more chunks, the more content your guides can answer from. 100 chunks is about 15 to 30 pages of text.",
+      "aiCredits": "Every question answered by an AI Guide uses about 1 credit. Credits are topped up every month. When they run out, guides pause new conversations until the next month; nothing else breaks.",
+      "trashRetention": "Deleted journeys, users and guides go to the trash first and can be restored with one click during this period. After that they are removed permanently.",
+      "sync": "Connect Microsoft 365 or Google Workspace and Gryffi keeps your end users and groups up to date automatically. New colleagues are added, leavers are removed. Runs every 15 minutes.",
+      "dailyBackup": "A daily backup of your journeys, guides, users and settings, kept for this many days in our EU data centre. We can restore your data to an earlier point if something goes wrong.",
+      "apiEndUserManagement": "Create, invite and remove end users from your own HR system or tools through the Gryffi API, for example to invite a new hire automatically. Requires basic developer knowledge.",
+      "customThemes": "Change colours, buttons and logo so journeys, invitation emails and PDF reports carry your branding instead of Gryffi's.",
+      "publicJourneys": "A public journey can be opened by anyone with the link, without an invitation. Useful for a page on your website or intranet. You choose per journey whether it is private or public."
+    }
+  },
+  "api": {
+    "title": "API Access",
+    "subtitle": "Use the API to integrate Gryffi with your automation workflows",
+    "noAccess": "API access not available",
+    "upgradeRequired": "API access is available on Professional and higher plans. Upgrade to use the Gryffi API for automation.",
+    "noKeyTitle": "No API Key",
+    "noKeyDescription": "Generate an API key to start using the Gryffi API. You can use the API to automate end user management and journey invitations.",
+    "generateKey": "Generate API Key",
+    "keyGenerated": "API key generated successfully",
+    "keyWarning": "Copy this key now. For security reasons, it will only be shown once and cannot be retrieved later.",
+    "copyKey": "Copy",
+    "copied": "Copied!",
+    "keyStored": "I have stored the key safely",
+    "keyActive": "API Key Active",
+    "keyActiveDescription": "Your API key is active and can be used for API requests.",
+    "createdAt": "Created",
+    "lastUsedAt": "Last used",
+    "neverUsed": "Never used",
+    "regenerateKey": "Regenerate Key",
+    "revokeKey": "Revoke Key",
+    "confirmGenerate": "Generate a new API key? You can start using the API immediately.",
+    "confirmRegenerate": "Generate a new API key? The current key will be invalidated immediately.",
+    "confirmRevoke": "Revoke this API key? It will stop working immediately.",
+    "keyRegenerated": "API key regenerated successfully",
+    "keyRevoked": "API key revoked",
+    "generateFailed": "Failed to generate API key",
+    "regenerateFailed": "Failed to regenerate API key",
+    "revokeFailed": "Failed to revoke API key",
+    "copyFailed": "Failed to copy to clipboard",
+    "docsTitle": "API Endpoints",
+    "docsDescription": "Use these endpoints to integrate Gryffi with your systems.",
+    "endpoints": {
+      "createEndUser": "Create a new end user (or get existing by email)",
+      "deleteEndUser": "Delete an end user by email address",
+      "createInvitation": "Invite an end user to a journey (creates user if needed)",
+      "listJourneys": "List all published journeys",
+      "listGroups": "List all groups with member count",
+      "listGroupMembers": "List all members of a specific group",
+      "createGroup": "Create a new group",
+      "addGroupMembers": "Add members to a group by email",
+      "removeGroupMembers": "Remove members from a group by email",
+      "deleteGroup": "Delete an empty group"
+    },
+    "authInfo": {
+      "title": "Authentication",
+      "description": "Include your API key in the X-API-Key header with every request.",
+      "baseUrl": "Base URL"
+    },
+    "examples": {
+      "title": "Request Examples",
+      "description": "Copy and adapt these examples for your integration. Replace the API key and values with your own.",
+      "createEndUser": {
+        "title": "Create End User",
+        "description": "Create a new end user in Gryffi. If the email already exists, the existing user is returned."
+      },
+      "inviteToJourney": {
+        "title": "Invite to Journey",
+        "description": "Invite an end user to a specific journey. Creates the user if they don't exist yet."
+      },
+      "deleteEndUser": {
+        "title": "Delete End User",
+        "description": "Remove an end user from Gryffi by their email address."
+      },
+      "listJourneys": {
+        "title": "List Journeys",
+        "description": "Get all published journeys to find the journey_id for invitations."
+      },
+      "listGroups": {
+        "title": "List Groups",
+        "description": "Get all groups in your organization with their member count."
+      },
+      "listGroupMembers": {
+        "title": "List Group Members",
+        "description": "Get all members of a specific group."
+      },
+      "createGroup": {
+        "title": "Create Group",
+        "description": "Create a new group to organize end users."
+      },
+      "addGroupMembers": {
+        "title": "Add Group Members",
+        "description": "Add one or more end users to a group by their email addresses."
+      },
+      "removeGroupMembers": {
+        "title": "Remove Group Members",
+        "description": "Remove one or more end users from a group by their email addresses."
+      },
+      "deleteGroup": {
+        "title": "Delete Group",
+        "description": "Delete a group. The group must be empty (no members) before it can be deleted."
+      },
+      "sampleData": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "email": "john.smith@company.com",
+        "journeyId": "your-journey-uuid-here",
+        "groupId": "your-group-uuid-here",
+        "groupName": "Marketing Team"
+      },
+      "copySuccess": "Copied to clipboard!"
+    }
+  },
+  "support": {
+    "title": "Contact Support",
+    "subtitle": "We're here to help. Tell us what's going on.",
+    "sidebarTooltip": "Contact Support",
+    "settingsLink": "Contact Support",
+    "settingsDescription": "Need help? Report a bug or ask a question.",
+    "category": "What can we help you with?",
+    "categoryOptions": {
+      "bug": "Bug report - something is broken",
+      "notWorking": "Something doesn't work as expected",
+      "question": "Question - I need help understanding something",
+      "feature": "Feature request",
+      "billing": "Billing / Subscription question",
+      "other": "Other"
+    },
+    "subject": "Subject",
+    "subjectPlaceholder": "Brief summary of your issue...",
+    "description": "Description",
+    "descriptionPlaceholder": "Please describe your issue in detail. The more information you provide, the better we can help you.",
+    "screenshot": "Screenshot (optional)",
+    "screenshotHelp": "Upload a screenshot to help us understand the issue better.",
+    "screenshotFormats": "Accepted formats: PNG, JPG, GIF, WebP. Max 35MB.",
+    "dropzone": "Click or drag image here",
+    "dragActive": "Drop image here...",
+    "removeFile": "Remove",
+    "fileTooLarge": "File is too large. Maximum size is 35MB.",
+    "invalidFileType": "Invalid file type. Please upload an image (PNG, JPG, GIF, or WebP).",
+    "submit": "Send Message",
+    "submitting": "Sending...",
+    "success": "Your message has been sent! We'll get back to you as soon as possible.",
+    "error": "Failed to send message. Please try again or email us directly at support@gryffi.com.",
+    "automaticInfo": "The following information will be included automatically to help us assist you:",
+    "yourName": "Your name",
+    "yourEmail": "Your email",
+    "organization": "Organization",
+    "currentPlan": "Current plan",
+    "browser": "Browser",
+    "page": "Current page"
+  },
+  "help": {
+    "title": "Help Center",
+    "subtitle": "Find answers to your questions about Gryffi",
+    "sidebarTooltip": "Help Center",
+    "searchPlaceholder": "Ask a question or search for help...",
+    "searchHint": "Try: \"How do I create a journey?\" or \"What are AI guides?\"",
+    "quickTopics": "Quick Topics",
+    "popularTopics": "Popular Topics",
+    "searching": "Searching...",
+    "goToPage": "Go to this page",
+    "relatedTopics": "Related Topics",
+    "noResults": "No results found",
+    "tryDifferent": "Try a different search term or browse the topics below",
+    "error": "Something went wrong",
+    "tryAgain": "Try again",
+    "readMore": "Read more",
+    "showLess": "Show less",
+    "notInDocs": "This topic is not yet covered in our help documentation. Please contact support for assistance.",
+    "footerText": "Can't find what you're looking for?",
+    "contactSupport": "Contact Support",
+    "topics": {
+      "dashboard": "Dashboard",
+      "journeyBuilder": "Journey Builder",
+      "aiGuides": "AI Guides",
+      "invitations": "Invitations",
+      "analytics": "Analytics",
+      "settings": "Settings"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome, {{name}}!",
+      "subtitle": "Let's get you started with Gryffi. Choose how you'd like to explore the platform.",
+      "skip": "Skip",
+      "options": {
+        "tour": {
+          "title": "Take the guided tour",
+          "description": "Experience Gryffi as your end users will. Learn by doing!"
+        },
+        "explore": {
+          "title": "Explore on my own",
+          "description": "Jump right in and discover Gryffi at your own pace."
+        }
+      },
+      "helpHint": "You can always access help by clicking the ? button in the sidebar."
+    },
+    "demoJourney": {
+      "title": "Demo Journey",
+      "badge": "Learning Resource",
+      "hint": "See how a finished journey looks in the builder",
+      "defaultDescription": "Learn how to create engaging journeys for your team",
+      "viewBuilder": "Open in Builder",
+      "readOnlyNotice": "This is a demo journey. You can explore the builder but cannot make changes.",
+      "closeTour": "Close Demo",
+      "tourCompleted": "Tour completed! You're ready to create your first journey."
+    },
+    "admin": {
+      "title": "Demo Journey Management",
+      "subtitle": "Manage the onboarding demo journeys shown to new makers",
+      "howItWorks": "How it works",
+      "description": "Demo journeys are shown to all new makers as a learning resource. They are read-only and help makers understand how to build journeys. Each language has its own demo journey.",
+      "demoJourneys": "Demo Journeys by Language",
+      "reinitialize": "Reinitialize Defaults",
+      "noDemoJourneys": "No demo journeys found",
+      "clickInitialize": "Click 'Reinitialize Defaults' to create demo journeys for all languages",
+      "initialized": "Demo journeys initialized successfully!",
+      "editingInstructions": "How to Edit Demo Journeys",
+      "instructions": {
+        "step1": "Edit the file app/src/services/demoJourney.js",
+        "step2": "Find the getDefaultDemoJourneyContent function",
+        "step3": "Modify the content for each language (en, nl, de, fr, es)",
+        "step4": "Deploy the changes to the server",
+        "step5": "Click 'Reinitialize Defaults' to apply the changes"
+      }
+    }
+  },
+  "emailUnsubscribe": {
+    "title": "Unsubscribe",
+    "text": "Do you want to stop receiving tips and updates from Gryffi at {{email}}? Important messages about your account, like password resets, will still arrive.",
+    "button": "Yes, unsubscribe",
+    "doneTitle": "You are unsubscribed",
+    "doneText": "You will no longer receive tips and updates from Gryffi. You can turn them back on any time under Settings.",
+    "invalidTitle": "This link does not work",
+    "invalidText": "The unsubscribe link is invalid. After logging in you can change your email preferences under Settings.",
+    "backToLogin": "Go to login"
+  },
+  "setup": {
+    "title": "Set up Gryffi",
+    "stepOf": "Step {{current}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "testing": "Testing...",
+    "moreHelp": "More help",
+    "code": {
+      "title": "Start the setup",
+      "intro": "Enter the setup code from the server log. Gryffi printed it in a link when it started.",
+      "label": "Setup code",
+      "submit": "Continue",
+      "where": "No code, or has it expired? Create a new one on the server:"
+    },
+    "steps": {
+      "server": {
+        "short": "Server",
+        "title": "Check the server",
+        "intro": "Gryffi first checks that everything it needs is in place. Red items must be fixed before you continue. Orange items are advice.",
+        "checking": "Checking...",
+        "retry": "Check again",
+        "blocked": "Fix the red items first, then click Check again.",
+        "names": {
+          "database": "Database",
+          "redis": "Redis (sessions)",
+          "encryptionKey": "Encryption key",
+          "uploads": "Upload folder",
+          "diskSpace": "Disk space",
+          "appUrl": "Address (APP_URL)",
+          "https": "HTTPS",
+          "parser": "Document parser",
+          "nsfw": "NSFW filter"
+        }
+      },
+      "organization": {
+        "short": "Organization",
+        "title": "Your organization",
+        "intro": "This installation is for one organization.",
+        "name": "Organization name",
+        "language": "Language of the Gryffi screens",
+        "languageHint": "Makers can change their own language later. End users choose from 14 languages in the journeys."
+      },
+      "admin": {
+        "short": "Admin",
+        "title": "Your admin account",
+        "intro": "You become the first admin. Once Gryffi is installed, you can invite other makers.",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email address",
+        "emailHint": "You log in with this address. The email test in step 5 sends a message here.",
+        "password": "Password",
+        "passwordHint": "At least 12 characters. A sentence you can remember works well.",
+        "passwordConfirm": "Repeat password",
+        "showPassword": "Show passwords"
+      },
+      "ai": {
+        "short": "AI",
+        "title": "AI provider",
+        "intro": "AI guides, the journey wizard and translation use a language model. Choose a provider and test the connection.",
+        "noAi": "Don't use AI for now",
+        "noAiHint": "Gryffi works without AI, but then AI guides, the journey wizard and translation are not available. You can add AI later in the settings.",
+        "provider": "Provider",
+        "providers": {
+          "mistral": "Mistral (EU)",
+          "openai": "OpenAI",
+          "openrouter": "OpenRouter",
+          "ollama": "Ollama (on your own server)",
+          "other": "Other OpenAI-compatible API"
+        },
+        "providerHints": {
+          "mistral": "Mistral processes data in the EU. Create an API key at console.mistral.ai.",
+          "openai": "Create an API key at platform.openai.com. OpenAI processes data in the United States unless you arrange otherwise.",
+          "openrouter": "One key for many models. OpenRouter has no embeddings, so add a separate embedding provider below.",
+          "ollama": "Runs models on your own hardware. Any API key works.",
+          "other": "Any service with the OpenAI chat API, such as vLLM or LM Studio."
+        },
+        "baseUrl": "API address",
+        "apiKey": "API key",
+        "apiKeyHint": "Stored encrypted. It is never shown in full again.",
+        "chatModel": "Chat model",
+        "chatModelHint": "Test the connection to see the models of your provider.",
+        "testConnection": "Test connection",
+        "connectionOk": "Connected. The chat model answers. {{count}} models found.",
+        "pickModel": "Connected. {{count}} models found. Choose a chat model and test again.",
+        "testFirst": "Test the connection first. The chat model must answer before you continue.",
+        "embeddingTitle": "Knowledge base search",
+        "embeddingHint": "Guides search your documents with an embedding model.",
+        "embeddingModel": "Embedding model",
+        "separateEmbeddings": "Use a different provider for embeddings",
+        "embeddingBaseUrl": "Embedding API address",
+        "embeddingApiKey": "Embedding API key",
+        "testEmbeddings": "Test embeddings",
+        "embeddingsOk": "Works. Vector length: {{dimensions}}.",
+        "testEmbeddingsFirst": "Test the embedding model first.",
+        "optionalTitle": "Optional",
+        "visionModel": "Vision model",
+        "visionHint": "Describes images in journeys, so guides can talk about them. Leave empty to skip.",
+        "testVision": "Test vision",
+        "visionOk": "Works. The model can read images.",
+        "speechModel": "Speech model",
+        "speechVoice": "Voice",
+        "speechHint": "Reads texts aloud for end users. Leave empty to use the voice of the browser.",
+        "testSpeech": "Test speech",
+        "speechOk": "Works. Listen to the sample:"
+      },
+      "email": {
+        "short": "Email",
+        "title": "Email",
+        "intro": "End users log in with a link they receive by email. Gryffi sends mail through your mail server (SMTP).",
+        "skip": "Set up email later",
+        "skipWarning": "Without email, end users cannot receive login links or reminders. Public journeys and maker logins still work.",
+        "host": "Mail server",
+        "port": "Port",
+        "security": "Encryption",
+        "securityOptions": {
+          "starttls": "STARTTLS (usually port 587)",
+          "tls": "SSL/TLS (usually port 465)",
+          "none": "None (only inside your own network)"
+        },
+        "user": "Username",
+        "password": "Password",
+        "from": "Sender",
+        "fromHint": "For example: Gryffi <gryffi@company.com>. The mail server must allow this address.",
+        "test": "Send test email",
+        "sent": "Test email sent to {{to}}. Check that it arrived.",
+        "testFirst": "Send a test email first, or choose to set up email later."
+      },
+      "features": {
+        "short": "Options",
+        "title": "Options",
+        "intro": "Switch on what you need. You can change all of this later in the settings.",
+        "nsfw": "Check uploaded images for nudity (NSFW filter)",
+        "nsfwHint": "Needs the nudenet container. While the filter is on but not running, image uploads are refused.",
+        "parser": "Read PDF, Word and PowerPoint files",
+        "parserHint": "Needs the parser container (about 2 GB of memory). Text and Excel files work without it.",
+        "poweredBy": "Show \"Powered by Gryffi\" in emails",
+        "poweredByHint": "A small line at the bottom of emails. It helps Gryffi grow. You may switch it off.",
+        "pexels": "Pexels API key (optional)",
+        "pexelsHint": "For searching free stock photos in the journey builder. Get a key at pexels.com/api.",
+        "later": "Directory sync with Microsoft 365 or Google Workspace is set up later in the settings.",
+        "running": "Running."
+      },
+      "install": {
+        "short": "Install",
+        "title": "Ready to install",
+        "intro": "Check the summary. Installing takes a few seconds.",
+        "summary": {
+          "organization": "Organization",
+          "admin": "Admin",
+          "ai": "AI",
+          "email": "Email",
+          "nsfw": "NSFW filter",
+          "parser": "Document parser",
+          "poweredBy": "Powered by Gryffi"
+        },
+        "on": "On",
+        "off": "Off",
+        "button": "Install Gryffi",
+        "progress": {
+          "settings": "Settings saved",
+          "account": "Organization and admin account created",
+          "plan": "All features switched on",
+          "finish": "Setup closed"
+        },
+        "done": "Gryffi is installed. Log in with your new account.",
+        "goToLogin": "Go to login",
+        "failed": "Fix the problem and click Install Gryffi again. Nothing is lost."
+      }
+    },
+    "errors": {
+      "SETUP_CODE_INVALID": "This setup code is not valid or has expired. Create a new code on the server and try again.",
+      "SETUP_CODE_REQUIRED": "Your setup session has ended. Open the setup link again.",
+      "CHECK_CRASHED": "The check did not finish. Try again. If it keeps failing, look in the app log (docker compose logs app).",
+      "DATABASE_UNREACHABLE": "Gryffi cannot reach the database. Check that the db container runs (docker compose ps) and that the database settings in .env are right.",
+      "DATABASE_NO_VECTOR": "The database has no pgvector extension. Use the pgvector/pgvector:pg16 image from the Gryffi compose file.",
+      "REDIS_UNREACHABLE": "Gryffi cannot reach Redis. Check that the redis container runs and that REDIS_PASSWORD in .env is right.",
+      "ENCRYPTION_KEY_MISSING": "OAUTH_TOKEN_KEY in .env is missing or not valid. It encrypts the keys you enter here. Generate one with: openssl rand -hex 32. Then restart Gryffi.",
+      "UPLOADS_NOT_WRITABLE": "Gryffi cannot write to {{path}}. Give the app container write access to the uploads folder.",
+      "DISK_SPACE_LOW": "Only {{freeGb}} GB of disk space is free. Uploads and backups need more: we recommend at least 20 GB.",
+      "DISK_SPACE_UNKNOWN": "Gryffi could not measure the free disk space. Check it yourself: we recommend at least 20 GB.",
+      "APP_URL_MISMATCH": "APP_URL in .env is {{appUrl}}, but you opened Gryffi at {{browserHost}}. Links in emails use APP_URL. Set it to the address people use, then restart Gryffi.",
+      "HTTPS_MISSING": "Gryffi is not opened over HTTPS, so passwords and keys travel unencrypted. Use the included Caddy proxy, or your own proxy with a certificate.",
+      "PARSER_UNAVAILABLE": "The document parser is not running. Without it, guides cannot read PDF, Word or PowerPoint files. Text and Excel files still work.",
+      "NSFW_UNAVAILABLE": "The NSFW filter is not running. Leave the filter off, or start its container.",
+      "AI_INVALID_URL": "This is not a valid address. Use the full URL, for example https://api.mistral.ai/v1.",
+      "AI_KEY_MISSING": "Enter the API key. For Ollama any value works, for example ollama.",
+      "AI_AUTH_FAILED": "The provider does not accept this API key. Check that you copied the whole key, without a space at the end, and that the key is active.",
+      "AI_RATE_LIMITED": "The provider refuses more requests right now. Wait a minute and test again, or check your plan with the provider.",
+      "AI_NOT_OPENAI_COMPATIBLE": "There is no OpenAI-compatible API at {{baseUrl}}. The address usually ends in /v1, for example http://host.docker.internal:11434/v1.",
+      "AI_UNEXPECTED_RESPONSE": "The provider gave an unexpected answer (HTTP {{status}}). Check the address and try again.",
+      "AI_MODEL_NOT_FOUND": "The provider does not know the model {{model}}. Choose a model from the list that appears after a successful connection test.",
+      "AI_MODEL_UNSUPPORTED": "The model {{model}} refuses the requests Gryffi sends (they include max_tokens). Choose another chat model. Reasoning models often do this.",
+      "AI_TIMEOUT": "{{host}} did not answer in time. Check the address, and check that a firewall does not block this server.",
+      "AI_HOST_NOT_FOUND": "The name {{host}} cannot be found. Check the spelling of the address.",
+      "AI_LOCALHOST_IN_CONTAINER": "Gryffi runs in a container, where localhost is the container itself. Use http://host.docker.internal:11434/v1 or the IP address of the server.",
+      "AI_UNREACHABLE": "Gryffi cannot connect to {{host}}. Check that the service runs and that this server may reach it.",
+      "AI_EMBEDDING_MODEL_MISSING": "Enter an embedding model. Guides need it to search the knowledge base.",
+      "AI_EMBEDDING_FAILED": "The embedding model {{model}} did not work. Check the name. With OpenRouter, add a separate embedding provider.",
+      "AI_EMBEDDING_TOO_LARGE": "{{model}} makes vectors of {{dimensions}} numbers, and Gryffi can store at most {{maximum}}. Choose a smaller embedding model.",
+      "AI_VISION_MODEL_MISSING": "Enter a vision model, or leave the field empty to skip image analysis.",
+      "AI_VISION_FAILED": "{{model}} could not read the test image. Not every model accepts images. Choose a vision model, or leave the field empty.",
+      "AI_TTS_MODEL_MISSING": "Enter a speech model, or leave the field empty to skip reading aloud.",
+      "AI_TTS_FAILED": "The speech model {{model}} returned no audio. Check the model and the voice, or leave the field empty.",
+      "SMTP_HOST_MISSING": "Enter the address of the mail server.",
+      "SMTP_AUTH_FAILED": "The mail server refuses this username or password. Microsoft 365 and Gmail often need an app password.",
+      "SMTP_TLS_MISMATCH": "The encryption does not match port {{port}}. Use port 465 with SSL/TLS, or port 587 with STARTTLS.",
+      "SMTP_PORT_25_BLOCKED": "Port 25 is blocked, as many hosting providers do. Use port 587 with STARTTLS, or 465 with SSL/TLS.",
+      "SMTP_TIMEOUT": "The mail server {{host}} did not answer in time on port {{port}}. A firewall may block the port.",
+      "SMTP_HOST_NOT_FOUND": "The mail server {{host}} cannot be found. Check the spelling.",
+      "SMTP_LOCALHOST_IN_CONTAINER": "Gryffi runs in a container, where localhost is the container itself. Use the IP address of the server or host.docker.internal.",
+      "SMTP_UNREACHABLE": "Gryffi cannot connect to {{host}} on port {{port}}. Check the address, the port and the firewall.",
+      "SMTP_SENDER_REJECTED": "The mail server does not allow sending as {{from}}. Use an address the server may send for.",
+      "SMTP_UNEXPECTED": "Sending failed: {{reason}}. Check the settings and try again.",
+      "INSTALL_FAILED": "The installation did not finish.",
+      "ALREADY_INSTALLED": "Gryffi is already installed. Log in instead.",
+      "ORG_NAME_REQUIRED": "Enter the name of your organization (at least 2 characters).",
+      "LANGUAGE_INVALID": "Choose a language from the list.",
+      "NAME_REQUIRED": "Enter your first and last name.",
+      "EMAIL_INVALID": "Enter a valid email address, for example name@company.com.",
+      "PASSWORD_TOO_SHORT": "Use a password of at least 12 characters.",
+      "PASSWORD_MISMATCH": "The two passwords are not the same.",
+      "SETTING_INVALID": "A setting has a value that cannot be used. Check the fields and try again."
+    }
+  },
+  "installation": {
+    "nav": "Installation",
+    "title": "Installation",
+    "subtitle": "Settings for this Gryffi installation. Only admins see this page.",
+    "sections": {
+      "ai": {
+        "title": "AI",
+        "intro": "Provider, models and limits for AI guides, the journey wizard and translation."
+      },
+      "email": {
+        "title": "Email",
+        "intro": "How Gryffi sends login links, invitations and reminders."
+      },
+      "features": {
+        "title": "Options",
+        "intro": "Optional features. A feature that needs a container only works while that container runs."
+      },
+      "integrations": {
+        "title": "Integrations",
+        "intro": "Stock photos and directory sync. For directory sync, register an app with Google or Microsoft and paste its client ID and secret here."
+      }
+    },
+    "fields": {
+      "ai.enabled": {
+        "label": "Use AI",
+        "hint": "Off: AI guides, the journey wizard and translation are not available."
+      },
+      "ai.baseUrl": {
+        "label": "API address",
+        "hint": "The address of an OpenAI-compatible API, for example https://api.mistral.ai/v1."
+      },
+      "ai.apiKey": {
+        "label": "API key",
+        "hint": "Stored encrypted."
+      },
+      "ai.chatModel": {
+        "label": "Chat model",
+        "hint": "Answers questions in AI guides and builds journeys."
+      },
+      "ai.fallbackModel": {
+        "label": "Fallback model",
+        "hint": "Used when the chat model does not answer in time."
+      },
+      "ai.classifierModel": {
+        "label": "Classification model",
+        "hint": "A small, fast model that decides whether a question needs the knowledge base."
+      },
+      "ai.embeddingModel": {
+        "label": "Embedding model",
+        "hint": "Used to search knowledge sources. Changing it rebuilds the index."
+      },
+      "ai.embeddingBaseUrl": {
+        "label": "Embedding API address",
+        "hint": "Only when embeddings come from another provider than chat."
+      },
+      "ai.embeddingApiKey": {
+        "label": "Embedding API key",
+        "hint": "Only when embeddings come from another provider than chat."
+      },
+      "ai.imageAnalysis": {
+        "label": "Analyze images",
+        "hint": "Describes images in journeys, so guides can talk about them. Needs a vision model."
+      },
+      "ai.visionModel": {
+        "label": "Vision model",
+        "hint": "A model that accepts images."
+      },
+      "ai.speech": {
+        "label": "Read aloud with AI voices",
+        "hint": "Off: the player uses the voice of the browser."
+      },
+      "ai.ttsModel": {
+        "label": "Speech model",
+        "hint": "For reading texts aloud."
+      },
+      "ai.ttsVoice": {
+        "label": "Voice",
+        "hint": "Name of the voice at your provider. Empty: the default voice."
+      },
+      "ai.monthlyQuestionLimit": {
+        "label": "Maximum AI questions per month",
+        "hint": "To control costs. Empty: no maximum. Admins get an email at 80% and 100%."
+      },
+      "email.provider": {
+        "label": "Mail service",
+        "hint": "SMTP sends through your own mail server. Nuntly sends through its API."
+      },
+      "email.from": {
+        "label": "Sender",
+        "hint": "For example: Gryffi <gryffi@company.com>."
+      },
+      "email.smtpHost": {
+        "label": "Mail server",
+        "hint": "Address of the SMTP server."
+      },
+      "email.smtpPort": {
+        "label": "Port",
+        "hint": "Usually 587 (STARTTLS) or 465 (SSL/TLS)."
+      },
+      "email.smtpSecurity": {
+        "label": "Encryption",
+        "hint": "Must match the port."
+      },
+      "email.smtpUser": {
+        "label": "Username",
+        "hint": "Leave empty when the server needs no login."
+      },
+      "email.smtpPassword": {
+        "label": "Password",
+        "hint": "Stored encrypted."
+      },
+      "email.nuntlyApiKey": {
+        "label": "Nuntly API key",
+        "hint": "Only when the mail service is Nuntly."
+      },
+      "nsfw.enabled": {
+        "label": "NSFW filter on uploaded images",
+        "hint": "Needs the nudenet container. While the filter is on but not running, image uploads are refused."
+      },
+      "documents.parserEnabled": {
+        "label": "Read PDF, Word and PowerPoint files",
+        "hint": "Needs the parser container. Text and Excel files work without it."
+      },
+      "branding.poweredBy": {
+        "label": "Show \"Powered by Gryffi\" in emails",
+        "hint": "A small line at the bottom of emails."
+      },
+      "pexels.apiKey": {
+        "label": "Pexels API key",
+        "hint": "For free stock photos in the journey builder."
+      },
+      "google.clientId": {
+        "label": "Google client ID",
+        "hint": "From the OAuth client in Google Cloud Console."
+      },
+      "google.clientSecret": {
+        "label": "Google client secret",
+        "hint": "Stored encrypted."
+      },
+      "microsoft.clientId": {
+        "label": "Microsoft application (client) ID",
+        "hint": "From the app registration in Microsoft Entra."
+      },
+      "microsoft.clientSecret": {
+        "label": "Microsoft client secret",
+        "hint": "Stored encrypted."
+      },
+      "updates.check": {
+        "label": "Check for new versions",
+        "hint": "Once a day Gryffi asks GitHub for the number of the latest version. Nothing about this installation is sent."
+      }
+    },
+    "options": {
+      "email.provider": {
+        "nuntly": "Nuntly (API)",
+        "smtp": "SMTP"
+      },
+      "email.smtpSecurity": {
+        "starttls": "STARTTLS (usually port 587)",
+        "tls": "SSL/TLS (usually port 465)",
+        "none": "None (only inside your own network)"
+      }
+    },
+    "source": {
+      "environment": "From .env",
+      "default": "Default"
+    },
+    "secretStored": "Stored ({{value}}). Leave empty to keep it.",
+    "secretEmpty": "Not set",
+    "save": "Save",
+    "saved": "Saved.",
+    "nothingChanged": "Nothing changed.",
+    "saveFailedField": "This value cannot be used: {{field}}. Check it and save again.",
+    "tests": {
+      "ai": "Test connection",
+      "embeddings": "Test embeddings",
+      "vision": "Test vision",
+      "speech": "Test speech",
+      "email": "Send test email",
+      "parser": "Test document parser",
+      "nsfw": "Test NSFW filter"
+    },
+    "redirectUris": "Redirect URIs to register with Google and Microsoft",
+    "reembed": {
+      "title": "Knowledge base index",
+      "intro": "After a change of embedding model, Gryffi rebuilds the index of all knowledge sources. Until it is done, guides find fewer answers.",
+      "start": "Rebuild the index now",
+      "running": "Rebuilding: {{done}} of {{total}} text blocks.",
+      "done": "The index is up to date ({{total}} text blocks).",
+      "doneWithErrors": "The index was rebuilt, but {{failed}} of {{total}} text blocks failed. Test the embedding model and rebuild again."
+    },
+    "audit": {
+      "title": "Change log",
+      "intro": "The last 100 changes to these settings. Secrets are shown masked.",
+      "when": "When",
+      "who": "Who",
+      "setting": "Setting",
+      "change": "Change",
+      "none": "No changes yet.",
+      "empty": "(empty)",
+      "on": "On",
+      "off": "Off",
+      "system": "Setup wizard"
+    },
+    "updateBadge": "Update",
+    "version": {
+      "title": "Version",
+      "current": "This installation runs Gryffi {{version}}.",
+      "development": "This is a development build without a version number.",
+      "upToDate": "This is the latest version.",
+      "available": "Gryffi {{version}} is available.",
+      "howTo": "To update, run this command on the server. It makes a backup first:",
+      "notes": "See what is new",
+      "notChecked": "Gryffi has not checked for a newer version yet.",
+      "off": "The check for new versions is off. You can switch it on under Options."
+    },
+    "secretRequired": "Enter {{field}} again. A saved key or password is only used with the address it was saved for."
+  }
+}

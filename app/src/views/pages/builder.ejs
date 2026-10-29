@@ -1,0 +1,4061 @@
+<!DOCTYPE html>
+<html lang="<%= typeof language !== 'undefined' ? language : 'en' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <!-- Shared Journey Experience Styles - keeps preview and end-user experience consistent -->
+  <link rel="stylesheet" href="/css/journey-experience.css">
+  <!-- jsPDF for reward coupon PDF download (player mode) -->
+  <script src="/js/vendor/jspdf.umd.min.js"></script>
+  <!-- Noto Sans font for jsPDF (Unicode support for Turkish, Arabic, etc.) -->
+  <script src="/fonts/noto-sans-jspdf.js"></script>
+  <% if (typeof playerMode !== 'undefined' && playerMode) { %>
+  <!-- Player Mode specific styles -->
+  <style>
+    /* Player mode: fullscreen journey experience */
+    body.player-mode {
+      background: var(--theme-background, #ecf2eb);
+    }
+    .player-header {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: 56px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .player-header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .player-logo {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+    }
+    .player-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--theme-primary, #0b4b34);
+      font-family: 'Outfit', sans-serif;
+    }
+    .player-header-right {
+      font-size: 14px;
+      color: var(--theme-primary, #0b4b34);
+      opacity: 0.9;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .preview-close-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--theme-primary, #0b4b34);
+      color: var(--theme-button-text, white);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: none;
+    }
+    .preview-close-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .preview-close-hover:hover {
+      opacity: 0.9 !important;
+    }
+    .preview-close-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    /* Public journey close button - simpler, just an X */
+    .public-close-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--theme-primary, #0b4b34);
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .public-close-btn:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    .public-close-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    .player-content {
+      padding-top: 56px;
+      min-height: 100vh;
+    }
+    /* Progress bar for player mode */
+    .player-progress-container {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      position: fixed;
+      top: 56px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+    }
+    .player-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--theme-accent, #78c503), color-mix(in srgb, var(--theme-accent, #78c503) 70%, white));
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    
+    /* Mobile responsive styles for player mode */
+    @media (max-width: 640px) {
+      .player-header {
+        padding: 10px 16px;
+        height: 52px;
+      }
+      .player-header-left {
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .player-logo {
+        height: 28px !important;
+        width: auto !important;
+        max-width: 120px !important;
+        min-width: auto !important;
+        object-fit: contain !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+      }
+      .player-title {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
+      }
+      .player-header-right {
+        font-size: 13px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .preview-close-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .player-content {
+        padding-top: 52px;
+      }
+      .player-progress-container {
+        top: 52px;
+      }
+    }
+    
+    /* Safe area insets for notched phones */
+    @supports (padding: max(0px)) {
+      @media (max-width: 640px) {
+        .player-header {
+          padding-left: max(16px, env(safe-area-inset-left));
+          padding-right: max(16px, env(safe-area-inset-right));
+        }
+      }
+    }
+  </style>
+  <% } %>
+</head>
+<% if (typeof playerMode !== 'undefined' && playerMode) { %>
+<!-- ========================================
+     PLAYER MODE: End-user journey experience
+     Security: readOnly is enforced, no edit controls shown
+     ======================================== -->
+<body class="player-mode">
+  <!-- Player Header (no edit controls) -->
+  <header class="player-header">
+    <div class="player-header-left">
+      <% if (typeof organization !== 'undefined' && organization.logoUrl) { %>
+        <img src="<%= organization.logoUrl %>" alt="<%= organization.name %>" class="player-logo" data-theme-logo>
+      <% } else { %>
+        <img src="/images/logos/Logo---cropped-transparant.png" alt="Gryffi" class="player-logo" data-theme-logo>
+      <% } %>
+      <span class="player-title"><%= journey.title %></span>
+    </div>
+    <div class="player-header-right">
+      <% if (typeof player !== 'undefined' && player.endUser) { %>
+        <%= t('expedition.welcome.greeting', { firstName: player.endUser.firstName }) %>
+      <% } %>
+      <% if (typeof previewMode !== 'undefined' && previewMode) { %>
+        <a href="<%= typeof returnUrl !== 'undefined' ? returnUrl : '/dashboard/journeys' %>" class="preview-close-btn" title="<%= t('common.close') %>">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <%= t('builder.preview.exit') %>
+        </a>
+      <% } else if (typeof publicMode !== 'undefined' && publicMode && !(typeof previewMode !== 'undefined' && previewMode)) { %>
+        <!-- Close button for public journeys (go back to referrer page) -->
+        <button type="button" id="publicJourneyCloseBtn" class="public-close-btn" title="<%= t('common.close') %>">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      <% } %>
+    </div>
+  </header>
+  
+  <!-- Progress bar -->
+  <div class="player-progress-container">
+    <div class="player-progress-bar" id="playerProgressBar"></div>
+  </div>
+  
+  <!-- Main content area - preview will render here -->
+  <main class="player-content">
+    <div id="previewContent" class="min-h-screen" style="background: var(--theme-background, #ecf2eb);">
+      <!-- Journey content rendered by JavaScript -->
+    </div>
+  </main>
+<% } else { %>
+<!-- ========================================
+     BUILDER MODE: Journey editor interface
+     ======================================== -->
+<body class="h-screen overflow-hidden bg-gryffi-bg">
+  <!-- Mobile Warning Overlay (only shown on small screens) -->
+  <div id="mobileWarningOverlay" class="mobile-warning-overlay">
+    <div class="mobile-warning-card">
+      <div class="mobile-warning-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+      </div>
+      <h2><%= t('builder.mobileWarning.title') %></h2>
+      <p><%= t('builder.mobileWarning.message') %></p>
+      <div class="mobile-warning-buttons">
+        <a href="/dashboard/journeys" class="mobile-warning-btn secondary">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          <%= t('builder.mobileWarning.goBack') %>
+        </a>
+        <button type="button" class="mobile-warning-btn primary" id="dismissMobileWarning">
+          <%= t('builder.mobileWarning.continueAnyway') %>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    /* Mobile Warning Overlay - Only visible on small screens */
+    .mobile-warning-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 75, 52, 0.95);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .mobile-warning-card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .mobile-warning-icon {
+      width: 64px;
+      height: 64px;
+      background: #ecf2eb;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+    
+    .mobile-warning-icon svg {
+      width: 32px;
+      height: 32px;
+      color: #0b4b34;
+    }
+    
+    .mobile-warning-card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #0b4b34;
+      margin: 0 0 12px;
+    }
+    
+    .mobile-warning-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #64748b;
+      margin: 0 0 24px;
+    }
+    
+    .mobile-warning-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .mobile-warning-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .mobile-warning-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .mobile-warning-btn.primary {
+      background: #0b4b34;
+      color: white;
+    }
+    
+    .mobile-warning-btn.primary:hover {
+      background: #094030;
+    }
+    
+    .mobile-warning-btn.secondary {
+      background: #ecf2eb;
+      color: #0b4b34;
+    }
+    
+    .mobile-warning-btn.secondary:hover {
+      background: #dfe8dd;
+    }
+    
+    /* Show overlay on mobile screens */
+    @media (max-width: 767px) {
+      .mobile-warning-overlay {
+        display: flex;
+      }
+      
+      .mobile-warning-overlay.dismissed {
+        display: none;
+      }
+    }
+    
+    /* Mobile toolbar - horizontally scrollable */
+    @media (max-width: 1024px) {
+      /* Make header a scroll container */
+      header.fixed.top-0 {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+      }
+      
+      header.fixed.top-0::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+      }
+      
+      /* Inner wrapper stretches to fit all content */
+      .builder-toolbar-inner {
+        display: flex;
+        align-items: center;
+        min-width: max-content;
+        width: max-content;
+        padding-right: 16px;
+      }
+      
+      /* Prevent all items from shrinking */
+      .builder-toolbar-inner > * {
+        flex-shrink: 0;
+      }
+      
+      /* Smaller spacer on mobile */
+      .builder-toolbar-inner > .flex-1 {
+        flex: 0 0 12px;
+        min-width: 12px;
+      }
+      
+      /* Compact title on mobile */
+      .builder-toolbar-inner .journey-title-section h1 {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  </style>
+  
+  <script>
+    // Dismiss mobile warning
+    document.getElementById('dismissMobileWarning')?.addEventListener('click', function() {
+      document.getElementById('mobileWarningOverlay').classList.add('dismissed');
+    });
+  </script>
+  
+  <% /* Demo Journey Banner */ %>
+  <% if (typeof isDemoJourney !== 'undefined' && isDemoJourney) { %>
+  <div class="demo-journey-banner" id="demoJourneyBanner">
+    <div class="demo-banner-content">
+      <div class="demo-banner-icon">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <span class="demo-banner-text"><%= t('onboarding.demoJourney.readOnlyNotice') %></span>
+    </div>
+    <a href="/dashboard/journeys" class="demo-banner-close">
+      <%= t('onboarding.demoJourney.closeTour') %>
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </a>
+  </div>
+  <style>
+    .demo-journey-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(135deg, var(--theme-primary, #0b4b34) 0%, color-mix(in srgb, var(--theme-primary, #0b4b34) 80%, var(--theme-accent, #78c503)) 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 60;
+      font-size: 13px;
+    }
+    .demo-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .demo-banner-icon {
+      opacity: 0.8;
+    }
+    .demo-banner-text {
+      font-weight: 500;
+    }
+    .demo-banner-close {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 12px;
+      transition: all 0.15s ease;
+    }
+    .demo-banner-close:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    /* Adjust header position when demo banner is shown */
+    body:has(.demo-journey-banner) header.fixed.top-0 {
+      top: 40px;
+    }
+    body:has(.demo-journey-banner) main.pt-14 {
+      padding-top: calc(56px + 40px);
+    }
+    @media (max-width: 640px) {
+      .demo-banner-text {
+        font-size: 12px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  </style>
+  <% } %>
+  
+  <!-- Top toolbar -->
+  <header class="fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-sm border-b border-zen-200/50 z-50">
+    <div class="builder-toolbar-inner flex items-center h-full px-4">
+    <a href="/dashboard/journeys" class="flex items-center gap-2 text-gryffi-primary hover:text-gryffi-primary/80 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <img src="/images/logos/Logo---illustration-only-cropped-transparant.png" alt="Gryffi" class="w-7 h-7">
+    </a>
+    
+    <div class="journey-title-section ml-4 flex items-center gap-2">
+      <h1 class="font-medium text-zen-800"><%= journey.title %></h1>
+      <% if (journey.is_public) { %>
+        <span class="text-xs px-2 py-0.5 rounded-full flex items-center gap-1" style="background: rgba(120, 197, 3, 0.15); color: #5a9302;">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <%= t('journeys.public.badge') %>
+        </span>
+      <% } %>
+      <span class="text-xs px-2 py-0.5 rounded-full <%= journey.status === 'published' ? 'bg-gryffi-accent/20 text-gryffi-primary' : 'bg-zen-200 text-zen-600' %>">
+        <%= t('journeys.status.' + journey.status) %>
+      </span>
+      
+      <% if (journey.is_public && journey.public_token) { %>
+        <!-- Public Link Button -->
+        <div class="relative" id="publicLinkContainer">
+          <button type="button" id="publicLinkBtn" class="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors" style="background: rgba(120, 197, 3, 0.1); color: #5a9302;" title="<%= t('journeys.public.publicLink') %>">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+            </svg>
+            <%= t('journeys.public.publicLink') %>
+          </button>
+          <div id="publicLinkDropdown" class="absolute left-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-zen-100 p-4 hidden z-50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium text-zen-700"><%= t('journeys.public.publicLink') %></span>
+              <button type="button" id="closePublicLinkDropdown" class="text-zen-400 hover:text-zen-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-xs text-zen-500 mb-3"><%= t('journeys.public.publicLinkDescription') %></p>
+            <div class="flex items-center gap-2">
+              <input type="text" readonly id="publicLinkInput" value="<%= typeof APP_URL !== 'undefined' ? APP_URL : '' %>/p/<%= journey.public_token %>" class="flex-1 px-3 py-2 text-sm bg-zen-50 border border-zen-200 rounded-lg text-zen-600 font-mono text-xs">
+              <button type="button" id="copyPublicLinkBtn" class="px-3 py-2 rounded-lg font-medium text-sm transition-colors" style="background: #78c503; color: white;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    
+    <div class="flex-1"></div>
+    
+    <!-- Step type buttons - Zen style -->
+    <div class="flex items-center gap-2 mr-4">
+      <span class="text-xs font-medium text-zen-500 whitespace-nowrap"><%= t('builder.toolbar.addStep') %></span>
+      <div class="flex items-center gap-1 bg-zen-100/50 rounded-xl p-1">
+        <button class="step-type-btn" data-type="space" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.space') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.space') %></span>
+        </button>
+        <button class="step-type-btn" data-type="guide" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.guide') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.guide') %></span>
+        </button>
+        <button class="step-type-btn" data-type="content" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.content') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.content') %></span>
+        </button>
+        <button class="step-type-btn" data-type="challenge" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.challenge') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.challenge') %></span>
+        </button>
+        <button class="step-type-btn" data-type="form" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.form') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.form') %></span>
+        </button>
+        <button class="step-type-btn" data-type="poll" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.poll') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.poll') %></span>
+        </button>
+        <button class="step-type-btn" data-type="reward" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.reward') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.reward') %></span>
+        </button>
+        <button class="step-type-btn" data-type="nested_journey" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.nestedJourney') }) %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10v2a2 2 0 002 2h2m6-4v-2a2 2 0 00-2-2h-2"></path>
+          </svg>
+          <span class="text-xs"><%= t('builder.stepTypes.nestedJourneyShort') %></span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Help button -->
+    <button id="builderHelpBtn" class="p-2 hover:bg-zen-100 rounded-lg text-zen-500 hover:text-gryffi-primary transition-colors mr-1" title="<%= t('help.sidebarTooltip') %>">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    </button>
+    
+    <!-- Journey Settings button -->
+    <button id="journeySettingsBtn" class="p-2 hover:bg-zen-100 rounded-lg text-zen-500 hover:text-gryffi-primary transition-colors mr-2" title="<%= t('builder.toolbar.journeySettings') %>">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+    </button>
+
+    <!-- Undo / Redo -->
+    <div class="flex items-center gap-1 bg-zen-100/50 rounded-xl p-1 mr-2" aria-label="<%= t('builder.toolbar.undoRedo') || 'Undo/Redo' %>">
+      <button id="undoBtn" class="p-2 hover:bg-white rounded-lg text-zen-500 hover:text-gryffi-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed" title="<%= t('builder.toolbar.undo') %>" aria-label="<%= t('builder.toolbar.undo') %>">
+        <!-- Rotate counter-clockwise (classic undo) -->
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+      </button>
+      <button id="redoBtn" class="p-2 hover:bg-white rounded-lg text-zen-500 hover:text-gryffi-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed" title="<%= t('builder.toolbar.redo') %>" aria-label="<%= t('builder.toolbar.redo') %>">
+        <!-- Rotate clockwise (classic redo) -->
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <span id="saveStatus" class="text-xs text-zen-400 hidden mr-2 whitespace-nowrap"></span>
+
+    <div class="flex items-center gap-2">
+      <button id="previewBtn" class="btn-secondary text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <%= t('builder.toolbar.preview') %>
+      </button>
+      <button id="saveBtn" class="btn-primary text-sm">
+        <%= t('builder.toolbar.save') %>
+      </button>
+    </div>
+    </div><!-- /.builder-toolbar-inner -->
+  </header>
+<% } %>
+
+<% if (typeof playerMode === 'undefined' || !playerMode) { %>
+  <!-- Main area (BUILDER MODE ONLY) -->
+  <main class="pt-14 h-screen flex">
+    <!-- Canvas -->
+    <div id="canvas" class="flex-1 relative overflow-hidden cursor-grab bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%221%22%20cy%3D%221%22%20r%3D%221%22%20fill%3D%22%23cbd5e1%22%20opacity%3D%220.3%22%2F%3E%3C%2Fsvg%3E')]">
+      <div class="flow-canvas" id="flowCanvas">
+        <!-- SVG layer for connections - pointer-events on paths only -->
+        <svg id="connectionLayer" class="absolute inset-0 w-full h-full" style="z-index: 1; pointer-events: none;">
+          <defs>
+            <!-- Gradient for connection lines -->
+            <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#0b4b34;stop-opacity:0.6" />
+              <stop offset="100%" style="stop-color:#78c503;stop-opacity:0.8" />
+            </linearGradient>
+            <!-- Arrow marker -->
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#78c503" />
+            </marker>
+          </defs>
+        </svg>
+        
+        <!-- Steps will be rendered here -->
+        <div id="stepsContainer" style="z-index: 2; position: relative;"></div>
+        
+        <% if (!steps || steps.length === 0) { %>
+        <div id="emptyState" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-zen">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gryffi-accent/10 flex items-center justify-center">
+              <svg class="w-8 h-8 text-gryffi-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-zen-900 mb-2">Create your first step</h3>
+            <p class="text-zen-500 text-sm max-w-xs">
+              Click a step type above to begin building your interactive journey.
+            </p>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      
+      <!-- Mini zoom controls -->
+      <div class="zoom-controls absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm p-1 cursor-default">
+        <button id="zoomOut" class="p-1.5 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-700 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+          </svg>
+        </button>
+        <span id="zoomLevel" class="text-xs text-zen-500 w-10 text-center">100%</span>
+        <button id="zoomIn" class="p-1.5 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-700 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Properties panel - Zen style -->
+    <aside id="propertiesPanel" class="w-80 bg-white border-l border-zen-200/50 h-full overflow-y-auto hidden">
+      <div id="propertiesContent">
+        <!-- Content rendered dynamically by JS -->
+      </div>
+    </aside>
+  </main>
+<% } %>
+
+<% if (typeof playerMode === 'undefined' || !playerMode) { %>
+  <!-- Resources Modal (BUILDER MODE ONLY) -->
+  <div id="resourcesModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden">
+      <div class="p-4 border-b border-zen-200 flex items-center justify-between">
+        <h2 class="font-semibold text-zen-900">Resources</h2>
+        <button id="closeResourcesModal" class="p-1 hover:bg-zen-100 rounded">
+          <svg class="w-5 h-5 text-zen-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[60vh]">
+        <div id="resourcesList" class="space-y-2">
+          <!-- Resources rendered here -->
+        </div>
+        <button id="addResourceBtn" class="mt-4 w-full btn-secondary text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Add Resource
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview Modal (BUILDER MODE ONLY) -->
+  <div id="previewModal" class="fixed inset-0 z-50 hidden" style="background: var(--theme-background, #ecf2eb);">
+    <div class="h-full flex flex-col">
+      <!-- Header -->
+      <div class="preview-modal-header" style="background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0, 0, 0, 0.06); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; height: 56px;">
+        <div class="flex items-center gap-3">
+          <img src="/images/logos/Logo---cropped-transparant.png" alt="" class="h-8 w-auto" data-theme-logo>
+          <span class="font-medium" style="color: var(--theme-primary, #0b4b34);"><%= t('builder.preview.mode') %></span>
+        </div>
+        <button id="closePreview" class="p-2 rounded-lg transition-colors preview-close-hover" style="background: var(--theme-primary, #0b4b34); color: white;">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <!-- Started-from-step banner (shown when preview starts from a non-start step) -->
+      <div id="previewStartedFromBanner" class="hidden" style="background: rgba(11, 75, 52, 0.06); border-bottom: 1px solid rgba(0, 0, 0, 0.04); padding: 8px 24px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--theme-primary, #0b4b34);">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span id="previewStartedFromBannerText"></span>
+      </div>
+      <!-- Progress Bar -->
+      <div class="preview-modal-progress" style="height: 4px; background: rgba(0, 0, 0, 0.06);">
+        <div id="previewProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--theme-accent, #78c503), color-mix(in srgb, var(--theme-accent, #78c503) 70%, white)); transition: width 0.3s ease;"></div>
+      </div>
+      <!-- Content -->
+      <div id="previewContent" class="flex-1 overflow-y-auto relative" style="background: var(--theme-background, #ecf2eb);">
+        <!-- Preview rendered here -->
+      </div>
+      
+      <!-- Floating Guide Chat Widget -->
+      <div id="guideChatWidget" class="hidden">
+        <!-- Floating button -->
+        <button id="guideChatToggle" class="guide-chat-fab">
+          <span id="guideChatFabAvatar" class="guide-chat-fab-avatar"></span>
+          <span id="guideChatFabName" class="guide-chat-fab-name"><%= t('builder.preview.askGuideButton') %></span>
+        </button>
+        
+        <!-- Chat panel -->
+        <div id="guideChatPanel" class="guide-chat-panel hidden">
+          <div class="guide-chat-header">
+            <div class="flex items-center gap-3">
+              <div id="guideChatAvatar" class="guide-chat-avatar"></div>
+              <div>
+                <div id="guideChatName" class="font-medium text-zen-900"></div>
+                <div id="guideChatRole" class="text-xs text-zen-500"></div>
+              </div>
+            </div>
+            <button id="closeChatPanel" class="p-1 hover:bg-zen-100 rounded text-zen-400 hover:text-zen-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+          </div>
+          <div id="guideChatMessages" class="guide-chat-messages">
+            <!-- Messages rendered here -->
+          </div>
+          <div class="guide-chat-input-wrapper">
+            <input type="text" id="guideChatInput" class="guide-chat-input" placeholder="<%= t('builder.preview.typeQuestion') %>" />
+            <button id="guideChatSend" class="guide-chat-send">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } else { %>
+  <!-- PLAYER MODE: Guide Chat Widget (rendered directly, not in modal) -->
+  <div id="guideChatWidget" class="hidden">
+    <!-- Floating button -->
+    <button id="guideChatToggle" class="guide-chat-fab">
+      <span id="guideChatFabAvatar" class="guide-chat-fab-avatar"></span>
+      <span id="guideChatFabName" class="guide-chat-fab-name"><%= t('builder.preview.askGuideButton') %></span>
+    </button>
+    
+    <!-- Chat panel -->
+    <div id="guideChatPanel" class="guide-chat-panel hidden">
+      <div class="guide-chat-header">
+        <div class="flex items-center gap-3">
+          <div id="guideChatAvatar" class="guide-chat-avatar"></div>
+          <div>
+            <div id="guideChatName" class="font-medium text-zen-900"></div>
+            <div id="guideChatRole" class="text-xs text-zen-500"></div>
+          </div>
+        </div>
+        <button id="closeChatPanel" class="p-1 hover:bg-zen-100 rounded text-zen-400 hover:text-zen-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="guideChatMessages" class="guide-chat-messages">
+        <!-- Messages rendered here -->
+      </div>
+      <div class="guide-chat-input-wrapper">
+        <input type="text" id="guideChatInput" class="guide-chat-input" placeholder="<%= t('builder.preview.typeQuestion') %>" />
+        <button id="guideChatSend" class="guide-chat-send">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+<% } %>
+  
+  <!-- Store journey data and translations for JS -->
+  <script>
+    window.GRYFFI = {
+      journey: <%- safeJson(journey) %>,
+      organization: <%- safeJson({ 
+        id: organization?.id || null,
+        name: organization?.name || '', 
+        logoUrl: organization?.logoUrl || '',
+        defaultLanguage: organization?.defaultLanguage || 'en'
+      }) %>,
+      steps: <%- safeJson(steps || []) %>,
+      paths: <%- safeJson(paths || []) %>,
+      resources: <%- safeJson(resources || []) %>,
+      guides: <%- safeJson(typeof guides !== 'undefined' ? guides : []) %>,
+      readOnly: <%- safeJson(!!readOnly) %>,
+      isDemoJourney: <%- safeJson(typeof isDemoJourney !== 'undefined' && isDemoJourney) %>,
+      locale: '<%= typeof locale !== 'undefined' ? locale : (typeof language !== 'undefined' ? language : 'en') %>',
+      // Journey language for preview (may differ from UI locale if journey has language override)
+      journeyLanguage: '<%= typeof journeyLanguage !== 'undefined' ? journeyLanguage : (typeof locale !== 'undefined' ? locale : 'en') %>',
+      // AI Guide response language (may differ from journey language if guide language override is set)
+      guideLanguage: '<%= typeof guideLanguage !== 'undefined' ? guideLanguage : (typeof journeyLanguage !== 'undefined' ? journeyLanguage : 'en') %>',
+      // Static opening override for AI Guide (translated during copy-translate or set manually)
+      guideOpeningOverride: <%- safeJson(typeof journey !== 'undefined' && journey.guide_opening_override ? journey.guide_opening_override : '') %>,
+      
+      // Player mode configuration (security: enforced server-side)
+      playerMode: <%- safeJson(typeof playerMode !== 'undefined' && playerMode) %>,
+      <% if (typeof playerMode !== 'undefined' && playerMode && typeof player !== 'undefined') { %>
+      player: {
+        token: '<%= typeof player.token !== 'undefined' ? player.token : '' %>',
+        invitationId: '<%= typeof player.invitationId !== 'undefined' ? player.invitationId : '' %>',
+        endUser: <%- safeJson(player.endUser || {}) %>,
+        progress: <%- safeJson(player.progress || {}) %>,
+        language: '<%= player.language || 'en' %>'
+      },
+      <% } %>
+      
+      // Public journey mode (no personal invitation, shared link)
+      publicMode: <%- safeJson(typeof publicMode !== 'undefined' && publicMode) %>,
+      // Preview mode (builder preview, not actual end-user)
+      previewMode: <%- safeJson(typeof previewMode !== 'undefined' && previewMode) %>,
+      <% if (typeof publicMode !== 'undefined' && publicMode) { %>
+      publicPlayer: {
+        <% if (typeof player !== 'undefined' && player) { %>
+        token: '<%= typeof publicToken !== 'undefined' ? publicToken : '' %>',
+        participantId: '<%= player.participantId || '' %>',
+        sessionId: '<%= player.sessionId || '' %>',
+        email: '<%= player.email || '' %>',
+        firstName: <%- safeJson(player.firstName || '') %>,
+        lastName: <%- safeJson(player.lastName || '') %>,
+        isIdentified: <%- safeJson(!!player.isIdentified) %>,
+        isVerified: <%- safeJson(!!player.isVerified) %>
+        <% } else { %>
+        // Preview mode - no real token/participant
+        token: '',
+        participantId: '',
+        sessionId: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        isIdentified: false,
+        isVerified: false
+        <% } %>
+      },
+      <% } %>
+      
+      // Interface translations (user's language) - for builder UI, properties panels
+      translations: <%- typeof interfaceTranslations !== 'undefined' ? safeJson(interfaceTranslations) : safeJson({
+        builder: t('builder', { returnObjects: true }),
+        common: t('common', { returnObjects: true }),
+        journeys: t('journeys', { returnObjects: true }),
+        guides: t('guides', { returnObjects: true }),
+        imagePicker: t('imagePicker', { returnObjects: true }),
+        expedition: t('expedition', { returnObjects: true })
+      }) %>,
+      
+      // Preview translations (journey/org language) - for journey preview content
+      previewTranslations: <%- typeof previewTranslations !== 'undefined' ? safeJson(previewTranslations) : safeJson({
+        builder: t('builder', { returnObjects: true }),
+        common: t('common', { returnObjects: true }),
+        journeys: t('journeys', { returnObjects: true }),
+        guides: t('guides', { returnObjects: true }),
+        imagePicker: t('imagePicker', { returnObjects: true }),
+        expedition: t('expedition', { returnObjects: true })
+      }) %>,
+      
+      // Player-specific translations (extended language support: it, pt, da, no, fi, sv, pl, ro, tr)
+      playerTranslations: <%- typeof playerTranslations !== 'undefined' ? safeJson(playerTranslations) : '{ "player": {} }' %>
+    };
+    
+    // Global translation helper for builder interface (user's language)
+    // In player mode with extended languages, tries playerTranslations first
+    window.t = function(key, params = {}) {
+      if (!window.GRYFFI || !window.GRYFFI.translations) {
+        console.warn('Translations not loaded yet');
+        return key;
+      }
+      
+      // Extended languages that aren't in the base i18next translations
+      const extendedLanguages = ['it', 'pt', 'da', 'no', 'fi', 'sv', 'pl', 'ro', 'tr'];
+      const journeyLang = window.GRYFFI.journeyLanguage || '';
+      const isExtendedLanguage = extendedLanguages.includes(journeyLang);
+      
+      // In player mode OR when journey uses extended language, try playerTranslations first
+      // This handles extended languages (pl, it, sv, etc.) that aren't in i18next
+      const shouldUsePlayerTranslations = (window.GRYFFI.playerMode || isExtendedLanguage) && window.GRYFFI.playerTranslations;
+      
+      if (shouldUsePlayerTranslations) {
+        // Mapping from builder.* keys to player.* keys
+        const builderToPlayerMapping = {
+          'builder.preview.submit': 'player.form.submit',
+          'builder.preview.submitting': 'player.form.submitting',
+          'builder.preview.formSubmitted': 'player.form.formSubmitted',
+          'builder.preview.formSubmitFailed': 'player.form.formSubmitFailed',
+          'builder.preview.defaultConfirmation': 'player.form.defaultConfirmation',
+          'builder.preview.selectOption': 'player.form.selectOption',
+          'builder.preview.yes': 'player.form.yes',
+          'builder.preview.no': 'player.form.no',
+          'builder.preview.field': 'player.form.field',
+          'builder.preview.form': 'player.form.title',
+          'builder.preview.guide': 'player.guide',
+          'builder.preview.aiAssistant': 'player.aiAssistant',
+          'builder.preview.noGuideSelected': 'player.noGuideSelected',
+          'builder.preview.selectGuideForStep': 'player.selectGuideForStep',
+          'builder.preview.defaultGreeting': 'player.chat.defaultGreeting',
+          'builder.preview.invalidVideoUrl': 'player.content.invalidVideoUrl',
+          'builder.preview.noContentYet': 'player.content.noContentYet',
+          'builder.preview.pressPlayToStart': 'player.content.pressPlayToStart',
+          'builder.preview.chatWithGuide': 'player.pacing.chatWithGuide',
+          'builder.reward.preview.congratulations': 'player.reward.congratulations',
+          'builder.reward.preview.yourCode': 'player.reward.yourCode',
+          'builder.reward.preview.youAreNumber': 'player.reward.youAreNumber',
+          'builder.reward.preview.redeemAt': 'player.reward.redeemAt',
+          'builder.reward.preview.validUntil': 'player.reward.validUntil',
+          'builder.reward.preview.terms': 'player.reward.terms',
+          'builder.reward.preview.downloadCoupon': 'player.reward.downloadCoupon',
+          'builder.reward.preview.emailSent': 'player.reward.emailSent',
+          'builder.reward.preview.alreadyClaimed': 'player.reward.alreadyClaimed',
+          'builder.reward.preview.noMoreRewards': 'player.reward.noMoreRewards',
+          'builder.reward.preview.previewMode': 'player.reward.previewMode',
+          'builder.reward.preview.claimed': 'player.reward.claimed',
+          'common.continue': 'player.quiz.continue',
+          'builder.props.panoramaDragHint': 'player.space.dragHint',
+          'builder.props.viewFloorplan': 'player.space.viewFloorplan',
+          'builder.props.youAreHere': 'player.space.youAreHere',
+          'builder.stepTypes.reward': 'player.stepTypes.reward'
+        };
+        
+        const playerKey = builderToPlayerMapping[key];
+        if (playerKey) {
+          const playerKeys = playerKey.split('.');
+          let playerValue = window.GRYFFI.playerTranslations;
+          let found = true;
+          for (const k of playerKeys) {
+            if (playerValue && typeof playerValue === 'object' && k in playerValue) {
+              playerValue = playerValue[k];
+            } else {
+              found = false;
+              break;
+            }
+          }
+          if (found && typeof playerValue === 'string') {
+            if (Object.keys(params).length > 0) {
+              for (const [param, replacement] of Object.entries(params)) {
+                playerValue = playerValue.replace(new RegExp(`{{${param}}}`, 'g'), replacement);
+              }
+            }
+            return playerValue;
+          }
+        }
+      }
+      
+      const keys = key.split('.');
+      let value = window.GRYFFI.translations;
+      for (const k of keys) {
+        if (value && typeof value === 'object' && k in value) {
+          value = value[k];
+        } else {
+          console.warn(`Translation key not found: ${key}`);
+          return key; // Return key if not found
+        }
+      }
+      // Handle interpolation (e.g., {{name}})
+      if (typeof value === 'string' && Object.keys(params).length > 0) {
+        for (const [param, replacement] of Object.entries(params)) {
+          value = value.replace(new RegExp(`{{${param}}}`, 'g'), replacement);
+        }
+      }
+      // Return value if it's a string, otherwise return key
+      return typeof value === 'string' ? value : key;
+    };
+    
+    // Translation helper for preview content (journey/org language)
+    window.tPreview = function(key, params = {}) {
+      if (!window.GRYFFI || !window.GRYFFI.previewTranslations) {
+        // Fallback to interface translations if preview not available
+        return window.t(key, params);
+      }
+      const keys = key.split('.');
+      let value = window.GRYFFI.previewTranslations;
+      for (const k of keys) {
+        if (value && typeof value === 'object' && k in value) {
+          value = value[k];
+        } else {
+          // Fallback to interface translation
+          return window.t(key, params);
+        }
+      }
+      // Handle interpolation (e.g., {{name}})
+      if (typeof value === 'string' && Object.keys(params).length > 0) {
+        for (const [param, replacement] of Object.entries(params)) {
+          value = value.replace(new RegExp(`{{${param}}}`, 'g'), replacement);
+        }
+      }
+      return typeof value === 'string' ? value : key;
+    };
+    
+    // Translation helper for player-specific strings (extended language support)
+    // Falls back to previewTranslations then interface translations if key not found
+    window.tPlayer = function(key, params = {}) {
+      // Try playerTranslations first
+      if (window.GRYFFI && window.GRYFFI.playerTranslations) {
+        const keys = key.split('.');
+        let value = window.GRYFFI.playerTranslations;
+        let found = true;
+        for (const k of keys) {
+          if (value && typeof value === 'object' && k in value) {
+            value = value[k];
+          } else {
+            found = false;
+            break;
+          }
+        }
+        if (found && typeof value === 'string') {
+          // Handle interpolation (e.g., {{name}})
+          if (Object.keys(params).length > 0) {
+            for (const [param, replacement] of Object.entries(params)) {
+              value = value.replace(new RegExp(`{{${param}}}`, 'g'), replacement);
+            }
+          }
+          return value;
+        }
+      }
+      
+      // Fallback: map player.* keys to builder.* equivalents for previewTranslations
+      const keyMapping = {
+        'player.poll': 'builder.poll',
+        'player.quiz': 'builder.quiz.preview',
+        'player.form': 'builder.form',
+        'player.pacing': 'builder.pacing',
+        'player.reward': 'builder.reward.preview',
+        'player.chat': 'builder.preview',
+        'player.navigation': 'builder.preview'
+      };
+      
+      let fallbackKey = key;
+      for (const [playerPrefix, builderPrefix] of Object.entries(keyMapping)) {
+        if (key.startsWith(playerPrefix + '.')) {
+          fallbackKey = key.replace(playerPrefix, builderPrefix);
+          break;
+        }
+      }
+      
+      return window.tPreview(fallbackKey, params);
+    };
+  </script>
+  <script src="/js/app.js"></script>
+  <script src="/js/image-picker.js"></script>
+  <!-- DOMPurify: sanitizes rich text (step bodies) before it is rendered -->
+  <script src="/js/vendor/purify.min.js"></script>
+  <script src="/js/builder.js?v=<%= Date.now() %>"></script>
+  
+  <% if (typeof publicMode !== 'undefined' && publicMode) { %>
+  <!-- Public Journey Identification Modal -->
+  <div id="publicIdentifyModal" class="fixed inset-0 hidden" style="background: rgba(0,0,0,0.5); z-index: 99999;">
+    <div class="min-h-screen flex items-center justify-center p-4" style="position: relative; z-index: 99999;">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden" style="animation: modalSlideIn 0.2s ease-out; position: relative; z-index: 100000;">
+        <div class="p-6">
+          <!-- Identify Step -->
+          <div id="identifyStep">
+            <div class="text-center mb-6">
+              <div id="identifyIcon" class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background: color-mix(in srgb, var(--theme-accent, #78c503) 10%, white);">
+                <!-- Default icon - will be updated by JS -->
+                <svg class="w-8 h-8" style="color: var(--theme-accent, #78c503);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+              <h3 id="identifyTitle" class="text-xl font-semibold text-zen-900"><%= t('journeys.public.identify.title') %></h3>
+              <p id="identifyDescription" class="text-zen-600 text-sm mt-1"><%= t('journeys.public.identify.description') %></p>
+            </div>
+            
+            <form id="publicIdentifyForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.identify.firstName') %></label>
+                <input type="text" name="firstName" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.identify.lastName') %></label>
+                <input type="text" name="lastName" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.identify.email') %></label>
+                <input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
+              </div>
+              
+              <div id="identifyError" class="hidden text-red-500 text-sm text-center p-3 bg-red-50 rounded-lg"></div>
+              
+              <!-- Remember me checkbox -->
+              <label class="flex items-start gap-3 cursor-pointer select-none mt-2">
+                <input type="checkbox" id="rememberMeCheckbox" class="w-5 h-5 mt-0.5 rounded border-zen-300 text-gryffi-primary focus:ring-gryffi-accent cursor-pointer" style="accent-color: var(--theme-primary, #0b4b34);">
+                <span class="text-sm text-zen-600 leading-tight"><%= t('journeys.public.identify.rememberMe') %></span>
+              </label>
+              
+              <button type="submit" class="w-full py-3 px-4 rounded-lg font-medium transition-colors" style="background: var(--theme-primary, #0b4b34); color: var(--theme-button-text, white);">
+                <%= t('journeys.public.identify.submit') %>
+              </button>
+              
+              <% if (typeof previewMode !== 'undefined' && previewMode) { %>
+              <!-- Skip option only visible in preview mode -->
+              <button type="button" id="skipIdentifyBtn" class="w-full py-2 mt-2 text-sm text-zen-400 hover:text-zen-600 transition-colors">
+                <%= t('journeys.public.identify.skipPreview') %>
+              </button>
+              <% } %>
+            </form>
+          </div>
+          
+          <!-- Verify Step -->
+          <div id="verifyStep" class="hidden">
+            <div class="text-center mb-6">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background: color-mix(in srgb, var(--theme-accent, #78c503) 10%, white);">
+                <svg class="w-8 h-8" style="color: var(--theme-accent, #78c503);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-zen-900"><%= t('journeys.public.verify.title') %></h3>
+              <p class="text-zen-600 text-sm mt-1" id="verifyEmailText"></p>
+            </div>
+            
+            <form id="publicVerifyForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.verify.code') %></label>
+                <input type="text" name="code" required pattern="[0-9]{6}" maxlength="6" class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-center text-2xl tracking-widest font-mono">
+              </div>
+              
+              <div id="verifyError" class="hidden text-red-500 text-sm text-center p-3 bg-red-50 rounded-lg"></div>
+              
+              <button type="submit" class="w-full py-3 px-4 rounded-lg font-medium transition-colors" style="background: var(--theme-primary, #0b4b34); color: var(--theme-button-text, white);">
+                <%= t('journeys.public.verify.submit') %>
+              </button>
+              
+              <button type="button" id="resendCodeBtn" class="w-full py-2 text-sm text-zen-500 hover:text-zen-700 transition-colors">
+                <%= t('journeys.public.verify.resend') %>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Public Journey Identification System
+    (function() {
+      const modal = document.getElementById('publicIdentifyModal');
+      const identifyStep = document.getElementById('identifyStep');
+      const verifyStep = document.getElementById('verifyStep');
+      const identifyForm = document.getElementById('publicIdentifyForm');
+      const verifyForm = document.getElementById('publicVerifyForm');
+      const identifyError = document.getElementById('identifyError');
+      const verifyError = document.getElementById('verifyError');
+      const verifyEmailText = document.getElementById('verifyEmailText');
+      const resendBtn = document.getElementById('resendCodeBtn');
+      const identifyTitle = document.getElementById('identifyTitle');
+      const identifyDescription = document.getElementById('identifyDescription');
+      const identifyIcon = document.getElementById('identifyIcon');
+      
+      if (!modal) return;
+      
+      let pendingAction = null; // Store the pending action to execute after verification
+      let userEmail = '';
+      let stepType = '';
+      let stepId = '';
+      
+      // Get theme accent color for icons
+      const themeAccent = getComputedStyle(document.documentElement).getPropertyValue('--theme-accent').trim() || '#78c503';
+      
+      // Context-specific content for different step types
+      const stepContent = {
+        poll: {
+          title: <%-safeJson(t('journeys.public.identify.poll.title'))%>,
+          description: <%-safeJson(t('journeys.public.identify.poll.description'))%>,
+          icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>`
+        },
+        reward: {
+          title: <%-safeJson(t('journeys.public.identify.reward.title'))%>,
+          description: <%-safeJson(t('journeys.public.identify.reward.description'))%>,
+          icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>`
+        },
+        form: {
+          title: <%-safeJson(t('journeys.public.identify.form.title'))%>,
+          description: <%-safeJson(t('journeys.public.identify.form.description'))%>,
+          icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`
+        }
+      };
+      
+      // Default content (fallback)
+      const defaultContent = {
+        title: <%-safeJson(t('journeys.public.identify.title'))%>,
+        description: <%-safeJson(t('journeys.public.identify.description'))%>,
+        icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>`
+      };
+      
+      // LocalStorage key for remembered user details
+      const STORAGE_KEY = 'gryffi_public_user';
+      const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
+      
+      // Load saved user details from localStorage
+      function loadSavedUserDetails() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            return JSON.parse(saved);
+          }
+        } catch (e) {
+          console.log('Could not load saved user details:', e);
+        }
+        return null;
+      }
+      
+      // Save user details to localStorage (with rememberMe flag)
+      function saveUserDetails(firstName, lastName, email) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
+            firstName, 
+            lastName, 
+            email,
+            rememberMe: true,
+            savedAt: Date.now()
+          }));
+        } catch (e) {
+          console.log('Could not save user details:', e);
+        }
+      }
+      
+      // Keep the secret "remember me" token next to the saved details. Without
+      // it the server will not auto-login (an email address alone is not enough).
+      function storeRememberToken(rememberToken) {
+        try {
+          const saved = loadSavedUserDetails();
+          if (!saved || !saved.rememberMe || !rememberToken) return;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, rememberToken }));
+        } catch (e) {
+          console.log('Could not save remember token:', e);
+        }
+      }
+      
+      // Remove saved user details
+      function clearSavedUserDetails() {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {
+          console.log('Could not clear saved user details:', e);
+        }
+      }
+      
+      // Try auto-login with saved credentials
+      async function tryAutoLogin() {
+        const savedDetails = loadSavedUserDetails();
+        if (!savedDetails || !savedDetails.rememberMe || !savedDetails.email || !savedDetails.rememberToken) {
+          return false;
+        }
+        
+        const token = window.GRYFFI?.publicPlayer?.token;
+        if (!token) {
+          return false;
+        }
+        
+        try {
+          console.log('[AutoLogin] Attempting auto-login for:', savedDetails.email);
+          const response = await fetch(`/p/${token}/auto-login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: savedDetails.email,
+              rememberToken: savedDetails.rememberToken
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            // Auto-login successful - update public player state
+            window.GRYFFI.publicPlayer = window.GRYFFI.publicPlayer || {};
+            window.GRYFFI.publicPlayer.firstName = data.participant.firstName;
+            window.GRYFFI.publicPlayer.lastName = data.participant.lastName;
+            window.GRYFFI.publicPlayer.email = data.participant.email;
+            window.GRYFFI.publicPlayer.participantId = data.participant.id;
+            window.GRYFFI.publicPlayer.isIdentified = true;
+            window.GRYFFI.publicPlayer.isVerified = true;
+            storeRememberToken(data.rememberToken);
+            
+            console.log('[AutoLogin] Success! User is now verified.');
+            return true;
+          } else {
+            console.log('[AutoLogin] Not verified yet, will need identification flow');
+            return false;
+          }
+        } catch (err) {
+          console.log('[AutoLogin] Error:', err);
+          return false;
+        }
+      }
+      
+      // Try auto-login on page load (for public journeys)
+      if (window.GRYFFI?.publicMode && window.GRYFFI?.publicPlayer?.token && !window.GRYFFI?.previewMode) {
+        tryAutoLogin().then(success => {
+          if (success) {
+            console.log('[AutoLogin] User automatically authenticated from saved credentials');
+          }
+        });
+      }
+      
+      // Public journey close button handler
+      // Save the original referrer and history length at page load (before journey navigation adds history items)
+      const originalReferrer = document.referrer;
+      const journeyUrl = window.location.href;
+      const initialHistoryLength = window.history.length;
+      
+      const publicCloseBtn = document.getElementById('publicJourneyCloseBtn');
+      if (publicCloseBtn) {
+        publicCloseBtn.addEventListener('click', function() {
+          // Try to go back to the page that opened this journey
+          if (originalReferrer && originalReferrer !== journeyUrl && !originalReferrer.includes(window.location.pathname)) {
+            // If there's a referrer that's different from current journey, go there directly
+            window.location.href = originalReferrer;
+          } else {
+            // No valid referrer - calculate how many history items were added by journey navigation
+            // and go back past all of them in one step
+            const historyItemsAdded = window.history.length - initialHistoryLength;
+            
+            if (historyItemsAdded > 0) {
+              // Go back past all journey history items plus one more to exit the journey
+              window.history.go(-(historyItemsAdded + 1));
+            } else if (window.history.length > 1) {
+              // No items were added but there's history - just go back once
+              window.history.back();
+            } else {
+              // No history at all - try to close the window/tab
+              window.close();
+              // If window.close() didn't work (e.g., not opened by script), show message
+              setTimeout(() => {
+                alert(<%-safeJson(t('journeys.public.closeWindowMessage'))%>);
+              }, 100);
+            }
+          }
+        });
+      }
+      
+      // Expose the identify function globally for the builder
+      window.GRYFFI = window.GRYFFI || {};
+      window.GRYFFI.publicIdentify = async function(action, type, id) {
+        return new Promise((resolve, reject) => {
+          pendingAction = { action, resolve, reject };
+          stepType = type;
+          stepId = id;
+          
+          // Check if already identified and verified
+          if (window.GRYFFI.publicPlayer?.isVerified) {
+            resolve(true);
+            return;
+          }
+          
+          // Update modal content based on step type
+          const content = stepContent[type] || defaultContent;
+          identifyTitle.textContent = content.title;
+          identifyDescription.textContent = content.description;
+          identifyIcon.innerHTML = content.icon;
+          
+          // Show modal
+          modal.classList.remove('hidden');
+          identifyStep.classList.remove('hidden');
+          verifyStep.classList.add('hidden');
+          identifyError.classList.add('hidden');
+          
+          // Reset checkbox
+          if (rememberMeCheckbox) {
+            rememberMeCheckbox.checked = false;
+          }
+          
+          // Pre-fill from session first, then from localStorage
+          const savedDetails = loadSavedUserDetails();
+          
+          if (window.GRYFFI.publicPlayer?.firstName) {
+            identifyForm.querySelector('[name="firstName"]').value = window.GRYFFI.publicPlayer.firstName;
+          } else if (savedDetails?.firstName) {
+            identifyForm.querySelector('[name="firstName"]').value = savedDetails.firstName;
+            if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
+          }
+          
+          if (window.GRYFFI.publicPlayer?.lastName) {
+            identifyForm.querySelector('[name="lastName"]').value = window.GRYFFI.publicPlayer.lastName;
+          } else if (savedDetails?.lastName) {
+            identifyForm.querySelector('[name="lastName"]').value = savedDetails.lastName;
+          }
+          
+          if (window.GRYFFI.publicPlayer?.email) {
+            identifyForm.querySelector('[name="email"]').value = window.GRYFFI.publicPlayer.email;
+          } else if (savedDetails?.email) {
+            identifyForm.querySelector('[name="email"]').value = savedDetails.email;
+          }
+        });
+      };
+      
+      // Skip identification (preview mode only)
+      const skipBtn = document.getElementById('skipIdentifyBtn');
+      if (skipBtn) {
+        skipBtn.addEventListener('click', () => {
+          // Set fake identification for preview mode
+          window.GRYFFI.publicPlayer = window.GRYFFI.publicPlayer || {};
+          window.GRYFFI.publicPlayer.firstName = 'Preview';
+          window.GRYFFI.publicPlayer.lastName = 'User';
+          window.GRYFFI.publicPlayer.email = 'preview@example.com';
+          window.GRYFFI.publicPlayer.isIdentified = true;
+          window.GRYFFI.publicPlayer.isVerified = true;
+          
+          // Hide modal
+          modal.classList.add('hidden');
+          
+          // Resolve pending action
+          pendingAction?.resolve(true);
+          pendingAction = null;
+        });
+      }
+      
+      // Handle identify form submission
+      identifyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        identifyError.classList.add('hidden');
+        
+        const formData = new FormData(identifyForm);
+        const firstName = formData.get('firstName').trim();
+        const lastName = formData.get('lastName').trim();
+        const email = formData.get('email').trim().toLowerCase();
+        
+        userEmail = email;
+        
+        // Handle remember me preference
+        if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+          saveUserDetails(firstName, lastName, email);
+        } else {
+          clearSavedUserDetails();
+        }
+        
+        // Check if this is preview mode (no real token)
+        const token = window.GRYFFI.publicPlayer?.token;
+        const isPreviewMode = window.GRYFFI?.previewMode && !token;
+        
+        if (isPreviewMode) {
+          // Simulate successful identification in preview mode (skip verification)
+          window.GRYFFI.publicPlayer = window.GRYFFI.publicPlayer || {};
+          window.GRYFFI.publicPlayer.firstName = firstName;
+          window.GRYFFI.publicPlayer.lastName = lastName;
+          window.GRYFFI.publicPlayer.email = email;
+          window.GRYFFI.publicPlayer.isIdentified = true;
+          window.GRYFFI.publicPlayer.isVerified = true;
+          
+          // Hide modal
+          modal.classList.add('hidden');
+          
+          // Resolve pending action
+          pendingAction?.resolve(true);
+          pendingAction = null;
+          return;
+        }
+        
+        try {
+          const response = await fetch(`/p/${token}/identify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              firstName, 
+              lastName, 
+              email,
+              stepType,
+              stepId
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success && data.alreadyVoted) {
+            // User already voted - close modal and resolve with the poll results
+            modal.classList.add('hidden');
+            pendingAction?.resolve({ 
+              alreadyVoted: true, 
+              userVote: data.userVote,
+              results: data.results,
+              totalVotes: data.totalVotes,
+              message: data.message
+            });
+            pendingAction = null;
+          } else if (data.success && data.needsVerification) {
+            // Show verification step
+            identifyStep.classList.add('hidden');
+            verifyStep.classList.remove('hidden');
+            verifyEmailText.textContent = <%-safeJson(t('journeys.public.verify.description'))%>.replace('{{email}}', email);
+          } else if (!data.success) {
+            identifyError.textContent = data.error || 'Failed to identify';
+            identifyError.classList.remove('hidden');
+            
+            if (data.code === 'ALREADY_VOTED' || data.code === 'ALREADY_CLAIMED' || data.code === 'ALREADY_PARTICIPATED') {
+              // Close modal and reject
+              modal.classList.add('hidden');
+              pendingAction?.reject(new Error(data.error));
+            }
+          }
+        } catch (err) {
+          console.error('Identify error:', err);
+          identifyError.textContent = 'An error occurred. Please try again.';
+          identifyError.classList.remove('hidden');
+        }
+      });
+      
+      // Handle verify form submission
+      verifyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        verifyError.classList.add('hidden');
+        
+        const code = verifyForm.querySelector('[name="code"]').value.trim();
+        
+        try {
+          const token = window.GRYFFI.publicPlayer?.token;
+          const response = await fetch(`/p/${token}/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            // Update public player state
+            window.GRYFFI.publicPlayer.email = data.participant.email;
+            window.GRYFFI.publicPlayer.firstName = data.participant.firstName;
+            window.GRYFFI.publicPlayer.lastName = data.participant.lastName;
+            window.GRYFFI.publicPlayer.isIdentified = true;
+            window.GRYFFI.publicPlayer.isVerified = true;
+            storeRememberToken(data.rememberToken);
+            
+            // Hide modal
+            modal.classList.add('hidden');
+            
+            // Resolve pending action
+            pendingAction?.resolve(true);
+          } else {
+            verifyError.textContent = data.error || 'Invalid code';
+            verifyError.classList.remove('hidden');
+          }
+        } catch (err) {
+          console.error('Verify error:', err);
+          verifyError.textContent = 'An error occurred. Please try again.';
+          verifyError.classList.remove('hidden');
+        }
+      });
+      
+      // Handle resend code
+      resendBtn.addEventListener('click', async () => {
+        try {
+          const token = window.GRYFFI.publicPlayer?.token;
+          const firstName = identifyForm.querySelector('[name="firstName"]').value;
+          const lastName = identifyForm.querySelector('[name="lastName"]').value;
+          
+          const response = await fetch(`/p/${token}/identify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              firstName, 
+              lastName, 
+              email: userEmail,
+              stepType,
+              stepId
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            if (window.gryffi?.toast) {
+              window.gryffi.toast.success(<%-safeJson(t('journeys.public.verify.codeSent'))%>);
+            }
+          }
+        } catch (err) {
+          console.error('Resend error:', err);
+        }
+      });
+      
+      // Close modal on escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+          pendingAction?.reject(new Error('Cancelled'));
+        }
+      });
+    })();
+  </script>
+  <% } %>
+  
+  <% if (journey.is_public && journey.public_token && !(typeof publicMode !== 'undefined' && publicMode)) { %>
+  <script>
+    // Public Link Dropdown (for builder view, not player view)
+    (function() {
+      const btn = document.getElementById('publicLinkBtn');
+      const dropdown = document.getElementById('publicLinkDropdown');
+      const closeBtn = document.getElementById('closePublicLinkDropdown');
+      const copyBtn = document.getElementById('copyPublicLinkBtn');
+      const input = document.getElementById('publicLinkInput');
+      
+      if (!btn || !dropdown) return;
+      
+      // Toggle dropdown
+      btn.addEventListener('click', () => {
+        dropdown.classList.toggle('hidden');
+      });
+      
+      // Close dropdown
+      closeBtn?.addEventListener('click', () => {
+        dropdown.classList.add('hidden');
+      });
+      
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#publicLinkContainer')) {
+          dropdown.classList.add('hidden');
+        }
+      });
+      
+      // Copy link
+      copyBtn?.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(input.value);
+          window.gryffi.toast.success(<%-safeJson(t('journeys.public.linkCopied'))%>);
+        } catch (err) {
+          // Fallback for older browsers
+          input.select();
+          document.execCommand('copy');
+          window.gryffi.toast.success(<%-safeJson(t('journeys.public.linkCopied'))%>);
+        }
+      });
+    })();
+  </script>
+  <% } %>
+  
+  <style>
+    .step-type-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: #64748b;
+      transition: all 0.15s ease;
+    }
+    .step-type-btn:hover {
+      background: white;
+      color: #0b4b34;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .step-type-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      color: #64748b;
+      transition: all 0.15s ease;
+    }
+    .btn-ghost:hover {
+      background: #f1f5f9;
+      color: #0b4b34;
+    }
+    
+    .flow-canvas {
+      position: absolute;
+      width: 4000px;
+      height: 4000px;
+      transform-origin: 0 0;
+    }
+    
+    .step-node {
+      position: absolute;
+      min-width: 180px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 2px solid transparent;
+      cursor: move;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .step-node:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .step-node.selected {
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.2);
+    }
+    .step-node.is-start {
+      border-color: #0b4b34;
+    }
+    .step-node.is-end {
+      border-color: #78c503;
+    }
+    
+    .step-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-icon.space { background: #dbeafe; color: #1d4ed8; }
+    .step-icon.guide { background: #fce7f3; color: #be185d; }
+    .step-icon.content { background: #d1fae5; color: #059669; }
+    .step-icon.challenge { background: #fef3c7; color: #d97706; }
+    
+    .step-body {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #64748b;
+    }
+    
+    .step-footer {
+      padding: 8px 12px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    
+    .path-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #475569;
+    }
+    
+    /* Hybrid Flow Connection Ports - Gryffi branded */
+    .connection-port {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #78c503;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      cursor: crosshair;
+      transition: all 0.2s ease;
+      opacity: 0.7;
+      z-index: 10;
+    }
+    .step-node:hover .connection-port {
+      opacity: 1;
+    }
+    .connection-port:hover {
+      background: #78c503;
+      transform: scale(1.4);
+      box-shadow: 0 0 0 4px rgba(120, 197, 3, 0.25), 0 2px 6px rgba(0,0,0,0.2);
+      opacity: 1;
+    }
+    .connection-port.active {
+      background: #78c503;
+      transform: scale(1.4);
+      box-shadow: 0 0 0 4px rgba(120, 197, 3, 0.4);
+      opacity: 1;
+    }
+    /* 4-directional ports */
+    .connection-port.port-right { right: -5px; top: 50%; transform: translateY(-50%); }
+    .connection-port.port-left { left: -5px; top: 50%; transform: translateY(-50%); }
+    .connection-port.port-top { top: -5px; left: 50%; transform: translateX(-50%); }
+    .connection-port.port-bottom { bottom: -5px; left: 50%; transform: translateX(-50%); }
+    .connection-port.port-right:hover { transform: translateY(-50%) scale(1.4); }
+    .connection-port.port-left:hover { transform: translateY(-50%) scale(1.4); }
+    .connection-port.port-top:hover { transform: translateX(-50%) scale(1.4); }
+    .connection-port.port-bottom:hover { transform: translateX(-50%) scale(1.4); }
+    
+    /* Context menu for connections */
+    .connection-context-menu {
+      position: fixed;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 4px;
+      z-index: 1000;
+      min-width: 140px;
+      animation: contextFadeIn 0.15s ease;
+    }
+    @keyframes contextFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .connection-context-menu button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #64748b;
+      transition: all 0.15s ease;
+    }
+    .connection-context-menu button:hover {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+    .connection-context-menu button svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    /* Potential target port styling during drag */
+    .connection-port.potential-target {
+      opacity: 1;
+      animation: portPulse 1s ease-in-out infinite;
+    }
+    @keyframes portPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(120, 197, 3, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(120, 197, 3, 0.2); }
+    }
+    
+    /* Connection line hover effect */
+    .connection-line:hover + .connection-visual {
+      stroke: #78c503 !important;
+      stroke-opacity: 0.8 !important;
+      stroke-width: 3 !important;
+    }
+    
+    /* ============================================
+       IMAGE PICKER STYLES - Zen Edition
+       ============================================ */
+    .image-picker-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .image-picker-overlay.hidden {
+      display: none !important;
+    }
+    .image-picker-modal {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 700px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: modalFadeIn 0.2s ease;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .image-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .image-picker-close {
+      padding: 6px;
+      border-radius: 8px;
+      color: #64748b;
+      transition: all 0.15s;
+    }
+    .image-picker-close:hover {
+      background: #f1f5f9;
+      color: #0b4b34;
+    }
+    .image-picker-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .image-picker-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      transition: all 0.15s;
+    }
+    .image-picker-tab:hover {
+      background: white;
+      color: #0b4b34;
+    }
+    .image-picker-tab.active {
+      background: white;
+      color: #0b4b34;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .image-picker-content {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 300px;
+    }
+    .image-picker-panel {
+      padding: 16px;
+    }
+    .image-picker-search {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .image-picker-search input {
+      flex: 1;
+    }
+    .image-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .image-picker-card {
+      position: relative;
+      aspect-ratio: 4/3;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #f1f5f9;
+      transition: all 0.2s;
+    }
+    .image-picker-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    .image-picker-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-picker-card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 10px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .image-picker-card:hover .image-picker-card-overlay {
+      opacity: 1;
+    }
+    .image-picker-card-loading {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .image-picker-card.loading .image-picker-card-loading {
+      display: flex;
+    }
+    .image-picker-loading,
+    .image-picker-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .image-picker-upload-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .image-picker-upload-zone:hover,
+    .image-picker-upload-zone.dragover {
+      border-color: #78c503;
+      background: rgba(120, 197, 3, 0.05);
+    }
+    .image-picker-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 0 0 16px 16px;
+    }
+    
+    /* Spinner */
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #e2e8f0;
+      border-top-color: #78c503;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Image preview in properties */
+    .image-preview-container {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f1f5f9;
+    }
+    .image-preview-container img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+    }
+    .image-preview-placeholder {
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+    }
+    .image-preview-actions {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      display: flex;
+      gap: 6px;
+    }
+    .image-preview-btn {
+      padding: 6px 10px;
+      background: white;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748b;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      transition: all 0.15s;
+    }
+    .image-preview-btn:hover {
+      background: #0b4b34;
+      color: white;
+    }
+    .image-preview-btn.delete:hover {
+      background: #dc2626;
+    }
+    
+    /* Form styles */
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .form-input::placeholder {
+      color: #9ca3af;
+      opacity: 1;
+    }
+    .form-input:focus::placeholder {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+    }
+    .form-textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      min-height: 80px;
+      resize: vertical;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .form-textarea::placeholder {
+      color: #9ca3af;
+      opacity: 1;
+    }
+    .form-textarea:focus::placeholder {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .form-textarea:focus {
+      outline: none;
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+    }
+    .form-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .form-checkbox input {
+      width: 16px;
+      height: 16px;
+      accent-color: #78c503;
+    }
+    
+    /* Preview styles */
+    .preview-card {
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .preview-space-header {
+      padding: 24px;
+      background: linear-gradient(135deg, var(--theme-header-background, #0b4b34) 0%, color-mix(in srgb, var(--theme-header-background, #0b4b34) 85%, white) 100%);
+      color: var(--theme-button-text, white);
+    }
+    .preview-content {
+      padding: 24px;
+    }
+    .preview-options {
+      padding: 16px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .preview-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--theme-border-radius, 12px);
+      background: var(--theme-card-background, #f8fafc);
+      border: 1px solid var(--theme-card-border, #e2e8f0);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preview-option:hover {
+      background: color-mix(in srgb, var(--theme-primary, #0b4b34) 10%, white);
+      border-color: var(--theme-primary, #0b4b34);
+    }
+    .preview-option:hover svg {
+      color: var(--theme-primary, #0b4b34) !important;
+    }
+    .preview-option:hover span {
+      color: var(--theme-primary, #0b4b34);
+    }
+    
+    /* Quiz Answer Options - Make them clearly clickable */
+    .quiz-wizard-option {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 2px solid var(--theme-card-border, #e2e8f0);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      position: relative;
+    }
+    .quiz-wizard-option:hover {
+      background: color-mix(in srgb, var(--theme-primary, #0b4b34) 8%, white);
+      border-color: var(--theme-primary, #0b4b34);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary, #0b4b34) 15%, transparent);
+      transform: translateY(-1px);
+    }
+    .quiz-wizard-option:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px color-mix(in srgb, var(--theme-primary, #0b4b34) 10%, transparent);
+    }
+    .quiz-wizard-option .option-letter {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 15px;
+      color: #475569;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .quiz-wizard-option:hover .option-letter {
+      background: linear-gradient(135deg, var(--theme-primary, #0b4b34) 0%, color-mix(in srgb, var(--theme-primary, #0b4b34) 80%, black) 100%);
+      color: var(--theme-button-text, white);
+    }
+    .quiz-wizard-option .option-text {
+      flex: 1;
+      margin-left: 14px;
+      font-size: 15px;
+      color: #334155;
+      line-height: 1.4;
+    }
+    .quiz-wizard-option .option-indicator {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-left: 12px;
+      transition: all 0.2s ease;
+    }
+    .quiz-wizard-option .option-indicator svg {
+      width: 14px;
+      height: 14px;
+      color: #94a3b8;
+      transition: all 0.2s ease;
+    }
+    .quiz-wizard-option:hover .option-indicator {
+      background: var(--theme-primary, #0b4b34);
+    }
+    .quiz-wizard-option:hover .option-indicator svg {
+      color: var(--theme-button-text, white);
+    }
+    /* Selected state - uses theme colors */
+    .quiz-wizard-option.selected {
+      background: color-mix(in srgb, var(--theme-primary, #0b4b34) 10%, white);
+      border-color: var(--theme-primary, #0b4b34);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary, #0b4b34) 10%, transparent);
+    }
+    .quiz-wizard-option.selected .option-letter {
+      background: linear-gradient(135deg, var(--theme-primary, #0b4b34) 0%, color-mix(in srgb, var(--theme-primary, #0b4b34) 80%, black) 100%);
+      color: var(--theme-button-text, white);
+    }
+    /* Correct/incorrect feedback states */
+    .quiz-wizard-option.correct {
+      background: #f0fdf4;
+      border-color: #22c55e;
+      pointer-events: none;
+    }
+    .quiz-wizard-option.correct .option-letter {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: white;
+    }
+    .quiz-wizard-option.correct .option-indicator {
+      background: #22c55e;
+    }
+    .quiz-wizard-option.correct .option-indicator svg {
+      color: white;
+    }
+    .quiz-wizard-option.incorrect {
+      background: #fef2f2;
+      border-color: #ef4444;
+      pointer-events: none;
+    }
+    .quiz-wizard-option.incorrect .option-letter {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+    .quiz-wizard-option.incorrect .option-indicator {
+      background: #ef4444;
+    }
+    .quiz-wizard-option.incorrect .option-indicator svg {
+      color: white;
+    }
+    .quiz-wizard-option.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .quiz-wizard-option.disabled:hover {
+      transform: none;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      border-color: #e2e8f0;
+      background: #ffffff;
+    }
+    .quiz-wizard-option.disabled:hover .option-letter {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #475569;
+    }
+    
+    .preview-chat {
+      padding: 16px 24px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+    .chat-messages {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      flex: 1;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chat-message {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      max-width: 85%;
+    }
+    .chat-message.user {
+      background: var(--theme-chat-bubble-user, #0b4b34);
+      color: var(--theme-button-text, white);
+      margin-left: auto;
+    }
+    .chat-message.guide {
+      background: var(--theme-chat-bubble-guide, #f1f5f9);
+      color: var(--theme-text-primary, #334155);
+    }
+    .chat-input-wrapper {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      align-items: center;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--theme-card-border, #e2e8f0);
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .chat-input:focus {
+      border-color: var(--theme-accent, #78c503);
+    }
+    .chat-input::placeholder {
+      color: var(--theme-text-secondary, #9ca3af);
+      opacity: 1;
+    }
+    .chat-input:focus::placeholder {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .chat-send {
+      padding: 10px 16px;
+      background: var(--theme-primary, #0b4b34);
+      color: var(--theme-button-text, white);
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .chat-send:hover {
+      background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black);
+    }
+    .chat-send:disabled, .chat-input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Typing indicator animation */
+    .chat-message.typing {
+      display: flex;
+      align-items: center;
+    }
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: var(--theme-text-secondary, #94a3b8);
+      border-radius: 50%;
+      animation: typing-bounce 1.4s ease-in-out infinite;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing-bounce {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-6px);
+        opacity: 1;
+      }
+    }
+    
+    /* Panel Tabs */
+    .panel-tab {
+      flex: 1;
+      padding: 10px 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .panel-tab:hover {
+      color: #0b4b34;
+      background: #f8fafc;
+    }
+    .panel-tab.active {
+      color: #0b4b34;
+      border-bottom-color: #78c503;
+    }
+    
+    .tab-pane {
+      display: block;
+    }
+    .tab-pane.hidden {
+      display: none;
+    }
+    
+    /* Automation items */
+    .automation-item {
+      transition: all 0.15s ease;
+    }
+    .automation-item:hover {
+      background: #f1f5f9;
+    }
+    
+    /* Variable Insert Button and Modal Styles */
+    .variable-insert-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .variable-insert-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .variable-insert-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    
+    /* Visual Email Editor */
+    .visual-editor {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #334155;
+      min-height: 40px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .visual-editor:focus {
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.15);
+    }
+    .visual-editor-subject {
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+    .visual-editor-body {
+      min-height: 120px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .visual-editor:empty::before {
+      content: attr(data-placeholder);
+      color: #9ca3af;
+      opacity: 1;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .visual-editor:focus:empty::before {
+      opacity: 0;
+    }
+    
+    /* Variable Chips */
+    .variable-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      margin: 0 2px;
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 1px solid #a7f3d0;
+      border-radius: 6px;
+      color: #047857;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      vertical-align: middle;
+      user-select: none;
+      cursor: default;
+      transition: all 0.15s ease;
+    }
+    .variable-chip:hover {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border-color: #6ee7b7;
+    }
+    .variable-chip-delete {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      margin-left: 2px;
+      margin-right: -4px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      color: #059669;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: all 0.15s ease;
+    }
+    .variable-chip-delete:hover {
+      opacity: 1;
+      background: rgba(5, 150, 105, 0.15);
+      color: #047857;
+    }
+    
+    /* Variable Picker Modal */
+    .variable-picker-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .variable-picker-modal.hidden {
+      display: none !important;
+    }
+    .variable-picker-content {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      width: 90%;
+      max-width: 380px;
+      max-height: 80vh;
+      overflow: hidden;
+      animation: modalSlideIn 0.2s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .variable-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .variable-picker-header h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0b4b34;
+      margin: 0;
+    }
+    .variable-picker-close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .variable-picker-close:hover {
+      background: #f1f5f9;
+      color: #374151;
+    }
+    .variable-picker-body {
+      padding: 8px 0;
+      overflow-y: auto;
+      max-height: calc(80vh - 60px);
+    }
+    .variable-category {
+      padding: 4px 0;
+    }
+    .variable-category:not(:last-child) {
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .variable-category-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+    }
+    .variable-category-header svg {
+      color: #78c503;
+    }
+    .variable-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 20px;
+      font-size: 14px;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+    .variable-item:hover {
+      background: #f0fdf4;
+    }
+    .variable-label {
+      color: #334155;
+      font-weight: 500;
+    }
+    .variable-example {
+      color: #78c503;
+      font-size: 13px;
+      font-weight: 500;
+      background: #f0fdf4;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    
+    /* Preview Toggle Button */
+    .preview-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      background: transparent;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preview-toggle-btn:hover {
+      background: #f8fafc;
+      color: #475569;
+    }
+    .preview-toggle-btn.active {
+      background: #0b4b34;
+      border-color: #0b4b34;
+      color: white;
+    }
+    
+    /* Email Preview Panel */
+    .email-preview-panel {
+      margin-top: 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .preview-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+    }
+    .preview-note {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .preview-subject {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b4b34;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .preview-body {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #475569;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      min-height: 60px;
+    }
+    .preview-variable {
+      background: linear-gradient(135deg, #ecf2eb 0%, #d4e8d0 100%);
+      color: #0b4b34;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    
+    /* Email badge on nodes - positioned bottom right */
+    .step-email-badge {
+      position: absolute;
+      bottom: -6px;
+      right: -6px;
+      width: 20px;
+      height: 20px;
+      background: #78c503;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      z-index: 10;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .step-email-badge:hover {
+      transform: scale(1.15);
+      box-shadow: 0 3px 8px rgba(120, 197, 3, 0.4);
+    }
+    .step-email-badge svg {
+      width: 11px;
+      height: 11px;
+      color: white;
+    }
+    
+    /* Automations section styling */
+    #automationsSection[open] summary svg:last-child {
+      transform: rotate(180deg);
+    }
+    
+    /* ============================================
+       CONTENT STEP - Media Type Selector
+       ============================================ */
+    .media-type-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .media-type-btn:hover {
+      background: white;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+    .media-type-btn.active {
+      background: white;
+      border-color: #78c503;
+      color: #0b4b34;
+      box-shadow: 0 0 0 2px rgba(120, 197, 3, 0.15);
+    }
+    
+    /* ============================================
+       CONTENT STEP - Simple Editor
+       ============================================ */
+    .simple-editor {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      background: white;
+    }
+    .simple-editor:focus-within {
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+    }
+    .simple-editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 10px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .editor-btn {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      color: #64748b;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .editor-btn:hover {
+      background: white;
+      color: #0b4b34;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .editor-btn:active {
+      transform: scale(0.95);
+    }
+    .editor-divider {
+      width: 1px;
+      height: 20px;
+      background: #e2e8f0;
+      margin: 0 6px;
+    }
+    .simple-editor-content {
+      min-height: 140px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 14px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #334155;
+      outline: none;
+    }
+    .simple-editor-content:empty:before {
+      content: attr(data-placeholder);
+      color: #9ca3af;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    .simple-editor-content:focus:empty:before {
+      opacity: 0;
+    }
+    .simple-editor-content p {
+      margin: 0 0 8px 0;
+    }
+    .simple-editor-content ul {
+      margin: 0 0 8px 0;
+      padding-left: 20px;
+    }
+    .simple-editor-content li {
+      margin-bottom: 4px;
+    }
+    
+    /* ============================================
+       PACING SECTION
+       ============================================ */
+    .pacing-section {
+      background: linear-gradient(135deg, rgba(11, 75, 52, 0.03) 0%, rgba(120, 197, 3, 0.05) 100%);
+      border: 1px solid rgba(120, 197, 3, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .pacing-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pacing-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .pacing-option:hover {
+      border-color: #cbd5e1;
+      background: #fafafa;
+    }
+    .pacing-option.selected {
+      border-color: #78c503;
+      background: rgba(120, 197, 3, 0.05);
+      box-shadow: 0 0 0 2px rgba(120, 197, 3, 0.1);
+    }
+    .pacing-option input[type="radio"] {
+      margin-top: 2px;
+      width: 16px;
+      height: 16px;
+      accent-color: #78c503;
+      flex-shrink: 0;
+    }
+    .pacing-option-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .pacing-option-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #334155;
+    }
+    .pacing-option-desc {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .pacing-option.selected .pacing-option-label {
+      color: #0b4b34;
+    }
+    
+    /* ============================================
+       STEP ASSISTANT SECTION
+       ============================================ */
+    .step-assistant-section {
+      background: linear-gradient(135deg, rgba(11, 75, 52, 0.02) 0%, rgba(11, 75, 52, 0.04) 100%);
+      border: 1px solid rgba(11, 75, 52, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .step-assistant-section .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* ============================================
+       PREVIEW - Pacing Indicator
+       ============================================ */
+    .pacing-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .pacing-indicator.hidden {
+      display: none;
+    }
+    .preview-nav-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .preview-nav-buttons.hidden {
+      display: none;
+    }
+    
+    /* ============================================
+       FLOW BADGES on Step Nodes (Flag icons)
+       ============================================ */
+    .flow-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-left: 2px;
+    }
+    .flow-badge svg {
+      width: 12px;
+      height: 12px;
+    }
+    .flow-badge.start-badge {
+      background: rgba(120, 197, 3, 0.15);
+      color: #78c503;
+    }
+    .flow-badge.start-badge:hover {
+      background: rgba(120, 197, 3, 0.25);
+      transform: scale(1.1);
+    }
+    .flow-badge.end-badge {
+      background: rgba(220, 38, 38, 0.12);
+      color: #dc2626;
+    }
+    .flow-badge.end-badge:hover {
+      background: rgba(220, 38, 38, 0.2);
+      transform: scale(1.1);
+    }
+    
+    /* Flow Section in Journey Settings */
+    .flow-section {
+      background: linear-gradient(135deg, rgba(11, 75, 52, 0.03) 0%, rgba(120, 197, 3, 0.05) 100%);
+      border-radius: 12px;
+      padding: 16px;
+      margin-left: -16px;
+      margin-right: -16px;
+      border: 1px solid rgba(120, 197, 3, 0.15);
+    }
+    
+    /* ============================================
+       FORM STEP - Field Editor & Preview
+       ============================================ */
+    .form-field-item {
+      transition: all 0.15s ease;
+    }
+    .form-field-item:hover {
+      background: #f1f5f9;
+    }
+    
+    .form-field-preview {
+      margin-bottom: 16px;
+    }
+    
+    .preview-form .form-input,
+    .preview-form .form-textarea,
+    .preview-form select {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      width: 100%;
+      transition: all 0.15s ease;
+    }
+    
+    .preview-form .form-input:focus,
+    .preview-form .form-textarea:focus,
+    .preview-form select:focus {
+      outline: none;
+      border-color: var(--theme-accent, #78c503);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
+    }
+    
+    .preview-form .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .form-success-message {
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Video Preview in Step Settings */
+    .video-preview-wrapper {
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+    }
+    .video-preview-wrapper .aspect-video {
+      border-radius: 0;
+    }
+    
+    /* Floating Guide Chat Widget */
+    #guideChatWidget {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+    }
+    
+    .guide-chat-fab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px 10px 10px;
+      background: linear-gradient(135deg, var(--theme-primary, #0b4b34), color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, white));
+      color: var(--theme-button-text, white);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px color-mix(in srgb, var(--theme-primary, #0b4b34) 40%, transparent);
+      transition: all 0.2s ease;
+    }
+    .guide-chat-fab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px color-mix(in srgb, var(--theme-primary, #0b4b34) 50%, transparent);
+    }
+    .guide-chat-fab-avatar {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      flex-shrink: 0;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      overflow: hidden;
+    }
+    .guide-chat-fab-avatar img {
+      width: 100%;
+      height: 100%;
+      min-width: 100%;
+      min-height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .guide-chat-fab-name {
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .guide-chat-panel {
+      position: absolute;
+      bottom: 60px;
+      right: 0;
+      width: 360px;
+      max-height: 500px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .guide-chat-panel.hidden {
+      display: none;
+    }
+    
+    .guide-chat-header {
+      padding: 16px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .guide-chat-avatar {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      flex-shrink: 0;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--theme-primary, #0b4b34), var(--theme-accent, #78c503));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--theme-button-text, white);
+      font-weight: 600;
+      font-size: 16px;
+      overflow: hidden;
+    }
+    .guide-chat-avatar img {
+      width: 100%;
+      height: 100%;
+      min-width: 100%;
+      min-height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .guide-chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 320px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .guide-chat-message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .guide-chat-message.guide {
+      align-self: flex-start;
+      background: var(--theme-chat-bubble-guide, #f3f4f6);
+      color: var(--theme-text-primary, #374151);
+      border-bottom-left-radius: 4px;
+    }
+    .guide-chat-message.user {
+      align-self: flex-end;
+      background: var(--theme-chat-bubble-user, #0b4b34);
+      color: var(--theme-button-text, white);
+      border-bottom-right-radius: 4px;
+    }
+    .guide-chat-message.typing {
+      background: var(--theme-chat-bubble-guide, #f3f4f6);
+      padding: 12px 18px;
+    }
+    .guide-chat-message.typing .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .guide-chat-message.typing .typing-dots span {
+      width: 6px;
+      height: 6px;
+      background: var(--theme-text-secondary, #9ca3af);
+      border-radius: 50%;
+      animation: typing-bounce 1.4s ease-in-out infinite;
+    }
+    .guide-chat-message.typing .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .guide-chat-message.typing .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    
+    /* Markdown styling in chat messages */
+    .guide-chat-message strong,
+    .chat-message strong {
+      font-weight: 600;
+    }
+    .guide-chat-message em,
+    .chat-message em {
+      font-style: italic;
+    }
+    .guide-chat-message code.inline-code,
+    .chat-message code.inline-code {
+      background: rgba(0, 0, 0, 0.08);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9em;
+    }
+    .guide-chat-message.user code.inline-code,
+    .chat-message.user code.inline-code {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .guide-chat-message p,
+    .chat-message p {
+      margin: 0 0 8px 0;
+    }
+    .guide-chat-message p:last-child,
+    .chat-message p:last-child {
+      margin-bottom: 0;
+    }
+    
+    /* Citation badges */
+    .citation-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 5px;
+      margin: 0 2px;
+      background: var(--theme-primary, #0b4b34);
+      color: var(--theme-button-text, white);
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      vertical-align: baseline;
+      line-height: 1;
+    }
+    .citation-badge:hover {
+      background: var(--theme-accent, #78c503);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .citation-icon {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+    .citation-text {
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    
+    /* Source Drawer */
+    .source-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .source-drawer.active {
+      pointer-events: all;
+      opacity: 1;
+    }
+    .source-drawer-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(2px);
+    }
+    .source-drawer-content {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 420px;
+      max-width: 90vw;
+      background: white;
+      box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+    .source-drawer.active .source-drawer-content {
+      transform: translateX(0);
+    }
+    .source-drawer-header {
+      padding: 24px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9fafb;
+    }
+    .source-drawer-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+      flex: 1;
+    }
+    .source-drawer-close {
+      padding: 8px;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .source-drawer-close:hover {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .source-drawer-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .source-drawer-meta {
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #374151;
+    }
+    .source-drawer-label {
+      font-weight: 600;
+      color: #6b7280;
+      margin-right: 8px;
+    }
+    .source-drawer-text {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .source-drawer-excerpt {
+      margin-top: 12px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .source-drawer-excerpt mark {
+      background: #fef08a;
+      color: inherit;
+      padding: 1px 2px;
+      border-radius: 2px;
+      line-height: 1.6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .guide-chat-input-wrapper {
+      padding: 12px 16px;
+      border-top: 1px solid var(--theme-card-border, #e5e7eb);
+      display: flex;
+      gap: 8px;
+    }
+    .guide-chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--theme-card-border, #e5e7eb);
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .guide-chat-input::placeholder {
+      color: var(--theme-text-secondary, #9ca3af);
+      opacity: 1;
+    }
+    .guide-chat-input:focus::placeholder {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .guide-chat-input:focus {
+      border-color: var(--theme-accent, #78c503);
+    }
+    .guide-chat-send {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: var(--theme-primary, #0b4b34);
+      color: var(--theme-button-text, white);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .guide-chat-send svg {
+      transform: rotate(90deg);
+    }
+    .guide-chat-send:hover {
+      background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black);
+    }
+    .guide-chat-send:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+    }
+    
+    @keyframes typing-bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+    
+    /* ============================================
+       MOBILE RESPONSIVE STYLES FOR PLAYER MODE
+       ============================================ */
+    
+    @media (max-width: 640px) {
+      /* Player Header - More compact on mobile */
+      .player-header {
+        padding: 10px 16px;
+        height: 52px;
+      }
+      .player-header-left {
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        align-items: center !important;
+      }
+      .player-logo {
+        height: 28px !important;
+        width: auto !important;
+        max-width: 80px !important;
+        min-width: auto !important;
+        object-fit: contain !important;
+        object-position: left center !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        display: block !important;
+        align-self: center !important;
+        aspect-ratio: auto !important;
+      }
+      .player-title {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .player-header-right {
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .player-content {
+        padding-top: 52px;
+      }
+      .player-progress-container {
+        top: 52px;
+      }
+      
+      /* Preview Modal Header Logo - prevent stretching on mobile */
+      #previewModal .bg-gryffi-primary img {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        max-width: 32px !important;
+        object-fit: contain !important;
+        flex-shrink: 0 !important;
+      }
+      
+      /* Preview Card - Full width on mobile */
+      .preview-card {
+        margin: 16px;
+        max-width: none;
+        border-radius: 12px;
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px); /* Dynamic viewport height for mobile browsers */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      /* All content needs to be scrollable on mobile */
+      .preview-content {
+        padding: 20px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        flex: 1;
+        min-height: 0;
+      }
+      /* Quiz wizard specific scrolling */
+      .preview-content.quiz-wizard {
+        padding-bottom: 20px;
+      }
+      /* Ensure quiz navigation buttons are visible */
+      .quiz-question-slide {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .quiz-question-slide > div:last-child {
+        margin-top: auto;
+        padding-top: 16px;
+      }
+      .preview-options {
+        padding: 0 20px 20px;
+      }
+      .preview-chat {
+        padding: 12px 20px;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 200px);
+      }
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 12px;
+        min-height: 0;
+      }
+      .chat-input-wrapper {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 8px 0;
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+        margin-top: auto;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .chat-input {
+        flex: 1;
+        min-width: 0;
+        padding: 12px 14px;
+        font-size: 16px; /* Prevent iOS zoom */
+      }
+      .chat-send {
+        flex-shrink: 0;
+        padding: 12px 20px;
+        white-space: nowrap;
+        min-width: fit-content;
+      }
+      
+      /* Guide Chat Widget - Full screen on mobile */
+      #guideChatWidget {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        left: auto;
+        z-index: 1000;
+      }
+      .guide-chat-fab {
+        padding: 8px 14px 8px 8px;
+        box-shadow: 0 4px 16px rgba(11, 75, 52, 0.4);
+      }
+      .guide-chat-fab-avatar {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        max-width: 28px !important;
+        max-height: 28px !important;
+        flex-shrink: 0 !important;
+        aspect-ratio: 1 / 1 !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+      }
+      .guide-chat-fab-avatar img {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        max-width: 28px !important;
+        max-height: 28px !important;
+        object-fit: cover !important;
+        border-radius: 50% !important;
+      }
+      .guide-chat-fab-name {
+        font-size: 13px;
+      }
+      
+      /* Fix avatar stretching on mobile */
+      .guide-chat-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        max-width: 36px !important;
+        max-height: 36px !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        aspect-ratio: 1 / 1 !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .guide-chat-avatar img {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        max-width: 36px !important;
+        max-height: 36px !important;
+        object-fit: cover !important;
+        border-radius: 50% !important;
+        flex-shrink: 0 !important;
+      }
+      
+      /* Fix all avatar/image containers on mobile */
+      .guide-avatar,
+      .preview-content img.guide-avatar,
+      .preview-content .guide-avatar img,
+      .journey-guide-avatar,
+      .journey-guide-avatar-img {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
+        flex-shrink: 0 !important;
+        aspect-ratio: 1 / 1 !important;
+        object-fit: cover !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+      }
+      
+      /* Fix Guide Step header layout on mobile - keep avatar and name horizontal */
+      .preview-content > .flex.items-center {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      .preview-content > .flex.items-center > .journey-guide-avatar {
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .preview-content > .flex.items-center > div:not(.journey-guide-avatar) {
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+      }
+      
+      /* Guide preview avatar in settings panel */
+      #guidePreviewAvatar {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        flex-shrink: 0;
+        aspect-ratio: 1;
+      }
+      #guidePreviewAvatar img {
+        width: 100% !important;
+        height: 100% !important;
+        min-width: 100% !important;
+        min-height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 50%;
+      }
+      
+      /* Guide Chat Panel - Full screen modal on mobile */
+      .guide-chat-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        height: 50vh; /* Initial height - will be adjusted by drag */
+        max-height: 85vh;
+        min-height: 0; /* Allow dragging all the way down - JavaScript controls closing */
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.25);
+        transition: height 0.2s ease-out;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .guide-chat-panel::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .guide-chat-header {
+        padding: 20px 16px 12px;
+        padding-top: 28px; /* Extra space for drag handle */
+        flex-shrink: 0;
+        position: relative;
+      }
+      /* Force horizontal layout for avatar + name on mobile - override any flex-col */
+      .guide-chat-header > .flex {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      .guide-chat-header .guide-chat-avatar {
+        flex-shrink: 0 !important;
+        margin: 0 !important;
+        display: inline-flex !important;
+      }
+      /* Name and role text container - keep inline next to avatar */
+      .guide-chat-header > .flex > div:not(.guide-chat-avatar) {
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+      }
+      .guide-chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        padding: 12px;
+      }
+      .guide-chat-input-wrapper {
+        padding: 12px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        flex-shrink: 0;
+      }
+      .guide-chat-input {
+        padding: 12px 16px;
+        font-size: 16px; /* Prevent iOS zoom */
+      }
+      
+      /* Source Drawer - Bottom Sheet on mobile */
+      .source-drawer-content {
+        position: fixed;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        top: auto;
+        width: 100%;
+        max-width: none;
+        max-height: 80vh;
+        border-radius: 20px 20px 0 0;
+        transform: translateY(100%);
+      }
+      .source-drawer.active .source-drawer-content {
+        transform: translateY(0);
+      }
+      .source-drawer-content::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+        z-index: 1;
+      }
+      .source-drawer-header {
+        padding: 20px 16px 16px;
+      }
+      .source-drawer-title {
+        font-size: 16px;
+      }
+      .source-drawer-body {
+        padding: 16px;
+        max-height: calc(80vh - 80px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .source-drawer-excerpt {
+        font-size: 13px;
+        padding: 12px;
+      }
+      
+      /* Quiz Options - Larger touch targets */
+      .quiz-wizard-option,
+      .preview-option {
+        padding: 16px;
+        min-height: 54px;
+      }
+      .option-letter {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+      }
+      
+      /* Navigation Buttons - Full width on mobile */
+      .preview-nav-buttons {
+        padding: 0 20px 20px;
+      }
+      .preview-nav-btn,
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 15px;
+      }
+      
+      /* Chat messages - Better spacing */
+      .chat-message,
+      .guide-chat-message {
+        max-width: 90%;
+        font-size: 15px;
+      }
+      
+      /* Citation badge - Larger touch target */
+      .citation-badge {
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+      
+      /* Form inputs - Prevent iOS zoom */
+      .form-input,
+      .form-textarea,
+      .chat-input,
+      input[type="text"],
+      input[type="email"],
+      textarea,
+      select {
+        font-size: 16px !important;
+      }
+    }
+    
+    /* Extra small screens (iPhone SE, etc) */
+    @media (max-width: 375px) {
+      .player-header {
+        padding: 8px 12px;
+      }
+      .player-title {
+        font-size: 13px;
+      }
+      .player-header-right {
+        font-size: 12px;
+      }
+      .preview-card {
+        margin: 12px;
+      }
+      .preview-content,
+      .preview-options {
+        padding: 16px;
+      }
+      .guide-chat-fab-name {
+        display: none; /* Only show avatar on very small screens */
+      }
+      .guide-chat-fab {
+        padding: 10px;
+        border-radius: 50%;
+      }
+    }
+    
+    /* Landscape mode adjustments */
+    @media (max-width: 640px) and (orientation: landscape) {
+      .guide-chat-panel {
+        max-height: 90vh;
+      }
+      .guide-chat-messages {
+        max-height: calc(90vh - 140px);
+        min-height: 120px;
+      }
+      .source-drawer-content {
+        max-height: 85vh;
+      }
+      .source-drawer-body {
+        max-height: calc(85vh - 70px);
+      }
+    }
+    
+    /* Safe area insets for notched phones */
+    @supports (padding: max(0px)) {
+      @media (max-width: 640px) {
+        .player-header {
+          padding-left: max(16px, env(safe-area-inset-left));
+          padding-right: max(16px, env(safe-area-inset-right));
+        }
+        .preview-card {
+          margin-left: max(16px, env(safe-area-inset-left));
+          margin-right: max(16px, env(safe-area-inset-right));
+        }
+        .guide-chat-panel,
+        .source-drawer-content {
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+      }
+    }
+  </style>
+
+<% if (typeof playerMode === 'undefined' || !playerMode) { %>
+  <%- include('../partials/help-modal') %>
+<% } %>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "gryffi-docs",
+  "private": true,
+  "type": "module",
+  "description": "Documentation site for docs.gryffi.com",
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "dev": "node scripts/generate.mjs && vitepress dev",
+    "build": "node scripts/generate.mjs && vitepress build"
+  },
+  "devDependencies": {
+    "vitepress": "1.6.4"
+  }
+}

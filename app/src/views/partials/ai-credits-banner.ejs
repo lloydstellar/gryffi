@@ -1,0 +1,86 @@
+<%#
+  AI Questions Banner Partial
+  Shown from 80% of the monthly AI questions (1 AI credit = 1 answered question).
+  Uses subscriptionUsage, billingPeriod and aiPlayerGrace from the dashboard router.
+%>
+<%
+  const aiUsage = (typeof subscriptionUsage !== 'undefined' && subscriptionUsage) ? subscriptionUsage.aiCredits : null;
+  const aiUsed = aiUsage ? Math.floor(Number(aiUsage.used)) : 0;
+  const aiLimit = aiUsage ? aiUsage.limit : null;
+  const showAiBanner = aiUsage && !aiUsage.isUnlimited && aiLimit > 0 && aiUsed >= aiLimit * 0.8;
+%>
+<% if (showAiBanner) { %>
+<%
+  const aiAtLimit = aiUsed >= aiLimit;
+  const aiExtraLeft = Math.max(0, Math.floor(aiLimit * (typeof aiPlayerGrace !== 'undefined' ? aiPlayerGrace : 1)) - aiUsed);
+  const aiResetDate = (typeof billingPeriod !== 'undefined' && billingPeriod && billingPeriod.end)
+    ? new Date(billingPeriod.end).toLocaleDateString(language || 'en', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+  let aiTitle;
+  let aiMessage;
+  if (!aiAtLimit) {
+    aiTitle = t('subscription.banner.aiNearTitle', { used: aiUsed, limit: aiLimit });
+    aiMessage = t('subscription.banner.aiNearMessage', { date: aiResetDate });
+  } else if (aiExtraLeft > 0) {
+    aiTitle = t('subscription.banner.aiLimitTitle');
+    aiMessage = t('subscription.banner.aiLimitMessage', { extra: aiExtraLeft, date: aiResetDate });
+  } else {
+    aiTitle = t('subscription.banner.aiLimitTitle');
+    aiMessage = t('subscription.banner.aiPausedMessage', { date: aiResetDate });
+  }
+%>
+<div class="ai-credits-banner <%= aiAtLimit ? 'ai-credits-banner-limit' : '' %>" role="status">
+  <div class="ai-credits-banner-text">
+    <h3><%= aiTitle %></h3>
+    <p><%= aiMessage %></p>
+  </div>
+  <a href="/dashboard/subscription" class="ai-credits-banner-cta"><%= t('subscription.cta.viewPlans') %></a>
+</div>
+<style>
+  .ai-credits-banner {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .ai-credits-banner-limit {
+    background: #fef2f2;
+    border-color: #fca5a5;
+  }
+  .ai-credits-banner-text h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 2px 0;
+  }
+  .ai-credits-banner-text p {
+    font-size: 14px;
+    color: #475569;
+    margin: 0;
+  }
+  .ai-credits-banner-cta {
+    display: inline-block;
+    padding: 10px 18px;
+    background: #0B4B34;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ai-credits-banner-cta:hover {
+    background: #093d2a;
+  }
+  .ai-credits-banner-cta:focus-visible {
+    outline: 3px solid #78c503;
+    outline-offset: 2px;
+  }
+</style>
+<% } %>

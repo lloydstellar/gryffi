@@ -1,0 +1,2739 @@
+/**
+ * Journey Experience Styles
+ * Shared between Preview Mode (builder) and Expedition (end-user magic link)
+ * 
+ * IMPORTANT: Changes here affect BOTH the builder preview AND the end-user experience!
+ * This ensures visual consistency between what builders see and what end-users experience.
+ * 
+ * CLASS NAMING:
+ * - Primary classes use "journey-" prefix (journey-card, journey-step-content, etc.)
+ * - Legacy aliases use "preview-" prefix for backwards compatibility with builder.js
+ */
+
+/* ============================================
+   THEME CSS VARIABLES (defaults)
+   Custom themes override these via inline style tag
+   ============================================ */
+
+:root {
+  --theme-primary: #0b4b34;
+  --theme-accent: #78c503;
+  --theme-background: #ecf2eb;
+  --theme-text-primary: #1f2937;
+  --theme-text-secondary: #6b7280;
+  --theme-card-background: #ffffff;
+  --theme-card-border: #e5e7eb;
+  --theme-button-text: #ffffff;
+  --theme-header-background: #0b4b34;
+  --theme-progress-bar: #78c503;
+  --theme-chat-bubble-user: #0b4b34;
+  --theme-chat-bubble-guide: #f3f4f6;
+  --theme-border-radius: 12px;
+  --theme-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ============================================
+   JOURNEY CONTAINER & CARD
+   ============================================ */
+
+.journey-experience-container {
+  background: var(--theme-background, #ecf2eb);
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.journey-card {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--theme-card-background, white);
+  border-radius: var(--theme-border-radius, 16px);
+  box-shadow: var(--theme-shadow, 0 4px 24px rgba(11, 75, 52, 0.08));
+  overflow: hidden;
+  animation: journeyCardFadeIn 0.3s ease-out;
+}
+
+@keyframes journeyCardFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   STEP HEADER (Space steps)
+   ============================================ */
+
+.journey-step-header {
+  padding: 28px;
+  background: linear-gradient(135deg, var(--theme-header-background, #0b4b34) 0%, color-mix(in srgb, var(--theme-header-background, #0b4b34) 85%, white) 100%);
+  color: var(--theme-button-text, white);
+}
+
+.journey-step-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.journey-step-header .entry-message {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   STEP CONTENT
+   ============================================ */
+
+.journey-step-content {
+  padding: 28px;
+}
+
+.journey-step-content p {
+  font-size: 15px;
+  color: #334155;
+  line-height: 1.7;
+  margin: 0 0 16px 0;
+}
+
+.journey-step-content p:last-child {
+  margin-bottom: 0;
+}
+
+.journey-step-content img:not(.guide-avatar) {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+/* Step type badge */
+.journey-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-primary, #0b4b34);
+  margin-bottom: 16px;
+}
+
+.journey-step-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--theme-primary, #0b4b34);
+  margin: 0 0 12px 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.journey-step-description {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+/* ============================================
+   PATH OPTIONS (Journey paths/choices)
+   ============================================ */
+
+.journey-options {
+  padding: 0 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.journey-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.journey-option:hover {
+  background: var(--theme-background, #ecf2eb);
+  border-color: var(--theme-accent, #78c503);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
+}
+
+.journey-option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.journey-option:hover .journey-option-icon {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
+}
+
+.journey-option-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.journey-option:hover .journey-option-icon svg {
+  color: white;
+}
+
+.journey-option-text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.journey-option-arrow {
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.journey-option:hover .journey-option-arrow {
+  color: var(--theme-accent, #78c503);
+  transform: translateX(3px);
+}
+
+/* ============================================
+   QUIZ / CHALLENGE
+   ============================================ */
+
+.journey-quiz-question {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+.journey-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.journey-quiz-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.journey-quiz-option:hover {
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 8%, white);
+  border-color: var(--theme-accent, #78c503);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+.journey-quiz-option .option-letter {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 15px;
+  color: #475569;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.journey-quiz-option:hover .option-letter {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
+  color: var(--theme-button-text, white);
+}
+
+.journey-quiz-option .option-text {
+  flex: 1;
+  margin-left: 14px;
+  font-size: 15px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.journey-quiz-option .option-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12px;
+  transition: all 0.2s ease;
+}
+
+.journey-quiz-option .option-indicator svg {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.journey-quiz-option:hover .option-indicator {
+  background: var(--theme-accent, #78c503);
+}
+
+.journey-quiz-option:hover .option-indicator svg {
+  color: var(--theme-button-text, white);
+}
+
+/* Selected state */
+.journey-quiz-option.selected {
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 10%, white);
+  border-color: var(--theme-accent, #78c503);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
+}
+
+.journey-quiz-option.selected .option-letter {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
+  color: var(--theme-button-text, white);
+}
+
+/* Correct feedback */
+.journey-quiz-option.correct {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  pointer-events: none;
+}
+
+.journey-quiz-option.correct .option-letter {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+}
+
+.journey-quiz-option.correct .option-indicator {
+  background: #22c55e;
+}
+
+.journey-quiz-option.correct .option-indicator svg {
+  color: white;
+}
+
+/* Incorrect feedback */
+.journey-quiz-option.incorrect {
+  background: #fef2f2;
+  border-color: #ef4444;
+  pointer-events: none;
+}
+
+.journey-quiz-option.incorrect .option-letter {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.journey-quiz-feedback {
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 20px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.journey-quiz-feedback.correct {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+}
+
+.journey-quiz-feedback.incorrect {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+/* ============================================
+   FORM FIELDS
+   ============================================ */
+
+.journey-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.journey-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.journey-form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.journey-form-label .required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.journey-form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.15s ease;
+  background: white;
+}
+
+.journey-form-input:focus {
+  outline: none;
+  border-color: var(--theme-accent, #78c503);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
+}
+
+.journey-form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.journey-form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 44px;
+}
+
+/* ============================================
+   GUIDE CHAT
+   ============================================ */
+
+.journey-guide-container {
+  border-top: 1px solid #f3f4f6;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.journey-guide-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.journey-guide-avatar {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  flex-shrink: 0;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--theme-accent, #78c503), color-mix(in srgb, var(--theme-accent, #78c503) 80%, black));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-button-text, white);
+  font-weight: 600;
+  font-size: 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.journey-guide-avatar .journey-guide-avatar-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  border-radius: 50%;
+}
+
+.journey-guide-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.journey-guide-role {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.journey-chat-messages {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.journey-chat-message {
+  display: flex;
+  gap: 12px;
+}
+
+.journey-chat-message.user {
+  flex-direction: row-reverse;
+}
+
+.journey-chat-message .message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.journey-chat-message.assistant .message-avatar {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503), color-mix(in srgb, var(--theme-accent, #78c503) 80%, black));
+  color: var(--theme-button-text, white);
+}
+
+.journey-chat-message .message-bubble {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: var(--theme-border-radius, 16px);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.journey-chat-message.user .message-bubble {
+  background: var(--theme-chat-bubble-user, #0b4b34);
+  color: var(--theme-button-text, white);
+  border-bottom-right-radius: 4px;
+}
+
+.journey-chat-message.assistant .message-bubble {
+  background: var(--theme-chat-bubble-guide, #f3f4f6);
+  color: var(--theme-text-primary, #374151);
+  border-bottom-left-radius: 4px;
+}
+
+.journey-chat-input-wrapper {
+  display: flex;
+  gap: 12px;
+}
+
+.journey-chat-input {
+  flex: 1;
+  padding: 14px 18px;
+  border: 1px solid var(--theme-card-border, #e5e7eb);
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.journey-chat-input:focus {
+  border-color: var(--theme-accent, #78c503);
+}
+
+.journey-chat-send-btn {
+  padding: 14px 20px;
+  background: var(--theme-primary, #0b4b34);
+  color: var(--theme-button-text, white);
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.journey-chat-send-btn:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black);
+}
+
+.journey-chat-send-btn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   VIDEO CONTAINER
+   ============================================ */
+
+.journey-video-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.journey-video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
+.journey-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.journey-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.journey-nav-btn-primary {
+  background: var(--theme-primary, #0b4b34);
+  color: white;
+}
+
+.journey-nav-btn-primary:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(11, 75, 52, 0.2);
+}
+
+.journey-nav-btn-secondary {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.journey-nav-btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.journey-nav-btn:disabled,
+.journey-nav-btn.disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* ============================================
+   COMPLETION SCREEN
+   ============================================ */
+
+.journey-completion {
+  text-align: center;
+  padding: 56px 32px;
+}
+
+.journey-completion-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-completion-icon svg {
+  width: 40px;
+  height: 40px;
+  color: var(--theme-accent, #78c503);
+}
+
+.journey-completion-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--theme-primary, #0b4b34);
+  margin: 0 0 12px 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.journey-completion-message {
+  font-size: 16px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================
+   WELCOME SCREEN
+   ============================================ */
+
+.journey-welcome {
+  text-align: center;
+  padding: 56px 32px;
+}
+
+.journey-welcome-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 28px;
+  background: linear-gradient(135deg, rgba(11, 75, 52, 0.08), rgba(120, 197, 3, 0.12));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-welcome-icon svg {
+  width: 40px;
+  height: 40px;
+  stroke: var(--theme-primary, #0b4b34);
+}
+
+.journey-welcome-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--theme-primary, #0b4b34);
+  margin: 0 0 12px 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.journey-welcome-subtitle {
+  font-size: 17px;
+  color: #64748b;
+  margin: 0 0 36px 0;
+  line-height: 1.6;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.journey-start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 36px;
+  background: var(--theme-primary, #0b4b34);
+  color: var(--theme-button-text, white);
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.journey-start-btn:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--theme-primary, #0b4b34) 25%, transparent);
+}
+
+.journey-start-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.journey-start-btn:hover svg {
+  transform: translateX(4px);
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.journey-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.journey-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--theme-card-border, #e5e7eb);
+  border-top-color: var(--theme-primary, #0b4b34);
+  border-radius: 50%;
+  animation: journeySpinner 0.8s linear infinite;
+}
+
+@keyframes journeySpinner {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   MARKDOWN CONTENT
+   ============================================ */
+
+.journey-markdown h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 24px 0 12px 0;
+  color: #0f172a;
+}
+
+.journey-markdown h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 20px 0 10px 0;
+  color: #0f172a;
+}
+
+.journey-markdown h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+  color: #0f172a;
+}
+
+.journey-markdown p {
+  margin: 0 0 12px 0;
+}
+
+.journey-markdown ul, .journey-markdown ol {
+  margin: 0 0 12px 0;
+  padding-left: 24px;
+}
+
+.journey-markdown li {
+  margin-bottom: 6px;
+}
+
+.journey-markdown strong {
+  font-weight: 600;
+}
+
+.journey-markdown em {
+  font-style: italic;
+}
+
+/* ============================================
+   POLL (Quiz-style buttons)
+   ============================================ */
+
+.journey-poll {
+  padding: 8px 0;
+}
+
+.journey-poll-question {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--zen-900);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.journey-poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Poll option - same style as quiz option */
+.journey-poll-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.journey-poll-option:hover:not(.showing-results) {
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 8%, white);
+  border-color: var(--theme-accent, #78c503);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+/* Letter badge (A, B, C, etc.) */
+.journey-poll-option .option-letter {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 15px;
+  color: #475569;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.journey-poll-option:hover:not(.showing-results) .option-letter {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
+  color: var(--theme-button-text, white);
+}
+
+/* Option text */
+.journey-poll-option .option-text {
+  flex: 1;
+  margin-left: 14px;
+  font-size: 15px;
+  color: #334155;
+  line-height: 1.4;
+  z-index: 2;
+}
+
+/* Arrow indicator */
+.journey-poll-option .option-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.journey-poll-option .option-indicator svg {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.journey-poll-option:hover:not(.showing-results) .option-indicator {
+  background: var(--theme-accent, #78c503);
+}
+
+.journey-poll-option:hover:not(.showing-results) .option-indicator svg {
+  color: var(--theme-button-text, white);
+}
+
+/* Selected state */
+.journey-poll-option.selected {
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 10%, white);
+  border-color: var(--theme-accent, #78c503);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
+}
+
+.journey-poll-option.selected .option-letter {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
+  color: var(--theme-button-text, white);
+}
+
+.journey-poll-option.selected .option-indicator {
+  background: var(--theme-accent, #78c503);
+}
+
+.journey-poll-option.selected .option-indicator svg {
+  color: var(--theme-button-text, white);
+}
+
+/* Results bar (behind content) */
+.journey-poll-option-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--theme-accent, #78c503) 25%, transparent), color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent));
+  border-radius: 10px 0 0 10px;
+  transition: width 0.5s ease-out;
+  z-index: 1;
+}
+
+/* Vote count display */
+.journey-poll-option-count {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 600;
+  z-index: 2;
+  min-width: 70px;
+  text-align: right;
+  margin-left: 8px;
+}
+
+/* Results mode */
+.journey-poll-option.showing-results {
+  cursor: default;
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.journey-poll-option.showing-results:hover {
+  border-color: #e2e8f0;
+  background: #ffffff;
+}
+
+.journey-poll-option.showing-results.selected,
+.journey-poll-option.showing-results.user-vote {
+  border-color: var(--theme-accent, #78c503);
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 10%, white);
+}
+
+/* User vote indicator */
+.journey-poll-option.user-vote .option-text::after {
+  content: ' ✓';
+  color: var(--theme-accent, #78c503);
+  font-weight: 600;
+}
+
+/* Hidden checkbox/radio (not needed with button style) */
+.journey-poll-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Footer with submit button */
+.journey-poll-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.journey-poll-submit-btn {
+  padding: 14px 28px;
+  background: var(--theme-primary, #0b4b34) !important;
+  color: var(--theme-button-text, white) !important;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(11, 75, 52, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+}
+
+.journey-poll-submit-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary, #0b4b34) 30%, transparent);
+}
+
+.journey-poll-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: #9ca3af !important;
+}
+
+.journey-poll-status {
+  font-size: 14px;
+  color: var(--theme-accent, #78c503);
+  font-weight: 600;
+}
+
+/* Form skip button - secondary style matching poll submit */
+.journey-form-skip-btn {
+  padding: 12px 24px;
+  background: transparent;
+  color: var(--theme-primary, #0b4b34);
+  border: 2px solid var(--theme-primary, #0b4b34);
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-form-skip-btn:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 8%, transparent);
+}
+
+.journey-poll-results {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.journey-poll-total {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 640px) {
+  .journey-experience-container {
+    padding: 20px 16px;
+  }
+  
+  .journey-card {
+    border-radius: 12px;
+  }
+  
+  .journey-step-header,
+  .journey-step-content,
+  .journey-options {
+    padding: 20px;
+  }
+  
+  .journey-welcome,
+  .journey-completion {
+    padding: 40px 20px;
+  }
+  
+  .journey-welcome-title,
+  .journey-completion-title {
+    font-size: 26px;
+  }
+  
+  .journey-step-title {
+    font-size: 20px;
+  }
+  
+  .journey-nav-btn {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+}
+
+/* ============================================
+   LEGACY ALIASES (for builder.js compatibility)
+   These map preview-* classes to journey-* styles
+   ============================================ */
+
+.preview-card {
+  max-width: 560px;
+  margin: 40px auto;
+  background: var(--theme-card-background, white);
+  border-radius: var(--theme-border-radius, 16px);
+  box-shadow: var(--theme-shadow, 0 4px 24px rgba(11, 75, 52, 0.08));
+  overflow: hidden;
+  animation: journeyCardFadeIn 0.3s ease-out;
+}
+
+.preview-space-header {
+  padding: 28px;
+  background: linear-gradient(135deg, var(--theme-header-background, #0b4b34) 0%, color-mix(in srgb, var(--theme-header-background, #0b4b34) 85%, white) 100%);
+  color: var(--theme-button-text, white);
+}
+
+.preview-space-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.preview-content {
+  padding: 28px;
+}
+
+.preview-content p {
+  font-size: 15px;
+  color: var(--theme-text-primary, #334155);
+  line-height: 1.7;
+  margin: 0 0 16px 0;
+}
+
+.preview-content img:not(.guide-avatar):not(.journey-guide-avatar-img) {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.preview-options {
+  padding: 0 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preview-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--theme-border-radius, 12px);
+  background: var(--theme-card-background, #f8fafc);
+  border: 2px solid var(--theme-card-border, #e2e8f0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preview-option:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 8%, white);
+  border-color: var(--theme-primary, #0b4b34);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary, #0b4b34) 20%, transparent);
+}
+
+.preview-option:hover svg {
+  color: var(--theme-primary, #0b4b34) !important;
+}
+
+.preview-option:hover span {
+  color: var(--theme-primary, #0b4b34);
+}
+
+/* Quiz aliases */
+.quiz-wizard-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.quiz-wizard-option:hover {
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 8%, white);
+  border-color: var(--theme-accent, #78c503);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+.quiz-wizard-option .option-letter {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 15px;
+  color: #475569;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.quiz-wizard-option:hover .option-letter {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
+  color: var(--theme-button-text, white);
+}
+
+.quiz-wizard-option .option-text {
+  flex: 1;
+  margin-left: 14px;
+  font-size: 15px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.quiz-wizard-option .option-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12px;
+  transition: all 0.2s ease;
+}
+
+.quiz-wizard-option .option-indicator svg {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.quiz-wizard-option:hover .option-indicator {
+  background: var(--theme-accent, #78c503);
+}
+
+.quiz-wizard-option:hover .option-indicator svg {
+  color: var(--theme-button-text, white);
+}
+
+.quiz-wizard-option.selected {
+  background: color-mix(in srgb, var(--theme-accent, #78c503) 10%, white);
+  border-color: var(--theme-accent, #78c503);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
+}
+
+.quiz-wizard-option.selected .option-letter {
+  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
+  color: var(--theme-button-text, white);
+}
+
+.quiz-wizard-option.correct {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  pointer-events: none;
+}
+
+.quiz-wizard-option.correct .option-letter {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+}
+
+.quiz-wizard-option.correct .option-indicator {
+  background: #22c55e;
+}
+
+.quiz-wizard-option.correct .option-indicator svg {
+  color: white;
+}
+
+.quiz-wizard-option.incorrect {
+  background: #fef2f2;
+  border-color: #ef4444;
+  pointer-events: none;
+}
+
+.quiz-wizard-option.incorrect .option-letter {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   Journey Experience - Shared Preview/Player
+   ============================================ */
+
+@media (max-width: 640px) {
+  /* Journey Card */
+  .journey-card,
+  .preview-card {
+    margin: 16px;
+    max-width: none;
+    border-radius: 12px;
+  }
+  
+  /* Headers and Spaces */
+  .journey-space-header,
+  .preview-space-header {
+    padding: 20px;
+  }
+  .journey-space-header h2,
+  .preview-space-header h2 {
+    font-size: 18px;
+  }
+  
+  /* Content areas */
+  .journey-content,
+  .journey-step-content,
+  .preview-content {
+    padding: 20px;
+  }
+  
+  /* Options and Paths */
+  .journey-options,
+  .preview-options {
+    padding: 0 20px 20px;
+  }
+  
+  .journey-option,
+  .journey-path-choice,
+  .preview-option {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  
+  .option-letter {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+  
+  .option-text {
+    font-size: 14px;
+  }
+  
+  /* Quiz Options - Larger touch targets */
+  .journey-quiz-option,
+  .quiz-wizard-option {
+    padding: 14px 16px;
+    min-height: 52px;
+  }
+  
+  /* Navigation */
+  .journey-navigation,
+  .preview-nav-buttons {
+    padding: 0 20px 20px;
+    gap: 10px;
+  }
+  
+  .journey-nav-btn,
+  .journey-nav-btn-primary,
+  .journey-nav-btn-secondary {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+  
+  /* Guide Container */
+  .journey-guide-container {
+    padding-top: 20px;
+    margin-top: 20px;
+  }
+  
+  .journey-guide-header {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .journey-guide-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    flex-shrink: 0;
+    aspect-ratio: 1;
+    font-size: 16px;
+  }
+  
+  .journey-guide-avatar .journey-guide-avatar-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    border-radius: 50%;
+  }
+  
+  .journey-guide-name {
+    font-size: 15px;
+  }
+  
+  .journey-guide-role {
+    font-size: 12px;
+  }
+  
+  /* Chat */
+  .journey-chat-messages,
+  .chat-messages {
+    max-height: 250px;
+    min-height: 150px;
+  }
+  
+  .journey-chat-message,
+  .chat-message {
+    max-width: 90%;
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+  
+  .journey-chat-input-container {
+    gap: 8px;
+  }
+  
+  .journey-chat-input,
+  .chat-input {
+    padding: 12px 14px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+  
+  .journey-chat-send-btn,
+  .chat-send {
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Form Fields */
+  .journey-form-field {
+    margin-bottom: 16px;
+  }
+  
+  .journey-form-label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  .journey-form-input,
+  .journey-form-textarea,
+  .journey-form-select {
+    padding: 12px 14px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+  
+  /* Video Container */
+  .journey-video-container {
+    border-radius: 10px;
+  }
+  
+  /* Completion Screen */
+  .journey-completion-screen {
+    padding: 40px 20px;
+  }
+  
+  .journey-completion-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .journey-completion-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .journey-completion-title {
+    font-size: 22px;
+  }
+  
+  .journey-completion-message {
+    font-size: 14px;
+  }
+  
+  /* Welcome Screen */
+  .journey-welcome-screen {
+    padding: 40px 20px;
+  }
+  
+  .journey-welcome-icon {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .journey-welcome-title {
+    font-size: 22px;
+  }
+  
+  .journey-welcome-subtitle {
+    font-size: 14px;
+  }
+  
+  .journey-start-btn {
+    padding: 14px 28px;
+    font-size: 15px;
+  }
+  
+  /* Progress Bar */
+  .journey-progress-bar-container {
+    margin-bottom: 16px;
+  }
+  
+  /* Step Type Badge */
+  .journey-step-type-badge,
+  .journey-step-badge {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .journey-step-badge svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Step Title & Description */
+  .journey-step-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .journey-step-description {
+    font-size: 14px;
+  }
+}
+
+/* Extra small screens (iPhone SE, etc) */
+@media (max-width: 375px) {
+  .journey-card,
+  .preview-card {
+    margin: 12px;
+  }
+  
+  .journey-space-header,
+  .preview-space-header,
+  .journey-content,
+  .preview-content {
+    padding: 16px;
+  }
+  
+  .journey-options,
+  .preview-options,
+  .journey-navigation {
+    padding: 0 16px 16px;
+  }
+  
+  .journey-option,
+  .journey-quiz-option,
+  .preview-option,
+  .quiz-wizard-option {
+    padding: 12px 14px;
+  }
+  
+  .option-letter {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+/* ============================================
+   360° PANORAMA VIEWER
+   ============================================ */
+
+/* Container for panorama viewer in journey */
+.panorama-container {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: grab;
+  background: #1a1a1a;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.panorama-container:active {
+  cursor: grabbing;
+}
+
+/* The panorama viewer wrapper */
+.panorama-viewer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Canvas wrapper */
+.panorama-canvas-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.panorama-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Drag hint - centered overlay */
+.panorama-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 90%, transparent);
+  border-radius: 30px;
+  color: var(--theme-button-text, white);
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.panorama-hint svg {
+  animation: panoramaSwipe 2s ease-in-out infinite;
+}
+
+@keyframes panoramaSwipe {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Zoom controls */
+.panorama-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
+}
+
+.panorama-control-btn {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0b4b34;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.panorama-control-btn:hover {
+  background: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.panorama-control-btn:active {
+  transform: scale(0.95);
+}
+
+/* Error state */
+.panorama-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  gap: 12px;
+}
+
+.panorama-error p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Mini panorama viewer in editor */
+.panorama-preview-container {
+  position: relative;
+}
+
+.panorama-preview-wrapper {
+  position: relative;
+}
+
+.panorama-mini-viewer {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: grab;
+  background-color: #1a1a1a;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.panorama-mini-viewer:active {
+  cursor: grabbing;
+}
+
+.panorama-mini-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(11, 75, 52, 0.85);
+  border-radius: 20px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.panorama-mini-hint svg {
+  width: 14px;
+  height: 14px;
+  animation: panoramaMiniSwipe 2s ease-in-out infinite;
+}
+
+@keyframes panoramaMiniSwipe {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* Upload placeholder for panorama */
+.panorama-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 180px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f9fafb;
+}
+
+.panorama-upload-placeholder:hover {
+  border-color: #0b4b34;
+  background: rgba(11, 75, 52, 0.02);
+}
+
+/* 360 badge indicator */
+.panorama-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 90%, transparent);
+  border-radius: 12px;
+  color: var(--theme-button-text, white);
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 5;
+}
+
+/* Mobile adjustments for panorama */
+@media (max-width: 640px) {
+  .panorama-container {
+    height: 250px;
+  }
+  
+  .panorama-hint {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .panorama-compass {
+    width: 32px;
+    height: 32px;
+    bottom: 8px;
+    right: 8px;
+  }
+}
+
+/* ============================================
+   FLOORPLAN / MAP COMPONENTS
+   ============================================ */
+
+/* Floorplan Pill Button - replaces the old FAB for better discoverability */
+.floorplan-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 16px 10px 12px;
+  background: var(--theme-primary, #0b4b34);
+  border: none;
+  border-radius: 50px;
+  color: var(--theme-button-text, white);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--theme-primary, #0b4b34) 25%, transparent);
+  transition: all 0.2s ease;
+  /* Mobile touch support */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.floorplan-pill:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, white);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary, #0b4b34) 35%, transparent);
+}
+
+.floorplan-pill:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--theme-primary, #0b4b34) 20%, transparent);
+}
+
+.floorplan-pill-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.floorplan-pill-text {
+  white-space: nowrap;
+}
+
+/* Legacy FAB support (for backwards compatibility) */
+.floorplan-fab {
+  position: absolute;
+  bottom: -56px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+  background: var(--theme-primary, #0b4b34);
+  border: none;
+  border-radius: 50%;
+  color: var(--theme-button-text, white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary, #0b4b34) 30%, transparent);
+  transition: all 0.2s ease;
+  z-index: 10;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.floorplan-fab:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, white);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary, #0b4b34) 40%, transparent);
+}
+
+.floorplan-fab:active {
+  transform: scale(0.95);
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, white);
+}
+
+/* Floorplan Marker Container (in builder) */
+.floorplan-marker-container {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+  cursor: crosshair;
+  max-height: 250px;
+}
+
+.floorplan-marker-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.floorplan-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.floorplan-marker-dot {
+  width: 16px;
+  height: 16px;
+  background: var(--theme-primary, #0b4b34);
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.floorplan-marker-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 20%, transparent);
+  border-radius: 50%;
+  animation: floorplanPulse 2s ease-in-out infinite;
+}
+
+@keyframes floorplanPulse {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* Floorplan Upload Zone (in modal) */
+.floorplan-upload-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.floorplan-upload-zone:hover {
+  border-color: #0b4b34;
+  background: rgba(11, 75, 52, 0.02);
+}
+
+.floorplan-upload-zone.dragover {
+  border-color: #78c503;
+  background: rgba(120, 197, 3, 0.05);
+}
+
+.floorplan-upload-zone .upload-preview {
+  position: relative;
+}
+
+.floorplan-upload-zone .upload-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+}
+
+/* Floorplan Overlay (viewer) */
+.floorplan-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.floorplan-overlay.visible {
+  opacity: 1;
+}
+
+.floorplan-overlay.closing {
+  opacity: 0;
+}
+
+.floorplan-overlay-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: floorplanSlideUp 0.3s ease-out;
+}
+
+@keyframes floorplanSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.floorplan-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.floorplan-overlay-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.15s;
+}
+
+.floorplan-overlay-close:hover {
+  background: #e5e7eb;
+  color: #334155;
+}
+
+.floorplan-overlay-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.floorplan-viewer {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  max-height: 60vh;
+  overflow: scroll;
+  position: relative;
+  cursor: grab;
+  background: #f9fafb;
+  /* Hide scrollbars but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.floorplan-viewer::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
+.floorplan-viewer:active {
+  cursor: grabbing;
+}
+
+.floorplan-viewer-inner {
+  position: relative;
+  display: inline-block;
+  /* No transition for smooth dragging */
+}
+
+.floorplan-viewer img {
+  display: block;
+  max-width: none;
+  height: auto;
+}
+
+/* Zoom controls */
+.floorplan-zoom-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 20;
+}
+
+.floorplan-zoom-btn {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+}
+
+.floorplan-zoom-btn:hover {
+  background: #f9fafb;
+  border-color: #0b4b34;
+  color: #0b4b34;
+}
+
+.floorplan-zoom-btn:active {
+  transform: scale(0.95);
+}
+
+/* Floorplan Viewer Marker */
+.floorplan-viewer-marker {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  /* Transform is set via JS to counter-scale with zoom */
+}
+
+.floorplan-viewer-marker-inner {
+  transform: translate(-50%, -50%);
+}
+
+.floorplan-viewer-marker-dot {
+  width: 20px;
+  height: 20px;
+  background: var(--theme-primary, #0b4b34);
+  border: 4px solid white;
+  border-radius: 50%;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+.floorplan-viewer-marker-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 25%, transparent);
+  border-radius: 50%;
+  animation: floorplanPulse 2s ease-in-out infinite;
+}
+
+.floorplan-viewer-marker-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: var(--theme-primary, #0b4b34);
+  color: var(--theme-button-text, white);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 16px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.floorplan-overlay-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+/* Mobile adjustments for floorplan */
+@media (max-width: 768px) {
+  .floorplan-pill {
+    /* Full width on mobile for better tap target */
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+  
+  .floorplan-pill-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Legacy FAB - keep for backwards compatibility */
+  .floorplan-fab {
+    position: fixed;
+    width: 52px;
+    height: 52px;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+  }
+  
+  .floorplan-overlay {
+    padding: 10px;
+  }
+  
+  .floorplan-overlay-content {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+  
+  .floorplan-viewer {
+    min-height: 250px;
+    max-height: 50vh;
+  }
+  
+  .floorplan-viewer-marker-label {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  
+  .floorplan-zoom-controls {
+    bottom: 12px;
+    right: 12px;
+    gap: 6px;
+  }
+  
+  .floorplan-zoom-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ============================================
+   FLOORPLAN BOTTOM SHEET (Mobile)
+   ============================================ */
+
+.floorplan-sheet-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.floorplan-sheet-backdrop.visible {
+  opacity: 1;
+}
+
+.floorplan-sheet-backdrop.closing {
+  opacity: 0;
+}
+
+.floorplan-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70vh;
+  max-height: 90vh;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s ease, height 0.2s ease-out;
+}
+
+.floorplan-sheet.visible {
+  transform: translateY(0);
+}
+
+.floorplan-sheet.closing {
+  transform: translateY(100%);
+}
+
+.floorplan-sheet-header {
+  position: relative;
+  padding: 20px 16px 12px;
+  padding-top: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.floorplan-sheet-header:active {
+  cursor: grabbing;
+}
+
+.floorplan-sheet-handle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.floorplan-sheet-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.floorplan-sheet-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.15s;
+}
+
+.floorplan-sheet-close:hover {
+  background: #e5e7eb;
+  color: #334155;
+}
+
+.floorplan-sheet-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.floorplan-sheet-viewer {
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: #f9fafb;
+  /* Prevent page zoom, allow custom pinch handling */
+  touch-action: none;
+}
+
+.floorplan-sheet-viewer::-webkit-scrollbar {
+  display: none;
+}
+
+.floorplan-sheet-viewer-inner {
+  position: relative;
+  display: inline-block;
+}
+
+.floorplan-sheet-viewer img {
+  display: block;
+  max-width: none;
+  height: auto;
+}
+
+.floorplan-sheet-footer {
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+
+/* Hide +/- zoom buttons on mobile - use pinch-to-zoom instead */
+/* Only show center/locate button */
+.floorplan-sheet-body .floorplan-zoom-controls {
+  bottom: 16px;
+  right: 16px;
+}
+
+.floorplan-sheet-body .floorplan-zoom-controls .floorplan-zoom-btn:nth-child(1),
+.floorplan-sheet-body .floorplan-zoom-controls .floorplan-zoom-btn:nth-child(2) {
+  display: none;
+}
+
+/* ============================================
+   TEXT-TO-SPEECH "LISTEN" BUTTON
+   Reads the step aloud (Web Speech API). Kept deliberately quiet:
+   a small outlined pill in the top-right corner of the step content
+   that stays out of the way for people who don't need it.
+   ============================================ */
+
+.journey-tts-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 0 12px 0;
+  position: relative;
+}
+
+/* Step orientation: "Step 3 of 8 · ±6 min". Quiet by design - muted
+   color, small size - so it anchors without demanding attention. */
+.journey-step-indicator {
+  margin-right: auto;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--theme-primary, #0b4b34) 55%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Read-along marking: a soft tint on the sentence(s) currently being
+   read aloud. Rendered via the CSS Custom Highlight API, so the step's
+   DOM is never touched. */
+::highlight(journey-tts-reading) {
+  background-color: color-mix(in srgb, var(--theme-accent, #78c503) 24%, transparent);
+}
+
+.journey-tts-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 18%, transparent);
+  background: transparent;
+  color: color-mix(in srgb, var(--theme-primary, #0b4b34) 72%, transparent);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.journey-tts-btn:hover {
+  color: var(--theme-primary, #0b4b34);
+  border-color: color-mix(in srgb, var(--theme-primary, #0b4b34) 35%, transparent);
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 5%, transparent);
+}
+
+.journey-tts-btn:focus-visible {
+  outline: 2px solid var(--theme-accent, #78c503);
+  outline-offset: 2px;
+}
+
+.journey-tts-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.journey-tts-icon-stop {
+  display: none;
+}
+
+/* Loading state: natural voice audio is being generated. Keep the
+   listen icon but pulse it gently; the button already acts as a stop
+   (cancel) button in this state. */
+.journey-tts-btn.is-loading {
+  color: var(--theme-primary, #0b4b34);
+  border-color: color-mix(in srgb, var(--theme-primary, #0b4b34) 35%, transparent);
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 6%, transparent);
+  cursor: progress;
+}
+
+.journey-tts-btn.is-loading .journey-tts-icon-listen {
+  animation: journeyTtsPulse 1.2s ease-in-out infinite;
+}
+
+/* Speaking state: swap to stop icon with a gentle pulse */
+.journey-tts-btn.is-speaking {
+  color: var(--theme-primary, #0b4b34);
+  border-color: color-mix(in srgb, var(--theme-primary, #0b4b34) 35%, transparent);
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 6%, transparent);
+}
+
+.journey-tts-btn.is-speaking .journey-tts-icon-listen {
+  display: none;
+}
+
+.journey-tts-btn.is-speaking .journey-tts-icon-stop {
+  display: block;
+  animation: journeyTtsPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes journeyTtsPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-tts-btn.is-speaking .journey-tts-icon-stop,
+  .journey-tts-btn.is-loading .journey-tts-icon-listen {
+    animation: none;
+  }
+}
+
+/* Mobile: keep the pill compact but comfortably tappable */
+@media (max-width: 640px) {
+  .journey-tts-btn {
+    padding: 8px 14px;
+  }
+}
+
+/* ============================================
+   READING SETTINGS (dyslexia-friendly font)
+   A small "Aa" pill next to the listen button opens a quiet popover
+   with a switch that swaps the journey text to OpenDyslexic (SIL OFL,
+   self-hosted - see /fonts/opendyslexic/OFL.txt). The preference is
+   stored per device (localStorage) and applies to every step in the
+   player and all previews. Off by default.
+   ============================================ */
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/opendyslexic/OpenDyslexic-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/opendyslexic/OpenDyslexic-Bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/opendyslexic/OpenDyslexic-Italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/opendyslexic/OpenDyslexic-Bold-Italic.woff2') format('woff2');
+}
+
+/* Scoped to the journey experience (#previewContent is the container the
+   steps render into, both in the standalone player and in the builder's
+   preview modal) so the builder UI is never affected. !important
+   intentionally beats inline font styles from rich content. */
+body.journey-dyslexic-font #previewContent,
+body.journey-dyslexic-font #previewContent * {
+  font-family: 'OpenDyslexic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* OpenDyslexic renders visually much larger than Inter at the same
+   font-size (cap height 0.85em vs 0.73em, and wider letterforms), which
+   makes the layout jump when switching. Scale it down towards Inter's
+   optical size; inherited, so it doesn't compound on nested elements.
+   0.68 balances cap height and lowercase size (OpenDyslexic's x-height
+   is proportionally large). Older browsers ignore this and simply show
+   the font slightly larger. No extra letter/word spacing: generous
+   spacing is already built into the font's design. */
+body.journey-dyslexic-font #previewContent {
+  font-size-adjust: cap-height 0.68;
+}
+
+/* A little extra room between lines helps dyslexic readers */
+body.journey-dyslexic-font .preview-content {
+  line-height: 1.7;
+}
+
+/* The "Aa" trigger: same quiet pill as the listen button, icon-only */
+.journey-reading-wrap {
+  position: relative;
+}
+
+.journey-reading-btn {
+  padding: 6px 11px;
+}
+
+.journey-reading-icon {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+/* Subtle "on" indicator when the dyslexia font is active */
+.journey-reading-btn.is-on {
+  color: var(--theme-primary, #0b4b34);
+  border-color: color-mix(in srgb, var(--theme-primary, #0b4b34) 35%, transparent);
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 6%, transparent);
+}
+
+.journey-reading-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: 250px;
+  max-width: min(320px, 86vw);
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 42, 29, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 42, 29, 0.14);
+}
+
+.journey-reading-popover.hidden {
+  display: none;
+}
+
+.journey-reading-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #2f3e37;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.journey-reading-option:hover {
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 5%, transparent);
+}
+
+.journey-reading-option:focus-visible {
+  outline: 2px solid var(--theme-accent, #78c503);
+  outline-offset: 2px;
+}
+
+/* Small switch, colored by the journey theme when on */
+.journey-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #d3d9d2;
+  transition: background 0.2s ease;
+}
+
+.journey-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.journey-reading-option[aria-checked="true"] .journey-switch {
+  background: var(--theme-primary, #0b4b34);
+}
+
+.journey-reading-option[aria-checked="true"] .journey-switch::after {
+  transform: translateX(16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-switch,
+  .journey-switch::after {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .journey-reading-btn {
+    padding: 8px 12px;
+  }
+}

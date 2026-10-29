@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('setup.title') %></title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/setup.css">
+</head>
+<body class="setup-page">
+  <main class="setup-shell setup-shell--narrow">
+    <header class="setup-header">
+      <img src="/images/logos/Logo---cropped-transparant.png" alt="Gryffi" class="setup-logo">
+    </header>
+    <section class="setup-card" aria-labelledby="code-title">
+      <h1 id="code-title"><%= t('setup.code.title') %></h1>
+      <p><%= t('setup.code.intro') %></p>
+      <form id="codeForm" novalidate>
+        <label for="setupCode" class="setup-label"><%= t('setup.code.label') %></label>
+        <input id="setupCode" name="code" class="setup-input setup-input--code" autocomplete="off" spellcheck="false" required
+               aria-describedby="codeError codeWhere">
+        <p id="codeError" class="setup-message setup-message--error" role="alert" <%= invalid ? '' : 'hidden' %>><%= t('setup.errors.SETUP_CODE_INVALID') %></p>
+        <button type="submit" class="setup-button setup-button--primary"><%= t('setup.code.submit') %></button>
+      </form>
+      <p id="codeWhere" class="setup-hint"><%= t('setup.code.where') %></p>
+      <pre class="setup-command"><code>docker compose exec app node src/setup/cli.js new-code</code></pre>
+    </section>
+  </main>
+  <script>
+    document.getElementById('codeForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const error = document.getElementById('codeError');
+      error.hidden = true;
+      const response = await fetch('/setup/code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: document.getElementById('setupCode').value })
+      });
+      if (response.ok) {
+        window.location.href = '/setup';
+      } else {
+        error.hidden = false;
+        document.getElementById('setupCode').focus();
+      }
+    });
+  </script>
+</body>
+</html>

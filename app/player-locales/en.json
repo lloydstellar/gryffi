@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Welcome",
+    "guide": "Guide",
+    "aiAssistant": "AI Assistant",
+    "noGuideSelected": "No guide selected",
+    "pleaseSelectGuide": "Please select an AI Guide in the step settings",
+    "selectGuideForStep": "Please select a guide for this step.",
+    "chat": {
+      "typeMessage": "Type your message...",
+      "typeQuestion": "Type your question...",
+      "askGuide": "Ask {{name}}",
+      "send": "Send",
+      "defaultGreeting": "Hello! How can I help you?",
+      "chatError": "Sorry, I couldn't process that.",
+      "connectionError": "I'm having trouble connecting right now. Please try again.",
+      "guideUnavailable": "I can't answer questions right now. You can continue with the next step."
+    },
+    "content": {
+      "invalidVideoUrl": "Invalid video URL",
+      "noContentYet": "No content added yet",
+      "pressPlayToStart": "Press play to start watching"
+    },
+    "navigation": {
+      "whenReady": "When you're ready:",
+      "journeyComplete": "Journey Complete!",
+      "leaveJourney": "Leave expedition?",
+      "leaveJourneyMessage": "Are you sure you want to leave this expedition? Your progress has been saved.",
+      "leaveConfirm": "Leave",
+      "stayContinue": "Stay"
+    },
+    "pacing": {
+      "readyToContinue": "You can now continue",
+      "takeYourTimeMinutes": "Take {{minutes}} minute to explore",
+      "takeYourTimeMinutesPlural": "Take {{minutes}} minutes to explore",
+      "takeYourTimeSeconds": "Take your time... {{seconds}}s",
+      "keepWatching": "Keep watching... {{seconds}}s",
+      "chatWithGuide": "Chat with the guide ({{count}}/{{total}} messages)"
+    },
+    "form": {
+      "title": "Form",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "defaultConfirmation": "Thank you! Your response has been submitted.",
+      "formSubmitFailed": "Failed to submit form",
+      "formSubmitted": "Form submitted successfully",
+      "submitToContinue": "Submit the form to continue",
+      "selectOption": "Select an option",
+      "yes": "Yes",
+      "no": "No",
+      "field": "Field",
+      "alreadySubmitted": {
+        "title": "You've already submitted this form",
+        "message": "You submitted this form on {{date}}. You can submit it again or continue without filling it out.",
+        "skipButton": "Continue without submitting",
+        "submitAgain": "Submit again"
+      },
+      "fileUpload": {
+        "dropzone": "Drop file here or click to browse",
+        "dragActive": "Drop the file here",
+        "maxSize": "Max {{size}} MB",
+        "invalidType": "Invalid file type. Allowed: {{types}}",
+        "fileTooLarge": "File too large. Maximum size: {{size}} MB",
+        "totalTooLarge": "Total attachment size exceeds limit (38 MB)",
+        "removeFile": "Remove file",
+        "noFileSelected": "No file selected",
+        "fileSelected": "File selected: {{name}}",
+        "subtypes": {
+          "image": "Image",
+          "document": "Document",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "MP3 only"
+        }
+      },
+      "imageRejected": "This image cannot be uploaded. Choose a different image.",
+      "imageCheckUnavailable": "We could not check your image right now. Try again in a few minutes."
+    },
+    "quiz": {
+      "questionOf": "Question {{current}} of {{total}}",
+      "checkAnswer": "Check Answer",
+      "next": "Next",
+      "previous": "Previous",
+      "finish": "Submit answers",
+      "correct": "Correct!",
+      "incorrect": "Not quite right",
+      "tryAgain": "Try again",
+      "score": "Your score",
+      "passed": "Quiz passed!",
+      "completed": "Quiz completed",
+      "allCorrect": "All correct!",
+      "singleCorrect": "Correct answer!",
+      "nextStepHint": "The journey continues. Pick the next step below.",
+      "failed": "You need {{required}} correct answers to continue",
+      "questionsCorrect": "{{correct}} of {{total}} correct",
+      "retake": "Retake Quiz",
+      "continue": "Continue",
+      "completeQuizToContinue": "Complete the quiz to continue"
+    },
+    "poll": {
+      "submitVote": "Submit vote",
+      "completePollToContinue": "Complete the poll to continue",
+      "alreadyVoted": "You have already voted",
+      "voteRecorded": "Your vote has been recorded",
+      "votes": "votes",
+      "votesCount": "{{count}} vote",
+      "votesCountPlural": "{{count}} votes",
+      "respondents": "{{count}} respondent",
+      "respondentsPlural": "{{count}} respondents",
+      "yourVote": "Your vote"
+    },
+    "space": {
+      "dragHint": "Drag to look around",
+      "viewFloorplan": "View floor plan",
+      "youAreHere": "You are here"
+    },
+    "stepTypes": {
+      "reward": "Reward"
+    },
+    "reward": {
+      "congratulations": "Congratulations!",
+      "youAreNumber": "You are #{{position}} to claim this reward!",
+      "yourCode": "Your reward code",
+      "redeemAt": "Redeem at",
+      "terms": "Terms & Conditions",
+      "validUntil": "Valid until",
+      "downloadCoupon": "Download coupon",
+      "emailSent": "A copy has been sent to your email",
+      "alreadyClaimed": "You have already claimed a reward for this journey",
+      "noMoreRewards": "Sorry, all rewards have been claimed",
+      "previewMode": "Preview mode - No real code generated",
+      "claimed": "Reward claimed",
+      "soldOut": {
+        "title": "What a pity!",
+        "message": "Unfortunately, you were too late to receive a reward. All rewards have already been handed out.",
+        "continueJourney": "Continue journey"
+      }
+    },
+    "tts": {
+      "listen": "Listen",
+      "stop": "Stop",
+      "listenLabel": "Read this step aloud",
+      "stopLabel": "Stop reading aloud"
+    },
+    "reading": {
+      "settings": "Reading settings",
+      "dyslexicFont": "Dyslexia-friendly font"
+    },
+    "orientation": {
+      "step": "Step {{current}} of {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Your session has ended. Click Reload to continue.",
+      "reload": "Reload"
+    }
+  }
+}

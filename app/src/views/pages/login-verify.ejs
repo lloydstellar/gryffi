@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ecf2eb;
+    }
+    .verify-container {
+      max-width: 420px;
+      padding: 48px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(11, 75, 52, 0.08);
+      text-align: center;
+    }
+    .logo {
+      margin-bottom: 32px;
+    }
+    .logo img {
+      height: 48px;
+    }
+    .shield-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 24px;
+      background: rgba(11, 75, 52, 0.08);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .shield-icon svg {
+      width: 32px;
+      height: 32px;
+      stroke: #0b4b34;
+    }
+    .verify-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0b4b34;
+      margin-bottom: 8px;
+      font-family: 'Outfit', sans-serif;
+    }
+    .verify-subtitle {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+    .verify-explanation {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+    .code-input-container {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .code-input {
+      width: 56px;
+      height: 64px;
+      border: 2px solid #d1ddd0;
+      border-radius: 10px;
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      color: #0b4b34;
+      transition: all 0.15s;
+    }
+    .code-input:focus {
+      outline: none;
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.1);
+    }
+    .code-input.error {
+      border-color: #dc2626;
+      animation: shake 0.3s ease-in-out;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+    }
+    .btn-primary {
+      background: #0b4b34;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #093d2a;
+    }
+    .btn-primary:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+    }
+    .resend-link {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #64748b;
+    }
+    .resend-link button {
+      background: none;
+      border: none;
+      color: #0b4b34;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+    .resend-link button:hover {
+      text-decoration: underline;
+    }
+    .resend-link button:disabled {
+      color: #9ca3af;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+    .error-message {
+      margin-top: 16px;
+      padding: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      color: #dc2626;
+      font-size: 14px;
+      display: none;
+    }
+    .error-message.show {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .success-message {
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(11, 75, 52, 0.08);
+      border: 1px solid rgba(11, 75, 52, 0.2);
+      border-radius: 8px;
+      color: #0b4b34;
+      font-size: 14px;
+      display: none;
+    }
+    .success-message.show {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .back-link {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .back-link a {
+      color: #64748b;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .back-link a:hover {
+      color: #0b4b34;
+    }
+    .email-hint {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 8px;
+    }
+    .email-hint strong {
+      color: #0b4b34;
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-container">
+    <div class="logo">
+      <img src="/images/logos/Logo---transparant-lightgreen-cropped.png" alt="Gryffi">
+    </div>
+    
+    <div class="shield-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+      </svg>
+    </div>
+    
+    <h1 class="verify-title"><%= t('auth.loginVerification.title') %></h1>
+    <p class="verify-subtitle"><%= t('auth.loginVerification.subtitle') %></p>
+    
+    <div class="verify-explanation">
+      <% if (reason === '2fa') { %>
+        <%= t('auth.loginVerification.explanation2fa') %>
+      <% } else if (reason === 'brute_force') { %>
+        <%= t('auth.loginVerification.explanationBruteForce') %>
+      <% } else { %>
+        <%= t('auth.loginVerification.explanationDefault') %>
+      <% } %>
+    </div>
+    
+    <form id="verifyForm">
+      <label style="display: block; text-align: left; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 12px;">
+        <%= t('auth.loginVerification.codeLabel') %>
+      </label>
+      
+      <div class="code-input-container">
+        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="0">
+        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="1">
+        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="2">
+        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="3">
+      </div>
+      
+      <p class="email-hint"><%= t('auth.loginVerification.sentTo') %> <strong><%= email %></strong></p>
+      
+      <div id="errorMessage" class="error-message"></div>
+      <div id="successMessage" class="success-message"></div>
+      
+      <button type="submit" class="btn btn-primary" id="verifyBtn">
+        <%= t('auth.loginVerification.submit') %>
+      </button>
+    </form>
+    
+    <div class="resend-link">
+      <%= t('auth.loginVerification.noCode') %>
+      <button type="button" id="resendBtn">
+        <%= t('auth.loginVerification.resend') %>
+      </button>
+    </div>
+    
+    <div class="back-link">
+      <a href="/login">← <%= t('auth.loginVerification.backToLogin') %></a>
+    </div>
+  </div>
+
+  <script>
+    const t = {
+      verifying: <%-safeJson(t("auth.loginVerification.verifying"))%>,
+      submit: <%-safeJson(t("auth.loginVerification.submit"))%>,
+      resent: <%-safeJson(t("auth.loginVerification.resent"))%>,
+      invalid: <%-safeJson(t("auth.loginVerification.invalidCode"))%>,
+      expired: <%-safeJson(t("auth.loginVerification.codeExpired"))%>
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputs = document.querySelectorAll('.code-input');
+      const form = document.getElementById('verifyForm');
+      const verifyBtn = document.getElementById('verifyBtn');
+      const resendBtn = document.getElementById('resendBtn');
+      const errorEl = document.getElementById('errorMessage');
+      const successEl = document.getElementById('successMessage');
+
+      // Auto-focus first input
+      inputs[0].focus();
+
+      // Handle input
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          const value = e.target.value.replace(/\D/g, '');
+          e.target.value = value;
+          
+          // Clear error styling
+          input.classList.remove('error');
+          errorEl.classList.remove('show');
+          
+          if (value && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+          }
+          
+          // Auto-submit when all filled
+          if (index === inputs.length - 1 && value) {
+            const code = Array.from(inputs).map(i => i.value).join('');
+            if (code.length === 4) {
+              form.dispatchEvent(new Event('submit'));
+            }
+          }
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !input.value && index > 0) {
+            inputs[index - 1].focus();
+          }
+        });
+
+        // Handle paste
+        input.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const paste = (e.clipboardData || window.clipboardData).getData('text');
+          const digits = paste.replace(/\D/g, '').slice(0, 4);
+          
+          digits.split('').forEach((digit, i) => {
+            if (inputs[i]) {
+              inputs[i].value = digit;
+            }
+          });
+          
+          if (digits.length > 0) {
+            inputs[Math.min(digits.length, inputs.length - 1)].focus();
+          }
+          
+          if (digits.length === 4) {
+            form.dispatchEvent(new Event('submit'));
+          }
+        });
+      });
+
+      // Form submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const code = Array.from(inputs).map(i => i.value).join('');
+        
+        if (code.length !== 4) {
+          showError(t.invalid);
+          return;
+        }
+        
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = t.verifying;
+        
+        try {
+          const response = await fetch('/login/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            // Redirect to dashboard
+            window.location.href = data.redirect;
+          } else {
+            showError(data.error || t.invalid);
+            inputs.forEach(i => i.classList.add('error'));
+            verifyBtn.textContent = t.submit;
+            if (data.restart) {
+              // Code is no longer valid: only "Back to login" helps now
+              inputs.forEach(i => { i.disabled = true; });
+              verifyBtn.disabled = true;
+            } else {
+              verifyBtn.disabled = false;
+            }
+          }
+        } catch (err) {
+          console.error('Verify error:', err);
+          showError('Something went wrong');
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = t.submit;
+        }
+      });
+
+      // Resend code
+      resendBtn.addEventListener('click', async () => {
+        resendBtn.disabled = true;
+        
+        try {
+          const response = await fetch('/login/verify/resend', {
+            method: 'POST'
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            showSuccess(t.resent);
+            // Clear inputs
+            inputs.forEach(i => {
+              i.value = '';
+              i.classList.remove('error');
+            });
+            inputs[0].focus();
+          } else {
+            showError(data.error || 'Failed to resend');
+          }
+        } catch (err) {
+          console.error('Resend error:', err);
+          showError('Failed to resend');
+        }
+        
+        // Re-enable after 30 seconds
+        setTimeout(() => {
+          resendBtn.disabled = false;
+        }, 30000);
+      });
+
+      function showError(message) {
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+        successEl.classList.remove('show');
+      }
+
+      function showSuccess(message) {
+        successEl.textContent = message;
+        successEl.classList.add('show');
+        errorEl.classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>

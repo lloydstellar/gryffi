@@ -1,0 +1,12 @@
+{
+  "name": "gryffi-smoke-test",
+  "private": true,
+  "type": "module",
+  "description": "Installs Gryffi from its images and walks through setup, a journey and the player in a real browser",
+  "scripts": {
+    "smoke": "node smoke.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}

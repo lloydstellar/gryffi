@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Välkommen",
+    "guide": "Guide",
+    "aiAssistant": "AI Assistent",
+    "noGuideSelected": "Ingen guide vald",
+    "pleaseSelectGuide": "Välj en AI Guide i steginställningarna",
+    "selectGuideForStep": "Välj en guide för detta steg.",
+    "chat": {
+      "typeMessage": "Skriv ditt meddelande...",
+      "typeQuestion": "Skriv din fråga...",
+      "askGuide": "Fråga {{name}}",
+      "send": "Skicka",
+      "defaultGreeting": "Hej! Hur kan jag hjälpa dig?",
+      "chatError": "Tyvärr, jag kunde inte behandla det.",
+      "connectionError": "Jag har anslutningsproblem just nu. Försök igen.",
+      "guideUnavailable": "Jag kan inte svara på frågor just nu. Du kan fortsätta med nästa steg."
+    },
+    "content": {
+      "invalidVideoUrl": "Ogiltig video-URL",
+      "noContentYet": "Inget innehåll tillagt ännu",
+      "pressPlayToStart": "Tryck på spela för att börja titta"
+    },
+    "navigation": {
+      "whenReady": "När du är redo:",
+      "journeyComplete": "Expedition slutförd!",
+      "leaveJourney": "Lämna expedition?",
+      "leaveJourneyMessage": "Är du säker på att du vill lämna denna expedition? Din framsteg har sparats.",
+      "leaveConfirm": "Lämna",
+      "stayContinue": "Stanna"
+    },
+    "pacing": {
+      "readyToContinue": "Du kan nu fortsätta",
+      "takeYourTimeMinutes": "Ta {{minutes}} minut att utforska",
+      "takeYourTimeMinutesPlural": "Ta {{minutes}} minuter att utforska",
+      "takeYourTimeSeconds": "Ta din tid... {{seconds}}s",
+      "keepWatching": "Fortsätt titta... {{seconds}}s",
+      "chatWithGuide": "Chatta med guiden ({{count}}/{{total}} meddelanden)"
+    },
+    "form": {
+      "title": "Formulär",
+      "submit": "Skicka",
+      "submitting": "Skickar...",
+      "defaultConfirmation": "Tack! Ditt svar har skickats.",
+      "formSubmitFailed": "Kunde inte skicka formuläret",
+      "formSubmitted": "Formulär skickat",
+      "submitToContinue": "Skicka formuläret för att fortsätta",
+      "selectOption": "Välj ett alternativ",
+      "yes": "Ja",
+      "no": "Nej",
+      "field": "Fält",
+      "alreadySubmitted": {
+        "title": "Du har redan skickat detta formulär",
+        "message": "Du skickade detta formulär den {{date}}. Du kan skicka det igen eller fortsätta utan att fylla i det.",
+        "skipButton": "Fortsätt utan att skicka",
+        "submitAgain": "Skicka igen"
+      },
+      "fileUpload": {
+        "dropzone": "Dra fil hit eller klicka för att bläddra",
+        "dragActive": "Släpp filen här",
+        "maxSize": "Max {{size}} MB",
+        "invalidType": "Ogiltig filtyp. Tillåtet: {{types}}",
+        "fileTooLarge": "Filen är för stor. Maxstorlek: {{size}} MB",
+        "totalTooLarge": "Totala bilagsstorleken överskrider gränsen (38 MB)",
+        "removeFile": "Ta bort fil",
+        "noFileSelected": "Ingen fil vald",
+        "fileSelected": "Fil vald: {{name}}",
+        "subtypes": {
+          "image": "Bild",
+          "document": "Dokument",
+          "audio": "Ljud (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Endast MP3"
+        }
+      },
+      "imageRejected": "Den här bilden kan inte laddas upp. Välj en annan bild.",
+      "imageCheckUnavailable": "Vi kunde inte kontrollera din bild just nu. Försök igen om några minuter."
+    },
+    "quiz": {
+      "questionOf": "Fråga {{current}} av {{total}}",
+      "checkAnswer": "Kontrollera svar",
+      "next": "Nästa",
+      "previous": "Föregående",
+      "finish": "Skicka svar",
+      "correct": "Rätt!",
+      "incorrect": "Inte helt rätt",
+      "tryAgain": "Försök igen",
+      "score": "Din poäng",
+      "passed": "Quiz klarad!",
+      "completed": "Quiz slutförd",
+      "allCorrect": "Allt rätt!",
+      "singleCorrect": "Rätt svar!",
+      "nextStepHint": "Resan fortsätter. Välj nästa steg nedan.",
+      "failed": "Du behöver {{required}} rätta svar för att fortsätta",
+      "questionsCorrect": "{{correct}} av {{total}} rätt",
+      "retake": "Gör om quiz",
+      "continue": "Fortsätt",
+      "completeQuizToContinue": "Slutför quizen för att fortsätta"
+    },
+    "poll": {
+      "submitVote": "Rösta",
+      "completePollToContinue": "Slutför omröstningen för att fortsätta",
+      "alreadyVoted": "Du har redan röstat",
+      "voteRecorded": "Din röst har registrerats",
+      "votes": "röster",
+      "votesCount": "{{count}} röst",
+      "votesCountPlural": "{{count}} röster",
+      "respondents": "{{count}} deltagare",
+      "respondentsPlural": "{{count}} deltagare",
+      "yourVote": "Din röst"
+    },
+    "space": {
+      "dragHint": "Dra för att titta runt",
+      "viewFloorplan": "Visa planritning",
+      "youAreHere": "Du är här"
+    },
+    "stepTypes": {
+      "reward": "Belöning"
+    },
+    "reward": {
+      "congratulations": "Grattis!",
+      "youAreNumber": "Du är nummer #{{position}} att få denna belöning!",
+      "yourCode": "Din belöningskod",
+      "redeemAt": "Lös in hos",
+      "terms": "Villkor",
+      "validUntil": "Giltig till",
+      "downloadCoupon": "Ladda ner kupong",
+      "emailSent": "En kopia har skickats till din e-post",
+      "alreadyClaimed": "Du har redan fått en belöning för denna expedition",
+      "noMoreRewards": "Tyvärr, alla belöningar har delats ut",
+      "previewMode": "Förhandsvisning - Ingen riktig kod genererad",
+      "claimed": "Belöning mottagen",
+      "soldOut": {
+        "title": "Vad synd!",
+        "message": "Tyvärr kom du för sent för att få en belöning. Alla belöningar har redan delats ut.",
+        "continueJourney": "Fortsätt expeditionen"
+      }
+    },
+    "tts": {
+      "listen": "Lyssna",
+      "stop": "Stoppa",
+      "listenLabel": "Få det här steget uppläst",
+      "stopLabel": "Stoppa uppläsningen"
+    },
+    "reading": {
+      "settings": "Läsinställningar",
+      "dyslexicFont": "Dyslexivänligt typsnitt"
+    },
+    "orientation": {
+      "step": "Steg {{current}} av {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Din session har gått ut. Klicka på Ladda om för att fortsätta.",
+      "reload": "Ladda om"
+    }
+  }
+}

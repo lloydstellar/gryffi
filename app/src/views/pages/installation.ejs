@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('installation.title') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/setup.css">
+  <style>
+    .installation { max-width: 760px; }
+    .installation .setup-card { margin-bottom: 24px; }
+    .installation .setup-card h2:first-child { margin-top: 0; }
+    .installation-source { display: inline-block; margin-left: 8px; padding: 0 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--setup-bg); color: var(--setup-muted); }
+    .installation-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 8px; }
+    .installation-actions .setup-button[data-test] { margin-bottom: 0; }
+    .installation-uri { display: flex; gap: 8px; align-items: center; margin: 4px 0 16px; }
+    .installation-uri code { flex: 1; padding: 8px 10px; border-radius: 8px; background: var(--setup-bg); overflow-x: auto; font-size: 0.85rem; }
+    .installation-progress { width: 100%; height: 10px; border-radius: 999px; background: var(--setup-bg); overflow: hidden; margin: 8px 0; }
+    .installation-progress > span { display: block; height: 100%; background: var(--setup-primary); }
+    .installation-version p { margin: 0 0 8px; }
+    .installation-version code { display: inline-block; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: var(--setup-bg); font-size: 0.9rem; }
+    .installation-version a { color: var(--setup-primary); text-decoration: underline; font-weight: 600; }
+    .installation-audit { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .installation-audit th, .installation-audit td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--setup-border); vertical-align: top; overflow-wrap: anywhere; }
+  </style>
+  <script src="/js/app.js"></script>
+</head>
+<body class="bg-gryffi-bg">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+  <%- include('../partials/support-modal') %>
+
+  <main class="main-content">
+    <%- include('../partials/ai-credits-banner') %>
+    <div class="page-header">
+      <h1 class="page-title"><%= t('installation.title') %></h1>
+      <p class="page-subtitle"><%= t('installation.subtitle') %></p>
+    </div>
+
+    <div class="installation" id="installation">
+      <section class="setup-card" aria-labelledby="section-version">
+        <h2 id="section-version"><%= t('installation.version.title') %></h2>
+        <div id="versionStatus" class="installation-version" role="status" aria-live="polite"></div>
+      </section>
+
+      <% const sections = [
+        { id: 'ai', tests: ['ai', 'embeddings', 'vision', 'speech'] },
+        { id: 'email', tests: ['email'] },
+        { id: 'features', tests: ['parser', 'nsfw'] },
+        { id: 'integrations', tests: [] }
+      ]; %>
+      <% sections.forEach((section) => { %>
+        <form class="setup-card" data-section="<%= section.id %>" novalidate aria-labelledby="section-<%= section.id %>">
+          <h2 id="section-<%= section.id %>"><%= t('installation.sections.' + section.id + '.title') %></h2>
+          <p class="setup-hint"><%= t('installation.sections.' + section.id + '.intro') %></p>
+
+          <% settingGroups[section.id].forEach((key) => { const id = 'setting-' + key.replace(/\./g, '-'); %>
+            <div class="setup-field" data-field="<%= key %>">
+              <label class="setup-label" for="<%= id %>">
+                <%= t('installation.fields.' + key + '.label') %>
+                <span class="installation-source" data-source hidden></span>
+              </label>
+              <span data-control data-key="<%= key %>" data-id="<%= id %>"></span>
+              <p class="setup-hint"><%= t('installation.fields.' + key + '.hint') %></p>
+            </div>
+          <% }) %>
+
+          <% if (section.id === 'integrations') { %>
+            <p class="setup-label"><%= t('installation.redirectUris') %></p>
+            <div class="installation-uri"><code data-uri="google"></code></div>
+            <div class="installation-uri"><code data-uri="microsoft"></code></div>
+          <% } %>
+
+          <div class="installation-actions">
+            <button type="submit" class="setup-button setup-button--primary"><%= t('installation.save') %></button>
+            <% section.tests.forEach((part) => { %>
+              <button type="button" class="setup-button" data-test="<%= part %>"><%= t('installation.tests.' + part) %></button>
+            <% }) %>
+          </div>
+          <div class="setup-result" data-section-result role="status" aria-live="polite"></div>
+        </form>
+      <% }) %>
+
+      <section class="setup-card" aria-labelledby="section-reembed">
+        <h2 id="section-reembed"><%= t('installation.reembed.title') %></h2>
+        <p class="setup-hint"><%= t('installation.reembed.intro') %></p>
+        <div id="reembedStatus" role="status" aria-live="polite"></div>
+        <button type="button" class="setup-button" id="reembedButton"><%= t('installation.reembed.start') %></button>
+      </section>
+
+      <section class="setup-card" aria-labelledby="section-audit">
+        <h2 id="section-audit"><%= t('installation.audit.title') %></h2>
+        <p class="setup-hint"><%= t('installation.audit.intro') %></p>
+        <table class="installation-audit">
+          <thead>
+            <tr>
+              <th scope="col"><%= t('installation.audit.when') %></th>
+              <th scope="col"><%= t('installation.audit.who') %></th>
+              <th scope="col"><%= t('installation.audit.setting') %></th>
+              <th scope="col"><%= t('installation.audit.change') %></th>
+            </tr>
+          </thead>
+          <tbody id="auditRows"></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    window.GRYFFI_INSTALLATION = <%- safeJson({
+      texts: t('installation', { returnObjects: true }),
+      setupTexts: t('setup', { returnObjects: true }),
+      adminEmail: user.email,
+      language: language,
+      docsUrl: 'https://docs.gryffi.com/troubleshooting/'
+    }) %>;
+  </script>
+  <script src="/js/installation-settings.js"></script>
+</body>
+</html>

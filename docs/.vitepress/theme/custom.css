@@ -1,0 +1,25 @@
+/* Gryffi colors: deep forest green, lime accent, soft sage background */
+:root {
+  --vp-c-brand-1: #0b4b34;
+  --vp-c-brand-2: #0d5c40;
+  --vp-c-brand-3: #0b4b34;
+  --vp-c-brand-soft: rgba(120, 197, 3, 0.16);
+  --vp-home-hero-name-color: #0b4b34;
+  --vp-button-brand-bg: #0b4b34;
+  --vp-button-brand-hover-bg: #0d5c40;
+  --vp-button-brand-active-bg: #093d2a;
+}
+
+.dark {
+  --vp-c-brand-1: #8fd41a;
+  --vp-c-brand-2: #78c503;
+  --vp-c-brand-3: #5fa002;
+  --vp-c-brand-soft: rgba(143, 212, 26, 0.16);
+  --vp-home-hero-name-color: #8fd41a;
+  --vp-button-brand-text: #093d2a;
+  --vp-button-brand-hover-text: #093d2a;
+  --vp-button-brand-active-text: #093d2a;
+  --vp-button-brand-bg: #8fd41a;
+  --vp-button-brand-hover-bg: #78c503;
+  --vp-button-brand-active-bg: #5fa002;
+}

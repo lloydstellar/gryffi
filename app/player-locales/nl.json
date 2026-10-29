@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Welkom",
+    "guide": "Gids",
+    "aiAssistant": "AI Assistent",
+    "noGuideSelected": "Geen gids geselecteerd",
+    "pleaseSelectGuide": "Selecteer een AI Gids in de stap-instellingen",
+    "selectGuideForStep": "Selecteer een gids voor deze stap.",
+    "chat": {
+      "typeMessage": "Typ je bericht...",
+      "typeQuestion": "Typ je vraag...",
+      "askGuide": "Vraag aan {{name}}",
+      "send": "Verstuur",
+      "defaultGreeting": "Hallo! Hoe kan ik je helpen?",
+      "chatError": "Sorry, ik kon dat niet verwerken.",
+      "connectionError": "Ik heb momenteel problemen met de verbinding. Probeer het opnieuw.",
+      "guideUnavailable": "Ik kan nu geen vragen beantwoorden. Je kunt verder met de volgende stap."
+    },
+    "content": {
+      "invalidVideoUrl": "Ongeldige video URL",
+      "noContentYet": "Nog geen inhoud toegevoegd",
+      "pressPlayToStart": "Druk op play om te beginnen met kijken"
+    },
+    "navigation": {
+      "whenReady": "Als je klaar bent:",
+      "journeyComplete": "Expeditie voltooid!",
+      "leaveJourney": "Expeditie verlaten?",
+      "leaveJourneyMessage": "Weet je zeker dat je deze expeditie wilt verlaten? Je voortgang is opgeslagen.",
+      "leaveConfirm": "Verlaten",
+      "stayContinue": "Blijven"
+    },
+    "pacing": {
+      "readyToContinue": "Je kunt nu doorgaan",
+      "takeYourTimeMinutes": "Neem {{minutes}} minuut om te verkennen",
+      "takeYourTimeMinutesPlural": "Neem {{minutes}} minuten om te verkennen",
+      "takeYourTimeSeconds": "Neem je tijd... {{seconds}}s",
+      "keepWatching": "Blijf kijken... {{seconds}}s",
+      "chatWithGuide": "Chat met de gids ({{count}}/{{total}} berichten)"
+    },
+    "form": {
+      "title": "Formulier",
+      "submit": "Versturen",
+      "submitting": "Versturen...",
+      "defaultConfirmation": "Bedankt! Je reactie is verstuurd.",
+      "formSubmitFailed": "Versturen formulier mislukt",
+      "formSubmitted": "Formulier succesvol verstuurd",
+      "submitToContinue": "Verstuur het formulier om door te gaan",
+      "selectOption": "Selecteer een optie",
+      "yes": "Ja",
+      "no": "Nee",
+      "field": "Veld",
+      "alreadySubmitted": {
+        "title": "Je hebt dit formulier al ingestuurd",
+        "message": "Je hebt dit formulier ingestuurd op {{date}}. Je kunt het opnieuw versturen of doorgaan zonder in te vullen.",
+        "skipButton": "Doorgaan zonder versturen",
+        "submitAgain": "Opnieuw versturen"
+      },
+      "fileUpload": {
+        "dropzone": "Sleep bestand hierheen of klik om te bladeren",
+        "dragActive": "Laat het bestand hier los",
+        "maxSize": "Max {{size}} MB",
+        "invalidType": "Ongeldig bestandstype. Toegestaan: {{types}}",
+        "fileTooLarge": "Bestand te groot. Maximum grootte: {{size}} MB",
+        "totalTooLarge": "Totale bijlage grootte overschrijdt limiet (38 MB)",
+        "removeFile": "Bestand verwijderen",
+        "noFileSelected": "Geen bestand geselecteerd",
+        "fileSelected": "Bestand geselecteerd: {{name}}",
+        "subtypes": {
+          "image": "Afbeelding",
+          "document": "Document",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Alleen MP3"
+        }
+      },
+      "imageRejected": "Deze afbeelding kan niet worden geüpload. Kies een andere afbeelding.",
+      "imageCheckUnavailable": "We konden je afbeelding nu niet controleren. Probeer het over een paar minuten opnieuw."
+    },
+    "quiz": {
+      "questionOf": "Vraag {{current}} van {{total}}",
+      "checkAnswer": "Controleer antwoord",
+      "next": "Volgende",
+      "previous": "Vorige",
+      "finish": "Antwoorden insturen",
+      "correct": "Correct!",
+      "incorrect": "Niet helemaal goed",
+      "tryAgain": "Probeer opnieuw",
+      "score": "Je score",
+      "passed": "Quiz behaald!",
+      "completed": "Quiz voltooid",
+      "allCorrect": "Alles goed!",
+      "singleCorrect": "Goed beantwoord!",
+      "nextStepHint": "De expeditie gaat verder. Kies hieronder de volgende stap.",
+      "failed": "Je hebt {{required}} goede antwoorden nodig om door te gaan",
+      "questionsCorrect": "{{correct}} van {{total}} correct",
+      "retake": "Quiz opnieuw maken",
+      "continue": "Doorgaan",
+      "completeQuizToContinue": "Voltooi de quiz om door te gaan"
+    },
+    "poll": {
+      "submitVote": "Stem versturen",
+      "completePollToContinue": "Voltooi de peiling om door te gaan",
+      "alreadyVoted": "Je hebt al gestemd",
+      "voteRecorded": "Je stem is geregistreerd",
+      "votes": "stemmen",
+      "votesCount": "{{count}} stem",
+      "votesCountPlural": "{{count}} stemmen",
+      "respondents": "{{count}} deelnemer",
+      "respondentsPlural": "{{count}} deelnemers",
+      "yourVote": "Jouw stem"
+    },
+    "space": {
+      "dragHint": "Sleep om rond te kijken",
+      "viewFloorplan": "Bekijk plattegrond",
+      "youAreHere": "Je bent hier"
+    },
+    "stepTypes": {
+      "reward": "Beloning"
+    },
+    "reward": {
+      "congratulations": "Gefeliciteerd!",
+      "youAreNumber": "Je bent nummer #{{position}} die deze beloning claimt!",
+      "yourCode": "Je beloningscode",
+      "redeemAt": "Inwisselen bij",
+      "terms": "Voorwaarden",
+      "validUntil": "Geldig tot",
+      "downloadCoupon": "Download coupon",
+      "emailSent": "Een kopie is naar je e-mail verzonden",
+      "alreadyClaimed": "Je hebt al een beloning geclaimd voor deze expeditie",
+      "noMoreRewards": "Sorry, alle beloningen zijn geclaimd",
+      "previewMode": "Preview modus - Geen echte code gegenereerd",
+      "claimed": "Beloning geclaimd",
+      "soldOut": {
+        "title": "Wat jammer!",
+        "message": "Helaas was je te laat om een beloning te ontvangen. Alle beloningen zijn al uitgedeeld.",
+        "continueJourney": "Expeditie voortzetten"
+      }
+    },
+    "tts": {
+      "listen": "Voorlezen",
+      "stop": "Stop",
+      "listenLabel": "Lees deze stap voor",
+      "stopLabel": "Stop met voorlezen"
+    },
+    "reading": {
+      "settings": "Leesinstellingen",
+      "dyslexicFont": "Dyslexievriendelijk lettertype"
+    },
+    "orientation": {
+      "step": "Stap {{current}} van {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Je sessie is afgelopen. Klik op Opnieuw laden om verder te gaan.",
+      "reload": "Opnieuw laden"
+    }
+  }
+}

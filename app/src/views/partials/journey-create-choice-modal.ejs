@@ -1,0 +1,244 @@
+<!--
+  Journey Create Choice Modal
+  Shown when the user clicks "Create Journey" — lets them pick between
+  a blank canvas (current flow) or the guided Wizard.
+-->
+<div id="journeyCreateChoiceModal" class="jcc-modal" style="display: none;" aria-hidden="true" role="dialog" aria-labelledby="jccTitle">
+  <div class="jcc-modal-overlay" data-jcc-close></div>
+  <div class="jcc-modal-content">
+    <div class="jcc-modal-header">
+      <div>
+        <h2 id="jccTitle" class="jcc-modal-title"><%= t('journeys.wizard.choice.modalTitle') %></h2>
+        <p class="jcc-modal-subtitle"><%= t('journeys.wizard.choice.modalSubtitle') %></p>
+      </div>
+      <button type="button" class="jcc-modal-close" data-jcc-close aria-label="<%= t('common.close') %>">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="jcc-modal-body">
+      <!-- Both options are presented as equals: no "recommended" badge and the
+           same visual weight, so the maker decides how to start. -->
+      <a href="/dashboard/journeys/new" class="jcc-option" id="jccStartBlank">
+        <div class="jcc-option-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </div>
+        <div class="jcc-option-content">
+          <h3><%= t('journeys.wizard.choice.blankCard.title') %></h3>
+          <p><%= t('journeys.wizard.choice.blankCard.description') %></p>
+        </div>
+        <div class="jcc-option-arrow">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </div>
+      </a>
+
+      <button type="button" class="jcc-option" id="jccStartWizard">
+        <div class="jcc-option-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.562L16.5 21.75l-.398-1.188a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.188-.398a2.25 2.25 0 001.422-1.423l.398-1.187.398 1.187a2.25 2.25 0 001.423 1.423l1.187.398-1.187.398a2.25 2.25 0 00-1.423 1.423z"></path>
+          </svg>
+        </div>
+        <div class="jcc-option-content">
+          <h3><%= t('journeys.wizard.choice.wizardCard.title') %></h3>
+          <p><%= t('journeys.wizard.choice.wizardCard.description') %></p>
+        </div>
+        <div class="jcc-option-arrow">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .jcc-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .jcc-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 75, 52, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .jcc-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: jccSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes jccSlideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .jcc-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 24px 24px 8px 24px;
+  }
+  .jcc-modal-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 4px 0;
+  }
+  .jcc-modal-subtitle {
+    font-size: 14px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.65;
+    margin: 0;
+  }
+  .jcc-modal-close {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 75, 52, 0.05);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--theme-primary, #0b4b34);
+    transition: background 0.15s ease;
+  }
+  .jcc-modal-close:hover { background: rgba(11, 75, 52, 0.12); }
+  .jcc-modal-body {
+    padding: 16px 24px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .jcc-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 18px 20px;
+    background: white;
+    border: 2px solid rgba(11, 75, 52, 0.1);
+    border-radius: 14px;
+    cursor: pointer;
+    text-align: left;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    color: inherit;
+  }
+  .jcc-option:hover {
+    border-color: var(--theme-primary, #0b4b34);
+    background: rgba(11, 75, 52, 0.02);
+    transform: translateY(-1px);
+  }
+  .jcc-option-icon {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 75, 52, 0.1);
+    border-radius: 12px;
+    color: var(--theme-primary, #0b4b34);
+    transition: all 0.2s ease;
+  }
+  .jcc-option:hover .jcc-option-icon {
+    background: var(--theme-primary, #0b4b34);
+    color: white;
+  }
+  .jcc-option-content { flex: 1; min-width: 0; }
+  .jcc-option-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 4px 0;
+  }
+  .jcc-option-content p {
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.7;
+    line-height: 1.45;
+    margin: 0;
+  }
+  .jcc-option-arrow {
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.3;
+    transition: all 0.2s ease;
+  }
+  .jcc-option:hover .jcc-option-arrow {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+  @media (max-width: 520px) {
+    .jcc-modal-body { padding: 16px 18px 22px 18px; }
+    .jcc-option { padding: 14px 16px; }
+    .jcc-option-icon { width: 44px; height: 44px; }
+  }
+</style>
+
+<script>
+(function () {
+  const modal = document.getElementById('journeyCreateChoiceModal');
+  if (!modal) return;
+
+  function openModal() {
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('[data-journey-create-trigger]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal();
+    });
+  });
+
+  modal.querySelectorAll('[data-jcc-close]').forEach(el => {
+    el.addEventListener('click', closeModal);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (modal.style.display === 'flex' && e.key === 'Escape') {
+      closeModal();
+    }
+  });
+
+  const wizardBtn = document.getElementById('jccStartWizard');
+  if (wizardBtn) {
+    wizardBtn.addEventListener('click', () => {
+      closeModal();
+      if (window.GryffiWizard && typeof window.GryffiWizard.open === 'function') {
+        window.GryffiWizard.open();
+      }
+    });
+  }
+
+  window.GryffiJourneyChoice = { open: openModal, close: closeModal };
+})();
+</script>

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('team.title') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+    .card-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .card-body {
+      padding: 24px;
+    }
+    .table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #64748b;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      font-size: 14px;
+      color: #0f172a;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .badge-role {
+      background: rgba(120, 197, 3, 0.12);
+      border-color: rgba(120, 197, 3, 0.25);
+      color: #0b4b34;
+    }
+    .badge-muted {
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+      color: #334155;
+    }
+    .input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+      background: #fff;
+      transition: all 0.15s;
+    }
+    .input:focus {
+      outline: none;
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+    }
+    .select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: #0b4b34;
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #fff;
+      color: #334155;
+      border-color: #d1d5db;
+    }
+    .btn-danger {
+      background: #fff;
+      color: #991b1b;
+      border-color: #fecaca;
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .hint {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* Mobile-specific styles for team page */
+    @media (max-width: 767px) {
+      .table {
+        min-width: 550px;
+      }
+      
+      /* Role description text - allow wrapping */
+      .table td .text-sm.text-zen-500 {
+        max-width: 150px;
+        white-space: normal;
+        font-size: 11px;
+      }
+      
+      /* Make role dropdown smaller on mobile */
+      .table select {
+        font-size: 12px;
+        padding: 6px 8px;
+        min-width: 100px;
+      }
+      
+      /* Action buttons */
+      .table .btn-sm {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+    }
+  </style>
+  <%- include('../partials/tier-limit-styles') %>
+  <script src="/js/app.js"></script>
+</head>
+<body class="bg-gryffi-bg">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+  <%- include('../partials/support-modal') %>
+  <% const makersAtLimit = subscriptionUsage && subscriptionUsage.makers && subscriptionUsage.makers.isAtLimit; %>
+
+  <main class="main-content">
+    <%- include('../partials/free-tier-banner') %>
+    <%- include('../partials/ai-credits-banner') %>
+    
+    <div class="page-header">
+      <h1 class="page-title"><%= t('team.title') %></h1>
+      <p class="page-subtitle"><%= t('team.subtitle') %></p>
+    </div>
+
+    <div class="max-w-5xl space-y-6">
+      <!-- Roles explainer -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('team.roles.title') %></h2>
+        </div>
+        <div class="card-body grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-lg bg-zen-50 border border-zen-100">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold text-zen-900"><%= t('team.roles.admin.name') %></div>
+              <span class="badge badge-role"><%= t('team.roles.admin.badge') %></span>
+            </div>
+            <p class="text-sm text-zen-600 mt-2"><%= t('team.roles.admin.description') %></p>
+          </div>
+          <div class="p-4 rounded-lg bg-zen-50 border border-zen-100">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold text-zen-900"><%= t('team.roles.manager.name') %></div>
+              <span class="badge badge-role"><%= t('team.roles.manager.badge') %></span>
+            </div>
+            <p class="text-sm text-zen-600 mt-2"><%= t('team.roles.manager.description') %></p>
+          </div>
+          <div class="p-4 rounded-lg bg-zen-50 border border-zen-100">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold text-zen-900"><%= t('team.roles.member.name') %></div>
+              <span class="badge badge-role"><%= t('team.roles.member.badge') %></span>
+            </div>
+            <p class="text-sm text-zen-600 mt-2"><%= t('team.roles.member.description') %></p>
+          </div>
+          <div class="p-4 rounded-lg bg-zen-50 border border-zen-100">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold text-zen-900"><%= t('team.roles.viewer.name') %></div>
+              <span class="badge badge-muted"><%= t('team.roles.viewer.badge') %></span>
+            </div>
+            <p class="text-sm text-zen-600 mt-2"><%= t('team.roles.viewer.description') %></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invite (admin only) -->
+      <div class="card" id="inviteCard" style="display:none;">
+        <div class="card-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('team.invites.title') %></h2>
+          <p class="text-sm text-zen-500 mt-1"><%= t('team.invites.subtitle') %></p>
+          <p class="text-xs text-zen-400 mt-2" style="display: flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <%= t('team.invites.endUserHint') %>
+          </p>
+        </div>
+        <div class="card-body">
+          <% if (makersAtLimit) { %>
+            <!-- Maker limit reached -->
+            <div class="tier-upgrade-notice" style="margin-bottom: 20px;">
+              <div class="tier-upgrade-notice-text">
+                <strong><%= t('subscription.limits.limitReached') %></strong><br>
+                <%= t('subscription.limits.makerLimitInfo', { limit: subscriptionUsage.makers.limit }) %>
+              </div>
+              <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.cta.upgradeNow') %></a>
+            </div>
+          <% } %>
+          <form id="inviteForm" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start <%= makersAtLimit ? 'tier-disabled-field' : '' %>">
+            <div class="md:col-span-2">
+              <label class="text-sm font-medium text-zen-700" for="inviteEmail"><%= t('team.invites.email') %></label>
+              <input class="input mt-2" id="inviteEmail" type="email" placeholder="<%= t('team.invites.emailPlaceholder') %>" required <%= makersAtLimit ? 'disabled' : '' %>>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-zen-700" for="inviteRole"><%= t('team.invites.role') %></label>
+              <select class="select mt-2" id="inviteRole" <%= makersAtLimit ? 'disabled' : '' %>>
+                <option value="member"><%= t('team.roles.member.name') %></option>
+                <option value="manager"><%= t('team.roles.manager.name') %></option>
+                <option value="viewer"><%= t('team.roles.viewer.name') %></option>
+                <option value="admin"><%= t('team.roles.admin.name') %></option>
+              </select>
+              <div class="hint" id="roleHint"></div>
+            </div>
+            <div class="md:col-span-3 flex justify-end">
+              <button class="btn btn-primary <%= makersAtLimit ? 'btn-disabled' : '' %>" type="submit" id="sendInviteBtn" <%= makersAtLimit ? 'disabled' : '' %>><%= t('team.invites.send') %></button>
+            </div>
+          </form>
+
+          <div class="mt-6">
+            <h3 class="text-sm font-semibold text-zen-900"><%= t('team.invites.pendingTitle') %></h3>
+            <div class="mt-3 overflow-auto">
+              <table class="table" id="invitesTable">
+                <thead>
+                  <tr>
+                    <th><%= t('team.invites.table.email') %></th>
+                    <th><%= t('team.invites.table.role') %></th>
+                    <th><%= t('team.invites.table.expires') %></th>
+                    <th><%= t('team.invites.table.actions') %></th>
+                  </tr>
+                </thead>
+                <tbody id="invitesTbody"></tbody>
+              </table>
+            </div>
+            <p class="text-sm text-zen-500 mt-3" id="invitesEmpty" style="display:none;"><%= t('team.invites.empty') %></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Members -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-lg font-semibold text-zen-900"><%= t('team.members.title') %></h2>
+          <p class="text-sm text-zen-500 mt-1"><%= t('team.members.subtitle') %></p>
+          <p class="text-xs text-zen-400 mt-2" style="display: flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <%= t('team.members.endUserHint') %>
+          </p>
+        </div>
+        <div class="card-body">
+          <div class="overflow-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th><%= t('team.members.table.name') %></th>
+                  <th><%= t('team.members.table.email') %></th>
+                  <th><%= t('team.members.table.role') %></th>
+                  <th><%= t('team.members.table.actions') %></th>
+                </tr>
+              </thead>
+              <tbody id="membersTbody"></tbody>
+            </table>
+          </div>
+          <p class="text-sm text-zen-500 mt-3" id="membersEmpty" style="display:none;"><%= t('team.members.empty') %></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const me = <%- safeJson(user || {}) %>;
+    
+    // Translations object - safely escaped via JSON.stringify
+    const teamTranslations = <%- safeJson({
+      roles: {
+        admin: { name: t('team.roles.admin.name'), description: t('team.roles.admin.description') },
+        manager: { name: t('team.roles.manager.name'), description: t('team.roles.manager.description') },
+        member: { name: t('team.roles.member.name'), description: t('team.roles.member.description') },
+        viewer: { name: t('team.roles.viewer.name'), description: t('team.roles.viewer.description') }
+      },
+      status: {
+        active: t('team.status.active'),
+        inactive: t('team.status.inactive')
+      },
+      members: {
+        you: t('team.members.you')
+      },
+      actions: {
+        noAccess: t('team.members.actions.noAccess'),
+        deleteAccount: t('team.messages.deleteAccount'),
+        deleteMyAccount: t('team.messages.deleteMyAccount'),
+        resend: t('team.invites.actions.resend'),
+        revoke: t('team.invites.actions.revoke')
+      },
+      messages: {
+        inviteFailed: t('team.messages.inviteFailed'),
+        inviteSent: t('team.messages.inviteSent'),
+        inviteResent: t('team.messages.inviteResent'),
+        inviteRevoked: t('team.messages.inviteRevoked'),
+        updateFailed: t('team.messages.updateFailed'),
+        memberUpdated: t('team.messages.memberUpdated'),
+        memberDeleted: t('team.messages.memberDeleted'),
+        deleteFailed: t('team.messages.deleteFailed'),
+        confirmDeleteMember: t('team.messages.confirmDeleteMember'),
+        confirmDeleteSelf: t('team.messages.confirmDeleteSelf'),
+        loadFailed: t('team.messages.loadFailed'),
+        confirmRevoke: t('team.invites.confirmRevoke'),
+        confirmSelfDemote: t('team.messages.confirmSelfDemote'),
+        confirmSelfDemoteTitle: t('team.messages.confirmSelfDemoteTitle'),
+        lastAdminSelf: t('team.messages.lastAdminSelf'),
+        lastAdminTitle: t('team.messages.lastAdminTitle')
+      },
+      subscription: {
+        features: {
+          journeys: t('subscription.features.journeys'),
+          guides: t('subscription.features.guides'),
+          endUsers: t('subscription.features.endUsers'),
+          makers: t('subscription.features.makers')
+        },
+        banner: {
+          limitReached: t('subscription.banner.limitReached')
+        },
+        limits: {
+          limitReached: t('subscription.limits.limitReached'),
+          wantMore: t('subscription.limits.wantMore')
+        },
+        cta: {
+          upgradeNow: t('subscription.cta.upgradeNow')
+        }
+      },
+      common: {
+        cancel: t('common.cancel')
+      }
+    }) %>;
+
+    function tRoleName(role) {
+      return teamTranslations.roles[role]?.name || role;
+    }
+    function tRoleDescription(role) {
+      return teamTranslations.roles[role]?.description || '';
+    }
+
+    const inviteCard = document.getElementById('inviteCard');
+    const roleHint = document.getElementById('roleHint');
+    const inviteRole = document.getElementById('inviteRole');
+    inviteRole?.addEventListener('change', () => {
+      roleHint.textContent = tRoleDescription(inviteRole.value);
+    });
+    if (inviteRole) roleHint.textContent = tRoleDescription(inviteRole.value);
+
+    const membersTbody = document.getElementById('membersTbody');
+    const membersEmpty = document.getElementById('membersEmpty');
+
+    const invitesTbody = document.getElementById('invitesTbody');
+    const invitesEmpty = document.getElementById('invitesEmpty');
+
+    const isAdmin = (me && me.role === 'admin');
+    if (isAdmin) inviteCard.style.display = '';
+
+    const toastSuccess = (message) => {
+      if (window.gryffi?.toast?.success) {
+        window.gryffi.toast.success(message);
+        return;
+      }
+      console.log(message);
+    };
+    const toastError = (message) => {
+      if (window.gryffi?.toast?.error) {
+        window.gryffi.toast.error(message);
+        return;
+      }
+      console.error(message);
+    };
+    
+    // Show limit exceeded modal with upgrade CTA
+    async function showLimitExceededModal(limitType) {
+      const resourceLabels = teamTranslations.subscription.features;
+      const resourceName = resourceLabels[limitType] || limitType;
+      const message = teamTranslations.subscription.banner.limitReached.replace('{{resource}}', resourceName);
+      
+      const result = await window.gryffi.modal.confirm(
+        `<div style="text-align: center;">
+          <p style="margin: 0 0 16px; color: #4b5563;">${message}</p>
+          <p style="margin: 0; font-size: 13px; color: #6b7280;">${teamTranslations.subscription.limits.wantMore}</p>
+        </div>`,
+        {
+          title: teamTranslations.subscription.limits.limitReached,
+          type: 'warning',
+          danger: false,
+          okText: teamTranslations.subscription.cta.upgradeNow,
+          cancelText: teamTranslations.common.cancel
+        }
+      );
+      
+      if (result) {
+        window.location.href = '/dashboard/subscription';
+      }
+      
+      return result;
+    }
+
+    function formatDate(d) {
+      try { return new Date(d).toLocaleDateString('<%= language %>'); } catch (e) { return ''; }
+    }
+
+    function renderMembers(members) {
+      membersTbody.innerHTML = '';
+      if (!members || members.length === 0) {
+        membersEmpty.style.display = '';
+        return;
+      }
+      membersEmpty.style.display = 'none';
+
+      members.forEach(m => {
+        const fullName = [m.first_name, m.last_name].filter(Boolean).join(' ') || m.email;
+        const isSelf = m.id === me.id;
+        // Admins can change everyone's role, including their own (e.g. to hand
+        // over adminship). The server guarantees at least one admin remains.
+        const canEditRole = isAdmin;
+        const canManage = isAdmin && !isSelf;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(fullName)}${isSelf ? ` <span class="text-xs text-zen-400">(${escapeHtml(teamTranslations.members.you)})</span>` : ''}</td>
+          <td class="text-zen-500">${escapeHtml(m.email)}</td>
+          <td>
+            ${canEditRole ? `
+              <select class="select" data-action="setRole" data-id="${m.id}" data-self="${isSelf ? '1' : '0'}" data-current-role="${escapeHtml(m.role)}" style="max-width:220px;">
+                <option value="member" ${m.role === 'member' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.member.name)}</option>
+                <option value="manager" ${m.role === 'manager' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.manager.name)}</option>
+                <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.viewer.name)}</option>
+                <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.admin.name)}</option>
+              </select>
+              <div class="hint" style="margin-top:6px;">${escapeHtml(tRoleDescription(m.role))}</div>
+            ` : `<span class="badge badge-role">${escapeHtml(tRoleName(m.role))}</span>`}
+          </td>
+          <td>
+            ${canManage ? `
+              <button class="btn btn-danger" data-action="deleteMember" data-id="${m.id}" style="padding:6px 10px;font-size:12px;background:#991b1b;color:#fff;border-color:#991b1b;">${escapeHtml(teamTranslations.actions.deleteAccount)}</button>
+            ` : (m.id === me.id ? `
+              <button class="btn btn-danger" data-action="deleteSelf" data-id="${m.id}" style="padding:6px 10px;font-size:12px;background:#991b1b;color:#fff;border-color:#991b1b;">${escapeHtml(teamTranslations.actions.deleteMyAccount)}</button>
+            ` : `<span class="text-xs text-zen-400">${escapeHtml(teamTranslations.actions.noAccess)}</span>`)}
+          </td>
+        `;
+        membersTbody.appendChild(tr);
+      });
+    }
+
+    function renderInvites(invites) {
+      invitesTbody.innerHTML = '';
+      if (!invites || invites.length === 0) {
+        invitesEmpty.style.display = '';
+        return;
+      }
+      invitesEmpty.style.display = 'none';
+
+      invites.forEach(inv => {
+        const expires = formatDate(inv.expires_at);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(inv.email)}</td>
+          <td><span class="badge badge-role">${escapeHtml(tRoleName(inv.role))}</span></td>
+          <td class="text-zen-500">${escapeHtml(expires)}</td>
+          <td>
+            <button class="btn btn-secondary" data-action="resendInvite" data-id="${inv.id}" style="padding:6px 10px;font-size:12px;">${escapeHtml(teamTranslations.actions.resend)}</button>
+            <button class="btn btn-danger" data-action="revokeInvite" data-id="${inv.id}" style="padding:6px 10px;font-size:12px;">${escapeHtml(teamTranslations.actions.revoke)}</button>
+          </td>
+        `;
+        invitesTbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    async function loadMembers() {
+      const res = await fetch('/api/team/members');
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Failed');
+      renderMembers(data.members);
+    }
+    async function loadInvites() {
+      if (!isAdmin) return;
+      const res = await fetch(`/api/team/invites?ts=${Date.now()}`, { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Failed');
+      renderInvites(data.invites);
+    }
+
+    document.getElementById('inviteForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('inviteEmail').value.trim();
+      const role = document.getElementById('inviteRole').value;
+      const btn = document.getElementById('sendInviteBtn');
+      btn.disabled = true;
+      let success = false;
+      try {
+        const res = await fetch('/api/team/invites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, role })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          // Check for limit exceeded error
+          if (data.code === 'LIMIT_EXCEEDED') {
+            await showLimitExceededModal(data.limitType || 'makers');
+            return;
+          }
+          throw new Error(data.message || data.error || teamTranslations.messages.inviteFailed);
+        }
+        toastSuccess(data.message || teamTranslations.messages.inviteSent);
+        document.getElementById('inviteEmail').value = '';
+        success = true;
+      } catch (err) {
+        toastError(err.message || teamTranslations.messages.inviteFailed);
+      } finally {
+        btn.disabled = false;
+        // Always refresh the invites list after attempting to send
+        if (success) {
+          try {
+            await loadInvites();
+          } catch (refreshErr) {
+            console.error('Failed to refresh invites:', refreshErr);
+          }
+        }
+      }
+    });
+
+    invitesTbody?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      
+      // Handle revoke confirmation before disabling button
+      if (action === 'revokeInvite') {
+        if (!await window.gryffi.modal.confirm(teamTranslations.messages.confirmRevoke)) return;
+      }
+      
+      btn.disabled = true;
+      let shouldRefresh = false;
+      try {
+        if (action === 'resendInvite') {
+          const res = await fetch(`/api/team/invites/${id}/resend`, { method: 'POST' });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) throw new Error(data.message || teamTranslations.messages.inviteFailed);
+          toastSuccess(data.message || teamTranslations.messages.inviteResent);
+          shouldRefresh = true;
+        }
+        if (action === 'revokeInvite') {
+          const res = await fetch(`/api/team/invites/${id}`, { method: 'DELETE' });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) throw new Error(data.message || teamTranslations.messages.inviteFailed);
+          toastSuccess(data.message || teamTranslations.messages.inviteRevoked);
+          shouldRefresh = true;
+        }
+      } catch (err) {
+        toastError(err.message || teamTranslations.messages.inviteFailed);
+      } finally {
+        btn.disabled = false;
+        // Always refresh the invites list after an action
+        if (shouldRefresh) {
+          try {
+            await loadInvites();
+          } catch (refreshErr) {
+            console.error('Failed to refresh invites:', refreshErr);
+          }
+        }
+      }
+    });
+
+    membersTbody?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+
+      if (action === 'deleteMember' || action === 'deleteSelf') {
+        const confirmMsg = action === 'deleteSelf'
+          ? teamTranslations.messages.confirmDeleteSelf
+          : teamTranslations.messages.confirmDeleteMember;
+        if (!await window.gryffi.modal.confirm(confirmMsg, { type: 'danger' })) return;
+      }
+
+      btn.disabled = true;
+      try {
+        if (action === 'deleteMember' || action === 'deleteSelf') {
+          const res = await fetch(`/api/team/members/${id}`, { method: 'DELETE' });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) throw new Error(data.message || teamTranslations.messages.deleteFailed);
+          if (data.selfDeleted) {
+            window.location.href = '/login';
+            return;
+          }
+          toastSuccess(data.message || teamTranslations.messages.memberDeleted);
+          await loadMembers();
+        }
+      } catch (err) {
+        toastError(err.message || teamTranslations.messages.updateFailed);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    membersTbody?.addEventListener('change', async (e) => {
+      const sel = e.target.closest('select');
+      if (!sel) return;
+      if (sel.dataset.action !== 'setRole') return;
+      const id = sel.dataset.id;
+      const role = sel.value;
+      const isSelf = sel.dataset.self === '1';
+      const isSelfDemotion = isSelf && sel.dataset.currentRole === 'admin' && role !== 'admin';
+
+      // Changing your own role away from admin means losing admin access
+      // immediately - ask for confirmation first.
+      if (isSelfDemotion) {
+        const confirmed = await window.gryffi.modal.confirm(
+          teamTranslations.messages.confirmSelfDemote,
+          { title: teamTranslations.messages.confirmSelfDemoteTitle, type: 'warning', danger: false }
+        );
+        if (!confirmed) {
+          await loadMembers(); // reset select UI
+          return;
+        }
+      }
+
+      sel.disabled = true;
+      try {
+        const res = await fetch(`/api/team/members/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          // There must always be at least one active admin - explain why the
+          // change is not possible right now instead of a generic error toast.
+          if (data.code === 'LAST_ADMIN') {
+            await window.gryffi.modal.alert(
+              data.message || teamTranslations.messages.lastAdminSelf,
+              { title: teamTranslations.messages.lastAdminTitle, type: 'warning' }
+            );
+            await loadMembers(); // reset select UI
+            return;
+          }
+          throw new Error(data.message || teamTranslations.messages.updateFailed);
+        }
+        if (data.selfRoleChanged) {
+          // Own permissions changed - reload so the whole page reflects them.
+          window.location.reload();
+          return;
+        }
+        toastSuccess(data.message || teamTranslations.messages.memberUpdated);
+        await loadMembers();
+      } catch (err) {
+        toastError(err.message || teamTranslations.messages.updateFailed);
+        await loadMembers(); // reset select UI
+      } finally {
+        sel.disabled = false;
+      }
+    });
+
+    (async function init() {
+      try {
+        await loadMembers();
+        await loadInvites();
+      } catch (err) {
+        toastError(teamTranslations.messages.loadFailed);
+      }
+    })();
+  </script>
+</body>
+</html>
+
+

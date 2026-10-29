@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Velkommen",
+    "guide": "Guide",
+    "aiAssistant": "AI Assistent",
+    "noGuideSelected": "Ingen guide valgt",
+    "pleaseSelectGuide": "Vælg venligst en AI Guide i trinindstillingerne",
+    "selectGuideForStep": "Vælg venligst en guide til dette trin.",
+    "chat": {
+      "typeMessage": "Skriv din besked...",
+      "typeQuestion": "Skriv dit spørgsmål...",
+      "askGuide": "Spørg {{name}}",
+      "send": "Send",
+      "defaultGreeting": "Hej! Hvordan kan jeg hjælpe dig?",
+      "chatError": "Beklager, jeg kunne ikke behandle det.",
+      "connectionError": "Jeg har forbindelsesproblemer lige nu. Prøv venligst igen.",
+      "guideUnavailable": "Jeg kan ikke besvare spørgsmål lige nu. Du kan fortsætte med næste trin."
+    },
+    "content": {
+      "invalidVideoUrl": "Ugyldig video-URL",
+      "noContentYet": "Intet indhold tilføjet endnu",
+      "pressPlayToStart": "Tryk på afspil for at begynde at se"
+    },
+    "navigation": {
+      "whenReady": "Når du er klar:",
+      "journeyComplete": "Ekspedition fuldført!",
+      "leaveJourney": "Forlad ekspedition?",
+      "leaveJourneyMessage": "Er du sikker på, at du vil forlade denne ekspedition? Din fremgang er gemt.",
+      "leaveConfirm": "Forlad",
+      "stayContinue": "Bliv"
+    },
+    "pacing": {
+      "readyToContinue": "Du kan nu fortsætte",
+      "takeYourTimeMinutes": "Tag {{minutes}} minut til at udforske",
+      "takeYourTimeMinutesPlural": "Tag {{minutes}} minutter til at udforske",
+      "takeYourTimeSeconds": "Tag dig tid... {{seconds}}s",
+      "keepWatching": "Fortsæt med at se... {{seconds}}s",
+      "chatWithGuide": "Chat med guiden ({{count}}/{{total}} beskeder)"
+    },
+    "form": {
+      "title": "Formular",
+      "submit": "Indsend",
+      "submitting": "Indsender...",
+      "defaultConfirmation": "Tak! Dit svar er blevet indsendt.",
+      "formSubmitFailed": "Kunne ikke indsende formularen",
+      "formSubmitted": "Formular indsendt",
+      "submitToContinue": "Indsend formularen for at fortsætte",
+      "selectOption": "Vælg en mulighed",
+      "yes": "Ja",
+      "no": "Nej",
+      "field": "Felt",
+      "alreadySubmitted": {
+        "title": "Du har allerede indsendt denne formular",
+        "message": "Du indsendte denne formular den {{date}}. Du kan indsende den igen eller fortsætte uden at udfylde den.",
+        "skipButton": "Fortsæt uden at indsende",
+        "submitAgain": "Indsend igen"
+      },
+      "fileUpload": {
+        "dropzone": "Træk fil hertil eller klik for at gennemse",
+        "dragActive": "Slip filen her",
+        "maxSize": "Maks {{size}} MB",
+        "invalidType": "Ugyldig filtype. Tilladt: {{types}}",
+        "fileTooLarge": "Fil for stor. Maksimal størrelse: {{size}} MB",
+        "totalTooLarge": "Samlet vedhæftningsstørrelse overskrider grænsen (38 MB)",
+        "removeFile": "Fjern fil",
+        "noFileSelected": "Ingen fil valgt",
+        "fileSelected": "Fil valgt: {{name}}",
+        "subtypes": {
+          "image": "Billede",
+          "document": "Dokument",
+          "audio": "Lyd (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Kun MP3"
+        }
+      },
+      "imageRejected": "Dette billede kan ikke uploades. Vælg et andet billede.",
+      "imageCheckUnavailable": "Vi kunne ikke kontrollere dit billede lige nu. Prøv igen om et par minutter."
+    },
+    "quiz": {
+      "questionOf": "Spørgsmål {{current}} af {{total}}",
+      "checkAnswer": "Tjek svar",
+      "next": "Næste",
+      "previous": "Forrige",
+      "finish": "Send svar",
+      "correct": "Korrekt!",
+      "incorrect": "Ikke helt rigtigt",
+      "tryAgain": "Prøv igen",
+      "score": "Din score",
+      "passed": "Quiz bestået!",
+      "completed": "Quiz gennemført",
+      "allCorrect": "Alt rigtigt!",
+      "singleCorrect": "Rigtigt svar!",
+      "nextStepHint": "Rejsen fortsætter. Vælg det næste trin nedenfor.",
+      "failed": "Du skal have {{required}} rigtige svar for at fortsætte",
+      "questionsCorrect": "{{correct}} af {{total}} rigtige",
+      "retake": "Tag quiz igen",
+      "continue": "Fortsæt",
+      "completeQuizToContinue": "Fuldfør quizzen for at fortsætte"
+    },
+    "poll": {
+      "submitVote": "Afgiv stemme",
+      "completePollToContinue": "Fuldfør afstemningen for at fortsætte",
+      "alreadyVoted": "Du har allerede stemt",
+      "voteRecorded": "Din stemme er registreret",
+      "votes": "stemmer",
+      "votesCount": "{{count}} stemme",
+      "votesCountPlural": "{{count}} stemmer",
+      "respondents": "{{count}} deltager",
+      "respondentsPlural": "{{count}} deltagere",
+      "yourVote": "Din stemme"
+    },
+    "space": {
+      "dragHint": "Træk for at se dig omkring",
+      "viewFloorplan": "Se plantegning",
+      "youAreHere": "Du er her"
+    },
+    "stepTypes": {
+      "reward": "Belønning"
+    },
+    "reward": {
+      "congratulations": "Tillykke!",
+      "youAreNumber": "Du er nummer #{{position}} til at få denne belønning!",
+      "yourCode": "Din belønningskode",
+      "redeemAt": "Indløs hos",
+      "terms": "Vilkår og betingelser",
+      "validUntil": "Gyldig til",
+      "downloadCoupon": "Download kupon",
+      "emailSent": "En kopi er sendt til din e-mail",
+      "alreadyClaimed": "Du har allerede fået en belønning for denne ekspedition",
+      "noMoreRewards": "Beklager, alle belønninger er uddelt",
+      "previewMode": "Forhåndsvisning - Ingen rigtig kode genereret",
+      "claimed": "Belønning modtaget",
+      "soldOut": {
+        "title": "Hvor ærgerligt!",
+        "message": "Desværre kom du for sent til at modtage en belønning. Alle belønninger er allerede uddelt.",
+        "continueJourney": "Fortsæt ekspedition"
+      }
+    },
+    "tts": {
+      "listen": "Lyt",
+      "stop": "Stop",
+      "listenLabel": "Få dette trin læst højt",
+      "stopLabel": "Stop oplæsning"
+    },
+    "reading": {
+      "settings": "Læseindstillinger",
+      "dyslexicFont": "Ordblindevenlig skrifttype"
+    },
+    "orientation": {
+      "step": "Trin {{current}} af {{total}}",
+      "duration": "±{{minutes}} min."
+    },
+    "session": {
+      "expired": "Din session er udløbet. Klik på Genindlæs for at fortsætte.",
+      "reload": "Genindlæs"
+    }
+  }
+}

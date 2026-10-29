@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    .error-container {
+      max-width: 440px;
+      padding: 48px;
+      text-align: center;
+    }
+    .error-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .error-icon.expired {
+      background: #fef3c7;
+    }
+    .error-icon.expired svg {
+      stroke: #d97706;
+    }
+    .error-icon.revoked {
+      background: #fee2e2;
+    }
+    .error-icon.revoked svg {
+      stroke: #dc2626;
+    }
+    .error-icon.completed {
+      background: rgba(120, 197, 3, 0.15);
+    }
+    .error-icon.completed svg {
+      stroke: #0b4b34;
+    }
+    .error-icon svg {
+      width: 40px;
+      height: 40px;
+    }
+    .error-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 12px;
+      font-family: 'Outfit', sans-serif;
+    }
+    .error-message {
+      font-size: 16px;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .logo {
+      margin-bottom: 48px;
+    }
+    .logo img {
+      height: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <div class="logo">
+      <img src="/images/logos/Logo---transparant-lightgreen-cropped.png" alt="Gryffi">
+    </div>
+    
+    <div class="error-icon <%= errorType %>">
+      <% if (errorType === 'completed') { %>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      <% } else if (errorType === 'revoked') { %>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+        </svg>
+      <% } else { %>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      <% } %>
+    </div>
+    
+    <h1 class="error-title"><%= title %></h1>
+    <p class="error-message"><%= message %></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Benvenuto",
+    "guide": "Guida",
+    "aiAssistant": "Assistente IA",
+    "noGuideSelected": "Nessuna guida selezionata",
+    "pleaseSelectGuide": "Seleziona una Guida IA nelle impostazioni del passaggio",
+    "selectGuideForStep": "Seleziona una guida per questo passaggio.",
+    "chat": {
+      "typeMessage": "Scrivi il tuo messaggio...",
+      "typeQuestion": "Scrivi la tua domanda...",
+      "askGuide": "Chiedi a {{name}}",
+      "send": "Invia",
+      "defaultGreeting": "Ciao! Come posso aiutarti?",
+      "chatError": "Mi dispiace, non sono riuscito a elaborare la richiesta.",
+      "connectionError": "Sto avendo problemi di connessione. Riprova più tardi.",
+      "guideUnavailable": "Al momento non posso rispondere alle domande. Puoi continuare con il passaggio successivo."
+    },
+    "content": {
+      "invalidVideoUrl": "URL video non valido",
+      "noContentYet": "Nessun contenuto ancora aggiunto",
+      "pressPlayToStart": "Premi play per iniziare a guardare"
+    },
+    "navigation": {
+      "whenReady": "Quando sei pronto:",
+      "journeyComplete": "Spedizione completata!",
+      "leaveJourney": "Abbandonare la spedizione?",
+      "leaveJourneyMessage": "Sei sicuro di voler abbandonare questa spedizione? I tuoi progressi sono stati salvati.",
+      "leaveConfirm": "Abbandona",
+      "stayContinue": "Rimani"
+    },
+    "pacing": {
+      "readyToContinue": "Ora puoi continuare",
+      "takeYourTimeMinutes": "Prenditi {{minutes}} minuto per esplorare",
+      "takeYourTimeMinutesPlural": "Prenditi {{minutes}} minuti per esplorare",
+      "takeYourTimeSeconds": "Prenditi il tuo tempo... {{seconds}}s",
+      "keepWatching": "Continua a guardare... {{seconds}}s",
+      "chatWithGuide": "Chatta con la guida ({{count}}/{{total}} messaggi)"
+    },
+    "form": {
+      "title": "Modulo",
+      "submit": "Invia",
+      "submitting": "Invio in corso...",
+      "defaultConfirmation": "Grazie! La tua risposta è stata inviata.",
+      "formSubmitFailed": "Invio del modulo fallito",
+      "formSubmitted": "Modulo inviato con successo",
+      "submitToContinue": "Invia il modulo per continuare",
+      "selectOption": "Seleziona un'opzione",
+      "yes": "Sì",
+      "no": "No",
+      "field": "Campo",
+      "alreadySubmitted": {
+        "title": "Hai già inviato questo modulo",
+        "message": "Hai inviato questo modulo il {{date}}. Puoi inviarlo di nuovo o continuare senza compilarlo.",
+        "skipButton": "Continua senza inviare",
+        "submitAgain": "Invia di nuovo"
+      },
+      "fileUpload": {
+        "dropzone": "Trascina il file qui o clicca per sfogliare",
+        "dragActive": "Rilascia il file qui",
+        "maxSize": "Max {{size}} MB",
+        "invalidType": "Tipo di file non valido. Consentiti: {{types}}",
+        "fileTooLarge": "File troppo grande. Dimensione massima: {{size}} MB",
+        "totalTooLarge": "La dimensione totale degli allegati supera il limite (38 MB)",
+        "removeFile": "Rimuovi file",
+        "noFileSelected": "Nessun file selezionato",
+        "fileSelected": "File selezionato: {{name}}",
+        "subtypes": {
+          "image": "Immagine",
+          "document": "Documento",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Solo MP3"
+        }
+      },
+      "imageRejected": "Questa immagine non può essere caricata. Scegli un'altra immagine.",
+      "imageCheckUnavailable": "Non è stato possibile controllare la tua immagine. Riprova tra qualche minuto."
+    },
+    "quiz": {
+      "questionOf": "Domanda {{current}} di {{total}}",
+      "checkAnswer": "Verifica risposta",
+      "next": "Avanti",
+      "previous": "Indietro",
+      "finish": "Invia risposte",
+      "correct": "Corretto!",
+      "incorrect": "Non proprio",
+      "tryAgain": "Riprova",
+      "score": "Il tuo punteggio",
+      "passed": "Quiz superato!",
+      "completed": "Quiz completato",
+      "allCorrect": "Tutto corretto!",
+      "singleCorrect": "Risposta corretta!",
+      "nextStepHint": "Il percorso continua. Scegli qui sotto il prossimo passo.",
+      "failed": "Hai bisogno di {{required}} risposte corrette per continuare",
+      "questionsCorrect": "{{correct}} su {{total}} corrette",
+      "retake": "Rifai il quiz",
+      "continue": "Continua",
+      "completeQuizToContinue": "Completa il quiz per continuare"
+    },
+    "poll": {
+      "submitVote": "Invia voto",
+      "completePollToContinue": "Completa il sondaggio per continuare",
+      "alreadyVoted": "Hai già votato",
+      "voteRecorded": "Il tuo voto è stato registrato",
+      "votes": "voti",
+      "votesCount": "{{count}} voto",
+      "votesCountPlural": "{{count}} voti",
+      "respondents": "{{count}} partecipante",
+      "respondentsPlural": "{{count}} partecipanti",
+      "yourVote": "Il tuo voto"
+    },
+    "space": {
+      "dragHint": "Trascina per guardarti intorno",
+      "viewFloorplan": "Vedi planimetria",
+      "youAreHere": "Sei qui"
+    },
+    "stepTypes": {
+      "reward": "Premio"
+    },
+    "reward": {
+      "congratulations": "Congratulazioni!",
+      "youAreNumber": "Sei il #{{position}} a richiedere questo premio!",
+      "yourCode": "Il tuo codice premio",
+      "redeemAt": "Riscatta presso",
+      "terms": "Termini e condizioni",
+      "validUntil": "Valido fino al",
+      "downloadCoupon": "Scarica coupon",
+      "emailSent": "Una copia è stata inviata alla tua email",
+      "alreadyClaimed": "Hai già richiesto un premio per questa spedizione",
+      "noMoreRewards": "Spiacenti, tutti i premi sono stati richiesti",
+      "previewMode": "Modalità anteprima - Nessun codice reale generato",
+      "claimed": "Premio richiesto",
+      "soldOut": {
+        "title": "Che peccato!",
+        "message": "Purtroppo sei arrivato troppo tardi per ricevere un premio. Tutti i premi sono già stati distribuiti.",
+        "continueJourney": "Continua la spedizione"
+      }
+    },
+    "tts": {
+      "listen": "Ascolta",
+      "stop": "Interrompi",
+      "listenLabel": "Leggi questo passaggio ad alta voce",
+      "stopLabel": "Interrompi la lettura"
+    },
+    "reading": {
+      "settings": "Impostazioni di lettura",
+      "dyslexicFont": "Carattere adatto alla dislessia"
+    },
+    "orientation": {
+      "step": "Passo {{current}} di {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "La tua sessione è scaduta. Fai clic su Ricarica per continuare.",
+      "reload": "Ricarica"
+    }
+  }
+}

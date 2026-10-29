@@ -1,0 +1,377 @@
+<!-- Onboarding Welcome Modal -->
+<% if (typeof showOnboardingWelcome !== 'undefined' && showOnboardingWelcome) { %>
+<div id="onboardingModal" class="onboarding-modal">
+  <div class="onboarding-modal-overlay"></div>
+  <div class="onboarding-modal-content">
+    <!-- Header -->
+    <div class="onboarding-modal-header">
+      <div class="onboarding-logo">
+        <img src="/images/logos/Logo---cropped-transparant.png" alt="Gryffi" style="height: 40px;">
+      </div>
+      <button type="button" class="onboarding-modal-close" id="onboardingSkipBtn" title="<%= t('onboarding.welcome.skip') %>">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Body -->
+    <div class="onboarding-modal-body">
+      <h2 class="onboarding-title"><%= t('onboarding.welcome.title', { name: user.firstName || user.email.split('@')[0] }) %></h2>
+      <p class="onboarding-subtitle"><%= t('onboarding.welcome.subtitle') %></p>
+      
+      <div class="onboarding-options">
+        <!-- Option 1: Start Demo Journey Tour -->
+        <button type="button" class="onboarding-option onboarding-option-primary" id="onboardingStartTour">
+          <div class="onboarding-option-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </div>
+          <div class="onboarding-option-content">
+            <h3><%= t('onboarding.welcome.options.tour.title') %></h3>
+            <p><%= t('onboarding.welcome.options.tour.description') %></p>
+          </div>
+          <div class="onboarding-option-arrow">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+        </button>
+        
+        <!-- Option 2: Explore on your own -->
+        <button type="button" class="onboarding-option onboarding-option-secondary" id="onboardingExplore">
+          <div class="onboarding-option-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <div class="onboarding-option-content">
+            <h3><%= t('onboarding.welcome.options.explore.title') %></h3>
+            <p><%= t('onboarding.welcome.options.explore.description') %></p>
+          </div>
+          <div class="onboarding-option-arrow">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+        </button>
+      </div>
+      
+      <p class="onboarding-help-hint">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <%= t('onboarding.welcome.helpHint') %>
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .onboarding-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .onboarding-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(11, 75, 52, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  .onboarding-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: onboardingSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes onboardingSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .onboarding-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(11, 75, 52, 0.08);
+  }
+  
+  .onboarding-modal-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 75, 52, 0.05);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--theme-primary, #0b4b34);
+    transition: all 0.15s ease;
+  }
+  
+  .onboarding-modal-close:hover {
+    background: rgba(11, 75, 52, 0.1);
+  }
+  
+  .onboarding-modal-body {
+    padding: 32px 24px;
+    text-align: center;
+  }
+  
+  .onboarding-welcome-icon {
+    margin-bottom: 20px;
+  }
+  
+  .onboarding-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 8px 0;
+    font-family: 'Outfit', sans-serif;
+  }
+  
+  .onboarding-subtitle {
+    font-size: 15px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.7;
+    margin: 0 0 28px 0;
+    line-height: 1.5;
+  }
+  
+  .onboarding-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  .onboarding-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 16px 20px;
+    background: white;
+    border: 2px solid rgba(11, 75, 52, 0.1);
+    border-radius: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+  }
+  
+  .onboarding-option:hover {
+    border-color: var(--theme-primary, #0b4b34);
+    background: rgba(11, 75, 52, 0.02);
+  }
+  
+  .onboarding-option-primary {
+    background: linear-gradient(135deg, rgba(11, 75, 52, 0.04) 0%, rgba(120, 197, 3, 0.08) 100%);
+    border-color: var(--theme-accent, #78c503);
+  }
+  
+  .onboarding-option-primary:hover {
+    border-color: var(--theme-primary, #0b4b34);
+    background: linear-gradient(135deg, rgba(11, 75, 52, 0.08) 0%, rgba(120, 197, 3, 0.12) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(11, 75, 52, 0.15);
+  }
+  
+  .onboarding-option-icon {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--theme-primary, #0b4b34);
+    border-radius: 12px;
+    color: white;
+  }
+  
+  .onboarding-option-secondary .onboarding-option-icon {
+    background: rgba(11, 75, 52, 0.1);
+    color: var(--theme-primary, #0b4b34);
+  }
+  
+  .onboarding-option-content {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .onboarding-option-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--theme-primary, #0b4b34);
+    margin: 0 0 4px 0;
+  }
+  
+  .onboarding-option-content p {
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.7;
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .onboarding-option-arrow {
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.3;
+    transition: all 0.2s ease;
+  }
+  
+  .onboarding-option:hover .onboarding-option-arrow {
+    opacity: 1;
+    transform: translateX(4px);
+  }
+  
+  .onboarding-help-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--theme-primary, #0b4b34);
+    opacity: 0.5;
+    margin: 0;
+  }
+  
+  @media (max-width: 480px) {
+    .onboarding-modal-content {
+      max-width: none;
+      margin: 0;
+      border-radius: 16px;
+    }
+    
+    .onboarding-modal-body {
+      padding: 24px 20px;
+    }
+    
+    .onboarding-option {
+      padding: 14px 16px;
+    }
+    
+    .onboarding-option-icon {
+      width: 44px;
+      height: 44px;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  const modal = document.getElementById('onboardingModal');
+  if (!modal) return;
+  
+  const overlay = modal.querySelector('.onboarding-modal-overlay');
+  const skipBtn = document.getElementById('onboardingSkipBtn');
+  const startTourBtn = document.getElementById('onboardingStartTour');
+  const exploreBtn = document.getElementById('onboardingExplore');
+  
+  function closeModal() {
+    modal.style.opacity = '0';
+    modal.style.transition = 'opacity 0.2s ease';
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 200);
+  }
+  
+  async function markWelcomeSeen() {
+    try {
+      await fetch('/api/onboarding/welcome-seen', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Failed to mark welcome as seen:', err);
+    }
+  }
+  
+  async function skipTour() {
+    try {
+      await fetch('/api/onboarding/tour-skipped', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Failed to skip tour:', err);
+    }
+    closeModal();
+  }
+  
+  async function startTour() {
+    await markWelcomeSeen();
+    try {
+      await fetch('/api/onboarding/tour-started', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Failed to mark tour started:', err);
+    }
+    
+    // Get demo journey and redirect to preview mode
+    try {
+      const response = await fetch('/api/demo-journey');
+      const data = await response.json();
+      if (data.success && data.demo_journey && data.demo_journey.id) {
+        // Redirect to preview mode - the maker experiences the journey like an end user
+        window.location.href = '/dashboard/preview/' + data.demo_journey.id;
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to get demo journey:', err);
+    }
+    
+    // Fallback: just close and go to journeys
+    closeModal();
+    window.location.href = '/dashboard/journeys';
+  }
+  
+  async function explore() {
+    await markWelcomeSeen();
+    closeModal();
+  }
+  
+  // Event listeners
+  if (skipBtn) skipBtn.addEventListener('click', skipTour);
+  if (overlay) overlay.addEventListener('click', skipTour);
+  if (startTourBtn) startTourBtn.addEventListener('click', startTour);
+  if (exploreBtn) exploreBtn.addEventListener('click', explore);
+  
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (modal.style.display !== 'none' && e.key === 'Escape') {
+      skipTour();
+    }
+  });
+})();
+</script>
+<% } %>

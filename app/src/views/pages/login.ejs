@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('auth.signIn') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <% if (locals.siteAnalytics?.enabled) { %><%- include('../cloud/analytics-script') %><% } %>
+</head>
+<body class="min-h-screen bg-gryffi-bg flex items-center justify-center p-4">
+  <!-- Background decoration -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-gryffi-accent/10 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-gryffi-primary/10 to-transparent rounded-full blur-3xl"></div>
+  </div>
+  
+  <div class="w-full max-w-md relative">
+    <!-- Logo and title -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center gap-3 mb-4">
+        <img src="/images/logos/Logo---illustration-only-cropped-transparant.png" alt="Gryffi" class="w-16 h-16">
+      </div>
+      <h1 class="text-3xl font-display font-bold text-gryffi-primary"><%= t('auth.welcomeToGryffi') %></h1>
+      <p class="text-zen-500 mt-2"><%= t('auth.tagline') %></p>
+    </div>
+    
+    <!-- Login card -->
+    <div class="glass-card-solid p-8">
+      <h2 class="text-xl font-semibold text-zen-900 mb-6"><%= t('auth.signInToAccount') %></h2>
+      
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert-error animate-fade-in" id="errorAlert">
+          <% if (typeof loginTimeout !== 'undefined' && loginTimeout > 0) { %>
+            <%- t('auth.errors.tooManyAttemptsCountdown', { seconds: loginTimeout }) %>
+          <% } else { %>
+            <%= error %>
+          <% } %>
+        </div>
+      <% } %>
+      
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert-success animate-fade-in">
+          <%= success %>
+        </div>
+      <% } %>
+      
+      <form action="/login" method="POST" class="space-y-5">
+        <div>
+          <label for="email" class="input-label"><%= t('auth.email') %></label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="input"
+            value="<%= locals.prefillEmail || '' %>"
+            placeholder="<%= t('auth.emailPlaceholder') %>"
+            required
+            autofocus
+          >
+        </div>
+        
+        <div>
+          <div class="flex justify-between items-center">
+            <label for="password" class="input-label"><%= t('auth.password') %></label>
+            <a href="/forgot-password" class="text-xs text-gryffi-primary hover:underline"><%= t('auth.forgotPassword') %></a>
+          </div>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="input"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+        
+        <button type="submit" class="btn-primary w-full py-3">
+          <%= t('auth.signIn') %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </button>
+      </form>
+
+      <% if (!locals.isCommunity) { %>
+      <div class="mt-6 text-sm text-zen-600">
+        <p class="text-center">
+          <a href="/signup" class="text-gryffi-primary font-medium hover:underline"><%= t('auth.createOrgLink') %></a>
+        </p>
+        <p class="text-center text-zen-500 mt-2"><%= t('auth.existingOrgHelp') %></p>
+      </div>
+      <% } %>
+    </div>
+    
+    <!-- Language selector for login page -->
+    <div class="flex justify-center mt-6 gap-2">
+      <% languages.forEach(lang => { %>
+        <button 
+          type="button"
+          class="lang-btn text-xs px-2 py-1 rounded transition-all duration-200 cursor-pointer <%= language === lang ? 'bg-gryffi-primary text-white font-medium' : 'text-zen-500 hover:text-gryffi-primary hover:bg-gryffi-primary/10' %>"
+          data-lang="<%= lang %>"
+          title="<%= t('common.language') %>: <%= languageNames[lang] %>"
+        ><%= languageNames[lang] %></button>
+      <% }) %>
+    </div>
+    
+    <!-- Footer -->
+    <p class="text-center text-zen-400 text-sm mt-4">
+      Gryffi - <%= t('footer.tagline') %>
+    </p>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // ===== Countdown Timer for Login Timeout =====
+      const countdownEl = document.getElementById('countdown');
+      const errorAlert = document.getElementById('errorAlert');
+      const loginForm = document.querySelector('form[action="/login"]');
+      const submitBtn = loginForm?.querySelector('button[type="submit"]');
+      
+      if (countdownEl) {
+        let seconds = parseInt(countdownEl.textContent, 10);
+        
+        // Disable form during timeout
+        if (submitBtn && seconds > 0) {
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.6';
+          submitBtn.style.cursor = 'not-allowed';
+        }
+        
+        const countdown = setInterval(() => {
+          seconds--;
+          countdownEl.textContent = seconds;
+          
+          if (seconds <= 0) {
+            clearInterval(countdown);
+            // Hide the error message and re-enable form
+            if (errorAlert) {
+              errorAlert.style.transition = 'opacity 0.3s ease-out';
+              errorAlert.style.opacity = '0';
+              setTimeout(() => {
+                errorAlert.style.display = 'none';
+              }, 300);
+            }
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.style.opacity = '1';
+              submitBtn.style.cursor = 'pointer';
+            }
+          }
+        }, 1000);
+      }
+
+      // ===== Language Switcher =====
+      const langButtons = document.querySelectorAll('.lang-btn');
+      
+      langButtons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const lang = btn.dataset.lang;
+          
+          // Don't do anything if already selected
+          if (btn.classList.contains('bg-gryffi-primary')) {
+            return;
+          }
+          
+          // Visual feedback: disable all buttons temporarily
+          langButtons.forEach(b => {
+            b.disabled = true;
+            b.style.opacity = '0.6';
+            b.style.cursor = 'wait';
+          });
+          
+          try {
+            const res = await fetch('/api/language', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ language: lang })
+            });
+            
+            if (res.ok) {
+              // Reload page to apply new language
+              window.location.reload();
+            } else {
+              // Re-enable buttons on error
+              langButtons.forEach(b => {
+                b.disabled = false;
+                b.style.opacity = '1';
+                b.style.cursor = 'pointer';
+              });
+              console.error('Failed to change language:', await res.text());
+            }
+          } catch (err) {
+            console.error('Failed to change language:', err);
+            // Re-enable buttons on error
+            langButtons.forEach(b => {
+              b.disabled = false;
+              b.style.opacity = '1';
+              b.style.cursor = 'pointer';
+            });
+          }
+        });
+      });
+    });
+  </script>
+
+  <% if (locals.siteAnalytics?.enabled) { %><%- include('../cloud/analytics-login', { error: typeof error !== 'undefined' ? error : null }) %><% } %>
+</body>
+</html>

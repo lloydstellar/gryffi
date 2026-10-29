@@ -1,0 +1,116 @@
+# Gryffi Community Edition
+#
+# All settings come from .env next to this file (see .env.example). Optional
+# services are switched on with COMPOSE_PROFILES in .env:
+#   https   Caddy in front of Gryffi, with automatic HTTPS for GRYFFI_DOMAIN
+#   parser  reads PDF, Word and PowerPoint for the AI guides (needs about 2 GB RAM)
+#   nsfw    checks uploaded images for nudity
+#
+# Only Caddy listens on the network. Gryffi itself listens on 127.0.0.1, for a
+# reverse proxy of your own when you do not use the https profile.
+
+name: gryffi
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *restart
+    image: ${GRYFFI_IMAGE:-ghcr.io/lloydstellar/gryffi}:${GRYFFI_VERSION:-latest}
+    environment:
+      APP_URL: ${APP_URL:?Set APP_URL in .env}
+      DATABASE_URL: postgresql://gryffi_app_rt:${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}@db:5432/gryffi_db
+      MIGRATION_DATABASE_URL: postgresql://gryffi_user:${DB_PASSWORD:?Set DB_PASSWORD in .env}@db:5432/gryffi_db
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}@redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
+      OAUTH_TOKEN_KEY: ${OAUTH_TOKEN_KEY:?Set OAUTH_TOKEN_KEY in .env}
+      PARSER_URL: http://parser:8000
+      NUDENET_URL: http://nudenet:8002
+      NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=512}
+    volumes:
+      - uploads:/app/uploads
+    # Lets Gryffi reach services on this server itself, such as Ollama:
+    # http://host.docker.internal:11434/v1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:${GRYFFI_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    <<: *restart
+    image: pgvector/pgvector:0.8.1-pg16
+    environment:
+      POSTGRES_USER: gryffi_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: gryffi_db
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gryffi_user -d gryffi_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    <<: *restart
+    image: redis:7.4-alpine
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+  caddy:
+    <<: *restart
+    profiles: ["https"]
+    image: caddy:2.10-alpine
+    command: ["caddy", "reverse-proxy", "--from", "${GRYFFI_DOMAIN:-}", "--to", "app:3000"]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
+  parser:
+    <<: *restart
+    profiles: ["parser"]
+    image: quay.io/unstructured-io/unstructured-api:0.0.82
+    environment:
+      UNSTRUCTURED_MEMORY_FREE_MINIMUM_MB: 512
+    deploy:
+      resources:
+        limits:
+          memory: ${PARSER_MEMORY_LIMIT:-4G}
+
+  nudenet:
+    <<: *restart
+    profiles: ["nsfw"]
+    image: ${GRYFFI_NUDENET_IMAGE:-ghcr.io/lloydstellar/gryffi-nudenet}:${GRYFFI_VERSION:-latest}
+    deploy:
+      resources:
+        limits:
+          memory: ${NUDENET_MEMORY_LIMIT:-1G}
+
+volumes:
+  uploads:
+  postgres:
+  redis:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,13 @@
+# Only app/, help-base/, the role scripts and the entrypoint go into the image
+**/node_modules
+**/.git
+**/.env
+**/.env.*
+app/test
+app/uploads
+app/logs
+app/data
+help-base/screenshot-generator
+tests
+*.md
+!help-base/**/*.md

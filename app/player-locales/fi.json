@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Tervetuloa",
+    "guide": "Opas",
+    "aiAssistant": "AI Avustaja",
+    "noGuideSelected": "Ei opasta valittu",
+    "pleaseSelectGuide": "Valitse AI Opas vaiheen asetuksista",
+    "selectGuideForStep": "Valitse opas tälle vaiheelle.",
+    "chat": {
+      "typeMessage": "Kirjoita viestisi...",
+      "typeQuestion": "Kirjoita kysymyksesi...",
+      "askGuide": "Kysy {{name}}",
+      "send": "Lähetä",
+      "defaultGreeting": "Hei! Kuinka voin auttaa?",
+      "chatError": "Pahoittelen, en pystynyt käsittelemään sitä.",
+      "connectionError": "Minulla on yhteysongelmia. Yritä uudelleen.",
+      "guideUnavailable": "En pysty vastaamaan kysymyksiin juuri nyt. Voit jatkaa seuraavaan vaiheeseen."
+    },
+    "content": {
+      "invalidVideoUrl": "Virheellinen video-URL",
+      "noContentYet": "Sisältöä ei ole vielä lisätty",
+      "pressPlayToStart": "Paina toista aloittaaksesi katselun"
+    },
+    "navigation": {
+      "whenReady": "Kun olet valmis:",
+      "journeyComplete": "Tutkimusretki suoritettu!",
+      "leaveJourney": "Poistu retkeltä?",
+      "leaveJourneyMessage": "Haluatko varmasti poistua tältä retkeltä? Edistymisesi on tallennettu.",
+      "leaveConfirm": "Poistu",
+      "stayContinue": "Jää"
+    },
+    "pacing": {
+      "readyToContinue": "Voit nyt jatkaa",
+      "takeYourTimeMinutes": "Käytä {{minutes}} minuutti tutkimiseen",
+      "takeYourTimeMinutesPlural": "Käytä {{minutes}} minuuttia tutkimiseen",
+      "takeYourTimeSeconds": "Ota aikaa... {{seconds}}s",
+      "keepWatching": "Jatka katsomista... {{seconds}}s",
+      "chatWithGuide": "Keskustele oppaan kanssa ({{count}}/{{total}} viestiä)"
+    },
+    "form": {
+      "title": "Lomake",
+      "submit": "Lähetä",
+      "submitting": "Lähetetään...",
+      "defaultConfirmation": "Kiitos! Vastauksesi on lähetetty.",
+      "formSubmitFailed": "Lomakkeen lähetys epäonnistui",
+      "formSubmitted": "Lomake lähetetty onnistuneesti",
+      "submitToContinue": "Lähetä lomake jatkaaksesi",
+      "selectOption": "Valitse vaihtoehto",
+      "yes": "Kyllä",
+      "no": "Ei",
+      "field": "Kenttä",
+      "alreadySubmitted": {
+        "title": "Olet jo lähettänyt tämän lomakkeen",
+        "message": "Lähetit tämän lomakkeen {{date}}. Voit lähettää sen uudelleen tai jatkaa täyttämättä.",
+        "skipButton": "Jatka lähettämättä",
+        "submitAgain": "Lähetä uudelleen"
+      },
+      "fileUpload": {
+        "dropzone": "Vedä tiedosto tähän tai klikkaa selataksesi",
+        "dragActive": "Pudota tiedosto tähän",
+        "maxSize": "Max {{size}} Mt",
+        "invalidType": "Virheellinen tiedostotyyppi. Sallitut: {{types}}",
+        "fileTooLarge": "Tiedosto liian suuri. Maksimikoko: {{size}} Mt",
+        "totalTooLarge": "Liitteiden kokonaiskoko ylittää rajan (38 Mt)",
+        "removeFile": "Poista tiedosto",
+        "noFileSelected": "Ei tiedostoa valittu",
+        "fileSelected": "Tiedosto valittu: {{name}}",
+        "subtypes": {
+          "image": "Kuva",
+          "document": "Asiakirja",
+          "audio": "Ääni (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Vain MP3"
+        }
+      },
+      "imageRejected": "Tätä kuvaa ei voi ladata. Valitse toinen kuva.",
+      "imageCheckUnavailable": "Emme voineet tarkistaa kuvaasi juuri nyt. Yritä uudelleen muutaman minuutin kuluttua."
+    },
+    "quiz": {
+      "questionOf": "Kysymys {{current}} / {{total}}",
+      "checkAnswer": "Tarkista vastaus",
+      "next": "Seuraava",
+      "previous": "Edellinen",
+      "finish": "Lähetä vastaukset",
+      "correct": "Oikein!",
+      "incorrect": "Ei aivan oikein",
+      "tryAgain": "Yritä uudelleen",
+      "score": "Pisteesi",
+      "passed": "Tietovisa läpäisty!",
+      "completed": "Tietovisa suoritettu",
+      "allCorrect": "Kaikki oikein!",
+      "singleCorrect": "Oikea vastaus!",
+      "nextStepHint": "Matka jatkuu. Valitse seuraava vaihe alta.",
+      "failed": "Tarvitset {{required}} oikeaa vastausta jatkaaksesi",
+      "questionsCorrect": "{{correct}} / {{total}} oikein",
+      "retake": "Tee tietovisa uudelleen",
+      "continue": "Jatka",
+      "completeQuizToContinue": "Suorita tietovisa jatkaaksesi"
+    },
+    "poll": {
+      "submitVote": "Äänestä",
+      "completePollToContinue": "Suorita kysely jatkaaksesi",
+      "alreadyVoted": "Olet jo äänestänyt",
+      "voteRecorded": "Äänesi on kirjattu",
+      "votes": "ääntä",
+      "votesCount": "{{count}} ääni",
+      "votesCountPlural": "{{count}} ääntä",
+      "respondents": "{{count}} osallistuja",
+      "respondentsPlural": "{{count}} osallistujaa",
+      "yourVote": "Äänesi"
+    },
+    "space": {
+      "dragHint": "Vedä katsoaksesi ympärillesi",
+      "viewFloorplan": "Näytä pohjapiirros",
+      "youAreHere": "Olet tässä"
+    },
+    "stepTypes": {
+      "reward": "Palkinto"
+    },
+    "reward": {
+      "congratulations": "Onnittelut!",
+      "youAreNumber": "Olet #{{position}} lunastamaan tämän palkinnon!",
+      "yourCode": "Palkintokoodi",
+      "redeemAt": "Lunasta",
+      "terms": "Ehdot",
+      "validUntil": "Voimassa",
+      "downloadCoupon": "Lataa kuponki",
+      "emailSent": "Kopio on lähetetty sähköpostiisi",
+      "alreadyClaimed": "Olet jo lunastanut palkinnon tältä tutkimusretkeltä",
+      "noMoreRewards": "Pahoittelut, kaikki palkinnot on jaettu",
+      "previewMode": "Esikatselu - Ei oikeaa koodia luotu",
+      "claimed": "Palkinto lunastettu",
+      "soldOut": {
+        "title": "Harmi!",
+        "message": "Valitettavasti tulit liian myöhään saadaksesi palkinnon. Kaikki palkinnot on jo jaettu.",
+        "continueJourney": "Jatka tutkimusretkeä"
+      }
+    },
+    "tts": {
+      "listen": "Kuuntele",
+      "stop": "Pysäytä",
+      "listenLabel": "Kuuntele tämä vaihe ääneen luettuna",
+      "stopLabel": "Pysäytä ääneen lukeminen"
+    },
+    "reading": {
+      "settings": "Lukuasetukset",
+      "dyslexicFont": "Dysleksiaystävällinen fontti"
+    },
+    "orientation": {
+      "step": "Vaihe {{current}}/{{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Istuntosi on päättynyt. Jatka valitsemalla Lataa uudelleen.",
+      "reload": "Lataa uudelleen"
+    }
+  }
+}

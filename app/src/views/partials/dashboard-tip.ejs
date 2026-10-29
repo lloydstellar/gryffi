@@ -1,0 +1,45 @@
+<%# Dashboard tip: one behaviour-driven nudge, dismissable per user. Expects `dashboardTip` (see services/tips.js). %>
+<% if (typeof dashboardTip !== 'undefined' && dashboardTip) { %>
+<% const tipBase = 'dashboard.tips.items.' + dashboardTip.contentKey; %>
+<section class="dashboard-tip" id="dashboardTip" aria-labelledby="dashboardTipTitle" data-tip-key="<%= dashboardTip.key %>">
+  <div class="dashboard-tip-icon" aria-hidden="true">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+    </svg>
+  </div>
+  <div class="dashboard-tip-body">
+    <span class="dashboard-tip-label"><%= t('dashboard.tips.label') %></span>
+    <h3 id="dashboardTipTitle" class="dashboard-tip-title"><%= t(tipBase + '.title', dashboardTip.vars) %></h3>
+    <p class="dashboard-tip-text"><%= t(tipBase + '.body', dashboardTip.vars) %></p>
+    <div class="dashboard-tip-actions">
+      <a href="<%= dashboardTip.link %>" class="btn-primary dashboard-tip-action"><%= t(tipBase + '.action') %></a>
+      <button type="button" class="dashboard-tip-dismiss" data-tip-dismiss><%= t('dashboard.tips.dismiss') %></button>
+    </div>
+  </div>
+</section>
+<script>
+  (function() {
+    var tip = document.getElementById('dashboardTip');
+    var dismissBtn = tip && tip.querySelector('[data-tip-dismiss]');
+    if (!dismissBtn) return;
+
+    dismissBtn.addEventListener('click', function() {
+      dismissBtn.disabled = true;
+      fetch('/api/onboarding/tip-dismissed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tip_key: tip.getAttribute('data-tip-key') })
+      }).catch(function() {
+        // Best effort: the tip is hidden either way and will be re-evaluated on the next visit
+      });
+
+      var alerts = tip.closest('.dashboard-alerts');
+      tip.remove();
+      if (alerts && alerts.children.length === 0) {
+        alerts.remove();
+      }
+    });
+  })();
+</script>
+<% } %>

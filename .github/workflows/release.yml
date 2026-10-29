@@ -1,0 +1,128 @@
+name: Release
+
+# A tag v1.2.3 builds and signs the images, runs the smoke test against them
+# and publishes the GitHub release with compose.yml, the install script and
+# the gryffi command.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ghcr.io/${{ github.repository_owner }}/gryffi
+  NUDENET_IMAGE: ghcr.io/${{ github.repository_owner }}/gryffi-nudenet
+
+jobs:
+  images:
+    name: Build, sign and scan the images
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Build and push gryffi
+        id: app
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: GRYFFI_VERSION=${{ steps.version.outputs.version }}
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
+            ${{ env.IMAGE }}:latest
+          sbom: true
+          provenance: mode=max
+
+      - name: Build and push gryffi-nudenet
+        id: nudenet
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/nudenet
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.NUDENET_IMAGE }}:${{ steps.version.outputs.version }}
+            ${{ env.NUDENET_IMAGE }}:latest
+          sbom: true
+          provenance: mode=max
+
+      - name: Sign the images
+        run: |
+          cosign sign --yes "${IMAGE}@${{ steps.app.outputs.digest }}"
+          cosign sign --yes "${NUDENET_IMAGE}@${{ steps.nudenet.outputs.digest }}"
+
+      - name: Scan for known vulnerabilities
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+  smoke:
+    name: Smoke test of the published images
+    needs: images
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Smoke test
+        env:
+          GRYFFI_IMAGE: ghcr.io/${{ github.repository_owner }}/gryffi
+          GRYFFI_VERSION: ${{ needs.images.outputs.version }}
+        run: tests/smoke/run.sh
+
+  release:
+    name: GitHub release
+    needs: [images, smoke]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Release files
+        env:
+          VERSION: ${{ needs.images.outputs.version }}
+        run: |
+          mkdir dist
+          # Pin the version in the published compose.yml
+          sed "s/\${GRYFFI_VERSION:-latest}/\${GRYFFI_VERSION:-$VERSION}/g" compose.yml > dist/compose.yml
+          cp install.sh bin/gryffi .env.example dist/
+          (cd dist && sha256sum compose.yml install.sh gryffi .env.example > SHA256SUMS)
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[?" v "\\]?([ ]|$)" { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > dist/notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Gryffi ${{ needs.images.outputs.version }}
+          body_path: dist/notes.md
+          files: |
+            dist/compose.yml
+            dist/install.sh
+            dist/gryffi
+            dist/.env.example
+            dist/SHA256SUMS

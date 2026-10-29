@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('setup.title') %></title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/setup.css">
+</head>
+<body class="setup-page">
+  <main class="setup-shell">
+    <header class="setup-header">
+      <img src="/images/logos/Logo---cropped-transparant.png" alt="Gryffi" class="setup-logo">
+      <p class="setup-progress" id="stepIndicator" aria-live="polite"></p>
+      <ol class="setup-steps" aria-hidden="true">
+        <% ['server', 'organization', 'admin', 'ai', 'email', 'features', 'install'].forEach((key, i) => { %>
+          <li data-step-dot="<%= i %>"><%= t('setup.steps.' + key + '.short') %></li>
+        <% }) %>
+      </ol>
+    </header>
+
+    <form id="setupForm" class="setup-card" novalidate>
+
+      <!-- 1. Server checks -->
+      <section class="setup-step" data-step="server" aria-labelledby="step-server-title">
+        <h1 id="step-server-title"><%= t('setup.steps.server.title') %></h1>
+        <p><%= t('setup.steps.server.intro') %></p>
+        <ul class="setup-checklist" id="serverChecks" aria-live="polite">
+          <li class="setup-check setup-check--pending"><%= t('setup.steps.server.checking') %></li>
+        </ul>
+        <button type="button" class="setup-button" id="rerunChecks"><%= t('setup.steps.server.retry') %></button>
+      </section>
+
+      <!-- 2. Organization -->
+      <section class="setup-step" data-step="organization" aria-labelledby="step-org-title" hidden>
+        <h1 id="step-org-title"><%= t('setup.steps.organization.title') %></h1>
+        <p><%= t('setup.steps.organization.intro') %></p>
+        <div class="setup-field">
+          <label for="organizationName" class="setup-label"><%= t('setup.steps.organization.name') %></label>
+          <input id="organizationName" name="organizationName" class="setup-input" required maxlength="120" autocomplete="organization">
+        </div>
+        <div class="setup-field">
+          <label for="language" class="setup-label"><%= t('setup.steps.organization.language') %></label>
+          <select id="language" name="language" class="setup-input" aria-describedby="languageHint">
+            <% Object.entries(languageNames).forEach(([code, name]) => { %>
+              <option value="<%= code %>" <%= code === language ? 'selected' : '' %>><%= name %></option>
+            <% }) %>
+          </select>
+          <p id="languageHint" class="setup-hint"><%= t('setup.steps.organization.languageHint') %></p>
+        </div>
+      </section>
+
+      <!-- 3. Admin account -->
+      <section class="setup-step" data-step="admin" aria-labelledby="step-admin-title" hidden>
+        <h1 id="step-admin-title"><%= t('setup.steps.admin.title') %></h1>
+        <p><%= t('setup.steps.admin.intro') %></p>
+        <div class="setup-row">
+          <div class="setup-field">
+            <label for="firstName" class="setup-label"><%= t('setup.steps.admin.firstName') %></label>
+            <input id="firstName" name="firstName" class="setup-input" required autocomplete="given-name">
+          </div>
+          <div class="setup-field">
+            <label for="lastName" class="setup-label"><%= t('setup.steps.admin.lastName') %></label>
+            <input id="lastName" name="lastName" class="setup-input" required autocomplete="family-name">
+          </div>
+        </div>
+        <div class="setup-field">
+          <label for="email" class="setup-label"><%= t('setup.steps.admin.email') %></label>
+          <input id="email" name="email" type="email" class="setup-input" required autocomplete="email" aria-describedby="emailHint">
+          <p id="emailHint" class="setup-hint"><%= t('setup.steps.admin.emailHint') %></p>
+        </div>
+        <div class="setup-field">
+          <label for="password" class="setup-label"><%= t('setup.steps.admin.password') %></label>
+          <input id="password" name="password" type="password" class="setup-input" required minlength="12" autocomplete="new-password" aria-describedby="passwordHint">
+          <p id="passwordHint" class="setup-hint"><%= t('setup.steps.admin.passwordHint') %></p>
+        </div>
+        <div class="setup-field">
+          <label for="passwordConfirm" class="setup-label"><%= t('setup.steps.admin.passwordConfirm') %></label>
+          <input id="passwordConfirm" name="passwordConfirm" type="password" class="setup-input" required autocomplete="new-password">
+        </div>
+        <label class="setup-toggle setup-toggle--inline">
+          <input type="checkbox" id="showPassword"> <span><%= t('setup.steps.admin.showPassword') %></span>
+        </label>
+      </section>
+
+      <!-- 4. AI -->
+      <section class="setup-step" data-step="ai" aria-labelledby="step-ai-title" hidden>
+        <h1 id="step-ai-title"><%= t('setup.steps.ai.title') %></h1>
+        <p><%= t('setup.steps.ai.intro') %></p>
+        <label class="setup-toggle">
+          <input type="checkbox" id="aiDisabled"> <span><%= t('setup.steps.ai.noAi') %></span>
+        </label>
+        <p class="setup-hint"><%= t('setup.steps.ai.noAiHint') %></p>
+
+        <div id="aiFields">
+          <div class="setup-field">
+            <label for="aiProvider" class="setup-label"><%= t('setup.steps.ai.provider') %></label>
+            <select id="aiProvider" class="setup-input" aria-describedby="aiProviderHint">
+              <option value="mistral"><%= t('setup.steps.ai.providers.mistral') %></option>
+              <option value="openai"><%= t('setup.steps.ai.providers.openai') %></option>
+              <option value="openrouter"><%= t('setup.steps.ai.providers.openrouter') %></option>
+              <option value="ollama"><%= t('setup.steps.ai.providers.ollama') %></option>
+              <option value="other"><%= t('setup.steps.ai.providers.other') %></option>
+            </select>
+            <p id="aiProviderHint" class="setup-hint"></p>
+          </div>
+          <div class="setup-field">
+            <label for="aiBaseUrl" class="setup-label"><%= t('setup.steps.ai.baseUrl') %></label>
+            <input id="aiBaseUrl" class="setup-input" inputmode="url" spellcheck="false">
+          </div>
+          <div class="setup-field">
+            <label for="aiApiKey" class="setup-label"><%= t('setup.steps.ai.apiKey') %></label>
+            <input id="aiApiKey" type="password" class="setup-input" autocomplete="off" spellcheck="false" aria-describedby="aiApiKeyHint">
+            <p id="aiApiKeyHint" class="setup-hint"><%= t('setup.steps.ai.apiKeyHint') %></p>
+          </div>
+          <div class="setup-field">
+            <label for="aiChatModel" class="setup-label"><%= t('setup.steps.ai.chatModel') %></label>
+            <input id="aiChatModel" class="setup-input" list="aiModelList" spellcheck="false" aria-describedby="aiChatModelHint">
+            <datalist id="aiModelList"></datalist>
+            <p id="aiChatModelHint" class="setup-hint"><%= t('setup.steps.ai.chatModelHint') %></p>
+          </div>
+          <button type="button" class="setup-button" data-test="ai"><%= t('setup.steps.ai.testConnection') %></button>
+          <div class="setup-result" data-result="ai" role="status" aria-live="polite"></div>
+
+          <h2><%= t('setup.steps.ai.embeddingTitle') %></h2>
+          <p class="setup-hint"><%= t('setup.steps.ai.embeddingHint') %></p>
+          <div class="setup-field">
+            <label for="aiEmbeddingModel" class="setup-label"><%= t('setup.steps.ai.embeddingModel') %></label>
+            <input id="aiEmbeddingModel" class="setup-input" list="aiModelList" spellcheck="false">
+          </div>
+          <label class="setup-toggle">
+            <input type="checkbox" id="aiSeparateEmbeddings"> <span><%= t('setup.steps.ai.separateEmbeddings') %></span>
+          </label>
+          <div id="aiEmbeddingProvider" hidden>
+            <div class="setup-field">
+              <label for="aiEmbeddingBaseUrl" class="setup-label"><%= t('setup.steps.ai.embeddingBaseUrl') %></label>
+              <input id="aiEmbeddingBaseUrl" class="setup-input" inputmode="url" spellcheck="false">
+            </div>
+            <div class="setup-field">
+              <label for="aiEmbeddingApiKey" class="setup-label"><%= t('setup.steps.ai.embeddingApiKey') %></label>
+              <input id="aiEmbeddingApiKey" type="password" class="setup-input" autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+          <button type="button" class="setup-button" data-test="embeddings"><%= t('setup.steps.ai.testEmbeddings') %></button>
+          <div class="setup-result" data-result="embeddings" role="status" aria-live="polite"></div>
+
+          <h2><%= t('setup.steps.ai.optionalTitle') %></h2>
+          <div class="setup-field">
+            <label for="aiVisionModel" class="setup-label"><%= t('setup.steps.ai.visionModel') %></label>
+            <input id="aiVisionModel" class="setup-input" list="aiModelList" spellcheck="false" aria-describedby="aiVisionHint">
+            <p id="aiVisionHint" class="setup-hint"><%= t('setup.steps.ai.visionHint') %></p>
+          </div>
+          <button type="button" class="setup-button" data-test="vision"><%= t('setup.steps.ai.testVision') %></button>
+          <div class="setup-result" data-result="vision" role="status" aria-live="polite"></div>
+          <div class="setup-row">
+            <div class="setup-field">
+              <label for="aiTtsModel" class="setup-label"><%= t('setup.steps.ai.speechModel') %></label>
+              <input id="aiTtsModel" class="setup-input" spellcheck="false" aria-describedby="aiTtsHint">
+            </div>
+            <div class="setup-field">
+              <label for="aiTtsVoice" class="setup-label"><%= t('setup.steps.ai.speechVoice') %></label>
+              <input id="aiTtsVoice" class="setup-input" spellcheck="false">
+            </div>
+          </div>
+          <p id="aiTtsHint" class="setup-hint"><%= t('setup.steps.ai.speechHint') %></p>
+          <button type="button" class="setup-button" data-test="speech"><%= t('setup.steps.ai.testSpeech') %></button>
+          <div class="setup-result" data-result="speech" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- 5. Email -->
+      <section class="setup-step" data-step="email" aria-labelledby="step-email-title" hidden>
+        <h1 id="step-email-title"><%= t('setup.steps.email.title') %></h1>
+        <p><%= t('setup.steps.email.intro') %></p>
+        <label class="setup-toggle">
+          <input type="checkbox" id="emailSkip"> <span><%= t('setup.steps.email.skip') %></span>
+        </label>
+        <p class="setup-hint" id="emailSkipWarning" hidden><%= t('setup.steps.email.skipWarning') %></p>
+        <div id="emailFields">
+          <div class="setup-row">
+            <div class="setup-field setup-field--wide">
+              <label for="smtpHost" class="setup-label"><%= t('setup.steps.email.host') %></label>
+              <input id="smtpHost" class="setup-input" spellcheck="false" placeholder="smtp.example.com">
+            </div>
+            <div class="setup-field setup-field--small">
+              <label for="smtpPort" class="setup-label"><%= t('setup.steps.email.port') %></label>
+              <input id="smtpPort" class="setup-input" inputmode="numeric" value="587">
+            </div>
+          </div>
+          <div class="setup-field">
+            <label for="smtpSecurity" class="setup-label"><%= t('setup.steps.email.security') %></label>
+            <select id="smtpSecurity" class="setup-input">
+              <option value="starttls"><%= t('setup.steps.email.securityOptions.starttls') %></option>
+              <option value="tls"><%= t('setup.steps.email.securityOptions.tls') %></option>
+              <option value="none"><%= t('setup.steps.email.securityOptions.none') %></option>
+            </select>
+          </div>
+          <div class="setup-row">
+            <div class="setup-field">
+              <label for="smtpUser" class="setup-label"><%= t('setup.steps.email.user') %></label>
+              <input id="smtpUser" class="setup-input" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="setup-field">
+              <label for="smtpPassword" class="setup-label"><%= t('setup.steps.email.password') %></label>
+              <input id="smtpPassword" type="password" class="setup-input" autocomplete="off">
+            </div>
+          </div>
+          <div class="setup-field">
+            <label for="emailFrom" class="setup-label"><%= t('setup.steps.email.from') %></label>
+            <input id="emailFrom" class="setup-input" spellcheck="false" aria-describedby="emailFromHint">
+            <p id="emailFromHint" class="setup-hint"><%= t('setup.steps.email.fromHint') %></p>
+          </div>
+          <button type="button" class="setup-button" data-test="email"><%= t('setup.steps.email.test') %></button>
+          <div class="setup-result" data-result="email" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- 6. Optional features -->
+      <section class="setup-step" data-step="features" aria-labelledby="step-features-title" hidden>
+        <h1 id="step-features-title"><%= t('setup.steps.features.title') %></h1>
+        <p><%= t('setup.steps.features.intro') %></p>
+        <div class="setup-feature">
+          <label class="setup-toggle"><input type="checkbox" id="featureNsfw"> <span><%= t('setup.steps.features.nsfw') %></span></label>
+          <p class="setup-hint"><%= t('setup.steps.features.nsfwHint') %></p>
+          <div class="setup-result" data-result="nsfw" role="status" aria-live="polite"></div>
+        </div>
+        <div class="setup-feature">
+          <label class="setup-toggle"><input type="checkbox" id="featureParser"> <span><%= t('setup.steps.features.parser') %></span></label>
+          <p class="setup-hint"><%= t('setup.steps.features.parserHint') %></p>
+          <div class="setup-result" data-result="parser" role="status" aria-live="polite"></div>
+        </div>
+        <div class="setup-feature">
+          <label class="setup-toggle"><input type="checkbox" id="featurePoweredBy" checked> <span><%= t('setup.steps.features.poweredBy') %></span></label>
+          <p class="setup-hint"><%= t('setup.steps.features.poweredByHint') %></p>
+        </div>
+        <div class="setup-feature">
+          <label for="pexelsApiKey" class="setup-label"><%= t('setup.steps.features.pexels') %></label>
+          <input id="pexelsApiKey" type="password" class="setup-input" autocomplete="off" aria-describedby="pexelsHint">
+          <p id="pexelsHint" class="setup-hint"><%= t('setup.steps.features.pexelsHint') %></p>
+        </div>
+        <p class="setup-hint"><%= t('setup.steps.features.later') %></p>
+      </section>
+
+      <!-- 7. Summary and install -->
+      <section class="setup-step" data-step="install" aria-labelledby="step-install-title" hidden>
+        <h1 id="step-install-title"><%= t('setup.steps.install.title') %></h1>
+        <p><%= t('setup.steps.install.intro') %></p>
+        <dl class="setup-summary" id="installSummary"></dl>
+        <button type="button" class="setup-button setup-button--primary" id="installButton"><%= t('setup.steps.install.button') %></button>
+        <ol class="setup-checklist" id="installProgress" aria-live="polite" hidden></ol>
+        <div class="setup-result" id="installResult" role="status" aria-live="polite"></div>
+      </section>
+
+      <div class="setup-nav">
+        <button type="button" class="setup-button" id="backButton"><%= t('setup.back') %></button>
+        <p class="setup-message setup-message--error" id="stepError" role="alert" hidden></p>
+        <button type="button" class="setup-button setup-button--primary" id="nextButton"><%= t('setup.next') %></button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    window.GRYFFI_SETUP = <%- safeJson({ texts: t('setup', { returnObjects: true }), docsUrl: 'https://docs.gryffi.com/troubleshooting/' }) %>;
+  </script>
+  <script src="/js/setup-wizard.js"></script>
+</body>
+</html>

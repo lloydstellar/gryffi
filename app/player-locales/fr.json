@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Bienvenue",
+    "guide": "Guide",
+    "aiAssistant": "Assistant IA",
+    "noGuideSelected": "Aucun guide sélectionné",
+    "pleaseSelectGuide": "Veuillez sélectionner un Guide IA dans les paramètres de l'étape",
+    "selectGuideForStep": "Veuillez sélectionner un guide pour cette étape.",
+    "chat": {
+      "typeMessage": "Tapez votre message...",
+      "typeQuestion": "Tapez votre question...",
+      "askGuide": "Demander à {{name}}",
+      "send": "Envoyer",
+      "defaultGreeting": "Bonjour ! Comment puis-je vous aider ?",
+      "chatError": "Désolé, je n'ai pas pu traiter cela.",
+      "connectionError": "J'ai des difficultés de connexion. Veuillez réessayer.",
+      "guideUnavailable": "Je ne peux pas répondre aux questions pour le moment. Vous pouvez passer à l'étape suivante."
+    },
+    "content": {
+      "invalidVideoUrl": "URL vidéo invalide",
+      "noContentYet": "Aucun contenu ajouté",
+      "pressPlayToStart": "Appuyez sur lecture pour commencer à regarder"
+    },
+    "navigation": {
+      "whenReady": "Quand vous êtes prêt :",
+      "journeyComplete": "Parcours terminé !",
+      "leaveJourney": "Quitter le parcours ?",
+      "leaveJourneyMessage": "Êtes-vous sûr de vouloir quitter ce parcours ? Votre progression a été sauvegardée.",
+      "leaveConfirm": "Quitter",
+      "stayContinue": "Rester"
+    },
+    "pacing": {
+      "readyToContinue": "Vous pouvez maintenant continuer",
+      "takeYourTimeMinutes": "Prenez {{minutes}} minute pour explorer",
+      "takeYourTimeMinutesPlural": "Prenez {{minutes}} minutes pour explorer",
+      "takeYourTimeSeconds": "Prenez votre temps... {{seconds}}s",
+      "keepWatching": "Continuez à regarder... {{seconds}}s",
+      "chatWithGuide": "Discutez avec le guide ({{count}}/{{total}} messages)"
+    },
+    "form": {
+      "title": "Formulaire",
+      "submit": "Envoyer",
+      "submitting": "Envoi en cours...",
+      "defaultConfirmation": "Merci ! Votre réponse a été envoyée.",
+      "formSubmitFailed": "Échec de l'envoi du formulaire",
+      "formSubmitted": "Formulaire envoyé avec succès",
+      "submitToContinue": "Envoyez le formulaire pour continuer",
+      "selectOption": "Sélectionner une option",
+      "yes": "Oui",
+      "no": "Non",
+      "field": "Champ",
+      "alreadySubmitted": {
+        "title": "Vous avez déjà envoyé ce formulaire",
+        "message": "Vous avez envoyé ce formulaire le {{date}}. Vous pouvez l'envoyer à nouveau ou continuer sans le remplir.",
+        "skipButton": "Continuer sans envoyer",
+        "submitAgain": "Envoyer à nouveau"
+      },
+      "fileUpload": {
+        "dropzone": "Déposez le fichier ici ou cliquez pour parcourir",
+        "dragActive": "Déposez le fichier ici",
+        "maxSize": "Max {{size}} Mo",
+        "invalidType": "Type de fichier invalide. Autorisé : {{types}}",
+        "fileTooLarge": "Fichier trop volumineux. Taille maximum : {{size}} Mo",
+        "totalTooLarge": "La taille totale des pièces jointes dépasse la limite (38 Mo)",
+        "removeFile": "Supprimer le fichier",
+        "noFileSelected": "Aucun fichier sélectionné",
+        "fileSelected": "Fichier sélectionné : {{name}}",
+        "subtypes": {
+          "image": "Image",
+          "document": "Document",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "MP3 uniquement"
+        }
+      },
+      "imageRejected": "Cette image ne peut pas être envoyée. Veuillez choisir une autre image.",
+      "imageCheckUnavailable": "Nous n'avons pas pu vérifier votre image pour le moment. Veuillez réessayer dans quelques minutes."
+    },
+    "quiz": {
+      "questionOf": "Question {{current}} sur {{total}}",
+      "checkAnswer": "Vérifier la réponse",
+      "next": "Suivant",
+      "previous": "Précédent",
+      "finish": "Envoyer les réponses",
+      "correct": "Correct !",
+      "incorrect": "Pas tout à fait",
+      "tryAgain": "Réessayer",
+      "score": "Votre score",
+      "passed": "Quiz réussi !",
+      "completed": "Quiz terminé",
+      "allCorrect": "Tout est correct !",
+      "singleCorrect": "Bonne réponse !",
+      "nextStepHint": "Le parcours continue. Choisissez l'étape suivante ci-dessous.",
+      "failed": "Vous avez besoin de {{required}} bonnes réponses pour continuer",
+      "questionsCorrect": "{{correct}} sur {{total}} correct",
+      "retake": "Refaire le quiz",
+      "continue": "Continuer",
+      "completeQuizToContinue": "Terminez le quiz pour continuer"
+    },
+    "poll": {
+      "submitVote": "Voter",
+      "completePollToContinue": "Complétez le sondage pour continuer",
+      "alreadyVoted": "Vous avez déjà voté",
+      "voteRecorded": "Votre vote a été enregistré",
+      "votes": "votes",
+      "votesCount": "{{count}} vote",
+      "votesCountPlural": "{{count}} votes",
+      "respondents": "{{count}} participant",
+      "respondentsPlural": "{{count}} participants",
+      "yourVote": "Votre vote"
+    },
+    "space": {
+      "dragHint": "Glissez pour regarder autour",
+      "viewFloorplan": "Voir le plan",
+      "youAreHere": "Vous êtes ici"
+    },
+    "stepTypes": {
+      "reward": "Récompense"
+    },
+    "reward": {
+      "congratulations": "Félicitations !",
+      "youAreNumber": "Vous êtes le #{{position}} à réclamer cette récompense !",
+      "yourCode": "Votre code de récompense",
+      "redeemAt": "À échanger chez",
+      "terms": "Conditions",
+      "validUntil": "Valable jusqu'au",
+      "downloadCoupon": "Télécharger le coupon",
+      "emailSent": "Une copie a été envoyée à votre e-mail",
+      "alreadyClaimed": "Vous avez déjà réclamé une récompense pour ce parcours",
+      "noMoreRewards": "Désolé, toutes les récompenses ont été réclamées",
+      "previewMode": "Mode aperçu - Aucun vrai code généré",
+      "claimed": "Récompense réclamée",
+      "soldOut": {
+        "title": "Quel dommage !",
+        "message": "Malheureusement, vous êtes arrivé trop tard pour recevoir une récompense. Toutes les récompenses ont déjà été distribuées.",
+        "continueJourney": "Continuer le parcours"
+      }
+    },
+    "tts": {
+      "listen": "Écouter",
+      "stop": "Arrêter",
+      "listenLabel": "Lire cette étape à voix haute",
+      "stopLabel": "Arrêter la lecture"
+    },
+    "reading": {
+      "settings": "Paramètres de lecture",
+      "dyslexicFont": "Police adaptée à la dyslexie"
+    },
+    "orientation": {
+      "step": "Étape {{current}} sur {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Votre session a expiré. Cliquez sur Recharger pour continuer.",
+      "reload": "Recharger"
+    }
+  }
+}

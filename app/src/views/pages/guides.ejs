@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('pages.guides') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .guide-card {
+      position: relative;
+      display: block;
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8e1;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .guide-card:hover {
+      box-shadow: 0 4px 40px rgba(11, 75, 52, 0.12);
+      transform: translateY(-0.25rem);
+    }
+    
+    /* Kebab Menu Styles for Guides */
+    .kebab-menu-container {
+      position: relative;
+    }
+    .kebab-menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.15s;
+    }
+    .kebab-menu-btn:hover {
+      background: rgba(11, 75, 52, 0.08);
+      color: #0b4b34;
+    }
+    .kebab-menu-btn.active {
+      background: rgba(11, 75, 52, 0.12);
+      color: #0b4b34;
+    }
+    .kebab-menu-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 4px;
+      min-width: 180px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px) scale(0.95);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+      overflow: hidden;
+    }
+    .kebab-menu-dropdown.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+    .kebab-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #334155;
+      text-align: left;
+      transition: all 0.1s;
+    }
+    .kebab-menu-item:hover {
+      background: rgba(11, 75, 52, 0.06);
+      color: #0b4b34;
+    }
+    .kebab-menu-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .kebab-menu-item.restore-item {
+      color: #0b4b34;
+    }
+    .kebab-menu-item.restore-item:hover {
+      background: rgba(11, 75, 52, 0.1);
+    }
+    .kebab-menu-item.delete-item {
+      color: #dc2626;
+    }
+    .kebab-menu-item.delete-item:hover {
+      background: rgba(220, 38, 38, 0.08);
+    }
+    .kebab-menu-divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 4px 0;
+    }
+    .guide-avatar {
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      min-height: 48px;
+      flex-shrink: 0;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0b4b34, #78c503);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      overflow: hidden;
+    }
+    .guide-avatar img {
+      width: 100%;
+      height: 100%;
+      min-width: 100%;
+      min-height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .personality-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 9999px;
+      text-transform: capitalize;
+    }
+    .personality-friendly { background: #dcfce7; color: #166534; }
+    .personality-professional { background: #dbeafe; color: #1e40af; }
+    .personality-helpful { background: #fef3c7; color: #92400e; }
+    .personality-cheerful { background: #fce7f3; color: #9d174d; }
+    .personality-wise { background: #e0e7ff; color: #3730a3; }
+    
+    /* Journey usage badge with tooltip */
+    .journey-usage-badge {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 9999px;
+      background: rgba(11, 75, 52, 0.1);
+      color: #0b4b34;
+      cursor: default;
+    }
+    .journey-usage-badge svg {
+      width: 12px;
+      height: 12px;
+    }
+    .journey-usage-badge.not-used {
+      background: #f3f4f6;
+      color: #9ca3af;
+    }
+    .journey-usage-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0b4b34;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 400;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 50;
+      box-shadow: 0 4px 16px rgba(11, 75, 52, 0.25);
+      max-width: 250px;
+    }
+    .journey-usage-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #0b4b34;
+    }
+    .journey-usage-badge:hover .journey-usage-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+    .journey-usage-tooltip-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .journey-usage-tooltip-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .journey-usage-tooltip-list li {
+      padding: 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+    .journey-usage-tooltip-list li::before {
+      content: '•';
+      color: #78c503;
+    }
+    .journey-status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .journey-status-dot.published { background: #78c503; }
+    .journey-status-dot.draft { background: #9ca3af; }
+    
+    .create-guide-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+    }
+    .create-guide-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+    }
+    .create-guide-modal.active .modal-content {
+      transform: scale(1);
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .modal-body {
+      padding: 24px;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #78c503;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+    }
+    .form-hint {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .btn-secondary {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #374151;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+    .stat-number {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    .stat-number span {
+      font-weight: 600;
+      color: #374151;
+    }
+  </style>
+  <%- include('../partials/tier-limit-styles') %>
+</head>
+<body class="bg-gryffi-bg">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+  <%- include('../partials/support-modal') %>
+  
+  <main class="main-content">
+    <%- include('../partials/free-tier-banner') %>
+    <%- include('../partials/ai-credits-banner') %>
+    
+    <div class="flex items-center justify-between mb-8">
+      <div class="page-header mb-0">
+        <h1 class="page-title"><%= (typeof isTrash !== 'undefined' && isTrash) ? t('guides.trash.title') : t('guides.title') %></h1>
+        <p class="page-subtitle"><%= (typeof isTrash !== 'undefined' && isTrash) ? t('guides.trash.subtitle') : t('guides.subtitle') %></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+          <a href="/dashboard/guides" class="btn-secondary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <%= t('guides.trash.backToGuides') %>
+          </a>
+        <% } else { %>
+          <% if (user && (user.role === 'admin' || user.role === 'manager')) { %>
+            <a href="/dashboard/guides/trash" class="btn-secondary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              <%= t('guides.trash.viewTrash') %>
+            </a>
+          <% } %>
+          <% if (user && user.role === 'viewer') { %>
+            <button class="btn-primary opacity-50 cursor-not-allowed" disabled title="<%= t('team.messages.viewerReadOnlyGeneric') %>">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <%= t('guides.createGuide') %>
+            </button>
+          <% } else if (subscriptionUsage && subscriptionUsage.guides && subscriptionUsage.guides.isAtLimit) { %>
+            <!-- Guide limit reached -->
+            <div class="tier-limit-block">
+              <button class="btn-primary btn-disabled" disabled title="<%= t('subscription.limits.limitReached') %>">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <%= t('guides.createGuide') %>
+              </button>
+              <div class="tier-limit-message">
+                <span><%= t('subscription.limits.guideLimitInfo', { limit: subscriptionUsage.guides.limit }) %></span>
+                <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+              </div>
+            </div>
+          <% } else { %>
+            <button id="createGuideBtn" class="btn-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <%= t('guides.createGuide') %>
+            </button>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (guides && guides.length > 0) { %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% guides.forEach(guide => { %>
+          <div class="guide-card group relative" style="<%= (typeof isTrash !== 'undefined' && isTrash) ? 'cursor: default;' : '' %>">
+            <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+            <!-- Trash view: non-clickable inner content -->
+            <div class="block">
+            <% } else { %>
+            <!-- Normal view: clickable inner content -->
+            <a href="/dashboard/guides/<%= guide.id %>" class="block">
+            <% } %>
+            
+            <div class="flex items-start gap-4">
+              <div class="guide-avatar">
+                <% if (guide.avatar_url) { %>
+                  <img src="<%= guide.avatar_url %>" alt="<%= guide.name %>">
+                <% } else { %>
+                  <%= guide.name.charAt(0).toUpperCase() %>
+                <% } %>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-semibold text-zen-900 group-hover:text-gryffi-primary transition-colors truncate">
+                  <%= guide.name %>
+                </h3>
+                <% if (guide.role) { %>
+                  <p class="text-sm text-zen-500 truncate"><%= guide.role %></p>
+                <% } %>
+              </div>
+            </div>
+            
+            <div class="mt-4 flex items-center gap-2 flex-wrap">
+              <span class="personality-badge personality-<%= guide.personality || 'friendly' %>">
+                <%= guide.personality || 'friendly' %>
+              </span>
+              <% if (!guide.is_active) { %>
+                <span class="personality-badge" style="background: #fee2e2; color: #991b1b;"><%= t('guides.inactive') %></span>
+              <% } %>
+              <% if (typeof isTrash === 'undefined' || !isTrash) { %>
+                <% const journeysUsing = guide.journeys_using || []; %>
+                <% if (journeysUsing.length > 0) { %>
+                  <span class="journey-usage-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    <%= journeysUsing.length %> <%= journeysUsing.length === 1 ? t('guides.stats.journey') : t('guides.stats.journeys') %>
+                    <div class="journey-usage-tooltip">
+                      <div class="journey-usage-tooltip-title"><%= t('guides.stats.usedIn') %></div>
+                      <ul class="journey-usage-tooltip-list">
+                        <% journeysUsing.slice(0, 5).forEach(j => { %>
+                          <li>
+                            <span class="journey-status-dot <%= (j.status === 'archived' ? 'draft' : j.status) %>"></span>
+                            <%= j.title %>
+                          </li>
+                        <% }); %>
+                        <% if (journeysUsing.length > 5) { %>
+                          <li style="color: #9ca3af; font-style: italic;">+<%= journeysUsing.length - 5 %> <%= t('common.more') %></li>
+                        <% } %>
+                      </ul>
+                    </div>
+                  </span>
+                <% } else { %>
+                  <span class="journey-usage-badge not-used">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    <%= t('guides.stats.notUsed') %>
+                  </span>
+                <% } %>
+              <% } %>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-zen-100 flex items-center justify-between">
+              <% if (typeof isTrash !== 'undefined' && isTrash && guide.deleted_at) { %>
+                <span class="text-xs text-zen-400">
+                  <%= t('guides.trash.deleted') %> <%= new Date(guide.deleted_at).toLocaleDateString(language) %>
+                </span>
+                <% if (trashRetentionDays > 0) { %>
+                  <% 
+                    const deletedDate = new Date(guide.deleted_at);
+                    const permanentDeleteDate = new Date(deletedDate.getTime() + (trashRetentionDays * 24 * 60 * 60 * 1000));
+                    const daysRemaining = Math.ceil((permanentDeleteDate - new Date()) / (24 * 60 * 60 * 1000));
+                    const isUrgent = daysRemaining <= 3;
+                  %>
+                  <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-400' %>">
+                    <%= t('guides.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString(language) %>
+                    <% if (daysRemaining > 0) { %>
+                      (<%= daysRemaining %> <%= t('subscription.days') %>)
+                    <% } %>
+                  </span>
+                <% } else if (trashRetentionDays === -1) { %>
+                  <span class="text-xs text-zen-400">
+                    <%= t('guides.trash.noAutoDelete') %>
+                  </span>
+                <% } %>
+              <% } else { %>
+                <div class="flex items-center gap-4">
+                  <span class="stat-number">
+                    <span><%= guide.knowledge_count || 0 %></span> <%= t('common.sources') %>
+                  </span>
+                  <span class="stat-number">
+                    <span><%= guide.chunks_count || 0 %></span> chunks
+                  </span>
+                </div>
+                <span class="text-gryffi-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  <%= t('common.edit') %> →
+                </span>
+              <% } %>
+            </div>
+            
+            <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+            </div>
+            <% } else { %>
+            </a>
+            <% } %>
+            
+            <!-- Kebab Menu -->
+            <% if (user && user.role !== 'viewer') { %>
+              <div class="kebab-menu-container" style="position: absolute; top: 16px; right: 16px; z-index: 20;">
+                <button type="button" class="kebab-menu-btn" title="<%= t('common.actions') %>">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                  </svg>
+                </button>
+                <div class="kebab-menu-dropdown" data-guide-id="<%= guide.id %>" data-guide-name="<%= guide.name %>">
+                  <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+                    <!-- Trash view menu items -->
+                    <% if (user.role === 'admin' || user.role === 'manager') { %>
+                      <button type="button" class="kebab-menu-item restore-item" data-action="restore">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <%= t('guides.trash.restore') %>
+                      </button>
+                      <div class="kebab-menu-divider"></div>
+                      <button type="button" class="kebab-menu-item delete-item" data-action="delete-permanent">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        <%= t('guides.trash.deletePermanent') %>
+                      </button>
+                    <% } %>
+                  <% } else { %>
+                    <!-- Normal view menu items -->
+                    <a href="/dashboard/guides/<%= guide.id %>" class="kebab-menu-item">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                      <%= t('common.edit') %>
+                    </a>
+                    <button type="button" class="kebab-menu-item" data-action="copy">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                      </svg>
+                      <%= t('guides.copy.title') %>
+                    </button>
+                    <% if (user.role === 'admin' || user.role === 'manager') { %>
+                      <div class="kebab-menu-divider"></div>
+                      <button type="button" class="kebab-menu-item delete-item" data-action="delete">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        <%= t('guides.delete.title') %>
+                      </button>
+                    <% } %>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="glass-card-solid p-12 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gryffi-accent/20 flex items-center justify-center">
+          <% if (typeof isTrash !== 'undefined' && isTrash) { %>
+            <svg class="w-8 h-8 text-gryffi-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          <% } else { %>
+            <svg class="w-8 h-8 text-gryffi-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+            </svg>
+          <% } %>
+        </div>
+        <h3 class="text-lg font-semibold text-zen-900 mb-2">
+          <%= (typeof isTrash !== 'undefined' && isTrash) ? t('guides.trash.empty') : t('guides.noGuides') %>
+        </h3>
+        <p class="text-zen-500 mb-6 max-w-sm mx-auto">
+          <%= (typeof isTrash !== 'undefined' && isTrash) ? t('guides.trash.emptyDescription') : t('guides.noGuidesDescription') %>
+        </p>
+        <% if (user && user.role === 'viewer') { %>
+          <button class="btn-primary opacity-50 cursor-not-allowed" disabled title="<%= t('team.messages.viewerReadOnlyGeneric') %>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <%= t('guides.createGuide') %>
+          </button>
+        <% } else if (subscriptionUsage && subscriptionUsage.guides && subscriptionUsage.guides.isAtLimit) { %>
+          <!-- Guide limit reached - empty state -->
+          <div class="tier-limit-block tier-limit-block-centered">
+            <button class="btn-primary btn-disabled" disabled title="<%= t('subscription.limits.limitReached') %>">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <%= t('guides.createGuide') %>
+            </button>
+            <div class="tier-limit-message">
+              <span><%= t('subscription.limits.guideLimitInfo', { limit: subscriptionUsage.guides.limit }) %></span>
+              <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+            </div>
+          </div>
+        <% } else { %>
+          <button id="createGuideBtnEmpty" class="btn-primary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <%= t('guides.createGuide') %>
+          </button>
+        <% } %>
+      </div>
+    <% } %>
+  </main>
+  
+  <!-- Create Guide Modal -->
+  <div id="createGuideModal" class="create-guide-modal">
+    <div class="modal-content" id="modalContent">
+      <div class="modal-header">
+        <h2 class="text-xl font-semibold text-zen-900"><%= t('guides.createNew.title') %></h2>
+        <p class="text-sm text-zen-500 mt-1"><%= t('guides.createNew.subtitle') %></p>
+      </div>
+      
+      <form id="createGuideForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="guideName"><%= t('guides.createNew.name') %> *</label>
+            <input type="text" id="guideName" placeholder="<%= t('guides.createNew.namePlaceholder') %>" required>
+            <p class="form-hint"><%= t('guides.createNew.nameHint') %></p>
+          </div>
+          
+          <div class="form-group">
+            <label for="guideRole"><%= t('guides.createNew.role') %></label>
+            <input type="text" id="guideRole" placeholder="<%= t('guides.createNew.rolePlaceholder') %>">
+            <p class="form-hint"><%= t('guides.createNew.roleHint') %></p>
+          </div>
+          
+          <div class="form-group">
+            <label for="guidePersonality"><%= t('guides.createNew.personality') %></label>
+            <select id="guidePersonality">
+              <option value="friendly"><%= t('guides.personalities.friendly') %></option>
+              <option value="professional"><%= t('guides.personalities.professional') %></option>
+              <option value="helpful"><%= t('guides.personalities.helpful') %></option>
+              <option value="cheerful"><%= t('guides.personalities.cheerful') %></option>
+              <option value="wise"><%= t('guides.personalities.wise') %></option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="guideGreeting"><%= t('guides.createNew.greeting') %></label>
+            <textarea id="guideGreeting" rows="2" placeholder="<%= t('guides.createNew.greetingPlaceholder') %>"></textarea>
+            <p class="form-hint"><%= t('guides.createNew.greetingHint') %></p>
+          </div>
+          
+          <div class="form-group">
+            <label for="guideInstructions"><%= t('guides.createNew.instructions') %></label>
+            <textarea id="guideInstructions" rows="3" placeholder="<%= t('guides.createNew.instructionsPlaceholder') %>"></textarea>
+            <p class="form-hint"><%= t('guides.createNew.instructionsHint') %></p>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelCreateBtn"><%= t('common.cancel') %></button>
+          <button type="submit" class="btn-primary"><%= t('guides.createGuide') %></button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="/js/app.js"></script>
+  <script>
+    // DOM elements
+    const createGuideModal = document.getElementById('createGuideModal');
+    const createGuideForm = document.getElementById('createGuideForm');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Open modal function
+    function openCreateModal() {
+      createGuideModal.classList.add('active');
+    }
+    
+    // Close modal function
+    function closeCreateModal() {
+      createGuideModal.classList.remove('active');
+      createGuideForm.reset();
+    }
+    
+    // Create guide function
+    async function createGuide(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('guideName').value.trim();
+      const role = document.getElementById('guideRole').value.trim();
+      const personality = document.getElementById('guidePersonality').value;
+      const greeting = document.getElementById('guideGreeting').value.trim();
+      const ai_instructions = document.getElementById('guideInstructions').value.trim();
+      
+      if (!name) {
+        await window.gryffi.modal.alert(<%-safeJson(t("guides.createNew.name"))%> + ' is required', { type: 'error' });
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/guides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, role, personality, greeting, ai_instructions })
+        });
+        
+        const result = await response.json().catch(() => ({}));
+        
+        if (response.ok && result.success) {
+          window.location.href = `/dashboard/guides/${result.guide.id}`;
+        } else if (result.code === 'LIMIT_EXCEEDED') {
+          closeCreateModal();
+          await showLimitExceededModal('guides');
+        } else {
+          await window.gryffi.modal.alert(result.error || 'Failed to create guide', { type: 'error' });
+        }
+      } catch (err) {
+        console.error('Create guide error:', err);
+        await window.gryffi.modal.alert('An error occurred while creating the guide', { type: 'error' });
+      }
+    }
+    
+    // Event listeners
+    document.getElementById('createGuideBtn')?.addEventListener('click', openCreateModal);
+    document.getElementById('createGuideBtnEmpty')?.addEventListener('click', openCreateModal);
+    document.getElementById('cancelCreateBtn')?.addEventListener('click', closeCreateModal);
+    
+    // Close modal when clicking backdrop
+    createGuideModal?.addEventListener('click', (e) => {
+      if (e.target === createGuideModal) {
+        closeCreateModal();
+      }
+    });
+    
+    // Prevent modal content click from closing
+    modalContent?.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    // Form submit
+    createGuideForm?.addEventListener('submit', createGuide);
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeCreateModal();
+    });
+    
+    // Show limit exceeded modal with upgrade CTA
+    async function showLimitExceededModal(limitType) {
+      const resourceLabels = {
+        journeys: <%-safeJson(t('subscription.features.journeys'))%>,
+        guides: <%-safeJson(t('subscription.features.guides'))%>,
+        endUsers: <%-safeJson(t('subscription.features.endUsers'))%>,
+        makers: <%-safeJson(t('subscription.features.makers'))%>
+      };
+      
+      const resourceName = resourceLabels[limitType] || limitType;
+      const message = <%-safeJson(t('subscription.banner.limitReached'))%>.replace('{{resource}}', resourceName);
+      
+      const result = await window.gryffi.modal.confirm(
+        `<div style="text-align: center;">
+          <p style="margin: 0 0 16px; color: #4b5563;">${message}</p>
+          <p style="margin: 0; font-size: 13px; color: #6b7280;">${<%-safeJson(t('subscription.limits.wantMore'))%>}</p>
+        </div>`,
+        {
+          title: <%-safeJson(t('subscription.limits.limitReached'))%>,
+          type: 'warning',
+          danger: false,
+          okText: <%-safeJson(t('subscription.cta.upgradeNow'))%>,
+          cancelText: <%-safeJson(t('common.cancel'))%>
+        }
+      );
+      
+      if (result) {
+        window.location.href = '/dashboard/subscription';
+      }
+      
+      return result;
+    }
+
+    // Copy guide
+    async function copyGuide(guideId, guideName) {
+      const confirmMessage = <%-safeJson(t('guides.copy.confirm'))%>;
+      // Copy is a positive action
+      if (!await window.gryffi.modal.confirm(confirmMessage.replace('{{name}}', guideName), { danger: false })) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/guides/${guideId}/copy`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json().catch(() => ({}));
+        
+        if (response.ok && data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('guides.copy.success'))%>);
+          setTimeout(() => window.location.reload(), 1500);
+        } else if (data.code === 'LIMIT_EXCEEDED') {
+          await showLimitExceededModal(data.limitType || 'guides');
+        } else {
+          window.gryffi.toast.error(data.error || <%-safeJson(t('guides.copy.error'))%>);
+        }
+      } catch (err) {
+        console.error('Copy guide error:', err);
+        window.gryffi.toast.error(<%-safeJson(t('guides.copy.error'))%>);
+      }
+    }
+    
+    // Delete guide (soft delete - move to trash)
+    async function deleteGuide(guideId, guideName) {
+      const confirmMessage = <%-safeJson(t('guides.delete.confirm'))%>;
+      if (!await window.gryffi.modal.confirm(confirmMessage.replace('{{name}}', guideName))) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/guides/${guideId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('guides.delete.success'))%>);
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          window.gryffi.toast.error(data.error || <%-safeJson(t('guides.delete.error'))%>);
+        }
+      } catch (err) {
+        console.error('Delete guide error:', err);
+        window.gryffi.toast.error(<%-safeJson(t('guides.delete.error'))%>);
+      }
+    }
+    
+    // Restore guide from trash
+    async function restoreGuide(guideId, guideName) {
+      const confirmMessage = <%-safeJson(t('guides.restore.confirm'))%>;
+      // Restore is a positive action
+      if (!await window.gryffi.modal.confirm(confirmMessage.replace('{{name}}', guideName), { danger: false })) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/guides/${guideId}/restore`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json().catch(() => ({}));
+        
+        if (response.ok && data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('guides.restore.success'))%>);
+          setTimeout(() => window.location.reload(), 1500);
+        } else if (data.code === 'LIMIT_EXCEEDED') {
+          await showLimitExceededModal(data.limitType || 'guides');
+        } else {
+          window.gryffi.toast.error(data.error || <%-safeJson(t('guides.restore.error'))%>);
+        }
+      } catch (err) {
+        console.error('Restore guide error:', err);
+        window.gryffi.toast.error(<%-safeJson(t('guides.restore.error'))%>);
+      }
+    }
+    
+    // Permanently delete guide
+    async function permanentlyDeleteGuide(guideId, guideName) {
+      const confirmMessage = <%-safeJson(t('guides.delete.confirmPermanent'))%>;
+      if (!await window.gryffi.modal.confirm(confirmMessage.replace('{{name}}', guideName))) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/guides/${guideId}/permanent`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          window.gryffi.toast.success(<%-safeJson(t('guides.delete.permanentSuccess'))%>);
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          window.gryffi.toast.error(data.error || <%-safeJson(t('guides.delete.error'))%>);
+        }
+      } catch (err) {
+        console.error('Permanent delete guide error:', err);
+        window.gryffi.toast.error(<%-safeJson(t('guides.delete.error'))%>);
+      }
+    }
+    
+    // Kebab menu handling
+    let activeDropdown = null;
+    
+    // Toggle dropdown visibility
+    function toggleDropdown(dropdown, btn) {
+      // Close any other open dropdown
+      if (activeDropdown && activeDropdown !== dropdown) {
+        activeDropdown.classList.remove('show');
+        activeDropdown.previousElementSibling?.classList.remove('active');
+      }
+      
+      const isOpen = dropdown.classList.contains('show');
+      
+      if (isOpen) {
+        dropdown.classList.remove('show');
+        btn.classList.remove('active');
+        activeDropdown = null;
+      } else {
+        dropdown.classList.add('show');
+        btn.classList.add('active');
+        activeDropdown = dropdown;
+      }
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.kebab-menu-container')) {
+        document.querySelectorAll('.kebab-menu-dropdown.show').forEach(d => {
+          d.classList.remove('show');
+          d.previousElementSibling?.classList.remove('active');
+        });
+        activeDropdown = null;
+      }
+    });
+    
+    // Kebab menu button click handlers
+    document.querySelectorAll('.kebab-menu-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropdown = this.nextElementSibling;
+        toggleDropdown(dropdown, this);
+      });
+    });
+    
+    // Kebab menu item click handlers
+    document.querySelectorAll('.kebab-menu-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const dropdown = this.closest('.kebab-menu-dropdown');
+        const guideId = dropdown.dataset.guideId;
+        const guideName = dropdown.dataset.guideName;
+        const action = this.dataset.action;
+        
+        // Close dropdown
+        dropdown.classList.remove('show');
+        dropdown.previousElementSibling?.classList.remove('active');
+        activeDropdown = null;
+        
+        // Perform action
+        switch (action) {
+          case 'copy':
+            copyGuide(guideId, guideName);
+            break;
+          case 'delete':
+            deleteGuide(guideId, guideName);
+            break;
+          case 'restore':
+            restoreGuide(guideId, guideName);
+            break;
+          case 'delete-permanent':
+            permanentlyDeleteGuide(guideId, guideName);
+            break;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

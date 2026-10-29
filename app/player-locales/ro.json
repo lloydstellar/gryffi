@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Bine ați venit",
+    "guide": "Ghid",
+    "aiAssistant": "Asistent AI",
+    "noGuideSelected": "Niciun ghid selectat",
+    "pleaseSelectGuide": "Selectați un Ghid AI în setările pasului",
+    "selectGuideForStep": "Selectați un ghid pentru acest pas.",
+    "chat": {
+      "typeMessage": "Scrieți mesajul...",
+      "typeQuestion": "Scrieți întrebarea...",
+      "askGuide": "Întrebați pe {{name}}",
+      "send": "Trimite",
+      "defaultGreeting": "Bună! Cum vă pot ajuta?",
+      "chatError": "Îmi pare rău, nu am putut procesa cererea.",
+      "connectionError": "Am probleme de conexiune. Încercați din nou.",
+      "guideUnavailable": "Momentan nu pot răspunde la întrebări. Puteți continua cu pasul următor."
+    },
+    "content": {
+      "invalidVideoUrl": "URL video invalid",
+      "noContentYet": "Niciun conținut adăugat încă",
+      "pressPlayToStart": "Apăsați play pentru a începe vizionarea"
+    },
+    "navigation": {
+      "whenReady": "Când sunteți gata:",
+      "journeyComplete": "Expediție finalizată!",
+      "leaveJourney": "Părăsiți expediția?",
+      "leaveJourneyMessage": "Sunteți sigur că doriți să părăsiți această expediție? Progresul dvs. a fost salvat.",
+      "leaveConfirm": "Părăsește",
+      "stayContinue": "Rămâne"
+    },
+    "pacing": {
+      "readyToContinue": "Puteți continua acum",
+      "takeYourTimeMinutes": "Luați-vă {{minutes}} minut să explorați",
+      "takeYourTimeMinutesPlural": "Luați-vă {{minutes}} minute să explorați",
+      "takeYourTimeSeconds": "Luați-vă timp... {{seconds}}s",
+      "keepWatching": "Continuați să vizionați... {{seconds}}s",
+      "chatWithGuide": "Discutați cu ghidul ({{count}}/{{total}} mesaje)"
+    },
+    "form": {
+      "title": "Formular",
+      "submit": "Trimite",
+      "submitting": "Se trimite...",
+      "defaultConfirmation": "Mulțumim! Răspunsul dvs. a fost trimis.",
+      "formSubmitFailed": "Trimiterea formularului a eșuat",
+      "formSubmitted": "Formular trimis cu succes",
+      "submitToContinue": "Trimiteți formularul pentru a continua",
+      "selectOption": "Selectați o opțiune",
+      "yes": "Da",
+      "no": "Nu",
+      "field": "Câmp",
+      "alreadySubmitted": {
+        "title": "Ați trimis deja acest formular",
+        "message": "Ați trimis acest formular pe {{date}}. Puteți să-l trimiteți din nou sau să continuați fără a-l completa.",
+        "skipButton": "Continuă fără a trimite",
+        "submitAgain": "Trimite din nou"
+      },
+      "fileUpload": {
+        "dropzone": "Trageți fișierul aici sau faceți clic pentru a căuta",
+        "dragActive": "Eliberați fișierul aici",
+        "maxSize": "Max {{size}} MB",
+        "invalidType": "Tip de fișier invalid. Permise: {{types}}",
+        "fileTooLarge": "Fișier prea mare. Dimensiune maximă: {{size}} MB",
+        "totalTooLarge": "Dimensiunea totală a atașamentelor depășește limita (38 MB)",
+        "removeFile": "Eliminați fișierul",
+        "noFileSelected": "Niciun fișier selectat",
+        "fileSelected": "Fișier selectat: {{name}}",
+        "subtypes": {
+          "image": "Imagine",
+          "document": "Document",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Doar MP3"
+        }
+      },
+      "imageRejected": "Această imagine nu poate fi încărcată. Alegeți o altă imagine.",
+      "imageCheckUnavailable": "Nu am putut verifica imaginea dvs. acum. Încercați din nou peste câteva minute."
+    },
+    "quiz": {
+      "questionOf": "Întrebarea {{current}} din {{total}}",
+      "checkAnswer": "Verifică răspunsul",
+      "next": "Următorul",
+      "previous": "Anterior",
+      "finish": "Trimite răspunsurile",
+      "correct": "Corect!",
+      "incorrect": "Nu chiar",
+      "tryAgain": "Încearcă din nou",
+      "score": "Scorul tău",
+      "passed": "Quiz trecut!",
+      "completed": "Test finalizat",
+      "allCorrect": "Toate corecte!",
+      "singleCorrect": "Răspuns corect!",
+      "nextStepHint": "Călătoria continuă. Alege pasul următor mai jos.",
+      "failed": "Ai nevoie de {{required}} răspunsuri corecte pentru a continua",
+      "questionsCorrect": "{{correct}} din {{total}} corecte",
+      "retake": "Repetă quiz-ul",
+      "continue": "Continuă",
+      "completeQuizToContinue": "Finalizează quiz-ul pentru a continua"
+    },
+    "poll": {
+      "submitVote": "Votează",
+      "completePollToContinue": "Finalizează sondajul pentru a continua",
+      "alreadyVoted": "Ai votat deja",
+      "voteRecorded": "Votul tău a fost înregistrat",
+      "votes": "voturi",
+      "votesCount": "{{count}} vot",
+      "votesCountPlural": "{{count}} voturi",
+      "respondents": "{{count}} participant",
+      "respondentsPlural": "{{count}} participanți",
+      "yourVote": "Votul tău"
+    },
+    "space": {
+      "dragHint": "Trageți pentru a privi în jur",
+      "viewFloorplan": "Vezi planul etajului",
+      "youAreHere": "Ești aici"
+    },
+    "stepTypes": {
+      "reward": "Recompensă"
+    },
+    "reward": {
+      "congratulations": "Felicitări!",
+      "youAreNumber": "Ești numărul #{{position}} care primește această recompensă!",
+      "yourCode": "Codul tău de recompensă",
+      "redeemAt": "Folosește la",
+      "terms": "Termeni și condiții",
+      "validUntil": "Valabil până la",
+      "downloadCoupon": "Descarcă cupon",
+      "emailSent": "O copie a fost trimisă pe email",
+      "alreadyClaimed": "Ai primit deja o recompensă pentru această expediție",
+      "noMoreRewards": "Ne pare rău, toate recompensele au fost revendicate",
+      "previewMode": "Mod previzualizare - Niciun cod real generat",
+      "claimed": "Recompensă primită",
+      "soldOut": {
+        "title": "Ce păcat!",
+        "message": "Din păcate, ai ajuns prea târziu pentru a primi o recompensă. Toate recompensele au fost deja distribuite.",
+        "continueJourney": "Continuă expediția"
+      }
+    },
+    "tts": {
+      "listen": "Ascultă",
+      "stop": "Oprește",
+      "listenLabel": "Citește acest pas cu voce tare",
+      "stopLabel": "Oprește citirea"
+    },
+    "reading": {
+      "settings": "Setări de citire",
+      "dyslexicFont": "Font adaptat pentru dislexie"
+    },
+    "orientation": {
+      "step": "Pasul {{current}} din {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Sesiunea dvs. a expirat. Faceți clic pe Reîncărcare pentru a continua.",
+      "reload": "Reîncărcare"
+    }
+  }
+}

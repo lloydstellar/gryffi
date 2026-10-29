@@ -1,0 +1,615 @@
+<% if (locals.isCommunity) { %>
+<%# Community Edition: there is no Gryffi support team behind this installation, so support opens GitHub Discussions %>
+<script>
+  window.openSupportModal = function() {
+    window.open(<%- safeJson(locals.communitySupportUrl) %>, '_blank', 'noopener');
+  };
+</script>
+<% } else { %>
+<!-- Support Modal -->
+<div id="supportModal" class="support-modal" style="display: none;">
+  <div class="support-modal-overlay"></div>
+  <div class="support-modal-content">
+    <div class="support-modal-header">
+      <h2><%= t('support.title') %></h2>
+      <p><%= t('support.subtitle') %></p>
+      <button type="button" class="support-modal-close" id="supportModalClose">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form id="supportForm" class="support-modal-body">
+      <!-- Category Selection -->
+      <div class="support-form-row">
+        <label class="support-form-label"><%= t('support.category') %> *</label>
+        <select name="category" required class="support-form-select" id="supportCategorySelect">
+          <option value="">-- Select --</option>
+          <option value="bug"><%= t('support.categoryOptions.bug') %></option>
+          <option value="notWorking"><%= t('support.categoryOptions.notWorking') %></option>
+          <option value="question"><%= t('support.categoryOptions.question') %></option>
+          <option value="feature"><%= t('support.categoryOptions.feature') %></option>
+          <option value="billing"><%= t('support.categoryOptions.billing') %></option>
+          <option value="other"><%= t('support.categoryOptions.other') %></option>
+        </select>
+      </div>
+      
+      <!-- Subject -->
+      <div class="support-form-row">
+        <label class="support-form-label"><%= t('support.subject') %> *</label>
+        <input type="text" name="subject" required class="support-form-input" placeholder="<%= t('support.subjectPlaceholder') %>" maxlength="200">
+      </div>
+      
+      <!-- Description -->
+      <div class="support-form-row">
+        <label class="support-form-label"><%= t('support.description') %> *</label>
+        <textarea name="description" required class="support-form-textarea" rows="5" placeholder="<%= t('support.descriptionPlaceholder') %>"></textarea>
+      </div>
+      
+      <!-- Screenshot Upload (shown only for bug reports) -->
+      <div class="support-form-row" id="screenshotUploadRow" style="display: none;">
+        <label class="support-form-label"><%= t('support.screenshot') %></label>
+        <p class="support-form-help"><%= t('support.screenshotHelp') %></p>
+        
+        <div class="support-file-upload" id="supportFileUpload">
+          <input type="file" id="supportFileInput" accept="image/png,image/jpeg,image/gif,image/webp" style="display: none;">
+          
+          <!-- Dropzone -->
+          <div class="support-dropzone" id="supportDropzone">
+            <div class="support-dropzone-content" id="supportDropzoneContent">
+              <svg class="support-dropzone-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <p class="support-dropzone-text"><%= t('support.dropzone') %></p>
+              <p class="support-dropzone-formats"><%= t('support.screenshotFormats') %></p>
+            </div>
+          </div>
+          
+          <!-- File Preview -->
+          <div class="support-file-preview" id="supportFilePreview" style="display: none;">
+            <div class="support-file-preview-image" id="supportPreviewImage"></div>
+            <div class="support-file-preview-info">
+              <p class="support-file-preview-name" id="supportFileName"></p>
+              <p class="support-file-preview-size" id="supportFileSize"></p>
+            </div>
+            <button type="button" class="support-file-remove" id="supportFileRemove" title="<%= t('support.removeFile') %>">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Auto-included info -->
+      <div class="support-auto-info">
+        <p class="support-auto-info-title"><%= t('support.automaticInfo') %></p>
+        <div class="support-auto-info-items">
+          <span><%= t('support.yourName') %></span>
+          <span><%= t('support.yourEmail') %></span>
+          <span><%= t('support.organization') %></span>
+          <span><%= t('support.currentPlan') %></span>
+          <span><%= t('support.browser') %></span>
+          <span><%= t('support.page') %></span>
+        </div>
+      </div>
+      
+      <div class="support-modal-footer">
+        <button type="button" class="support-btn-secondary" id="supportCancelBtn"><%= t('common.cancel') %></button>
+        <button type="submit" class="support-btn-primary" id="supportSubmitBtn"><%= t('support.submit') %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  /* Support Modal Styles */
+  .support-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .support-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+  
+  .support-modal-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 560px;
+    width: calc(100% - 32px);
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 16px;
+  }
+  
+  .support-modal-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    position: relative;
+  }
+  
+  .support-modal-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 4px;
+    padding-right: 32px;
+  }
+  
+  .support-modal-header p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+  
+  .support-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #94a3b8;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  
+  .support-modal-close:hover {
+    color: #475569;
+    background: #f1f5f9;
+  }
+  
+  .support-modal-body {
+    padding: 20px 24px;
+  }
+  
+  .support-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+    margin-top: 8px;
+  }
+  
+  .support-form-row {
+    margin-bottom: 16px;
+  }
+  
+  .support-form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+  
+  .support-form-help {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 8px 0;
+  }
+  
+  .support-form-input,
+  .support-form-select,
+  .support-form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+    background: white;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+  }
+  
+  .support-form-input:focus,
+  .support-form-select:focus,
+  .support-form-textarea:focus {
+    outline: none;
+    border-color: var(--gryffi-primary, #0b4b34);
+    box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.1);
+  }
+  
+  .support-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  /* File Upload Styles */
+  .support-dropzone {
+    border: 2px dashed #e5e7eb;
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #fafafa;
+  }
+  
+  .support-dropzone:hover {
+    border-color: var(--gryffi-primary, #0b4b34);
+    background: rgba(11, 75, 52, 0.02);
+  }
+  
+  .support-dropzone.drag-active {
+    border-color: var(--gryffi-primary, #0b4b34);
+    background: rgba(11, 75, 52, 0.05);
+  }
+  
+  .support-dropzone-icon {
+    width: 40px;
+    height: 40px;
+    color: #94a3b8;
+    margin: 0 auto 8px;
+  }
+  
+  .support-dropzone-text {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0 0 4px 0;
+  }
+  
+  .support-dropzone-formats {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0;
+  }
+  
+  .support-file-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+  }
+  
+  .support-file-preview-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  
+  .support-file-preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .support-file-preview-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .support-file-preview-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .support-file-preview-size {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+  }
+  
+  .support-file-remove {
+    flex-shrink: 0;
+    padding: 6px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  
+  .support-file-remove:hover {
+    color: #ef4444;
+    background: #fee2e2;
+  }
+  
+  /* Auto-included info */
+  .support-auto-info {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 16px;
+  }
+  
+  .support-auto-info-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin: 0 0 8px 0;
+  }
+  
+  .support-auto-info-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .support-auto-info-items span {
+    font-size: 11px;
+    color: #94a3b8;
+    background: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+  }
+  
+  /* Buttons */
+  .support-btn-primary {
+    padding: 10px 20px;
+    background: var(--gryffi-primary, #0b4b34);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  
+  .support-btn-primary:hover {
+    background: #083d2a;
+  }
+  
+  .support-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .support-btn-secondary {
+    padding: 10px 20px;
+    background: white;
+    color: #64748b;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  
+  .support-btn-secondary:hover {
+    background: #f8fafc;
+    color: #374151;
+  }
+  
+  @media (max-width: 640px) {
+    .support-modal-footer {
+      flex-direction: column-reverse;
+    }
+    
+    .support-modal-footer button {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  // Store file data
+  var supportFileData = null;
+  
+  // Translation strings from server
+  var supportTranslations = <%- safeJson({
+    submitting: t('support.submitting'),
+    submit: t('support.submit'),
+    success: t('support.success'),
+    error: t('support.error'),
+    fileTooLarge: t('support.fileTooLarge'),
+    invalidFileType: t('support.invalidFileType'),
+    dragActive: t('support.dragActive'),
+    dropzone: t('support.dropzone')
+  }) %>;
+  
+  // Open support modal
+  window.openSupportModal = function() {
+    var modal = document.getElementById('supportModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('supportForm').reset();
+      clearSupportFile();
+      document.getElementById('screenshotUploadRow').style.display = 'none';
+    }
+  };
+  
+  // Close support modal
+  window.closeSupportModal = function() {
+    var modal = document.getElementById('supportModal');
+    if (modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  };
+  
+  // Clear file selection
+  function clearSupportFile() {
+    supportFileData = null;
+    document.getElementById('supportFileInput').value = '';
+    document.getElementById('supportDropzone').style.display = 'block';
+    document.getElementById('supportFilePreview').style.display = 'none';
+  }
+  
+  // Format file size
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  
+  // Handle file selection
+  function handleSupportFile(file) {
+    // Validate file type
+    var allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      window.gryffi.toast.error(supportTranslations.invalidFileType);
+      return;
+    }
+    
+    if (file.size > 12 * 1024 * 1024) {
+      window.gryffi.toast.error(supportTranslations.fileTooLarge);
+      return;
+    }
+    
+    // Read file as Base64
+    var reader = new FileReader();
+    reader.onload = function() {
+      supportFileData = {
+        filename: file.name,
+        content: reader.result,
+        contentType: file.type
+      };
+      
+      // Update preview
+      document.getElementById('supportPreviewImage').innerHTML = '<img src="' + reader.result + '" alt="Preview">';
+      document.getElementById('supportFileName').textContent = file.name;
+      document.getElementById('supportFileSize').textContent = formatFileSize(file.size);
+      document.getElementById('supportDropzone').style.display = 'none';
+      document.getElementById('supportFilePreview').style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.getElementById('supportModal');
+    if (!modal) return;
+    
+    // Close button
+    document.getElementById('supportModalClose').addEventListener('click', closeSupportModal);
+    document.getElementById('supportCancelBtn').addEventListener('click', closeSupportModal);
+    
+    // Overlay click
+    modal.querySelector('.support-modal-overlay').addEventListener('click', closeSupportModal);
+    
+    // Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.style.display === 'flex') {
+        closeSupportModal();
+      }
+    });
+    
+    // Category change - show/hide screenshot upload
+    document.getElementById('supportCategorySelect').addEventListener('change', function(e) {
+      var screenshotRow = document.getElementById('screenshotUploadRow');
+      if (e.target.value === 'bug' || e.target.value === 'notWorking') {
+        screenshotRow.style.display = 'block';
+      } else {
+        screenshotRow.style.display = 'none';
+        clearSupportFile();
+      }
+    });
+    
+    // File input
+    var fileInput = document.getElementById('supportFileInput');
+    var dropzone = document.getElementById('supportDropzone');
+    
+    dropzone.addEventListener('click', function() {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+      if (e.target.files.length > 0) {
+        handleSupportFile(e.target.files[0]);
+      }
+    });
+    
+    // Drag and drop
+    dropzone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropzone.classList.add('drag-active');
+    });
+    
+    dropzone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      dropzone.classList.remove('drag-active');
+    });
+    
+    dropzone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropzone.classList.remove('drag-active');
+      if (e.dataTransfer.files.length > 0) {
+        handleSupportFile(e.dataTransfer.files[0]);
+      }
+    });
+    
+    // Remove file
+    document.getElementById('supportFileRemove').addEventListener('click', clearSupportFile);
+    
+    // Form submission
+    document.getElementById('supportForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      var form = e.target;
+      var submitBtn = document.getElementById('supportSubmitBtn');
+      var originalText = submitBtn.textContent;
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = supportTranslations.submitting;
+      
+      try {
+        var payload = {
+          category: form.category.value,
+          subject: form.subject.value,
+          description: form.description.value,
+          browserInfo: navigator.userAgent,
+          currentPage: window.location.href
+        };
+        
+        // Add screenshot if present
+        if (supportFileData) {
+          payload.screenshot = supportFileData;
+        }
+        
+        var response = await fetch('/api/support/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        var data = await response.json();
+        
+        if (data.success) {
+          closeSupportModal();
+          await window.gryffi.modal.alert(supportTranslations.success, { type: 'success' });
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (err) {
+        console.error('Support request error:', err);
+        window.gryffi.toast.error(supportTranslations.error);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  });
+})();
+</script>
+<% } %>

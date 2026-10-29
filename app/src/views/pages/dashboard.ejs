@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('pages.dashboard') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <%- include('../partials/tier-limit-styles') %>
+  <style>
+    /* Dashboard Grid Layout - 3 columns */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    @media (min-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    @media (min-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+    
+    .dashboard-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    @media (min-width: 640px) {
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    .stat-card-mini {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .stat-card-mini .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #0b4b34;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    
+    .stat-card-mini .stat-label {
+      font-size: 13px;
+      color: #0b4b34;
+      opacity: 0.7;
+    }
+    
+    /* 2-column stats grid for public/private journeys */
+    .stats-grid-2 {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    @media (min-width: 640px) {
+      .stats-grid-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        max-width: 400px;
+      }
+    }
+    
+    /* Stat card with icon */
+    .stat-card-with-icon {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-align: left;
+      padding: 16px 18px;
+    }
+    
+    .stat-card-with-icon .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .stat-card-with-icon .stat-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .stat-card-with-icon .stat-value {
+      font-size: 24px;
+      margin-bottom: 2px;
+    }
+    
+    .stat-card-with-icon .stat-label {
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .quick-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: white;
+      border: 1px solid rgba(11, 75, 52, 0.15);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0b4b34;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    
+    .quick-action-btn:hover {
+      background: #0b4b34;
+      color: white;
+      border-color: #0b4b34;
+    }
+    
+    .quick-action-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    /* Dashboard Cards */
+    .dashboard-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      border: 1px solid rgba(11, 75, 52, 0.15);
+      overflow: hidden;
+    }
+    
+    /* === Dashboard Card Header === */
+    .dashboard-card-header {
+      padding: 18px 20px 14px 20px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .dashboard-card-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b4b34;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .dashboard-card-header h3 svg {
+      width: 18px;
+      height: 18px;
+      color: #0b4b34;
+      opacity: 0.6;
+    }
+    
+    .dashboard-card-body {
+      padding: 0 20px 20px 20px;
+    }
+    
+    .dashboard-card-link {
+      font-size: 12px;
+      color: #0b4b34;
+      text-decoration: none;
+      font-weight: 500;
+      opacity: 0.6;
+      transition: opacity 0.15s ease;
+    }
+    
+    .dashboard-card-link:hover {
+      opacity: 1;
+    }
+    
+    /* Invitation Stats */
+    .invitation-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    
+    .invitation-stat {
+      text-align: center;
+      padding: 12px 8px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+    }
+    
+    .invitation-stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0b4b34;
+    }
+    
+    .invitation-stat .label {
+      font-size: 11px;
+      color: #0b4b34;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .invitation-stat.completed .value { color: #78c503; }
+    
+    /* Reward Stats */
+    .reward-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    
+    .reward-stat {
+      text-align: center;
+      padding: 12px 8px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+    }
+    
+    .reward-stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0b4b34;
+    }
+    
+    .reward-stat .label {
+      font-size: 11px;
+      color: #0b4b34;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .reward-stat.claimed .value { color: #78c503; }
+    
+    .reward-warning {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(245, 158, 11, 0.1);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #92400e;
+    }
+    
+    .reward-warning svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    
+    .reward-archived-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: rgba(100, 116, 139, 0.08);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    
+    /* Form Submissions Widget */
+    .form-submission-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    
+    .form-submission-stat {
+      text-align: center;
+      padding: 12px 8px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+    }
+    
+    .form-submission-stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0b4b34;
+    }
+    
+    .form-submission-stat .label {
+      font-size: 11px;
+      color: #0b4b34;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .form-submission-stat.new-this-week .value { color: #78c503; }
+    
+    .form-submission-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(11, 75, 52, 0.08);
+    }
+    
+    .form-submission-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    
+    .form-submission-row:hover {
+      background: rgba(11, 75, 52, 0.08);
+    }
+    
+    .form-submission-row .submission-icon {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      border-radius: 8px;
+      background: rgba(11, 75, 52, 0.08);
+      color: #0b4b34;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .form-submission-row .submission-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .form-submission-row .submission-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .form-submission-row .submission-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0b4b34;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .form-submission-row .submission-meta {
+      font-size: 11px;
+      color: #0b4b34;
+      opacity: 0.6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .form-submission-row .submission-side {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    
+    .form-submission-row .submission-date {
+      font-size: 11px;
+      color: #0b4b34;
+      opacity: 0.5;
+      white-space: nowrap;
+    }
+    
+    .form-submission-row .submission-attachment {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4a7c02;
+      background: rgba(120, 197, 3, 0.15);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    
+    .form-submission-row .submission-attachment svg {
+      width: 11px;
+      height: 11px;
+    }
+    
+    /* Alerts */
+    .dashboard-alerts {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .dashboard-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+    
+    .dashboard-alert svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    
+    .dashboard-alert.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: #92400e;
+    }
+    
+    .dashboard-alert.info {
+      background: rgba(11, 75, 52, 0.06);
+      color: #0b4b34;
+    }
+    
+    .dashboard-alert.success {
+      background: rgba(120, 197, 3, 0.1);
+      color: #4a7c02;
+    }
+
+    /* Tip card: calm, one action, dismissable */
+    .dashboard-tip {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(11, 75, 52, 0.12);
+      border-left: 4px solid #78c503;
+      font-size: 13px;
+      color: #1f2937;
+    }
+
+    .dashboard-tip-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(120, 197, 3, 0.15);
+      color: #4a7c02;
+    }
+
+    .dashboard-tip-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .dashboard-tip-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dashboard-tip-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #4a7c02;
+      margin-bottom: 4px;
+    }
+
+    .dashboard-tip-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b4b34;
+      margin: 0 0 4px;
+      line-height: 1.4;
+    }
+
+    .dashboard-tip-text {
+      margin: 0 0 12px;
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    .dashboard-tip-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 16px;
+    }
+
+    .dashboard-tip-action {
+      display: inline-flex;
+      font-size: 13px;
+      padding: 8px 14px;
+    }
+
+    .dashboard-tip-dismiss {
+      background: none;
+      border: none;
+      padding: 6px 2px;
+      font-size: 13px;
+      color: #6b7280;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .dashboard-tip-dismiss:hover {
+      color: #0b4b34;
+    }
+
+    .dashboard-tip-action:focus-visible,
+    .dashboard-tip-dismiss:focus-visible {
+      outline: 2px solid #0b4b34;
+      outline-offset: 2px;
+    }
+    
+    /* Team Widget */
+    .team-member-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .team-member-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+    }
+    
+    .team-member-avatar {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      flex-shrink: 0;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #0b4b34;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+    }
+    
+    .team-member-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .team-member-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #0b4b34;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .team-member-meta {
+      font-size: 12px;
+      color: #0b4b34;
+      opacity: 0.6;
+    }
+    
+    .team-member-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d1d5db;
+    }
+    
+    .team-member-status.online {
+      background: #10b981;
+    }
+    
+    /* System Status */
+    .system-status-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .system-status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+    }
+    
+    .system-status-item .status-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #0b4b34;
+    }
+    
+    .system-status-item .status-label svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .status-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    
+    .status-badge.connected {
+      background: rgba(120, 197, 3, 0.15);
+      color: #4a7c02;
+    }
+    
+    .status-badge.disconnected {
+      background: rgba(11, 75, 52, 0.08);
+      color: #0b4b34;
+      opacity: 0.6;
+    }
+    
+    .status-badge.active {
+      background: rgba(120, 197, 3, 0.15);
+      color: #4a7c02;
+    }
+    
+    /* Subscription Usage */
+    .usage-meters {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .usage-meter {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .usage-meter-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    
+    .usage-meter-label {
+      color: #0b4b34;
+    }
+    
+    .usage-meter-value {
+      color: #0b4b34;
+      opacity: 0.6;
+    }
+    
+    .usage-meter-bar {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .usage-meter-fill {
+      height: 100%;
+      background: #0b4b34;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    
+    .usage-meter-fill.warning {
+      background: #f59e0b;
+    }
+    
+    .usage-meter-fill.danger {
+      background: #dc2626;
+    }
+    
+    /* Journey List (compact for 3-column layout) */
+    .journey-list-compact {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .journey-item-compact {
+      display: block;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    
+    .journey-item-compact:hover {
+      background: rgba(11, 75, 52, 0.08);
+    }
+    
+    .journey-item-compact .journey-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b4b34;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .journey-title-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .journey-public-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(185, 70, 70, 0.12);
+      color: #a94442;
+      flex-shrink: 0;
+    }
+    
+    .journey-item-compact .journey-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #0b4b34;
+      opacity: 0.6;
+    }
+    
+    /* AI Guide Items */
+    .guide-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .guide-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    
+    .guide-item:hover {
+      background: rgba(11, 75, 52, 0.08);
+    }
+    
+    .guide-avatar {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      flex-shrink: 0;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--gryffi-primary, #0b4b34);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .guide-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .guide-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .guide-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b4b34;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    
+    .guide-meta {
+      font-size: 12px;
+      color: #0b4b34;
+      opacity: 0.6;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .guide-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    
+    .guide-meta-item svg {
+      width: 12px;
+      height: 12px;
+    }
+    
+    .guide-journeys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    
+    .guide-journey-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: rgba(11, 75, 52, 0.08);
+      color: #0b4b34;
+      border-radius: 4px;
+      white-space: nowrap;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Empty State */
+    .empty-state-mini {
+      text-align: center;
+      padding: 32px 20px;
+      color: #0b4b34;
+    }
+    
+    .empty-state-mini svg {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+      color: #0b4b34;
+    }
+    
+    .empty-state-mini p {
+      font-size: 14px;
+      margin: 0;
+      opacity: 0.7;
+    }
+    
+    /* Completion Rate Circle */
+    .completion-circle {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      margin: 0 auto 12px;
+    }
+    
+    .completion-circle svg {
+      transform: rotate(-90deg);
+    }
+    
+    .completion-circle .circle-bg {
+      fill: none;
+      stroke: #e5e7eb;
+      stroke-width: 8;
+    }
+    
+    .completion-circle .circle-progress {
+      fill: none;
+      stroke: #0b4b34;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+    
+    .completion-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      font-weight: 700;
+      color: #0b4b34;
+    }
+  </style>
+</head>
+<body class="bg-gryffi-bg">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+  <%- include('../partials/support-modal') %>
+  <%- include('../partials/onboarding-modal') %>
+  
+  <main class="main-content">
+    <%- include('../partials/free-tier-banner') %>
+    <%- include('../partials/ai-credits-banner') %>
+    
+    <!-- Welcome Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><%= t('dashboard.welcomeBack', { name: user.firstName || user.email.split('@')[0] }) %></h1>
+        <p class="page-subtitle"><%= organization.name %></p>
+      </div>
+    </div>
+
+    <!-- Stats Grid (All Roles) -->
+    <div class="stats-grid mb-6">
+      <div class="stat-card-mini">
+        <div class="stat-value"><%= stats.journeys?.total || 0 %></div>
+        <div class="stat-label"><%= t('dashboard.stats.journeys') %></div>
+      </div>
+      
+      <div class="stat-card-mini">
+        <div class="stat-value"><%= stats.journeys?.published || 0 %></div>
+        <div class="stat-label"><%= t('dashboard.stats.published') %></div>
+      </div>
+      
+      <div class="stat-card-mini">
+        <div class="stat-value"><%= stats.endUsers?.total || 0 %></div>
+        <div class="stat-label"><%= t('dashboard.stats.endUsers') %></div>
+      </div>
+      
+      <div class="stat-card-mini">
+        <div class="stat-value"><%= stats.guides?.total || 0 %></div>
+        <div class="stat-label"><%= t('dashboard.stats.guides') %></div>
+      </div>
+    </div>
+    
+    <% /* Public/Private Journey Stats - Only for Tier 3 (Enterprise) and Tier 4 (Custom) */ %>
+    <% const hasPublicJourneys = parseInt(stats.journeys?.public_journeys || 0) > 0; %>
+    <% if (subscriptionTier?.features?.publicJourneys && hasPublicJourneys) { %>
+    <div class="stats-grid stats-grid-2 mb-6">
+      <div class="stat-card-mini stat-card-with-icon">
+        <div class="stat-icon" style="background: rgba(11, 75, 52, 0.1); color: #0b4b34;">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value"><%= stats.journeys?.private_journeys || 0 %></div>
+          <div class="stat-label"><%= t('dashboard.stats.privateJourneys') %></div>
+        </div>
+      </div>
+      
+      <div class="stat-card-mini stat-card-with-icon">
+        <div class="stat-icon" style="background: rgba(120, 197, 3, 0.15); color: #78c503;">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value"><%= stats.journeys?.public_journeys || 0 %></div>
+          <div class="stat-label"><%= t('dashboard.stats.publicJourneys') %></div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <% const isJourneyLimitReached = subscriptionUsage && subscriptionUsage.journeys && subscriptionUsage.journeys.isAtLimit; %>
+
+    <!-- Main Dashboard Grid - 3 Columns -->
+    <div class="dashboard-grid">
+      
+      <!-- Column 1: Journeys & Alerts -->
+      <div class="dashboard-column">
+        
+        <!-- Alerts Section (Editor & Admin) -->
+        <% const hasDashboardTip = typeof dashboardTip !== 'undefined' && !!dashboardTip; %>
+        <% if (userRole !== 'viewer' && (hasDashboardTip || (typeof expiringCount !== 'undefined' && expiringCount > 0) || (typeof formResponseCount !== 'undefined' && formResponseCount > 0) || (typeof staleDrafts !== 'undefined' && staleDrafts.length > 0))) { %>
+        <div class="dashboard-alerts">
+          <%- include('../partials/dashboard-tip') %>
+
+          <% if (typeof expiringCount !== 'undefined' && expiringCount > 0) { %>
+          <div class="dashboard-alert warning">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span><%= t('dashboard.alerts.expiringInvitations', { count: expiringCount }) %></span>
+          </div>
+          <% } %>
+          
+          <% if (typeof formResponseCount !== 'undefined' && formResponseCount > 0) { %>
+          <div class="dashboard-alert info">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span><%= t('dashboard.alerts.newFormResponses', { count: formResponseCount }) %></span>
+          </div>
+          <% } %>
+          
+          <% if (typeof staleDrafts !== 'undefined' && staleDrafts.length > 0) { %>
+          <div class="dashboard-alert warning">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            <span><%= t('dashboard.alerts.staleDrafts', { count: staleDrafts.length }) %></span>
+          </div>
+          <% } %>
+        </div>
+        <% } %>
+        
+        <!-- Recent Journeys -->
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+              </svg>
+              <%= t('dashboard.recentJourneys') %>
+            </h3>
+            <a href="/dashboard/journeys" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
+          </div>
+          <div class="dashboard-card-body">
+            <% if (recentJourneys && recentJourneys.length > 0) { %>
+            <div class="journey-list-compact">
+              <% recentJourneys.slice(0, 5).forEach(journey => { %>
+              <a href="/dashboard/builder/<%= journey.id %>" class="journey-item-compact">
+                <div class="journey-title">
+                  <span class="journey-title-text"><%= journey.title %></span>
+                  <% if (journey.is_public) { %>
+                  <span class="journey-public-badge"><%= t('journeys.public.badge') %></span>
+                  <% } %>
+                </div>
+                <div class="journey-meta">
+                  <span><%= journey.step_count || 0 %> <%= t('common.steps') %></span>
+                  <span class="<%= journey.status === 'published' ? 'text-gryffi-primary' : 'text-zen-400' %>">
+                    <%= t('journeys.status.' + journey.status) %>
+                  </span>
+                </div>
+              </a>
+              <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state-mini">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+              </svg>
+              <p><%= t('dashboard.noJourneysYet') %></p>
+              <% if (userRole !== 'viewer' && !isJourneyLimitReached) { %>
+              <a href="/dashboard/journeys/new" class="btn-primary mt-4" style="display: inline-flex;">
+                <%= t('dashboard.createFirstJourney') %>
+              </a>
+              <% } %>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        
+        <!-- Subscription Usage (Admin only) -->
+        <% if ((userRole === 'admin' || userRole === 'manager') && subscriptionUsage) { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <%= t('dashboard.usage.title') %>
+            </h3>
+            <a href="/dashboard/analytics#usageSection" class="dashboard-card-link"><%= t('common.details') %> →</a>
+          </div>
+          <div class="dashboard-card-body">
+            <div class="usage-meters">
+              <% if (subscriptionUsage.journeys) { %>
+              <div class="usage-meter">
+                <div class="usage-meter-header">
+                  <span class="usage-meter-label"><%= t('dashboard.usage.journeys') %></span>
+                  <span class="usage-meter-value">
+                    <%= subscriptionUsage.journeys.used %> / <%= subscriptionUsage.journeys.isUnlimited ? '∞' : subscriptionUsage.journeys.limit %>
+                  </span>
+                </div>
+                <div class="usage-meter-bar">
+                  <div class="usage-meter-fill <%= subscriptionUsage.journeys.percentage >= 90 ? 'danger' : (subscriptionUsage.journeys.percentage >= 70 ? 'warning' : '') %>" 
+                       style="width: <%= subscriptionUsage.journeys.isUnlimited ? 0 : subscriptionUsage.journeys.percentage %>%"></div>
+                </div>
+              </div>
+              <% } %>
+              
+              <% if (subscriptionUsage.endUsers) { %>
+              <div class="usage-meter">
+                <div class="usage-meter-header">
+                  <span class="usage-meter-label"><%= t('dashboard.usage.endUsers') %></span>
+                  <span class="usage-meter-value">
+                    <%= subscriptionUsage.endUsers.used %> / <%= subscriptionUsage.endUsers.isUnlimited ? '∞' : subscriptionUsage.endUsers.limit %>
+                  </span>
+                </div>
+                <div class="usage-meter-bar">
+                  <div class="usage-meter-fill <%= subscriptionUsage.endUsers.percentage >= 90 ? 'danger' : (subscriptionUsage.endUsers.percentage >= 70 ? 'warning' : '') %>" 
+                       style="width: <%= subscriptionUsage.endUsers.isUnlimited ? 0 : subscriptionUsage.endUsers.percentage %>%"></div>
+                </div>
+              </div>
+              <% } %>
+              
+              <% if (subscriptionUsage.guides) { %>
+              <div class="usage-meter">
+                <div class="usage-meter-header">
+                  <span class="usage-meter-label"><%= t('dashboard.usage.guides') %></span>
+                  <span class="usage-meter-value">
+                    <%= subscriptionUsage.guides.used %> / <%= subscriptionUsage.guides.isUnlimited ? '∞' : subscriptionUsage.guides.limit %>
+                  </span>
+                </div>
+                <div class="usage-meter-bar">
+                  <div class="usage-meter-fill <%= subscriptionUsage.guides.percentage >= 90 ? 'danger' : (subscriptionUsage.guides.percentage >= 70 ? 'warning' : '') %>" 
+                       style="width: <%= subscriptionUsage.guides.isUnlimited ? 0 : subscriptionUsage.guides.percentage %>%"></div>
+                </div>
+              </div>
+              <% } %>
+              
+              <% if (subscriptionUsage.makers) { %>
+              <div class="usage-meter">
+                <div class="usage-meter-header">
+                  <span class="usage-meter-label"><%= t('dashboard.usage.makers') %></span>
+                  <span class="usage-meter-value">
+                    <%= subscriptionUsage.makers.used %> / <%= subscriptionUsage.makers.isUnlimited ? '∞' : subscriptionUsage.makers.limit %>
+                  </span>
+                </div>
+                <div class="usage-meter-bar">
+                  <div class="usage-meter-fill <%= subscriptionUsage.makers.percentage >= 90 ? 'danger' : (subscriptionUsage.makers.percentage >= 70 ? 'warning' : '') %>" 
+                       style="width: <%= subscriptionUsage.makers.isUnlimited ? 0 : subscriptionUsage.makers.percentage %>%"></div>
+                </div>
+              </div>
+              <% } %>
+              
+              <% if (subscriptionUsage.aiCredits) { %>
+              <div class="usage-meter">
+                <div class="usage-meter-header">
+                  <span class="usage-meter-label"><%= t('dashboard.usage.aiCredits') %></span>
+                  <span class="usage-meter-value">
+                    <%= Math.round(subscriptionUsage.aiCredits.used) %> / <%= subscriptionUsage.aiCredits.isUnlimited ? '∞' : subscriptionUsage.aiCredits.limit.toLocaleString() %>
+                  </span>
+                </div>
+                <div class="usage-meter-bar">
+                  <div class="usage-meter-fill <%= subscriptionUsage.aiCredits.percentage >= 90 ? 'danger' : (subscriptionUsage.aiCredits.percentage >= 70 ? 'warning' : '') %>" 
+                       style="width: <%= subscriptionUsage.aiCredits.isUnlimited ? 0 : Math.min(subscriptionUsage.aiCredits.percentage, 100) %>%"></div>
+                </div>
+              </div>
+              <% } %>
+            </div>
+            
+            <% if (subscriptionTier) { %>
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(11, 75, 52, 0.08); text-align: center;">
+              <span style="font-size: 12px; color: #0b4b34; opacity: 0.6;"><%= t('dashboard.usage.currentPlan') %>:</span>
+              <span style="font-size: 13px; font-weight: 600; color: #0b4b34; margin-left: 4px;"><%= subscriptionTier.displayName %></span>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      
+      <!-- Column 2: Invitations & AI Guides -->
+      <div class="dashboard-column">
+        
+        <!-- Invitation Stats (Editor & Admin) -->
+        <% if (userRole !== 'viewer' && typeof invitations !== 'undefined') { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              <%= t('dashboard.invitationOverview') %>
+            </h3>
+            <a href="/dashboard/invitations" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
+          </div>
+          <div class="dashboard-card-body">
+            <div class="invitation-stats">
+              <div class="invitation-stat pending">
+                <div class="value"><%= invitations.pending || 0 %></div>
+                <div class="label"><%= t('dashboard.invitations.pending') %></div>
+              </div>
+              <div class="invitation-stat active">
+                <div class="value"><%= invitations.active || 0 %></div>
+                <div class="label"><%= t('dashboard.invitations.active') %></div>
+              </div>
+              <div class="invitation-stat completed">
+                <div class="value"><%= invitations.completed || 0 %></div>
+                <div class="label"><%= t('dashboard.invitations.completed') %></div>
+              </div>
+              <div class="invitation-stat expired">
+                <div class="value"><%= invitations.expired || 0 %></div>
+                <div class="label"><%= t('dashboard.invitations.expired') %></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% } %>
+        
+        <!-- Rewards Stats (Editor & Admin) -->
+        <% if (userRole !== 'viewer' && typeof rewardStats !== 'undefined' && (rewardStats.active > 0 || rewardStats.archived > 0)) { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+              </svg>
+              <%= t('dashboard.rewards.title') %>
+            </h3>
+            <a href="/dashboard/analytics#rewards" class="dashboard-card-link"><%= t('common.details') %> →</a>
+          </div>
+          <div class="dashboard-card-body">
+            <% if (rewardStats.active > 0) { %>
+            <div class="reward-stats">
+              <div class="reward-stat">
+                <div class="value"><%= rewardStats.active %></div>
+                <div class="label"><%= t('dashboard.rewards.active') %></div>
+              </div>
+              <div class="reward-stat claimed">
+                <div class="value"><%= rewardStats.claimed %></div>
+                <div class="label"><%= t('dashboard.rewards.claimed') %></div>
+              </div>
+              <div class="reward-stat">
+                <div class="value"><%= rewardStats.remaining %></div>
+                <div class="label"><%= t('dashboard.rewards.remaining') %></div>
+              </div>
+            </div>
+            <% if (rewardStats.lowStockReward) { %>
+            <div class="reward-warning">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              <span>"<%= rewardStats.lowStockReward.title %>" - <%= t('dashboard.rewards.lowStock', { count: rewardStats.lowStockReward.remaining }) %></span>
+            </div>
+            <% } %>
+            <% } else { %>
+            <div class="text-center py-3 text-zen-500 text-sm">
+              <%= t('dashboard.rewards.noActiveRewards') %>
+            </div>
+            <% } %>
+            <% if (rewardStats.archived > 0) { %>
+            <div class="reward-archived-info">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 14px; height: 14px; flex-shrink: 0;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+              </svg>
+              <span><%= t('dashboard.rewards.archivedCount', { count: rewardStats.archived, claimed: rewardStats.archivedClaimed }) %></span>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        <% } %>
+        
+        <!-- AI Guides Widget -->
+        <% if (typeof guides !== 'undefined' && guides.length > 0) { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+              <%= t('dashboard.guides.title') %>
+            </h3>
+            <a href="/dashboard/guides" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
+          </div>
+          <div class="dashboard-card-body">
+            <div class="guide-list">
+              <% guides.forEach(guide => { %>
+              <a href="/dashboard/guides/<%= guide.id %>" class="guide-item">
+                <div class="guide-avatar">
+                  <% if (guide.avatar_url) { %>
+                    <img src="<%= guide.avatar_url %>" alt="<%= guide.name %>">
+                  <% } else { %>
+                    <%= guide.name.charAt(0).toUpperCase() %>
+                  <% } %>
+                </div>
+                <div class="guide-info">
+                  <div class="guide-name"><%= guide.name %></div>
+                  <div class="guide-meta">
+                    <span class="guide-meta-item">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                      </svg>
+                      <%= guide.chunks_count || 0 %> <%= t('dashboard.guides.chunks') %>
+                    </span>
+                  </div>
+                  <% if (guide.journeys_using && guide.journeys_using.length > 0) { %>
+                  <div class="guide-journeys">
+                    <% guide.journeys_using.slice(0, 2).forEach(j => { %>
+                    <span class="guide-journey-tag" title="<%= j.title %>"><%= j.title %></span>
+                    <% }) %>
+                    <% if (guide.journeys_using.length > 2) { %>
+                    <span class="guide-journey-tag">+<%= guide.journeys_using.length - 2 %></span>
+                    <% } %>
+                  </div>
+                  <% } else { %>
+                  <div class="guide-meta" style="margin-top: 4px; font-style: italic;">
+                    <%= t('dashboard.guides.notUsed') %>
+                  </div>
+                  <% } %>
+                </div>
+              </a>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+        <% } %>
+        
+        <!-- Completion Rate (Admin & Manager only - Column 2) -->
+        <% if ((userRole === 'admin' || userRole === 'manager') && typeof completionRate !== 'undefined') { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+              <%= t('dashboard.completionRate') %>
+            </h3>
+          </div>
+          <div class="dashboard-card-body" style="text-align: center;">
+            <div class="completion-circle">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle class="circle-bg" cx="40" cy="40" r="36"/>
+                <circle class="circle-progress" cx="40" cy="40" r="36" 
+                        stroke-dasharray="<%= 2 * Math.PI * 36 %>" 
+                        stroke-dashoffset="<%= 2 * Math.PI * 36 * (1 - completionRate / 100) %>"/>
+              </svg>
+              <div class="completion-value"><%= completionRate %>%</div>
+            </div>
+            <p style="font-size: 13px; color: #0b4b34; opacity: 0.7; margin: 0;"><%= t('dashboard.journeyCompletionRate') %></p>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      
+      <!-- Column 3: Team, System & Usage (Admin) + Completion Rate (Editor) -->
+      <div class="dashboard-column">
+        
+        <!-- Completion Rate (Editor/Member only - Column 3) -->
+        <% if ((userRole === 'member' || userRole === 'editor') && typeof completionRate !== 'undefined') { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+              <%= t('dashboard.completionRate') %>
+            </h3>
+          </div>
+          <div class="dashboard-card-body" style="text-align: center;">
+            <div class="completion-circle">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle class="circle-bg" cx="40" cy="40" r="36"/>
+                <circle class="circle-progress" cx="40" cy="40" r="36" 
+                        stroke-dasharray="<%= 2 * Math.PI * 36 %>" 
+                        stroke-dashoffset="<%= 2 * Math.PI * 36 * (1 - completionRate / 100) %>"/>
+              </svg>
+              <div class="completion-value"><%= completionRate %>%</div>
+            </div>
+            <p style="font-size: 13px; color: #0b4b34; opacity: 0.7; margin: 0;"><%= t('dashboard.journeyCompletionRate') %></p>
+          </div>
+        </div>
+        <% } %>
+        
+        <!-- Form Submissions Widget (Admin & Manager only - may contain personal data) -->
+        <% if ((userRole === 'admin' || userRole === 'manager') && typeof formSubmissions !== 'undefined') { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <%= t('dashboard.forms.title') %>
+            </h3>
+            <a href="/dashboard/analytics#forms" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
+          </div>
+          <div class="dashboard-card-body">
+            <% if (formSubmissions.total > 0) { %>
+            <div class="form-submission-stats">
+              <div class="form-submission-stat <%= formSubmissions.lastWeek > 0 ? 'new-this-week' : '' %>">
+                <div class="value"><%= formSubmissions.lastWeek %></div>
+                <div class="label"><%= t('dashboard.forms.thisWeek') %></div>
+              </div>
+              <div class="form-submission-stat">
+                <div class="value"><%= formSubmissions.withFilesLastWeek %></div>
+                <div class="label"><%= t('dashboard.forms.withFile') %></div>
+              </div>
+              <div class="form-submission-stat">
+                <div class="value"><%= formSubmissions.total %></div>
+                <div class="label"><%= t('dashboard.forms.total') %></div>
+              </div>
+            </div>
+            
+            <% if (formSubmissions.recent && formSubmissions.recent.length > 0) { %>
+            <div class="form-submission-list">
+              <% formSubmissions.recent.forEach(submission => { %>
+              <a href="/dashboard/analytics#forms" class="form-submission-row">
+                <div class="submission-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+                <div class="submission-info">
+                  <div class="submission-title"><%= submission.step_title || t('dashboard.forms.untitledForm') %></div>
+                  <div class="submission-meta">
+                    <%= submission.journey_title %><% if (submission.submitter_name) { %> · <%= submission.submitter_name %><% } %>
+                  </div>
+                </div>
+                <div class="submission-side">
+                  <span class="submission-date"><%= new Date(submission.created_at).toLocaleDateString(language, { day: 'numeric', month: 'short' }) %></span>
+                  <% if (parseInt(submission.file_count) > 0) { %>
+                  <span class="submission-attachment" title="<%= t('dashboard.forms.hasAttachment') %>">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                    </svg>
+                    <%= submission.file_count %>
+                  </span>
+                  <% } %>
+                </div>
+              </a>
+              <% }) %>
+            </div>
+            <% } %>
+            <% } else { %>
+            <div class="empty-state-mini">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <p><%= t('dashboard.forms.noSubmissions') %></p>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        <% } %>
+        
+        <!-- Team Widget (Admin & Manager) -->
+        <% if ((userRole === 'admin' || userRole === 'manager') && typeof team !== 'undefined') { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              <%= t('dashboard.team.title') %>
+            </h3>
+            <% if (userRole === 'admin') { %>
+            <a href="/dashboard/team" class="dashboard-card-link"><%= t('common.manage') %> →</a>
+            <% } %>
+          </div>
+          <div class="dashboard-card-body">
+            <div style="display: flex; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(11, 75, 52, 0.08);">
+              <div style="text-align: center; flex: 1;">
+                <div style="font-size: 24px; font-weight: 700; color: #0b4b34;"><%= team.stats?.active || 0 %></div>
+                <div style="font-size: 12px; color: #0b4b34; opacity: 0.6;"><%= t('dashboard.team.activeMembers') %></div>
+              </div>
+              <% if (team.pendingInvites > 0) { %>
+              <div style="text-align: center; flex: 1;">
+                <div style="font-size: 24px; font-weight: 700; color: #78c503;"><%= team.pendingInvites %></div>
+                <div style="font-size: 12px; color: #0b4b34; opacity: 0.6;"><%= t('dashboard.team.pendingInvites') %></div>
+              </div>
+              <% } %>
+            </div>
+            
+            <% if (team.recentActivity && team.recentActivity.length > 0) { %>
+            <div class="team-member-list">
+              <% team.recentActivity.slice(0, 3).forEach(member => { %>
+              <div class="team-member-item">
+                <div class="team-member-avatar">
+                  <%= (member.first_name || '?').charAt(0).toUpperCase() %><%= (member.last_name || '').charAt(0).toUpperCase() %>
+                </div>
+                <div class="team-member-info">
+                  <div class="team-member-name"><%= member.first_name %> <%= member.last_name %></div>
+                  <div class="team-member-meta"><%= t('team.roles.' + member.role + '.name') %></div>
+                </div>
+                <div class="team-member-status <%= member.last_login_at && (new Date() - new Date(member.last_login_at)) < 900000 ? 'online' : '' %>"></div>
+              </div>
+              <% }) %>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        <% } %>
+        
+        <!-- System Status (Admin only) -->
+        <% if (userRole === 'admin' && typeof systemStatus !== 'undefined') { %>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h3>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+              <%= t('dashboard.systemStatus.title') %>
+            </h3>
+          </div>
+          <div class="dashboard-card-body">
+            <div class="system-status-list">
+              <div class="system-status-item">
+                <div class="status-label">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Google Workspace
+                </div>
+                <span class="status-badge <%= systemStatus.google?.connected ? 'connected' : 'disconnected' %>">
+                  <%= systemStatus.google?.connected ? t('dashboard.systemStatus.connected') : t('dashboard.systemStatus.notConnected') %>
+                </span>
+              </div>
+              
+              <div class="system-status-item">
+                <div class="status-label">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                  </svg>
+                  API
+                </div>
+                <span class="status-badge <%= systemStatus.api?.hasKey ? 'active' : 'disconnected' %>">
+                  <%= systemStatus.api?.hasKey ? t('dashboard.systemStatus.active') : t('dashboard.systemStatus.notConfigured') %>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% } %>
+        
+      </div>
+    </div>
+  </main>
+  
+  <script src="/js/app.js"></script>
+
+  <% if (locals.siteAnalytics?.enabled && typeof justLoggedIn !== 'undefined' && justLoggedIn) { %><%- include('../cloud/analytics-login-complete') %><% } %>
+</body>
+</html>

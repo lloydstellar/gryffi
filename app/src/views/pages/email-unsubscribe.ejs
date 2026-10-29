@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title><%= t('emailUnsubscribe.title') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="min-h-screen bg-gryffi-bg flex items-center justify-center p-4">
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-gryffi-accent/10 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-gryffi-primary/10 to-transparent rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="w-full max-w-md relative">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center gap-3 mb-4">
+        <img src="/images/logos/Logo---illustration-only-cropped-transparant.png" alt="Gryffi" class="w-16 h-16">
+      </div>
+      <% if (state === 'done') { %>
+        <h1 class="text-3xl font-display font-bold text-gryffi-primary"><%= t('emailUnsubscribe.doneTitle') %></h1>
+      <% } else if (state === 'invalid') { %>
+        <h1 class="text-3xl font-display font-bold text-gryffi-primary"><%= t('emailUnsubscribe.invalidTitle') %></h1>
+      <% } else { %>
+        <h1 class="text-3xl font-display font-bold text-gryffi-primary"><%= t('emailUnsubscribe.title') %></h1>
+      <% } %>
+    </div>
+
+    <div class="glass-card-solid p-8">
+      <% if (state === 'done') { %>
+        <div class="alert-success animate-fade-in">
+          <%= t('emailUnsubscribe.doneText') %>
+        </div>
+      <% } else if (state === 'invalid') { %>
+        <div class="alert-error animate-fade-in">
+          <%= t('emailUnsubscribe.invalidText') %>
+        </div>
+      <% } else { %>
+        <p class="text-zen-600 mb-6"><%= t('emailUnsubscribe.text', { email }) %></p>
+        <form action="/email/unsubscribe/<%= encodeURIComponent(token) %>" method="POST">
+          <button type="submit" class="btn-primary w-full py-3">
+            <%= t('emailUnsubscribe.button') %>
+          </button>
+        </form>
+      <% } %>
+
+      <div class="mt-6 text-center text-sm text-zen-600">
+        <a href="/login" class="text-gryffi-primary font-medium hover:underline"><%= t('emailUnsubscribe.backToLogin') %></a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

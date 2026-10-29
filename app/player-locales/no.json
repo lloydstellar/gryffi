@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Velkommen",
+    "guide": "Guide",
+    "aiAssistant": "AI Assistent",
+    "noGuideSelected": "Ingen guide valgt",
+    "pleaseSelectGuide": "Vennligst velg en AI Guide i trinninnstillingene",
+    "selectGuideForStep": "Vennligst velg en guide for dette trinnet.",
+    "chat": {
+      "typeMessage": "Skriv meldingen din...",
+      "typeQuestion": "Skriv spørsmålet ditt...",
+      "askGuide": "Spør {{name}}",
+      "send": "Send",
+      "defaultGreeting": "Hei! Hvordan kan jeg hjelpe deg?",
+      "chatError": "Beklager, jeg kunne ikke behandle det.",
+      "connectionError": "Jeg har tilkoblingsproblemer akkurat nå. Vennligst prøv igjen.",
+      "guideUnavailable": "Jeg kan ikke svare på spørsmål akkurat nå. Du kan fortsette med neste steg."
+    },
+    "content": {
+      "invalidVideoUrl": "Ugyldig video-URL",
+      "noContentYet": "Ingen innhold lagt til ennå",
+      "pressPlayToStart": "Trykk på spill for å begynne å se"
+    },
+    "navigation": {
+      "whenReady": "Når du er klar:",
+      "journeyComplete": "Ekspedisjon fullført!",
+      "leaveJourney": "Forlat ekspedisjon?",
+      "leaveJourneyMessage": "Er du sikker på at du vil forlate denne ekspedisjonen? Fremgangen din er lagret.",
+      "leaveConfirm": "Forlat",
+      "stayContinue": "Bli"
+    },
+    "pacing": {
+      "readyToContinue": "Du kan nå fortsette",
+      "takeYourTimeMinutes": "Ta {{minutes}} minutt til å utforske",
+      "takeYourTimeMinutesPlural": "Ta {{minutes}} minutter til å utforske",
+      "takeYourTimeSeconds": "Ta deg tid... {{seconds}}s",
+      "keepWatching": "Fortsett å se... {{seconds}}s",
+      "chatWithGuide": "Chat med guiden ({{count}}/{{total}} meldinger)"
+    },
+    "form": {
+      "title": "Skjema",
+      "submit": "Send inn",
+      "submitting": "Sender...",
+      "defaultConfirmation": "Takk! Svaret ditt er sendt.",
+      "formSubmitFailed": "Kunne ikke sende skjemaet",
+      "formSubmitted": "Skjema sendt",
+      "submitToContinue": "Send inn skjemaet for å fortsette",
+      "selectOption": "Velg et alternativ",
+      "yes": "Ja",
+      "no": "Nei",
+      "field": "Felt",
+      "alreadySubmitted": {
+        "title": "Du har allerede sendt dette skjemaet",
+        "message": "Du sendte dette skjemaet den {{date}}. Du kan sende det igjen eller fortsette uten å fylle det ut.",
+        "skipButton": "Fortsett uten å sende",
+        "submitAgain": "Send igjen"
+      },
+      "fileUpload": {
+        "dropzone": "Dra fil hit eller klikk for å bla",
+        "dragActive": "Slipp filen her",
+        "maxSize": "Maks {{size}} MB",
+        "invalidType": "Ugyldig filtype. Tillatt: {{types}}",
+        "fileTooLarge": "Fil for stor. Maksimal størrelse: {{size}} MB",
+        "totalTooLarge": "Total vedleggsstørrelse overskrider grensen (38 MB)",
+        "removeFile": "Fjern fil",
+        "noFileSelected": "Ingen fil valgt",
+        "fileSelected": "Fil valgt: {{name}}",
+        "subtypes": {
+          "image": "Bilde",
+          "document": "Dokument",
+          "audio": "Lyd (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Kun MP3"
+        }
+      },
+      "imageRejected": "Dette bildet kan ikke lastes opp. Velg et annet bilde.",
+      "imageCheckUnavailable": "Vi kunne ikke kontrollere bildet ditt akkurat nå. Prøv igjen om noen minutter."
+    },
+    "quiz": {
+      "questionOf": "Spørsmål {{current}} av {{total}}",
+      "checkAnswer": "Sjekk svar",
+      "next": "Neste",
+      "previous": "Forrige",
+      "finish": "Send svar",
+      "correct": "Riktig!",
+      "incorrect": "Ikke helt riktig",
+      "tryAgain": "Prøv igjen",
+      "score": "Din poengsum",
+      "passed": "Quiz bestått!",
+      "completed": "Quiz fullført",
+      "allCorrect": "Alt riktig!",
+      "singleCorrect": "Riktig svar!",
+      "nextStepHint": "Reisen fortsetter. Velg neste trinn nedenfor.",
+      "failed": "Du trenger {{required}} riktige svar for å fortsette",
+      "questionsCorrect": "{{correct}} av {{total}} riktige",
+      "retake": "Ta quiz på nytt",
+      "continue": "Fortsett",
+      "completeQuizToContinue": "Fullfør quizen for å fortsette"
+    },
+    "poll": {
+      "submitVote": "Avgi stemme",
+      "completePollToContinue": "Fullfør avstemningen for å fortsette",
+      "alreadyVoted": "Du har allerede stemt",
+      "voteRecorded": "Stemmen din er registrert",
+      "votes": "stemmer",
+      "votesCount": "{{count}} stemme",
+      "votesCountPlural": "{{count}} stemmer",
+      "respondents": "{{count}} deltaker",
+      "respondentsPlural": "{{count}} deltakere",
+      "yourVote": "Din stemme"
+    },
+    "space": {
+      "dragHint": "Dra for å se deg rundt",
+      "viewFloorplan": "Vis plantegning",
+      "youAreHere": "Du er her"
+    },
+    "stepTypes": {
+      "reward": "Belønning"
+    },
+    "reward": {
+      "congratulations": "Gratulerer!",
+      "youAreNumber": "Du er nummer #{{position}} til å få denne belønningen!",
+      "yourCode": "Din belønningskode",
+      "redeemAt": "Løs inn hos",
+      "terms": "Vilkår og betingelser",
+      "validUntil": "Gyldig til",
+      "downloadCoupon": "Last ned kupong",
+      "emailSent": "En kopi er sendt til din e-post",
+      "alreadyClaimed": "Du har allerede fått en belønning for denne ekspedisjonen",
+      "noMoreRewards": "Beklager, alle belønninger er delt ut",
+      "previewMode": "Forhåndsvisning - Ingen ekte kode generert",
+      "claimed": "Belønning mottatt",
+      "soldOut": {
+        "title": "For dumt!",
+        "message": "Dessverre kom du for sent til å motta en belønning. Alle belønninger er allerede delt ut.",
+        "continueJourney": "Fortsett ekspedisjonen"
+      }
+    },
+    "tts": {
+      "listen": "Lytt",
+      "stop": "Stopp",
+      "listenLabel": "Få dette trinnet lest høyt",
+      "stopLabel": "Stopp opplesingen"
+    },
+    "reading": {
+      "settings": "Leseinnstillinger",
+      "dyslexicFont": "Dysleksivennlig skrifttype"
+    },
+    "orientation": {
+      "step": "Steg {{current}} av {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Økten din er utløpt. Klikk på Last inn på nytt for å fortsette.",
+      "reload": "Last inn på nytt"
+    }
+  }
+}

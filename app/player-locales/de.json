@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Willkommen",
+    "guide": "Guide",
+    "aiAssistant": "KI-Assistent",
+    "noGuideSelected": "Kein Guide ausgewählt",
+    "pleaseSelectGuide": "Bitte wählen Sie einen AI Guide in den Schritt-Einstellungen",
+    "selectGuideForStep": "Bitte wählen Sie einen Guide für diesen Schritt.",
+    "chat": {
+      "typeMessage": "Nachricht eingeben...",
+      "typeQuestion": "Frage eingeben...",
+      "askGuide": "{{name}} fragen",
+      "send": "Senden",
+      "defaultGreeting": "Hallo! Wie kann ich Ihnen helfen?",
+      "chatError": "Entschuldigung, das konnte ich nicht verarbeiten.",
+      "connectionError": "Ich habe momentan Verbindungsprobleme. Bitte versuchen Sie es erneut.",
+      "guideUnavailable": "Ich kann im Moment keine Fragen beantworten. Sie können mit dem nächsten Schritt weitermachen."
+    },
+    "content": {
+      "invalidVideoUrl": "Ungültige Video-URL",
+      "noContentYet": "Noch kein Inhalt hinzugefügt",
+      "pressPlayToStart": "Drücken Sie Play, um das Video zu starten"
+    },
+    "navigation": {
+      "whenReady": "Wenn Sie bereit sind:",
+      "journeyComplete": "Expedition abgeschlossen!",
+      "leaveJourney": "Expedition verlassen?",
+      "leaveJourneyMessage": "Möchten Sie diese Expedition wirklich verlassen? Ihr Fortschritt wurde gespeichert.",
+      "leaveConfirm": "Verlassen",
+      "stayContinue": "Bleiben"
+    },
+    "pacing": {
+      "readyToContinue": "Sie können jetzt fortfahren",
+      "takeYourTimeMinutes": "Nehmen Sie sich {{minutes}} Minute zum Erkunden",
+      "takeYourTimeMinutesPlural": "Nehmen Sie sich {{minutes}} Minuten zum Erkunden",
+      "takeYourTimeSeconds": "Nehmen Sie sich Zeit... {{seconds}}s",
+      "keepWatching": "Weiterschauen... {{seconds}}s",
+      "chatWithGuide": "Mit dem Guide chatten ({{count}}/{{total}} Nachrichten)"
+    },
+    "form": {
+      "title": "Formular",
+      "submit": "Absenden",
+      "submitting": "Wird gesendet...",
+      "defaultConfirmation": "Vielen Dank! Ihre Antwort wurde gesendet.",
+      "formSubmitFailed": "Formular konnte nicht gesendet werden",
+      "formSubmitted": "Formular erfolgreich gesendet",
+      "submitToContinue": "Formular absenden, um fortzufahren",
+      "selectOption": "Option auswählen",
+      "yes": "Ja",
+      "no": "Nein",
+      "field": "Feld",
+      "alreadySubmitted": {
+        "title": "Sie haben dieses Formular bereits abgeschickt",
+        "message": "Sie haben dieses Formular am {{date}} abgeschickt. Sie können es erneut absenden oder ohne Ausfüllen fortfahren.",
+        "skipButton": "Ohne Absenden fortfahren",
+        "submitAgain": "Erneut absenden"
+      },
+      "fileUpload": {
+        "dropzone": "Datei hierher ziehen oder klicken zum Durchsuchen",
+        "dragActive": "Datei hier ablegen",
+        "maxSize": "Max {{size}} MB",
+        "invalidType": "Ungültiger Dateityp. Erlaubt: {{types}}",
+        "fileTooLarge": "Datei zu groß. Maximale Größe: {{size}} MB",
+        "totalTooLarge": "Gesamtgröße der Anhänge überschreitet Limit (38 MB)",
+        "removeFile": "Datei entfernen",
+        "noFileSelected": "Keine Datei ausgewählt",
+        "fileSelected": "Datei ausgewählt: {{name}}",
+        "subtypes": {
+          "image": "Bild",
+          "document": "Dokument",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Nur MP3"
+        }
+      },
+      "imageRejected": "Dieses Bild kann nicht hochgeladen werden. Bitte wählen Sie ein anderes Bild.",
+      "imageCheckUnavailable": "Wir konnten Ihr Bild gerade nicht prüfen. Bitte versuchen Sie es in ein paar Minuten erneut."
+    },
+    "quiz": {
+      "questionOf": "Frage {{current}} von {{total}}",
+      "checkAnswer": "Antwort prüfen",
+      "next": "Weiter",
+      "previous": "Zurück",
+      "finish": "Antworten absenden",
+      "correct": "Richtig!",
+      "incorrect": "Nicht ganz richtig",
+      "tryAgain": "Erneut versuchen",
+      "score": "Ihre Punktzahl",
+      "passed": "Quiz bestanden!",
+      "completed": "Quiz abgeschlossen",
+      "allCorrect": "Alles richtig!",
+      "singleCorrect": "Richtig beantwortet!",
+      "nextStepHint": "Die Expedition geht weiter. Wähle unten den nächsten Schritt.",
+      "failed": "Sie benötigen {{required}} richtige Antworten, um fortzufahren",
+      "questionsCorrect": "{{correct}} von {{total}} richtig",
+      "retake": "Quiz wiederholen",
+      "continue": "Fortfahren",
+      "completeQuizToContinue": "Quiz abschließen, um fortzufahren"
+    },
+    "poll": {
+      "submitVote": "Abstimmen",
+      "completePollToContinue": "Umfrage abschließen, um fortzufahren",
+      "alreadyVoted": "Sie haben bereits abgestimmt",
+      "voteRecorded": "Ihre Stimme wurde erfasst",
+      "votes": "Stimmen",
+      "votesCount": "{{count}} Stimme",
+      "votesCountPlural": "{{count}} Stimmen",
+      "respondents": "{{count}} Teilnehmer",
+      "respondentsPlural": "{{count}} Teilnehmer",
+      "yourVote": "Ihre Stimme"
+    },
+    "space": {
+      "dragHint": "Ziehen zum Umsehen",
+      "viewFloorplan": "Grundriss anzeigen",
+      "youAreHere": "Sie sind hier"
+    },
+    "stepTypes": {
+      "reward": "Belohnung"
+    },
+    "reward": {
+      "congratulations": "Herzlichen Glückwunsch!",
+      "youAreNumber": "Sie sind Nummer #{{position}}, die diese Belohnung erhält!",
+      "yourCode": "Ihr Belohnungscode",
+      "redeemAt": "Einlösen bei",
+      "terms": "Bedingungen",
+      "validUntil": "Gültig bis",
+      "downloadCoupon": "Coupon herunterladen",
+      "emailSent": "Eine Kopie wurde an Ihre E-Mail gesendet",
+      "alreadyClaimed": "Sie haben bereits eine Belohnung für diese Expedition beansprucht",
+      "noMoreRewards": "Leider sind alle Belohnungen vergeben",
+      "previewMode": "Vorschau-Modus - Kein echter Code generiert",
+      "claimed": "Belohnung erhalten",
+      "soldOut": {
+        "title": "Wie schade!",
+        "message": "Leider waren Sie zu spät, um eine Belohnung zu erhalten. Alle Belohnungen wurden bereits vergeben.",
+        "continueJourney": "Expedition fortsetzen"
+      }
+    },
+    "tts": {
+      "listen": "Vorlesen",
+      "stop": "Stopp",
+      "listenLabel": "Diesen Schritt vorlesen",
+      "stopLabel": "Vorlesen beenden"
+    },
+    "reading": {
+      "settings": "Leseeinstellungen",
+      "dyslexicFont": "Legasthenie-freundliche Schrift"
+    },
+    "orientation": {
+      "step": "Schritt {{current}} von {{total}}",
+      "duration": "±{{minutes}} Min."
+    },
+    "session": {
+      "expired": "Ihre Sitzung ist abgelaufen. Klicken Sie auf Neu laden, um fortzufahren.",
+      "reload": "Neu laden"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="<%= typeof language !== 'undefined' ? language : 'en' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="min-h-screen bg-gryffi-bg flex items-center justify-center p-4">
+  <div class="text-center">
+    <div class="text-8xl font-display font-bold text-gryffi-primary/20 mb-4"><%= code %></div>
+    <h1 class="text-2xl font-semibold text-zen-900 mb-2"><%= title %></h1>
+    <p class="text-zen-500 mb-8 max-w-md mx-auto"><%= message %></p>
+    
+    <div class="flex items-center justify-center gap-4">
+      <a href="javascript:history.back()" class="btn-secondary">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        <%= typeof t !== 'undefined' ? t('common.back') : 'Go Back' %>
+      </a>
+      <a href="/dashboard" class="btn-primary">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+        <%= typeof t !== 'undefined' ? t('nav.dashboard') : 'Dashboard' %>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

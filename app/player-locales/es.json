@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Bienvenido",
+    "guide": "Guía",
+    "aiAssistant": "Asistente IA",
+    "noGuideSelected": "No hay guía seleccionado",
+    "pleaseSelectGuide": "Por favor selecciona un Guía IA en la configuración del paso",
+    "selectGuideForStep": "Por favor selecciona un guía para este paso.",
+    "chat": {
+      "typeMessage": "Escribe tu mensaje...",
+      "typeQuestion": "Escribe tu pregunta...",
+      "askGuide": "Preguntar a {{name}}",
+      "send": "Enviar",
+      "defaultGreeting": "¡Hola! ¿Cómo puedo ayudarte?",
+      "chatError": "Lo siento, no pude procesar eso.",
+      "connectionError": "Tengo problemas de conexión. Por favor inténtalo de nuevo.",
+      "guideUnavailable": "Ahora no puedo responder preguntas. Puedes continuar con el siguiente paso."
+    },
+    "content": {
+      "invalidVideoUrl": "URL de video inválida",
+      "noContentYet": "Aún no hay contenido añadido",
+      "pressPlayToStart": "Presiona play para empezar a ver"
+    },
+    "navigation": {
+      "whenReady": "Cuando estés listo:",
+      "journeyComplete": "¡Expedición completada!",
+      "leaveJourney": "¿Abandonar expedición?",
+      "leaveJourneyMessage": "¿Estás seguro de que quieres abandonar esta expedición? Tu progreso ha sido guardado.",
+      "leaveConfirm": "Abandonar",
+      "stayContinue": "Quedarse"
+    },
+    "pacing": {
+      "readyToContinue": "Ya puedes continuar",
+      "takeYourTimeMinutes": "Tómate {{minutes}} minuto para explorar",
+      "takeYourTimeMinutesPlural": "Tómate {{minutes}} minutos para explorar",
+      "takeYourTimeSeconds": "Tómate tu tiempo... {{seconds}}s",
+      "keepWatching": "Sigue viendo... {{seconds}}s",
+      "chatWithGuide": "Chatea con el guía ({{count}}/{{total}} mensajes)"
+    },
+    "form": {
+      "title": "Formulario",
+      "submit": "Enviar",
+      "submitting": "Enviando...",
+      "defaultConfirmation": "¡Gracias! Tu respuesta ha sido enviada.",
+      "formSubmitFailed": "Error al enviar el formulario",
+      "formSubmitted": "Formulario enviado con éxito",
+      "submitToContinue": "Envía el formulario para continuar",
+      "selectOption": "Selecciona una opción",
+      "yes": "Sí",
+      "no": "No",
+      "field": "Campo",
+      "alreadySubmitted": {
+        "title": "Ya has enviado este formulario",
+        "message": "Enviaste este formulario el {{date}}. Puedes enviarlo de nuevo o continuar sin completarlo.",
+        "skipButton": "Continuar sin enviar",
+        "submitAgain": "Enviar de nuevo"
+      },
+      "fileUpload": {
+        "dropzone": "Arrastra el archivo aquí o haz clic para buscar",
+        "dragActive": "Suelta el archivo aquí",
+        "maxSize": "Máx {{size}} MB",
+        "invalidType": "Tipo de archivo inválido. Permitido: {{types}}",
+        "fileTooLarge": "Archivo demasiado grande. Tamaño máximo: {{size}} MB",
+        "totalTooLarge": "El tamaño total de los archivos adjuntos excede el límite (38 MB)",
+        "removeFile": "Eliminar archivo",
+        "noFileSelected": "Ningún archivo seleccionado",
+        "fileSelected": "Archivo seleccionado: {{name}}",
+        "subtypes": {
+          "image": "Imagen",
+          "document": "Documento",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Solo MP3"
+        }
+      },
+      "imageRejected": "Esta imagen no se puede subir. Elige otra imagen.",
+      "imageCheckUnavailable": "No hemos podido comprobar tu imagen ahora. Inténtalo de nuevo en unos minutos."
+    },
+    "quiz": {
+      "questionOf": "Pregunta {{current}} de {{total}}",
+      "checkAnswer": "Comprobar respuesta",
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "finish": "Enviar respuestas",
+      "correct": "¡Correcto!",
+      "incorrect": "No del todo",
+      "tryAgain": "Intentar de nuevo",
+      "score": "Tu puntuación",
+      "passed": "¡Cuestionario superado!",
+      "completed": "Cuestionario completado",
+      "allCorrect": "¡Todo correcto!",
+      "singleCorrect": "¡Respuesta correcta!",
+      "nextStepHint": "El viaje continúa. Elige el siguiente paso abajo.",
+      "failed": "Necesitas {{required}} respuestas correctas para continuar",
+      "questionsCorrect": "{{correct}} de {{total}} correctas",
+      "retake": "Repetir cuestionario",
+      "continue": "Continuar",
+      "completeQuizToContinue": "Completa el cuestionario para continuar"
+    },
+    "poll": {
+      "submitVote": "Enviar voto",
+      "completePollToContinue": "Completa la encuesta para continuar",
+      "alreadyVoted": "Ya has votado",
+      "voteRecorded": "Tu voto ha sido registrado",
+      "votes": "votos",
+      "votesCount": "{{count}} voto",
+      "votesCountPlural": "{{count}} votos",
+      "respondents": "{{count}} participante",
+      "respondentsPlural": "{{count}} participantes",
+      "yourVote": "Tu voto"
+    },
+    "space": {
+      "dragHint": "Arrastra para mirar alrededor",
+      "viewFloorplan": "Ver plano",
+      "youAreHere": "Estás aquí"
+    },
+    "stepTypes": {
+      "reward": "Recompensa"
+    },
+    "reward": {
+      "congratulations": "¡Felicidades!",
+      "youAreNumber": "¡Eres el #{{position}} en reclamar esta recompensa!",
+      "yourCode": "Tu código de recompensa",
+      "redeemAt": "Canjear en",
+      "terms": "Términos y condiciones",
+      "validUntil": "Válido hasta",
+      "downloadCoupon": "Descargar cupón",
+      "emailSent": "Se ha enviado una copia a tu correo",
+      "alreadyClaimed": "Ya has reclamado una recompensa para esta expedición",
+      "noMoreRewards": "Lo sentimos, todas las recompensas han sido reclamadas",
+      "previewMode": "Modo vista previa - No se genera código real",
+      "claimed": "Recompensa reclamada",
+      "soldOut": {
+        "title": "¡Qué lástima!",
+        "message": "Desafortunadamente, llegaste demasiado tarde para recibir una recompensa. Todas las recompensas ya han sido entregadas.",
+        "continueJourney": "Continuar expedición"
+      }
+    },
+    "tts": {
+      "listen": "Escuchar",
+      "stop": "Detener",
+      "listenLabel": "Leer este paso en voz alta",
+      "stopLabel": "Detener la lectura"
+    },
+    "reading": {
+      "settings": "Ajustes de lectura",
+      "dyslexicFont": "Fuente adaptada a la dislexia"
+    },
+    "orientation": {
+      "step": "Paso {{current}} de {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Tu sesión ha terminado. Haz clic en Recargar para continuar.",
+      "reload": "Recargar"
+    }
+  }
+}

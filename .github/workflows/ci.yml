@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint and tests
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: pgvector/pgvector:0.8.1-pg16
+        env:
+          POSTGRES_USER: gryffi_user
+          POSTGRES_PASSWORD: ci-owner
+          POSTGRES_DB: gryffi_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U gryffi_user -d gryffi_db"
+          --health-interval 5s --health-retries 20
+      redis:
+        image: redis:7.4-alpine
+        ports: ["6379:6379"]
+    env:
+      GRYFFI_EDITION: community
+      GRYFFI_TEST_DB: "1"
+      DATABASE_URL: postgresql://gryffi_app_rt:ci-app@localhost:5432/gryffi_db
+      MIGRATION_DATABASE_URL: postgresql://gryffi_user:ci-owner@localhost:5432/gryffi_db
+      REDIS_URL: redis://localhost:6379
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123
+      OAUTH_TOKEN_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+      APP_URL: http://localhost:3000
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - name: Database roles and schema
+        run: |
+          psql "$MIGRATION_DATABASE_URL" -q -f ../scripts/security/create-rls-role.sql
+          psql "$MIGRATION_DATABASE_URL" -q -v app_pw=ci-app -f ../scripts/security/create-app-runtime-role.sql
+          node src/db/migrate.js > /dev/null
+      - run: npm test
+
+  smoke:
+    name: Install and smoke test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build the images
+        run: |
+          docker build -t gryffi-ci:0.0.0 --build-arg GRYFFI_VERSION=0.0.0 .
+      - name: Smoke test
+        env:
+          GRYFFI_IMAGE: gryffi-ci
+          GRYFFI_VERSION: 0.0.0
+        run: tests/smoke/run.sh
+      - name: Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-screenshots
+          path: tests/smoke/screenshots
+          if-no-files-found: ignore
+
+  docs:
+    name: Documentation builds
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: docs
+
+  shell:
+    name: Shell scripts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: shellcheck install.sh bin/gryffi docker/app/entrypoint.sh tests/smoke/run.sh

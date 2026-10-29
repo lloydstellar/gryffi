@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Hoş geldiniz",
+    "guide": "Rehber",
+    "aiAssistant": "AI Asistanı",
+    "noGuideSelected": "Rehber seçilmedi",
+    "pleaseSelectGuide": "Lütfen adım ayarlarında bir AI Rehber seçin",
+    "selectGuideForStep": "Lütfen bu adım için bir rehber seçin.",
+    "chat": {
+      "typeMessage": "Mesajınızı yazın...",
+      "typeQuestion": "Sorunuzu yazın...",
+      "askGuide": "{{name}} sor",
+      "send": "Gönder",
+      "defaultGreeting": "Merhaba! Size nasıl yardımcı olabilirim?",
+      "chatError": "Üzgünüm, bunu işleyemedim.",
+      "connectionError": "Bağlantı sorunları yaşıyorum. Lütfen tekrar deneyin.",
+      "guideUnavailable": "Şu anda soruları yanıtlayamıyorum. Bir sonraki adıma geçebilirsiniz."
+    },
+    "content": {
+      "invalidVideoUrl": "Geçersiz video URL'si",
+      "noContentYet": "Henüz içerik eklenmedi",
+      "pressPlayToStart": "İzlemeye başlamak için oynat'a basın"
+    },
+    "navigation": {
+      "whenReady": "Hazır olduğunuzda:",
+      "journeyComplete": "Keşif tamamlandı!",
+      "leaveJourney": "Keşiften ayrıl?",
+      "leaveJourneyMessage": "Bu keşiften ayrılmak istediğinizden emin misiniz? İlerlemeniz kaydedildi.",
+      "leaveConfirm": "Ayrıl",
+      "stayContinue": "Kal"
+    },
+    "pacing": {
+      "readyToContinue": "Şimdi devam edebilirsiniz",
+      "takeYourTimeMinutes": "Keşfetmek için {{minutes}} dakika ayırın",
+      "takeYourTimeMinutesPlural": "Keşfetmek için {{minutes}} dakika ayırın",
+      "takeYourTimeSeconds": "Acele etmeyin... {{seconds}}s",
+      "keepWatching": "İzlemeye devam edin... {{seconds}}s",
+      "chatWithGuide": "Rehberle sohbet edin ({{count}}/{{total}} mesaj)"
+    },
+    "form": {
+      "title": "Form",
+      "submit": "Gönder",
+      "submitting": "Gönderiliyor...",
+      "defaultConfirmation": "Teşekkürler! Yanıtınız gönderildi.",
+      "formSubmitFailed": "Form gönderilemedi",
+      "formSubmitted": "Form başarıyla gönderildi",
+      "submitToContinue": "Devam etmek için formu gönderin",
+      "selectOption": "Bir seçenek seçin",
+      "yes": "Evet",
+      "no": "Hayır",
+      "field": "Alan",
+      "alreadySubmitted": {
+        "title": "Bu formu zaten gönderdiniz",
+        "message": "Bu formu {{date}} tarihinde gönderdiniz. Tekrar gönderebilir veya doldurmadan devam edebilirsiniz.",
+        "skipButton": "Göndermeden devam et",
+        "submitAgain": "Tekrar gönder"
+      },
+      "fileUpload": {
+        "dropzone": "Dosyayı buraya sürükleyin veya göz atmak için tıklayın",
+        "dragActive": "Dosyayı buraya bırakın",
+        "maxSize": "Maks {{size}} MB",
+        "invalidType": "Geçersiz dosya türü. İzin verilen: {{types}}",
+        "fileTooLarge": "Dosya çok büyük. Maksimum boyut: {{size}} MB",
+        "totalTooLarge": "Toplam ek boyutu sınırı aşıyor (38 MB)",
+        "removeFile": "Dosyayı kaldır",
+        "noFileSelected": "Dosya seçilmedi",
+        "fileSelected": "Seçilen dosya: {{name}}",
+        "subtypes": {
+          "image": "Resim",
+          "document": "Belge",
+          "audio": "Ses (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Sadece MP3"
+        }
+      },
+      "imageRejected": "Bu görsel yüklenemiyor. Lütfen başka bir görsel seçin.",
+      "imageCheckUnavailable": "Görselinizi şu anda kontrol edemedik. Lütfen birkaç dakika sonra tekrar deneyin."
+    },
+    "quiz": {
+      "questionOf": "Soru {{current}} / {{total}}",
+      "checkAnswer": "Cevabı kontrol et",
+      "next": "Sonraki",
+      "previous": "Önceki",
+      "finish": "Cevapları gönder",
+      "correct": "Doğru!",
+      "incorrect": "Tam değil",
+      "tryAgain": "Tekrar dene",
+      "score": "Puanınız",
+      "passed": "Test başarıldı!",
+      "completed": "Sınav tamamlandı",
+      "allCorrect": "Hepsi doğru!",
+      "singleCorrect": "Doğru cevap!",
+      "nextStepHint": "Yolculuk devam ediyor. Aşağıdan bir sonraki adımı seçin.",
+      "failed": "Devam etmek için {{required}} doğru cevaba ihtiyacınız var",
+      "questionsCorrect": "{{correct}} / {{total}} doğru",
+      "retake": "Testi tekrar yap",
+      "continue": "Devam",
+      "completeQuizToContinue": "Devam etmek için testi tamamlayın"
+    },
+    "poll": {
+      "submitVote": "Oy ver",
+      "completePollToContinue": "Devam etmek için anketi tamamlayın",
+      "alreadyVoted": "Zaten oy verdiniz",
+      "voteRecorded": "Oyunuz kaydedildi",
+      "votes": "oy",
+      "votesCount": "{{count}} oy",
+      "votesCountPlural": "{{count}} oy",
+      "respondents": "{{count}} katılımcı",
+      "respondentsPlural": "{{count}} katılımcı",
+      "yourVote": "Oyunuz"
+    },
+    "space": {
+      "dragHint": "Etrafına bakmak için sürükle",
+      "viewFloorplan": "Kat planını göster",
+      "youAreHere": "Buradasınız"
+    },
+    "stepTypes": {
+      "reward": "Ödül"
+    },
+    "reward": {
+      "congratulations": "Tebrikler!",
+      "youAreNumber": "Bu ödülü alan #{{position}}. kişisiniz!",
+      "yourCode": "Ödül kodunuz",
+      "redeemAt": "Kullanılacak yer",
+      "terms": "Şartlar ve koşullar",
+      "validUntil": "Geçerlilik tarihi",
+      "downloadCoupon": "Kuponu indir",
+      "emailSent": "Bir kopya e-postanıza gönderildi",
+      "alreadyClaimed": "Bu keşif için zaten bir ödül aldınız",
+      "noMoreRewards": "Üzgünüz, tüm ödüller tükendi",
+      "previewMode": "Önizleme modu - Gerçek kod oluşturulmadı",
+      "claimed": "Ödül alındı",
+      "soldOut": {
+        "title": "Ne yazık!",
+        "message": "Maalesef ödül almak için çok geç kaldınız. Tüm ödüller dağıtıldı.",
+        "continueJourney": "Keşfe devam et"
+      }
+    },
+    "tts": {
+      "listen": "Dinle",
+      "stop": "Durdur",
+      "listenLabel": "Bu adımı sesli oku",
+      "stopLabel": "Sesli okumayı durdur"
+    },
+    "reading": {
+      "settings": "Okuma ayarları",
+      "dyslexicFont": "Disleksi dostu yazı tipi"
+    },
+    "orientation": {
+      "step": "Adım {{current}}/{{total}}",
+      "duration": "±{{minutes}} dk"
+    },
+    "session": {
+      "expired": "Oturumunuz sona erdi. Devam etmek için Yeniden yükle'ye tıklayın.",
+      "reload": "Yeniden yükle"
+    }
+  }
+}

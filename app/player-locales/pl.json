@@ -1,0 +1,161 @@
+{
+  "player": {
+    "welcome": "Witamy",
+    "guide": "Przewodnik",
+    "aiAssistant": "Asystent AI",
+    "noGuideSelected": "Nie wybrano przewodnika",
+    "pleaseSelectGuide": "Wybierz Przewodnika AI w ustawieniach kroku",
+    "selectGuideForStep": "Wybierz przewodnika dla tego kroku.",
+    "chat": {
+      "typeMessage": "Wpisz wiadomość...",
+      "typeQuestion": "Wpisz pytanie...",
+      "askGuide": "Zapytaj {{name}}",
+      "send": "Wyślij",
+      "defaultGreeting": "Cześć! Jak mogę ci pomóc?",
+      "chatError": "Przepraszam, nie udało się przetworzyć żądania.",
+      "connectionError": "Mam problemy z połączeniem. Spróbuj ponownie.",
+      "guideUnavailable": "W tej chwili nie mogę odpowiadać na pytania. Możesz przejść do następnego kroku."
+    },
+    "content": {
+      "invalidVideoUrl": "Nieprawidłowy adres URL wideo",
+      "noContentYet": "Nie dodano jeszcze treści",
+      "pressPlayToStart": "Naciśnij play, aby rozpocząć oglądanie"
+    },
+    "navigation": {
+      "whenReady": "Kiedy będziesz gotowy:",
+      "journeyComplete": "Wyprawa ukończona!",
+      "leaveJourney": "Opuścić wyprawę?",
+      "leaveJourneyMessage": "Czy na pewno chcesz opuścić tę wyprawę? Twój postęp został zapisany.",
+      "leaveConfirm": "Opuść",
+      "stayContinue": "Zostań"
+    },
+    "pacing": {
+      "readyToContinue": "Możesz teraz kontynuować",
+      "takeYourTimeMinutes": "Poświęć {{minutes}} minutę na eksplorację",
+      "takeYourTimeMinutesPlural": "Poświęć {{minutes}} minut na eksplorację",
+      "takeYourTimeSeconds": "Nie spiesz się... {{seconds}}s",
+      "keepWatching": "Kontynuuj oglądanie... {{seconds}}s",
+      "chatWithGuide": "Rozmawiaj z przewodnikiem ({{count}}/{{total}} wiadomości)"
+    },
+    "form": {
+      "title": "Formularz",
+      "submit": "Wyślij",
+      "submitting": "Wysyłanie...",
+      "defaultConfirmation": "Dziękujemy! Twoja odpowiedź została wysłana.",
+      "formSubmitFailed": "Nie udało się wysłać formularza",
+      "formSubmitted": "Formularz wysłany pomyślnie",
+      "submitToContinue": "Wyślij formularz, aby kontynuować",
+      "selectOption": "Wybierz opcję",
+      "yes": "Tak",
+      "no": "Nie",
+      "field": "Pole",
+      "alreadySubmitted": {
+        "title": "Już wysłałeś ten formularz",
+        "message": "Wysłałeś ten formularz dnia {{date}}. Możesz wysłać go ponownie lub kontynuować bez wypełniania.",
+        "skipButton": "Kontynuuj bez wysyłania",
+        "submitAgain": "Wyślij ponownie"
+      },
+      "fileUpload": {
+        "dropzone": "Przeciągnij plik tutaj lub kliknij, aby przeglądać",
+        "dragActive": "Upuść plik tutaj",
+        "maxSize": "Maks. {{size}} MB",
+        "invalidType": "Nieprawidłowy typ pliku. Dozwolone: {{types}}",
+        "fileTooLarge": "Plik za duży. Maksymalny rozmiar: {{size}} MB",
+        "totalTooLarge": "Całkowity rozmiar załączników przekracza limit (38 MB)",
+        "removeFile": "Usuń plik",
+        "noFileSelected": "Nie wybrano pliku",
+        "fileSelected": "Wybrany plik: {{name}}",
+        "subtypes": {
+          "image": "Obraz",
+          "document": "Dokument",
+          "audio": "Audio (MP3)"
+        },
+        "acceptedFormats": {
+          "image": "JPG, PNG, GIF, WebP",
+          "document": "PDF, Word, TXT",
+          "audio": "Tylko MP3"
+        }
+      },
+      "imageRejected": "Nie można przesłać tego obrazu. Wybierz inny obraz.",
+      "imageCheckUnavailable": "Nie udało się teraz sprawdzić Twojego obrazu. Spróbuj ponownie za kilka minut."
+    },
+    "quiz": {
+      "questionOf": "Pytanie {{current}} z {{total}}",
+      "checkAnswer": "Sprawdź odpowiedź",
+      "next": "Dalej",
+      "previous": "Wstecz",
+      "finish": "Wyślij odpowiedzi",
+      "correct": "Poprawnie!",
+      "incorrect": "Nie całkiem",
+      "tryAgain": "Spróbuj ponownie",
+      "score": "Twój wynik",
+      "passed": "Quiz zaliczony!",
+      "completed": "Quiz ukończony",
+      "allCorrect": "Wszystko poprawnie!",
+      "singleCorrect": "Poprawna odpowiedź!",
+      "nextStepHint": "Podróż trwa dalej. Wybierz następny krok poniżej.",
+      "failed": "Potrzebujesz {{required}} poprawnych odpowiedzi, aby kontynuować",
+      "questionsCorrect": "{{correct}} z {{total}} poprawnych",
+      "retake": "Powtórz quiz",
+      "continue": "Kontynuuj",
+      "completeQuizToContinue": "Ukończ quiz, aby kontynuować"
+    },
+    "poll": {
+      "submitVote": "Zagłosuj",
+      "completePollToContinue": "Ukończ ankietę, aby kontynuować",
+      "alreadyVoted": "Już głosowałeś",
+      "voteRecorded": "Twój głos został zarejestrowany",
+      "votes": "głosów",
+      "votesCount": "{{count}} głos",
+      "votesCountPlural": "{{count}} głosów",
+      "respondents": "{{count}} uczestnik",
+      "respondentsPlural": "{{count}} uczestników",
+      "yourVote": "Twój głos"
+    },
+    "space": {
+      "dragHint": "Przeciągnij, aby rozejrzeć się",
+      "viewFloorplan": "Zobacz plan piętra",
+      "youAreHere": "Jesteś tutaj"
+    },
+    "stepTypes": {
+      "reward": "Nagroda"
+    },
+    "reward": {
+      "congratulations": "Gratulacje!",
+      "youAreNumber": "Jesteś numerem #{{position}}, który otrzymuje tę nagrodę!",
+      "yourCode": "Twój kod nagrody",
+      "redeemAt": "Zrealizuj w",
+      "terms": "Regulamin",
+      "validUntil": "Ważne do",
+      "downloadCoupon": "Pobierz kupon",
+      "emailSent": "Kopia została wysłana na twój e-mail",
+      "alreadyClaimed": "Już odebrałeś nagrodę za tę wyprawę",
+      "noMoreRewards": "Przepraszamy, wszystkie nagrody zostały odebrane",
+      "previewMode": "Tryb podglądu - Nie wygenerowano prawdziwego kodu",
+      "claimed": "Nagroda odebrana",
+      "soldOut": {
+        "title": "Szkoda!",
+        "message": "Niestety, przybyłeś za późno, aby otrzymać nagrodę. Wszystkie nagrody zostały już rozdane.",
+        "continueJourney": "Kontynuuj wyprawę"
+      }
+    },
+    "tts": {
+      "listen": "Odsłuchaj",
+      "stop": "Zatrzymaj",
+      "listenLabel": "Przeczytaj ten krok na głos",
+      "stopLabel": "Zatrzymaj czytanie na głos"
+    },
+    "reading": {
+      "settings": "Ustawienia czytania",
+      "dyslexicFont": "Czcionka przyjazna dyslektykom"
+    },
+    "orientation": {
+      "step": "Krok {{current}} z {{total}}",
+      "duration": "±{{minutes}} min"
+    },
+    "session": {
+      "expired": "Twoja sesja wygasła. Kliknij Odśwież, aby kontynuować.",
+      "reload": "Odśwież"
+    }
+  }
+}

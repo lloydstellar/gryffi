@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('pages.createJourney') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-gryffi-bg">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+  <%- include('../partials/support-modal') %>
+  
+  <main class="main-content">
+    <%- include('../partials/free-tier-banner') %>
+    <%- include('../partials/ai-credits-banner') %>
+    
+    <div class="max-w-2xl">
+      <div class="page-header">
+        <h1 class="page-title"><%= t('journeys.new.title') %></h1>
+        <p class="page-subtitle"><%= t('journeys.subtitle') %></p>
+      </div>
+
+      <div class="glass-card-solid p-8">
+        <form action="/dashboard/journeys" method="POST" class="space-y-6">
+          <div>
+            <label for="title" class="input-label"><%= t('journeys.new.journeyTitle') %> *</label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title" 
+              class="input"
+              placeholder="<%= t('journeys.new.titlePlaceholder') %>"
+              required
+              autofocus
+            >
+          </div>
+          
+          <div>
+            <label for="description" class="input-label"><%= t('journeys.new.description') %></label>
+            <textarea 
+              id="description" 
+              name="description" 
+              class="input min-h-[100px]"
+              placeholder="<%= t('journeys.new.descriptionPlaceholder') %>"
+            ></textarea>
+          </div>
+          
+          <div class="flex items-center gap-4 pt-4">
+            <button type="submit" class="btn-primary">
+              <%= t('journeys.new.createButton') %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
+            </button>
+            <a href="/dashboard/journeys" class="btn-secondary"><%= t('common.cancel') %></a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+  
+  <script src="/js/app.js"></script>
+</body>
+</html>

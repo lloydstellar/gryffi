@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="<%= language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= t('invitations.title') %> | Gryffi</title>
+  <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+    .card-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .card-body {
+      padding: 24px;
+    }
+    
+    /* Wizard Steps */
+    .wizard-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .wizard-steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 60px;
+      right: 60px;
+      height: 2px;
+      background: #d1ddd0;
+      z-index: 0;
+    }
+    .wizard-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+    .wizard-step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ecf2eb;
+      border: 2px solid #d1ddd0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: #6b8068;
+      transition: all 0.2s;
+    }
+    .wizard-step.active .wizard-step-number {
+      background: #0b4b34;
+      border-color: #0b4b34;
+      color: white;
+      box-shadow: 0 4px 12px rgba(11, 75, 52, 0.35);
+    }
+    .wizard-step.completed .wizard-step-number {
+      background: #78c503;
+      border-color: #78c503;
+      color: white;
+    }
+    .wizard-step-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b8068;
+      text-align: center;
+    }
+    .wizard-step.active .wizard-step-label {
+      color: #0b4b34;
+      font-weight: 600;
+    }
+    .wizard-step.completed .wizard-step-label {
+      color: #0f172a;
+    }
+    
+    /* Wizard Content */
+    .wizard-content {
+      /* Removed fixed min-height to prevent large white space */
+    }
+    .wizard-panel {
+      display: none;
+    }
+    .wizard-panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Journey Selection */
+    .journey-option {
+      padding: 16px;
+      border: 2px solid #d1ddd0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 12px;
+      background: #fafcfa;
+    }
+    .journey-option:last-child {
+      margin-bottom: 0;
+    }
+    .journey-option:hover {
+      border-color: #0b4b34;
+      background: rgba(11, 75, 52, 0.04);
+    }
+    .journey-option.selected {
+      border-color: #0b4b34;
+      background: rgba(11, 75, 52, 0.06);
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.1);
+    }
+    .journey-option.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #f9fafb;
+    }
+    .journey-option.disabled:hover {
+      border-color: #d1ddd0;
+      background: #f9fafb;
+    }
+    .journey-option-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .journey-option-desc {
+      font-size: 13px;
+      color: #64748b;
+    }
+    
+    /* Option Cards */
+    .option-group {
+      margin-bottom: 24px;
+    }
+    .option-label {
+      font-weight: 600;
+      font-size: 14px;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .option-hint {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+    .option-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .option-btn {
+      padding: 10px 16px;
+      border: 2px solid #d1ddd0;
+      border-radius: 8px;
+      background: #fafcfa;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      transition: all 0.15s;
+    }
+    .option-btn:hover {
+      border-color: #0b4b34;
+    }
+    .option-btn.selected {
+      border-color: #0b4b34;
+      background: rgba(11, 75, 52, 0.06);
+      color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.1);
+    }
+    
+    /* User Selection */
+    .user-search {
+      margin-bottom: 16px;
+    }
+    .user-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .user-list {
+      max-height: 350px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+    }
+    .user-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .user-item:last-child {
+      border-bottom: none;
+    }
+    .user-item:hover {
+      background: #f9fafb;
+    }
+    .user-item.selected {
+      background: rgba(11, 75, 52, 0.06);
+    }
+    .user-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .user-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1ddd0;
+      border-radius: 4px;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .user-item.selected .user-checkbox {
+      background: #0b4b34;
+      border-color: #0b4b34;
+    }
+    .user-checkbox svg {
+      width: 14px;
+      height: 14px;
+      color: #ecf2eb;
+      stroke-width: 2.5;
+      opacity: 0;
+    }
+    .user-item.selected .user-checkbox svg {
+      opacity: 1;
+    }
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .user-name {
+      font-weight: 500;
+      font-size: 14px;
+      color: #0f172a;
+    }
+    .user-email {
+      font-size: 13px;
+      color: #64748b;
+    }
+    .user-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #92400e;
+      font-weight: 500;
+    }
+    .selection-count {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+    .selection-count strong {
+      color: #0b4b34;
+      font-weight: 600;
+    }
+    
+    /* Recipient Tabs */
+    .recipient-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .recipient-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      font-size: 14px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .recipient-tab:hover {
+      border-color: #78c503;
+      color: #0b4b34;
+    }
+    .recipient-tab.active {
+      background: rgba(11, 75, 52, 0.06);
+      border-color: #0b4b34;
+      color: #0b4b34;
+    }
+    .recipient-tab svg {
+      width: 16px;
+      height: 16px;
+    }
+    .recipient-tab-content {
+      display: none;
+    }
+    .recipient-tab-content.active {
+      display: block;
+    }
+    
+    /* Group List */
+    .group-list {
+      max-height: 350px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+    }
+    .group-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .group-item:last-child {
+      border-bottom: none;
+    }
+    .group-item:hover {
+      background: #f9fafb;
+    }
+    .group-item.selected {
+      background: rgba(11, 75, 52, 0.06);
+    }
+    .group-item .user-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1ddd0;
+      border-radius: 4px;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .group-item.selected .user-checkbox {
+      background: #0b4b34;
+      border-color: #0b4b34;
+    }
+    .group-item .user-checkbox svg {
+      width: 14px;
+      height: 14px;
+      color: #ecf2eb;
+      stroke-width: 2.5;
+      opacity: 0;
+    }
+    .group-item.selected .user-checkbox svg {
+      opacity: 1;
+    }
+    .group-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .group-name {
+      font-weight: 500;
+      font-size: 14px;
+      color: #0f172a;
+    }
+    .group-member-count {
+      font-size: 13px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .group-member-count svg {
+      width: 14px;
+      height: 14px;
+    }
+    .group-note {
+      background: rgba(120, 197, 3, 0.1);
+      border: 1px solid rgba(120, 197, 3, 0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #0b4b34;
+      margin-bottom: 16px;
+    }
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      padding: 32px;
+    }
+    .no-groups-message {
+      text-align: center;
+      padding: 32px;
+      color: #64748b;
+      font-size: 14px;
+    }
+    .no-groups-message a {
+      color: #0b4b34;
+      text-decoration: underline;
+    }
+    
+    /* Review Panel */
+    .review-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .review-item:last-child {
+      border-bottom: none;
+    }
+    .review-label {
+      font-weight: 500;
+      color: #64748b;
+      font-size: 14px;
+    }
+    .review-value {
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 14px;
+    }
+    .recipients-preview {
+      margin-top: 16px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .recipient-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      font-size: 13px;
+      margin: 4px;
+    }
+    
+    /* Wizard Navigation */
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    /* Buttons - override to remove focus ring offset */
+    .btn, .btn-primary, .btn-secondary {
+      box-shadow: none !important;
+    }
+    .btn:focus, .btn-primary:focus, .btn-secondary:focus {
+      box-shadow: none !important;
+      outline: none !important;
+    }
+    .btn-primary:disabled {
+      background: #d1d5db !important;
+      cursor: not-allowed;
+    }
+    
+    /* Invitations List */
+    .table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #64748b;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      font-size: 14px;
+      color: #0f172a;
+    }
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* Status Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .status-active {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .status-completed {
+      background: rgba(11, 75, 52, 0.12);
+      color: #0b4b34;
+    }
+    .status-expired {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+    .status-revoked {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      padding: 4px;
+      background: #f3f4f6;
+      border-radius: 10px;
+      width: fit-content;
+    }
+    .filter-tab {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      background: transparent;
+    }
+    .filter-tab:hover {
+      color: #374151;
+    }
+    .filter-tab.active {
+      background: white;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .filter-tab .count {
+      margin-left: 6px;
+      font-size: 11px;
+      background: #d1ddd0;
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+    .filter-tab.active .count {
+      background: #0b4b34;
+      color: white;
+    }
+    
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #64748b;
+    }
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: #f3f4f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .empty-state-icon svg {
+      width: 32px;
+      height: 32px;
+      stroke: #9ca3af;
+    }
+    .empty-state-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    .empty-state-desc {
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    
+    /* No permission notice */
+    .no-permission-notice {
+      text-align: center;
+      padding: 40px 24px;
+      background: rgba(11, 75, 52, 0.04);
+      border-radius: 12px;
+      border: 1px solid rgba(11, 75, 52, 0.1);
+    }
+    .no-permission-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: rgba(11, 75, 52, 0.08);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .no-permission-icon svg {
+      width: 32px;
+      height: 32px;
+      stroke: #0b4b34;
+    }
+    .no-permission-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #0b4b34;
+      margin-bottom: 12px;
+    }
+    .no-permission-description {
+      font-size: 14px;
+      color: #374151;
+      max-width: 480px;
+      margin: 0 auto 16px;
+      line-height: 1.6;
+    }
+    .no-permission-hint {
+      font-size: 13px;
+      color: #64748b;
+      font-style: italic;
+    }
+    
+    /* Draft warning */
+    .draft-warning {
+      padding: 12px 16px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .draft-warning svg {
+      width: 20px;
+      height: 20px;
+      stroke: #d97706;
+      flex-shrink: 0;
+    }
+    .draft-warning-text {
+      font-size: 14px;
+      color: #92400e;
+    }
+    
+    /* Input styles */
+    .input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1ddd0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+      background: #fff;
+      transition: all 0.15s;
+    }
+    .input:focus {
+      outline: none;
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.1);
+    }
+    
+    /* Toggle Switch */
+    .reminder-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #d1ddd0;
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #0b4b34;
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+    }
+    .reminder-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(11, 75, 52, 0.06);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #0b4b34;
+    }
+    .reminder-info svg {
+      flex-shrink: 0;
+      color: #0b4b34;
+    }
+    
+    /* Journey badge */
+    .journey-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .journey-badge-published {
+      background: rgba(120, 197, 3, 0.15);
+      color: #0b4b34;
+    }
+    .journey-badge-draft {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+    
+    
+    /* Action buttons in table */
+    .action-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+    }
+    .action-btn:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+    .action-btn-danger {
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+    .action-btn-danger:hover {
+      background: #fef2f2;
+    }
+    
+    /* Mobile-specific styles for invitations page */
+    @media (max-width: 767px) {
+      /* Invitations table needs horizontal scroll */
+      #invitationsTable {
+        min-width: 650px;
+      }
+      
+      /* Table cells */
+      .table th,
+      .table td {
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+      
+      /* User info column - first column sticky */
+      .table td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 1;
+        max-width: 140px;
+      }
+      
+      /* User name and email */
+      .table td:first-child .font-medium {
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 130px;
+        display: block;
+      }
+      
+      .table td:first-child .text-xs {
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 130px;
+        display: block;
+      }
+      
+      /* Status badges */
+      .status-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+      }
+      
+      /* Action buttons */
+      .action-btn {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+      
+      /* Filter tabs on mobile */
+      .filter-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+      }
+      
+      .filter-tab {
+        white-space: nowrap;
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      #invitationsTable {
+        min-width: 580px;
+      }
+      
+      .table th,
+      .table td {
+        padding: 8px 6px;
+        font-size: 12px;
+      }
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 16px;
+    }
+    .pagination-info {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .pagination-info strong {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pagination-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      background: white;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pagination-btn:hover:not(:disabled) {
+      border-color: #0b4b34;
+      color: #0b4b34;
+    }
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .pagination-btn.active {
+      background: #0b4b34;
+      border-color: #0b4b34;
+      color: white;
+    }
+    .pagination-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    .pagination-ellipsis {
+      padding: 0 8px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    
+    /* Loading state */
+    .table-loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 48px;
+      color: #64748b;
+    }
+    .table-loading svg {
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 640px) {
+      .pagination {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .pagination-info {
+        text-align: center;
+      }
+    }
+  </style>
+  <script src="/js/app.js"></script>
+</head>
+<body class="min-h-screen bg-zen-50">
+  <div class="min-h-screen">
+    <%- include('../partials/sidebar') %>
+  <%- include('../partials/help-modal') %>
+    <%- include('../partials/support-modal') %>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <%- include('../partials/free-tier-banner') %>
+      <%- include('../partials/ai-credits-banner') %>
+      
+      <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-zen-900 mb-2"><%= t('invitations.title') %></h1>
+          <p class="text-zen-600"><%= t('invitations.subtitle') %></p>
+        </div>
+
+        <!-- Send Invitations Card -->
+        <div class="card mb-8">
+          <div class="card-header">
+            <h2 class="text-lg font-semibold text-zen-900"><%= t('invitations.sendInvitations') %></h2>
+          </div>
+          <div class="card-body">
+            <% if (userRole !== 'admin' && userRole !== 'manager') { %>
+              <!-- No permission message for editors and viewers -->
+              <div class="no-permission-notice">
+                <div class="no-permission-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                  </svg>
+                </div>
+                <h3 class="no-permission-title"><%= t('invitations.noPermission.title') %></h3>
+                <p class="no-permission-description"><%= t('invitations.noPermission.description') %></p>
+                <p class="no-permission-hint"><%= t('invitations.noPermission.hint') %></p>
+              </div>
+            <% } else if (publishedJourneys.length === 0) { %>
+              <!-- No published journeys warning -->
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                </div>
+                <div class="empty-state-title"><%= t('invitations.journey.noPublished') %></div>
+                <div class="empty-state-desc"><%= t('invitations.journey.noPublishedDescription') %></div>
+                <a href="/dashboard/journeys" class="btn btn-primary">
+                  <%= t('invitations.journey.goToJourneys') %>
+                </a>
+              </div>
+            <% } else if (endUsers.length === 0) { %>
+              <!-- No end users warning -->
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </div>
+                <div class="empty-state-title"><%= t('invitations.users.noUsers') %></div>
+                <div class="empty-state-desc"><%= t('invitations.users.noUsersDescription') %></div>
+                <a href="/dashboard/system-settings#users" class="btn btn-primary">
+                  <%= t('invitations.users.goToSystemSettings') %>
+                </a>
+              </div>
+            <% } else { %>
+              <!-- Wizard Steps -->
+              <div class="wizard-steps" id="wizardSteps">
+                <div class="wizard-step active" data-step="1">
+                  <div class="wizard-step-number">1</div>
+                  <div class="wizard-step-label"><%= t('invitations.steps.selectJourney') %></div>
+                </div>
+                <div class="wizard-step" data-step="2">
+                  <div class="wizard-step-number">2</div>
+                  <div class="wizard-step-label"><%= t('invitations.steps.setOptions') %></div>
+                </div>
+                <div class="wizard-step" data-step="3">
+                  <div class="wizard-step-number">3</div>
+                  <div class="wizard-step-label"><%= t('invitations.steps.selectUsers') %></div>
+                </div>
+                <div class="wizard-step" data-step="4">
+                  <div class="wizard-step-number">4</div>
+                  <div class="wizard-step-label"><%= t('invitations.steps.review') %></div>
+                </div>
+              </div>
+
+              <div class="wizard-content">
+                <!-- Step 1: Select Journey -->
+                <div class="wizard-panel active" data-panel="1">
+                  <h3 class="text-lg font-semibold text-zen-900 mb-2"><%= t('invitations.journey.title') %></h3>
+                  <p class="text-zen-600 text-sm mb-6"><%= t('invitations.journey.subtitle') %></p>
+                  
+                  <div id="journeyList">
+                    <% 
+                      // Filter: only show journeys that are both published AND private (not public)
+                      const privatePublishedJourneys = allJourneys.filter(j => j.status === 'published' && !j.is_public);
+                    %>
+                    <% if (privatePublishedJourneys.length === 0) { %>
+                      <div class="empty-state" style="padding: 24px;">
+                        <div class="empty-state-icon">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                          </svg>
+                        </div>
+                        <div class="empty-state-title"><%= t('invitations.journey.noPrivatePublished') %></div>
+                        <div class="empty-state-desc"><%= t('invitations.journey.noPrivatePublishedDescription') %></div>
+                      </div>
+                    <% } else { %>
+                      <% privatePublishedJourneys.forEach(journey => { %>
+                        <div class="journey-option" 
+                             data-journey-id="<%= journey.id %>"
+                             data-journey-title="<%= journey.title %>"
+                             data-journey-status="<%= journey.status %>">
+                          <div class="flex items-center justify-between">
+                            <div>
+                              <div class="journey-option-title"><%= journey.title %></div>
+                              <% if (journey.description) { %>
+                                <div class="journey-option-desc"><%= journey.description.substring(0, 100) %><%= journey.description.length > 100 ? '...' : '' %></div>
+                              <% } %>
+                            </div>
+                            <span class="journey-badge journey-badge-published">
+                              <%= t('invitations.journey.status.published') %>
+                            </span>
+                          </div>
+                        </div>
+                      <% }) %>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Step 2: Options -->
+                <div class="wizard-panel" data-panel="2">
+                  <h3 class="text-lg font-semibold text-zen-900 mb-2"><%= t('invitations.options.title') %></h3>
+                  <p class="text-zen-600 text-sm mb-6"><%= t('invitations.options.subtitle') %></p>
+                  
+                  <div class="option-group">
+                    <div class="option-label"><%= t('invitations.options.validity.label') %></div>
+                    <div class="option-hint"><%= t('invitations.options.validity.hint') %></div>
+                    <div class="option-buttons" id="validityOptions">
+                      <button class="option-btn" data-validity="7"><%= t('invitations.options.validity.1week') %></button>
+                      <button class="option-btn selected" data-validity="14"><%= t('invitations.options.validity.2weeks') %></button>
+                      <button class="option-btn" data-validity="30"><%= t('invitations.options.validity.1month') %></button>
+                      <button class="option-btn" data-validity="90"><%= t('invitations.options.validity.3months') %></button>
+                    </div>
+                  </div>
+                  
+                  <div class="option-group">
+                    <div class="option-label"><%= t('invitations.options.completions.label') %></div>
+                    <div class="option-hint"><%= t('invitations.options.completions.hint') %></div>
+                    <div class="option-buttons" id="completionOptions">
+                      <button class="option-btn selected" data-completions="1"><%= t('invitations.options.completions.once') %></button>
+                      <button class="option-btn" data-completions="2"><%= t('invitations.options.completions.twice') %></button>
+                      <button class="option-btn" data-completions="0"><%= t('invitations.options.completions.unlimited') %></button>
+                    </div>
+                  </div>
+                  
+                  <div class="option-group">
+                    <div class="option-label"><%= t('invitations.options.reminder.label') %></div>
+                    <div class="option-hint"><%= t('invitations.options.reminder.hint') %></div>
+                    <div class="reminder-toggle">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="sendReminder" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <span class="toggle-label" id="reminderLabel"><%= t('invitations.options.reminder.on') %></span>
+                    </div>
+                    <div id="reminderInfo" class="reminder-info" style="display: flex;">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span id="reminderInfoText"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Step 3: Select Users -->
+                <div class="wizard-panel" data-panel="3">
+                  <h3 class="text-lg font-semibold text-zen-900 mb-2"><%= t('invitations.users.title') %></h3>
+                  <p class="text-zen-600 text-sm mb-6"><%= t('invitations.users.subtitle') %></p>
+                  
+                  <!-- Tabs for Individuals / Groups -->
+                  <div class="recipient-tabs">
+                    <button type="button" class="recipient-tab active" data-tab="individuals">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                      <%= t('invitations.users.tabs.individuals') %>
+                    </button>
+                    <button type="button" class="recipient-tab" data-tab="groups">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                      </svg>
+                      <%= t('invitations.users.tabs.groups') %>
+                    </button>
+                  </div>
+                  
+                  <!-- Individuals Tab Content -->
+                  <div class="recipient-tab-content active" data-tab-content="individuals">
+                    <div class="user-search">
+                      <input type="text" class="input" id="userSearch" placeholder="<%= t('invitations.users.searchPlaceholder') %>">
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="user-actions">
+                        <button type="button" class="btn btn-ghost btn-sm" id="selectAllUsers">
+                          <%= t('invitations.users.selectAll') %>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" id="deselectAllUsers">
+                          <%= t('invitations.users.deselectAll') %>
+                        </button>
+                      </div>
+                      <div class="selection-count">
+                        <strong id="selectedCount">0</strong> <%= t('invitations.users.selected', { count: '' }).replace('{{count}}', '').trim() %>
+                      </div>
+                    </div>
+                    
+                    <div class="user-list" id="userList">
+                      <% endUsers.forEach(user => { %>
+                        <div class="user-item" 
+                             data-user-id="<%= user.id %>"
+                             data-user-name="<%= user.first_name %> <%= user.last_name %>"
+                             data-user-email="<%= user.email %>">
+                          <div class="user-checkbox">
+                            <svg viewBox="0 0 24 24" fill="none">
+                              <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </div>
+                          <div class="user-info">
+                            <div class="user-name"><%= user.first_name %> <%= user.last_name %></div>
+                            <div class="user-email"><%= user.email %></div>
+                          </div>
+                        </div>
+                      <% }) %>
+                    </div>
+                  </div>
+                  
+                  <!-- Groups Tab Content -->
+                  <div class="recipient-tab-content" data-tab-content="groups">
+                    <div class="user-search">
+                      <input type="text" class="input" id="groupSearch" placeholder="<%= t('invitations.users.searchGroupsPlaceholder') %>">
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="user-actions">
+                        <button type="button" class="btn btn-ghost btn-sm" id="selectAllGroups">
+                          <%= t('invitations.users.selectAll') %>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" id="deselectAllGroups">
+                          <%= t('invitations.users.deselectAll') %>
+                        </button>
+                      </div>
+                      <div class="selection-count">
+                        <strong id="selectedGroupCount">0</strong> <%= t('invitations.users.selectedGroups', { count: '' }).replace('{{count}}', '').trim() %>
+                      </div>
+                    </div>
+                    
+                    <p class="group-note"><%= t('invitations.users.groupNote') %></p>
+                    
+                    <div class="group-list" id="groupList">
+                      <!-- Groups will be loaded via JavaScript -->
+                      <div class="loading-spinner" id="groupsLoadingSpinner">
+                        <svg class="animate-spin w-5 h-5 text-zen-400" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Step 4: Review & Send -->
+                <div class="wizard-panel" data-panel="4">
+                  <h3 class="text-lg font-semibold text-zen-900 mb-2"><%= t('invitations.review.title') %></h3>
+                  <p class="text-zen-600 text-sm mb-6"><%= t('invitations.review.subtitle') %></p>
+                  
+                  <div class="review-item">
+                    <span class="review-label"><%= t('invitations.review.journey') %></span>
+                    <span class="review-value" id="reviewJourney">-</span>
+                  </div>
+                  <div class="review-item">
+                    <span class="review-label"><%= t('invitations.review.validity') %></span>
+                    <span class="review-value" id="reviewValidity">-</span>
+                  </div>
+                  <div class="review-item">
+                    <span class="review-label"><%= t('invitations.review.completions') %></span>
+                    <span class="review-value" id="reviewCompletions">-</span>
+                  </div>
+                  <div class="review-item">
+                    <span class="review-label"><%= t('invitations.review.recipients') %></span>
+                    <span class="review-value" id="reviewRecipientCount">-</span>
+                  </div>
+                  <div class="review-item">
+                    <span class="review-label"><%= t('invitations.review.reminder') %></span>
+                    <span class="review-value" id="reviewReminder">-</span>
+                  </div>
+                  
+                  <div class="recipients-preview" id="recipientsPreview"></div>
+                </div>
+              </div>
+
+              <!-- Wizard Navigation -->
+              <div class="wizard-nav">
+                <button type="button" class="btn btn-secondary" id="prevBtn" style="visibility: hidden;">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                  </svg>
+                  <%= t('common.back') %>
+                </button>
+                <button type="button" class="btn btn-primary" id="nextBtn" disabled>
+                  <%= t('common.next') %>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </button>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Sent Invitations List -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="text-lg font-semibold text-zen-900"><%= t('invitations.list.title') %></h2>
+            <p class="text-sm text-zen-600 mt-1"><%= t('invitations.list.subtitle') %></p>
+          </div>
+          <div class="card-body">
+            <!-- Filter tabs -->
+            <div class="filter-tabs" id="invitationFilterTabs">
+              <button class="filter-tab active" data-filter="all">
+                <%= t('invitations.filters.all') %>
+                <span class="count" id="countAll"><%= statusCounts.all %></span>
+              </button>
+              <button class="filter-tab" data-filter="pending">
+                <%= t('invitations.filters.pending') %>
+                <span class="count" id="countPending"><%= statusCounts.pending || 0 %></span>
+              </button>
+              <button class="filter-tab" data-filter="active">
+                <%= t('invitations.filters.active') %>
+                <span class="count" id="countActive"><%= statusCounts.active || 0 %></span>
+              </button>
+              <button class="filter-tab" data-filter="completed">
+                <%= t('invitations.filters.completed') %>
+                <span class="count" id="countCompleted"><%= statusCounts.completed || 0 %></span>
+              </button>
+              <button class="filter-tab" data-filter="expired">
+                <%= t('invitations.filters.expired') %>
+                <span class="count" id="countExpired"><%= statusCounts.expired || 0 %></span>
+              </button>
+            </div>
+
+            <!-- Table container -->
+            <div id="invitationsTableContainer">
+              <div class="table-loading" id="tableLoading">
+                <svg fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+              
+              <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div class="empty-state-title"><%= t('invitations.list.empty') %></div>
+                <div class="empty-state-desc"><%= t('invitations.list.emptyDescription') %></div>
+              </div>
+              
+              <div class="overflow-x-auto" id="tableWrapper" style="display: none;">
+                <table class="table" id="invitationsTable">
+                  <thead>
+                    <tr>
+                      <th><%= t('invitations.list.table.user') %></th>
+                      <th><%= t('invitations.list.table.journey') %></th>
+                      <th><%= t('invitations.list.table.status') %></th>
+                      <th><%= t('invitations.list.table.sent') %></th>
+                      <th><%= t('invitations.list.table.expires') %></th>
+                      <th><%= t('invitations.list.table.actions') %></th>
+                    </tr>
+                  </thead>
+                  <tbody id="invitationsTableBody">
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Pagination -->
+              <div class="pagination" id="pagination" style="display: none;">
+                <div class="pagination-info">
+                  <span id="paginationInfo"></span>
+                </div>
+                <div class="pagination-controls" id="paginationControls">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Translations for JS
+    const t = {
+      sending: <%-safeJson(t("invitations.review.sending"))%>,
+      sendButton: <%-safeJson(t("invitations.review.sendButton"))%>,
+      success: <%-safeJson(t("invitations.review.success"))%>,
+      error: <%-safeJson(t("invitations.review.error"))%>,
+      confirmRevoke: <%-safeJson(t("invitations.list.confirmRevoke"))%>,
+      revoked: <%-safeJson(t("invitations.list.revoked"))%>,
+      next: <%-safeJson(t("common.next"))%>,
+      back: <%-safeJson(t("common.back"))%>,
+      validity: {
+        '7': <%-safeJson(t("invitations.options.validity.1week"))%>,
+        '14': <%-safeJson(t("invitations.options.validity.2weeks"))%>,
+        '30': <%-safeJson(t("invitations.options.validity.1month"))%>,
+        '90': <%-safeJson(t("invitations.options.validity.3months"))%>
+      },
+      completions: {
+        '1': <%-safeJson(t("invitations.options.completions.once"))%>,
+        '2': <%-safeJson(t("invitations.options.completions.twice"))%>,
+        '0': <%-safeJson(t("invitations.options.completions.unlimited"))%>
+      },
+      reminder: {
+        on: <%-safeJson(t("invitations.options.reminder.on"))%>,
+        off: <%-safeJson(t("invitations.options.reminder.off"))%>,
+        infoText: <%-safeJson(t("invitations.options.reminder.infoText"))%>},
+      status: {
+        pending: <%-safeJson(t("invitations.list.status.pending"))%>,
+        active: <%-safeJson(t("invitations.list.status.active"))%>,
+        completed: <%-safeJson(t("invitations.list.status.completed"))%>,
+        expired: <%-safeJson(t("invitations.list.status.expired"))%>,
+        revoked: <%-safeJson(t("invitations.list.status.revoked"))%>
+      },
+      revoke: <%-safeJson(t("invitations.list.actions.revoke"))%>,
+      showing: <%-safeJson(t("invitations.list.showing") || "Showing")%>,
+      of: <%-safeJson(t("invitations.list.of") || "of")%>,
+      invitationsCount: <%-safeJson(t("invitations.list.invitationsCount") || "invitations")%>
+    };
+    
+    const language = '<%= language %>';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // ============================================
+      // INVITATIONS LIST WITH PAGINATION
+      // ============================================
+      const ITEMS_PER_PAGE = 50;
+      let currentPage = 1;
+      let currentFilter = 'all';
+      let invitationsData = [];
+      let paginationInfo = null;
+      
+      // Elements for invitations list
+      const tableLoading = document.getElementById('tableLoading');
+      const emptyState = document.getElementById('emptyState');
+      const tableWrapper = document.getElementById('tableWrapper');
+      const tableBody = document.getElementById('invitationsTableBody');
+      const pagination = document.getElementById('pagination');
+      const paginationInfoEl = document.getElementById('paginationInfo');
+      const paginationControls = document.getElementById('paginationControls');
+      const filterTabs = document.querySelectorAll('#invitationFilterTabs .filter-tab');
+      
+      // Format date
+      function formatDate(dateStr) {
+        return new Date(dateStr).toLocaleDateString(language, { 
+          day: 'numeric', 
+          month: 'short', 
+          year: 'numeric' 
+        });
+      }
+      
+      // Get effective status (completed if has completions)
+      function getEffectiveStatus(inv) {
+        if (inv.completions_count > 0) return 'completed';
+        if (inv.status === 'active') return 'active';
+        return inv.status;
+      }
+      
+      // Render invitations table
+      function renderInvitations(invitations) {
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = invitations.map(inv => {
+          const effectiveStatus = getEffectiveStatus(inv);
+          const canRevoke = inv.status === 'pending' || inv.status === 'active';
+          
+          return `
+            <tr data-invitation-id="${inv.id}" data-status="${effectiveStatus}">
+              <td>
+                <div class="font-medium">${escapeHtml(inv.end_user_first_name)} ${escapeHtml(inv.end_user_last_name)}</div>
+                <div class="text-sm text-zen-500">${escapeHtml(inv.end_user_email)}</div>
+              </td>
+              <td>${escapeHtml(inv.journey_title)}</td>
+              <td>
+                <span class="status-badge status-${effectiveStatus}">
+                  ${t.status[effectiveStatus] || effectiveStatus}
+                </span>
+              </td>
+              <td>${formatDate(inv.created_at)}</td>
+              <td>${formatDate(inv.expires_at)}</td>
+              <td>
+                ${canRevoke ? `<button type="button" class="action-btn action-btn-danger revoke-btn" data-id="${inv.id}">${t.revoke}</button>` : ''}
+              </td>
+            </tr>
+          `;
+        }).join('');
+        
+        // Re-bind revoke buttons
+        tableBody.querySelectorAll('.revoke-btn').forEach(btn => {
+          btn.addEventListener('click', handleRevoke);
+        });
+      }
+      
+      // Render pagination controls
+      function renderPagination(info) {
+        if (!info || info.total === 0) {
+          pagination.style.display = 'none';
+          return;
+        }
+        
+        pagination.style.display = 'flex';
+        
+        const start = info.offset + 1;
+        const end = Math.min(info.offset + info.limit, info.total);
+        paginationInfoEl.innerHTML = `<strong>${start}</strong> - <strong>${end}</strong> ${t.of} <strong>${info.total}</strong> ${t.invitationsCount}`;
+        
+        // Generate page buttons
+        let html = '';
+        
+        // Previous button
+        html += `<button class="pagination-btn" ${info.currentPage === 1 ? 'disabled' : ''} data-page="${info.currentPage - 1}">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>`;
+        
+        // Page numbers
+        const pages = info.pages;
+        const current = info.currentPage;
+        
+        // Smart page number display
+        let pageNumbers = [];
+        if (pages <= 7) {
+          pageNumbers = Array.from({ length: pages }, (_, i) => i + 1);
+        } else {
+          if (current <= 4) {
+            pageNumbers = [1, 2, 3, 4, 5, '...', pages];
+          } else if (current >= pages - 3) {
+            pageNumbers = [1, '...', pages - 4, pages - 3, pages - 2, pages - 1, pages];
+          } else {
+            pageNumbers = [1, '...', current - 1, current, current + 1, '...', pages];
+          }
+        }
+        
+        pageNumbers.forEach(page => {
+          if (page === '...') {
+            html += '<span class="pagination-ellipsis">...</span>';
+          } else {
+            html += `<button class="pagination-btn ${page === current ? 'active' : ''}" data-page="${page}">${page}</button>`;
+          }
+        });
+        
+        // Next button
+        html += `<button class="pagination-btn" ${info.currentPage === pages ? 'disabled' : ''} data-page="${info.currentPage + 1}">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>`;
+        
+        paginationControls.innerHTML = html;
+        
+        // Bind pagination click events
+        paginationControls.querySelectorAll('.pagination-btn:not(:disabled)').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const page = parseInt(btn.dataset.page);
+            if (page && page !== currentPage) {
+              currentPage = page;
+              loadInvitations();
+            }
+          });
+        });
+      }
+      
+      // Load invitations from API
+      async function loadInvitations() {
+        if (!tableBody) return;
+        
+        tableLoading.style.display = 'flex';
+        tableWrapper.style.display = 'none';
+        emptyState.style.display = 'none';
+        pagination.style.display = 'none';
+        
+        try {
+          const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+          // Send filter to API for server-side filtering
+          const filterParam = currentFilter !== 'all' ? `&filter=${currentFilter}` : '';
+          const response = await fetch(`/api/invitations?limit=${ITEMS_PER_PAGE}&offset=${offset}${filterParam}`);
+          const data = await response.json();
+          
+          if (data.success) {
+            invitationsData = data.invitations;
+            paginationInfo = data.pagination;
+            
+            tableLoading.style.display = 'none';
+            
+            if (data.pagination.total === 0) {
+              emptyState.style.display = 'block';
+            } else {
+              tableWrapper.style.display = 'block';
+              renderInvitations(invitationsData);
+              renderPagination(data.pagination);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load invitations:', err);
+          tableLoading.style.display = 'none';
+          emptyState.style.display = 'block';
+        }
+      }
+      
+      // Handle revoke
+      async function handleRevoke(e) {
+        const btn = e.target;
+        const id = btn.dataset.id;
+        
+        if (!await window.gryffi.modal.confirm(t.confirmRevoke)) return;
+        
+        try {
+          const response = await fetch(`/api/invitations/${id}`, { method: 'DELETE' });
+          const data = await response.json();
+          
+          if (data.success) {
+            window.gryffi.toast.show(t.revoked, 'success');
+            // Reload to update counts and list
+            loadInvitations();
+          }
+        } catch (err) {
+          console.error('Revoke error:', err);
+          window.gryffi.toast.show('Failed to revoke invitation', 'error');
+        }
+      }
+      
+      // Filter tabs - reload from API with filter
+      filterTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          filterTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          currentFilter = tab.dataset.filter;
+          currentPage = 1; // Reset to first page when filter changes
+          loadInvitations(); // Reload from API with new filter
+        });
+      });
+      
+      // Load invitations on page load
+      loadInvitations();
+      
+      // ============================================
+      // WIZARD STATE AND ELEMENTS
+      // ============================================
+      
+      // State
+      let currentStep = 1;
+      let selectedJourney = null;
+      let selectedValidity = 14;
+      let selectedCompletions = 1;
+      let selectedUsers = new Set();
+      let selectedGroups = new Set();
+      let groupsData = [];
+      let sendReminder = true;
+
+      // Elements
+      const steps = document.querySelectorAll('.wizard-step');
+      const panels = document.querySelectorAll('.wizard-panel');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const journeyOptions = document.querySelectorAll('.journey-option:not(.disabled)');
+      const validityBtns = document.querySelectorAll('#validityOptions .option-btn');
+      const completionBtns = document.querySelectorAll('#completionOptions .option-btn');
+      const reminderCheckbox = document.getElementById('sendReminder');
+      const reminderLabel = document.getElementById('reminderLabel');
+      const reminderInfo = document.getElementById('reminderInfo');
+      const reminderInfoText = document.getElementById('reminderInfoText');
+      const userItems = document.querySelectorAll('.user-item');
+      const userSearch = document.getElementById('userSearch');
+      const selectAllBtn = document.getElementById('selectAllUsers');
+      const deselectAllBtn = document.getElementById('deselectAllUsers');
+      const selectedCountEl = document.getElementById('selectedCount');
+      const selectedGroupCountEl = document.getElementById('selectedGroupCount');
+      const recipientTabs = document.querySelectorAll('.recipient-tab');
+      const recipientTabContents = document.querySelectorAll('.recipient-tab-content');
+      const groupList = document.getElementById('groupList');
+      const groupSearch = document.getElementById('groupSearch');
+      const selectAllGroupsBtn = document.getElementById('selectAllGroups');
+      const deselectAllGroupsBtn = document.getElementById('deselectAllGroups');
+
+      // Scroll to wizard top
+      function scrollToWizardTop() {
+        const wizardSteps = document.getElementById('wizardSteps');
+        if (wizardSteps) {
+          wizardSteps.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      // Update wizard state
+      function updateWizard(shouldScroll = false) {
+        steps.forEach((step, index) => {
+          const stepNum = index + 1;
+          step.classList.remove('active', 'completed');
+          if (stepNum === currentStep) {
+            step.classList.add('active');
+          } else if (stepNum < currentStep) {
+            step.classList.add('completed');
+          }
+        });
+
+        panels.forEach(panel => {
+          panel.classList.remove('active');
+          if (parseInt(panel.dataset.panel) === currentStep) {
+            panel.classList.add('active');
+          }
+        });
+
+        // Scroll to top of wizard after step change
+        if (shouldScroll) {
+          scrollToWizardTop();
+        }
+
+        // Update navigation
+        prevBtn.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+        
+        if (currentStep === 4) {
+          // Calculate total recipients including groups
+          let totalRecipients = selectedUsers.size;
+          selectedGroups.forEach(groupId => {
+            const group = groupsData.find(g => g.id === groupId);
+            if (group) {
+              totalRecipients += parseInt(group.member_count) || 0;
+            }
+          });
+          nextBtn.innerHTML = `${t.sendButton.replace('{{count}}', totalRecipients)}`;
+          nextBtn.disabled = totalRecipients === 0;
+        } else {
+          nextBtn.innerHTML = `${t.next} <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+          updateNextButton();
+        }
+      }
+
+      // Check if can proceed
+      function updateNextButton() {
+        let canProceed = false;
+        
+        switch (currentStep) {
+          case 1:
+            canProceed = selectedJourney !== null;
+            break;
+          case 2:
+            canProceed = true; // Options always have defaults
+            break;
+          case 3:
+            canProceed = selectedUsers.size > 0 || selectedGroups.size > 0;
+            break;
+          case 4:
+            canProceed = selectedUsers.size > 0 || selectedGroups.size > 0;
+            break;
+        }
+        
+        nextBtn.disabled = !canProceed;
+      }
+
+      // Journey selection
+      journeyOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          journeyOptions.forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          selectedJourney = {
+            id: option.dataset.journeyId,
+            title: option.dataset.journeyTitle
+          };
+          updateNextButton();
+        });
+      });
+
+      // Validity selection
+      validityBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          validityBtns.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selectedValidity = parseInt(btn.dataset.validity);
+        });
+      });
+
+      // Completion selection
+      completionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          completionBtns.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selectedCompletions = parseInt(btn.dataset.completions);
+        });
+      });
+
+      // Reminder toggle
+      function updateReminderInfo() {
+        if (sendReminder) {
+          const halfDays = Math.floor(selectedValidity / 2);
+          const infoText = t.reminder.infoText.replace('{{days}}', halfDays);
+          reminderInfoText.textContent = infoText;
+          reminderInfo.style.display = 'flex';
+          reminderLabel.textContent = t.reminder.on;
+        } else {
+          reminderInfo.style.display = 'none';
+          reminderLabel.textContent = t.reminder.off;
+        }
+      }
+
+      if (reminderCheckbox) {
+        reminderCheckbox.addEventListener('change', () => {
+          sendReminder = reminderCheckbox.checked;
+          updateReminderInfo();
+        });
+        // Initialize reminder info on page load
+        updateReminderInfo();
+      }
+
+      // Update reminder info when validity changes
+      validityBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Existing logic already sets selectedValidity
+          setTimeout(updateReminderInfo, 10);
+        });
+      });
+
+      // User selection
+      function updateSelectedCount() {
+        selectedCountEl.textContent = selectedUsers.size;
+        updateNextButton();
+      }
+
+      userItems.forEach(item => {
+        item.addEventListener('click', () => {
+          const userId = item.dataset.userId;
+          if (selectedUsers.has(userId)) {
+            selectedUsers.delete(userId);
+            item.classList.remove('selected');
+          } else {
+            selectedUsers.add(userId);
+            item.classList.add('selected');
+          }
+          updateSelectedCount();
+        });
+      });
+
+      // Select/deselect all
+      if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+          userItems.forEach(item => {
+            if (!item.classList.contains('disabled') && item.style.display !== 'none') {
+              selectedUsers.add(item.dataset.userId);
+              item.classList.add('selected');
+            }
+          });
+          updateSelectedCount();
+        });
+      }
+
+      if (deselectAllBtn) {
+        deselectAllBtn.addEventListener('click', () => {
+          selectedUsers.clear();
+          userItems.forEach(item => item.classList.remove('selected'));
+          updateSelectedCount();
+        });
+      }
+
+      // User search
+      if (userSearch) {
+        userSearch.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          userItems.forEach(item => {
+            const name = item.dataset.userName.toLowerCase();
+            const email = item.dataset.userEmail.toLowerCase();
+            if (name.includes(query) || email.includes(query)) {
+              item.style.display = '';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+      }
+
+      // ============================================
+      // GROUPS FUNCTIONALITY
+      // ============================================
+      
+      // Tab switching
+      recipientTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabName = tab.dataset.tab;
+          
+          // Update active tab
+          recipientTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Update tab content
+          recipientTabContents.forEach(content => {
+            content.classList.toggle('active', content.dataset.tabContent === tabName);
+          });
+          
+          // Load groups if switching to groups tab
+          if (tabName === 'groups' && groupsData.length === 0) {
+            loadGroups();
+          }
+        });
+      });
+      
+      // Load groups from API
+      async function loadGroups() {
+        const spinner = document.getElementById('groupsLoadingSpinner');
+        if (spinner) spinner.style.display = 'flex';
+        
+        try {
+          const response = await fetch('/api/groups');
+          const data = await response.json();
+          
+          if (data.success) {
+            groupsData = data.groups;
+            renderGroups();
+          }
+        } catch (err) {
+          console.error('Failed to load groups:', err);
+        } finally {
+          if (spinner) spinner.style.display = 'none';
+        }
+      }
+      
+      // Render groups
+      function renderGroups() {
+        if (!groupList) return;
+        
+        if (groupsData.length === 0) {
+          groupList.innerHTML = `
+            <div class="no-groups-message">
+              <%= t('invitations.users.noGroups') %><br>
+              <a href="/dashboard/system-settings#users"><%= t('invitations.users.goToSystemSettings') %></a>
+            </div>
+          `;
+          return;
+        }
+        
+        groupList.innerHTML = groupsData.map(group => `
+          <div class="group-item ${selectedGroups.has(group.id) ? 'selected' : ''}" 
+               data-group-id="${group.id}"
+               data-group-name="${escapeHtml(group.name)}"
+               data-member-count="${group.member_count || 0}">
+            <div class="user-checkbox">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="group-info">
+              <div class="group-name">${escapeHtml(group.name)}</div>
+              <div class="group-member-count">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                ${group.member_count || 0} <%= t('invitations.users.groupMembers', { count: '' }).replace('{{count}}', '').trim() %>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        
+        // Bind group item clicks
+        document.querySelectorAll('.group-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const groupId = item.dataset.groupId;
+            if (selectedGroups.has(groupId)) {
+              selectedGroups.delete(groupId);
+              item.classList.remove('selected');
+            } else {
+              selectedGroups.add(groupId);
+              item.classList.add('selected');
+            }
+            updateSelectedGroupCount();
+            updateNextButton();
+          });
+        });
+      }
+      
+      // Update selected group count
+      function updateSelectedGroupCount() {
+        if (selectedGroupCountEl) {
+          selectedGroupCountEl.textContent = selectedGroups.size;
+        }
+      }
+      
+      // Group search
+      if (groupSearch) {
+        groupSearch.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          document.querySelectorAll('.group-item').forEach(item => {
+            const name = item.dataset.groupName.toLowerCase();
+            if (name.includes(query)) {
+              item.style.display = '';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+      }
+      
+      // Select/deselect all groups
+      if (selectAllGroupsBtn) {
+        selectAllGroupsBtn.addEventListener('click', () => {
+          document.querySelectorAll('.group-item').forEach(item => {
+            if (item.style.display !== 'none') {
+              selectedGroups.add(item.dataset.groupId);
+              item.classList.add('selected');
+            }
+          });
+          updateSelectedGroupCount();
+          updateNextButton();
+        });
+      }
+      
+      if (deselectAllGroupsBtn) {
+        deselectAllGroupsBtn.addEventListener('click', () => {
+          selectedGroups.clear();
+          document.querySelectorAll('.group-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          updateSelectedGroupCount();
+          updateNextButton();
+        });
+      }
+      
+      // Helper function to escape HTML
+      // Also escapes quotes, so the result is safe inside attribute values
+      function escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+      }
+
+      // Update review panel
+      function updateReviewPanel() {
+        document.getElementById('reviewJourney').textContent = selectedJourney ? selectedJourney.title : '-';
+        document.getElementById('reviewValidity').textContent = t.validity[selectedValidity] || `${selectedValidity} days`;
+        document.getElementById('reviewCompletions').textContent = t.completions[selectedCompletions] || selectedCompletions;
+        
+        // Calculate total recipients (individual users + group members)
+        let totalRecipients = selectedUsers.size;
+        selectedGroups.forEach(groupId => {
+          const group = groupsData.find(g => g.id === groupId);
+          if (group) {
+            totalRecipients += parseInt(group.member_count) || 0;
+          }
+        });
+        document.getElementById('reviewRecipientCount').textContent = totalRecipients;
+        
+        // Show reminder status
+        if (sendReminder) {
+          const halfDays = Math.floor(selectedValidity / 2);
+          document.getElementById('reviewReminder').textContent = t.reminder.infoText.replace('{{days}}', halfDays);
+        } else {
+          document.getElementById('reviewReminder').textContent = t.reminder.off;
+        }
+
+        const preview = document.getElementById('recipientsPreview');
+        preview.innerHTML = '';
+        
+        // Show individual users
+        selectedUsers.forEach(userId => {
+          const item = document.querySelector(`.user-item[data-user-id="${userId}"]`);
+          if (item) {
+            const chip = document.createElement('span');
+            chip.className = 'recipient-chip';
+            chip.textContent = item.dataset.userName;
+            preview.appendChild(chip);
+          }
+        });
+        
+        // Show selected groups
+        selectedGroups.forEach(groupId => {
+          const group = groupsData.find(g => g.id === groupId);
+          if (group) {
+            const chip = document.createElement('span');
+            chip.className = 'recipient-chip';
+            chip.innerHTML = `<svg style="width:12px;height:12px;margin-right:4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>${escapeHtml(group.name)} (${group.member_count || 0})`;
+            preview.appendChild(chip);
+          }
+        });
+      }
+
+      // Navigation
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          if (currentStep > 1) {
+            currentStep--;
+            updateWizard(true);
+          }
+        });
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', async () => {
+          if (currentStep < 4) {
+            currentStep++;
+            if (currentStep === 4) {
+              updateReviewPanel();
+            }
+            updateWizard(true);
+          } else {
+            // Send invitations
+            await sendInvitations();
+          }
+        });
+      }
+
+      // Send invitations
+      async function sendInvitations() {
+        nextBtn.disabled = true;
+        nextBtn.innerHTML = t.sending;
+
+        try {
+          const response = await fetch('/api/invitations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              journey_id: selectedJourney.id,
+              validity_days: selectedValidity,
+              max_completions: selectedCompletions,
+              end_user_ids: Array.from(selectedUsers),
+              group_ids: Array.from(selectedGroups),
+              send_reminder: sendReminder
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Show success toast notification
+            const successMessage = t.success.replace('{{count}}', data.sent_count || selectedUsers.size);
+            
+            if (data.warning && data.failed_count > 0) {
+              // Show warning about partial success
+              window.gryffi.toast.show(`${data.sent_count} <%= t('invitations.sentOf') %> ${data.total_requested}. ${data.warning}`, 'warning');
+            } else {
+              window.gryffi.toast.show(successMessage, 'success');
+            }
+
+            // Reset wizard
+            currentStep = 1;
+            selectedJourney = null;
+            selectedUsers.clear();
+            selectedGroups.clear();
+            journeyOptions.forEach(o => o.classList.remove('selected'));
+            userItems.forEach(item => item.classList.remove('selected'));
+            document.querySelectorAll('.group-item').forEach(item => item.classList.remove('selected'));
+            updateSelectedCount();
+            updateSelectedGroupCount();
+            updateWizard();
+
+            // Reload page after delay to show new invitations
+            setTimeout(() => {
+              window.location.reload();
+            }, 2500);
+          } else {
+            // Show specific error message
+            const errorMsg = data.error || 'Unknown error';
+            await window.gryffi.modal.alert(errorMsg, { type: 'error' });
+            throw new Error(errorMsg);
+          }
+        } catch (err) {
+          console.error('Send invitations error:', err);
+          await window.gryffi.modal.alert(t.error, { type: 'error' });
+          nextBtn.disabled = false;
+          const totalRecipients = selectedUsers.size + Array.from(selectedGroups).reduce((sum, gId) => {
+            const g = groupsData.find(gr => gr.id === gId);
+            return sum + (g ? parseInt(g.member_count) || 0 : 0);
+          }, 0);
+          nextBtn.innerHTML = t.sendButton.replace('{{count}}', totalRecipients);
+        }
+      }
+
+      // Initialize (the wizard is not rendered when there is no journey to invite to)
+      if (prevBtn && nextBtn) {
+        updateWizard();
+      }
+    });
+  </script>
+</body>
+</html>

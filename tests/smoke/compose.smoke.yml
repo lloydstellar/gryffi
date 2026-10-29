@@ -1,0 +1,13 @@
+# Added to compose.yml by run.sh: stand-ins for the AI provider and the mail
+# server, reachable for the app as http://mocks:4011/v1 and mocks:2525
+services:
+  mocks:
+    image: node:24-alpine
+    command: ["node", "/smoke/mocks.mjs"]
+    volumes:
+      - ./tests/smoke/mocks.mjs:/smoke/mocks.mjs:ro
+    ports:
+      - "127.0.0.1:${SMOKE_MOCKS_PORT:-4012}:4012"
+  app:
+    depends_on:
+      - mocks
