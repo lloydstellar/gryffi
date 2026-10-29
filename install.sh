@@ -141,13 +141,35 @@ main() {
   [ "$free_gb" -ge 8 ] || die "at least 8 GB of free disk space is needed, 20 GB is better"
   [ "$free_gb" -ge 20 ] || warn "less than 20 GB free. That is enough to start, but uploads and backups grow."
 
+  if [ -f "$DIR/compose.yml" ]; then
+    die "Gryffi is already installed in $DIR. Update it with: gryffi update"
+  fi
+
+  if [ -z "$VERSION" ]; then
+    url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "$RELEASES_URL/latest")" || die "cannot reach $RELEASES_URL"
+    VERSION="${url##*/v}"
+  fi
+  [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "could not find out the latest version (got \"$VERSION\")"
+
+  # Downloaded to a temporary directory first: the parser check below reads compose.yml
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+  for file in compose.yml gryffi; do
+    curl -fsSL "$RELEASES_URL/download/v$VERSION/$file" -o "$tmp/$file" \
+      || die "could not download $file of version $VERSION"
+  done
+
   # The document parser is a large image: a 5 GB download that takes 17 GB on
-  # disk once unpacked. It exists for amd64 only.
+  # disk once unpacked. It exists for amd64 only. When the image is already
+  # here (a reinstall), it needs no extra space.
+  parser_image="$(awk '/^  parser:/ { p = 1; next } p && /^  [a-z]/ { p = 0 } p && $1 == "image:" { print $2; exit }' "$tmp/compose.yml")"
+  PARSER_CACHED=0
+  if [ -n "$parser_image" ] && docker image inspect "$parser_image" >/dev/null 2>&1; then PARSER_CACHED=1; fi
   if [ "$(uname -m)" != x86_64 ]; then
     PARSER_REASON="it exists for amd64 processors only"
   elif [ "$mem_mb" -lt 3800 ]; then
     PARSER_REASON="it needs 4 GB of memory and this server has $mem_mb MB"
-  elif [ "$free_gb" -lt 30 ]; then
+  elif [ "$PARSER_CACHED" = 0 ] && [ "$free_gb" -lt 30 ]; then
     PARSER_REASON="it needs 30 GB of free disk space and this server has $free_gb GB"
   fi
   if [ -n "$PARSER_REASON" ]; then
@@ -155,10 +177,6 @@ main() {
     PARSER=0
   elif [ -z "$PARSER" ]; then
     PARSER=1
-  fi
-
-  if [ -f "$DIR/compose.yml" ]; then
-    die "Gryffi is already installed in $DIR. Update it with: gryffi update"
   fi
 
   # --------------------------------------------------------------- questions
@@ -227,19 +245,17 @@ main() {
   if [ "$ASSUME_YES" = 0 ]; then
     if [ "$PARSER" = 1 ]; then
       info "The document parser reads PDF, Word and PowerPoint files for the AI guides."
-      info "It is a download of about 5 GB, takes 17 GB of disk space and uses about 2 GB of memory."
+      if [ "$PARSER_CACHED" = 1 ]; then
+        info "Its image is already on this server. It uses about 2 GB of memory."
+      else
+        info "It is a download of about 5 GB, takes 17 GB of disk space and uses about 2 GB of memory."
+      fi
       confirm "Install the document parser?" y || PARSER=0
     fi
     if [ "$NSFW" = 1 ]; then
       confirm "Check uploaded images for nudity (NSFW filter)?" y || NSFW=0
     fi
   fi
-
-  if [ -z "$VERSION" ]; then
-    url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "$RELEASES_URL/latest")" || die "cannot reach $RELEASES_URL"
-    VERSION="${url##*/v}"
-  fi
-  [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "could not find out the latest version (got \"$VERSION\")"
 
   profiles=()
   [ "$HTTPS" = 1 ] && profiles+=(https)
@@ -266,7 +282,7 @@ main() {
       info "    on $LISTEN:$PORT, without HTTPS: anyone who can reach this server on port $PORT can open Gryffi"
     fi
   fi
-  info "    document parser: $([ "$PARSER" = 1 ] && echo "on (5 GB download)" || echo off), NSFW filter: $([ "$NSFW" = 1 ] && echo on || echo off)"
+  info "    document parser: $([ "$PARSER" = 1 ] && { [ "$PARSER_CACHED" = 1 ] && echo on || echo "on (5 GB download)"; } || echo off), NSFW filter: $([ "$NSFW" = 1 ] && echo on || echo off)"
   echo
   confirm "Go ahead?" || die "nothing was changed"
 
@@ -293,13 +309,6 @@ main() {
   echo
   bold "Installing Gryffi $VERSION in $DIR"
   secret() { head -c "$1" /dev/urandom | od -An -tx1 | tr -d ' \n'; }
-
-  tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' EXIT
-  for file in compose.yml gryffi; do
-    curl -fsSL "$RELEASES_URL/download/v$VERSION/$file" -o "$tmp/$file" \
-      || die "could not download $file of version $VERSION"
-  done
 
   install -d -m 755 "$DIR"
   install -m 644 "$tmp/compose.yml" "$DIR/compose.yml"
@@ -333,7 +342,7 @@ EOF
 EOF
 
   compose() { docker compose --project-directory "$DIR" -f "$DIR/compose.yml" "$@"; }
-  if [ "$PARSER" = 1 ]; then size="about 6 GB"; else size="about 1 GB"; fi
+  if [ "$PARSER" = 1 ] && [ "$PARSER_CACHED" = 0 ]; then size="about 6 GB"; else size="about 1 GB"; fi
   info "Downloading the images ($size). On a slow connection this takes a while."
   compose pull || die "could not download the images"
   compose up -d || die "the containers did not start; see: gryffi logs"

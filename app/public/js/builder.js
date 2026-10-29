@@ -17,6 +17,21 @@ function escapeHtml(str) {
 }
 
 // ============================================
+// RANDOM IDS
+// ============================================
+// crypto.randomUUID only exists in a secure context (HTTPS or localhost). A
+// self-hosted Gryffi can run over plain HTTP on a local network, so fall back
+// to a version 4 UUID from crypto.getRandomValues, which works everywhere.
+function randomUuid() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+// ============================================
 // SECURITY: RICH TEXT SANITIZER
 // ============================================
 // Step bodies are HTML from the simple editor (or pasted from elsewhere). They
@@ -4388,7 +4403,7 @@ class FlowBuilder {
         if (questions.length === 0 && props.question) {
           // Migrate old single-question format
           questions = [{
-            id: crypto.randomUUID(),
+            id: randomUuid(),
             question: props.question,
             options: props.options || []
           }];
@@ -5954,7 +5969,7 @@ class FlowBuilder {
       if (currentFields.length >= 5) return;
       
       const newField = {
-        id: crypto.randomUUID(),
+        id: randomUuid(),
         label: '',
         type: 'text',
         required: false,
@@ -6381,7 +6396,7 @@ class FlowBuilder {
     if (optionCount >= 10) return;
     
     const newOption = {
-      id: crypto.randomUUID(),
+      id: randomUuid(),
       text: ''
     };
     
@@ -7054,7 +7069,7 @@ class FlowBuilder {
           const optionText = optEl.querySelector('.poll-option-input')?.value || '';
           if (optionText.trim()) {
             props.options.push({
-              id: optionId || crypto.randomUUID(),
+              id: optionId || randomUuid(),
               text: optionText.trim()
             });
           }
@@ -8461,7 +8476,7 @@ class FlowBuilder {
     // Migrate old format
     if (questions.length === 0 && step.basic_props?.question) {
       questions = [{
-        id: crypto.randomUUID(),
+        id: randomUuid(),
         question: step.basic_props.question,
         options: step.basic_props.options || []
       }];
@@ -8510,7 +8525,7 @@ class FlowBuilder {
   async addQuizQuestion(step) {
     const questions = this.collectQuizQuestions();
     const newQuestion = {
-      id: crypto.randomUUID(),
+      id: randomUuid(),
       question: '',
       options: [
         { id: 'a', text: '', correct: false },
@@ -8552,7 +8567,7 @@ class FlowBuilder {
     const questions = this.collectQuizQuestions();
     const original = questions[qIndex];
     const duplicate = {
-      id: crypto.randomUUID(),
+      id: randomUuid(),
       question: original.question,
       options: original.options.map(o => ({ ...o }))
     };
@@ -14904,7 +14919,7 @@ class FlowBuilder {
       challenge: { 
         type: 'multiple_choice',
         questions: [{
-          id: crypto.randomUUID(),
+          id: randomUuid(),
           question: '', 
           options: [
             { id: 'a', text: t('builder.defaults.challengeOptionA'), correct: false }, 
@@ -14917,7 +14932,7 @@ class FlowBuilder {
         recipient_email: '', 
         email_subject: t('builder.defaults.formEmailSubject'),
         fields: [{ 
-          id: crypto.randomUUID(), 
+          id: randomUuid(), 
           label: '', // Empty so HTML placeholder is visible
           type: 'text', 
           required: true, 
@@ -15384,7 +15399,7 @@ class FlowBuilder {
     
     // Track quiz attempt number; the key identifies this attempt on the server
     this.previewState.quizAttemptNumber = (this.previewState.quizAttemptNumber || 0) + 1;
-    this.previewState.quizAttemptKey = crypto.randomUUID();
+    this.previewState.quizAttemptKey = randomUuid();
     const attemptNumber = this.previewState.quizAttemptNumber;
     
     // Analytics: Track quiz start
@@ -15488,7 +15503,7 @@ class FlowBuilder {
         
         // Increment attempt number for retake (new attempt key for the server)
         this.previewState.quizAttemptNumber = (this.previewState.quizAttemptNumber || 0) + 1;
-        this.previewState.quizAttemptKey = crypto.randomUUID();
+        this.previewState.quizAttemptKey = randomUuid();
         
         // Analytics: Track new quiz attempt start
         if (this.playerMode) {

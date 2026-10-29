@@ -3,6 +3,18 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.9.3] - 2026-10-29
+
+- The install script offers the document parser without the 30 GB disk
+  check when its image is already on the server, for example after a
+  reinstall.
+- Quizzes in the player, and adding quiz questions and poll options in the
+  builder, work over plain HTTP too (a test install with `--listen`).
+- Opening a magic link, or coming back to a public journey with "Remember
+  me", gives the browser session a new ID. A maker who is logged in in the
+  same browser stays logged in.
+- No more pg warning about overlapping queries on one database connection.
+
 ## [0.9.2] - 2026-10-29
 
 - The install script stopped without a word after "Waiting for Gryffi to

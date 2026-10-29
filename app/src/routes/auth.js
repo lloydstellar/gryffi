@@ -47,6 +47,17 @@ function regenerateSession(req, dataToSet) {
   });
 }
 
+/**
+ * Give the session a new ID and keep what is in it. For a session that gains
+ * access without a password (a magic link, a remembered public participant):
+ * whoever planted the old ID (session fixation) does not get that access. A
+ * maker who is logged in in the same browser stays logged in.
+ */
+function rotateSessionId(req) {
+  const { cookie: _cookie, ...data } = req.session;
+  return regenerateSession(req, data);
+}
+
 const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es'];
 
 /**
@@ -1585,7 +1596,7 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
     const deviceFingerprint = existingFingerprint || crypto.randomBytes(16).toString('hex');
     req.session.deviceFingerprint = deviceFingerprint;
     
-    console.log(`[MagicLink] Session ID: ${req.sessionID}, Existing fingerprint: ${existingFingerprint || 'NONE (new)'}, UA: ${req.headers['user-agent']?.substring(0, 50)}`);
+    console.log(`[MagicLink] Existing fingerprint: ${existingFingerprint ? 'yes' : 'NONE (new)'}, UA: ${req.headers['user-agent']?.substring(0, 50)}`);
     
     // Force session save to ensure cookie is sent
     await new Promise((resolve, reject) => {
@@ -1692,6 +1703,11 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
       });
     }
     
+    // A session that gets a journey it did not have yet gets a new ID
+    if (!hasExpeditionSession(req, token)) {
+      await rotateSessionId(req);
+    }
+
     // Store invitation info in session for the journey
     req.session.expedition = {
       invitationId: invitation.id,
@@ -1923,7 +1939,7 @@ router.post('/e/:token/verify', async (req, res) => {
   const { token } = req.params;
   const { code } = req.body;
   
-  console.log(`[Verify] Token: ${token?.substring(0, 10)}..., Session ID: ${req.sessionID}, Has fingerprint: ${!!req.session.deviceFingerprint}`);
+  console.log(`[Verify] Token: ${token?.substring(0, 10)}..., Has fingerprint: ${!!req.session.deviceFingerprint}`);
   
   if (!token || !code) {
     return res.status(400).json({ success: false, error: 'Missing code' });
@@ -4859,7 +4875,8 @@ router.post('/p/:token/auto-login', async (req, res) => {
     
     const participant = existingParticipant.rows[0];
     
-    // Update session with participant info
+    // Update session with participant info, under a new session ID
+    await rotateSessionId(req);
     req.session.publicParticipantId = participant.id;
     req.session.publicJourneyId = journey.id;
     req.session.publicOrgId = journey.organization_id;

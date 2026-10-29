@@ -34,6 +34,18 @@ const orgContext = new AsyncLocalStorage();
 const RLS_ROLE = 'gryffi_app';
 
 /**
+ * Run a query on the client of an org context, after the queries that are
+ * already running on it. One client runs one query at a time: pg 8 queues
+ * overlapping queries itself but warns that pg 9 will not, and routes do run
+ * queries side by side (Promise.all).
+ */
+function queueOnClient(ctx, text, params) {
+  const result = ctx.queue.then(() => ctx.client.query(text, params));
+  ctx.queue = result.catch(() => {});
+  return result;
+}
+
+/**
  * Run a database query. If an org-scoped client exists in AsyncLocalStorage
  * (set by orgContextMiddleware or runWithOrg), that client is used and RLS
  * is enforced. Otherwise falls back to the superuser pool (no RLS).
@@ -49,7 +61,7 @@ export const query = async (text, params) => {
       // already serve another organization. Run with a fresh client instead.
       res = await queryAsOrg(ctx.orgId, text, params);
     } else {
-      res = await (ctx ? ctx.client : pool).query(text, params);
+      res = await (ctx ? queueOnClient(ctx, text, params) : pool.query(text, params));
     }
     const duration = Date.now() - start;
     if (process.env.NODE_ENV === 'development' && duration > 100) {
@@ -79,12 +91,13 @@ export async function orgContextMiddleware(req, res, next) {
     await client.query(`SET ROLE ${RLS_ROLE}`);
     await client.query(`SELECT set_config('app.current_org_id', $1, false)`, [req.organizationId]);
 
-    const ctx = { client, orgId: req.organizationId, released: false };
+    const ctx = { client, orgId: req.organizationId, released: false, queue: Promise.resolve() };
     const cleanup = () => {
       if (released) return;
       released = true;
       ctx.released = true;
-      client.query(`RESET ROLE`).catch(() => {})
+      // Wait for queries that are still running, then reset and release
+      ctx.queue.then(() => client.query(`RESET ROLE`)).catch(() => {})
         .then(() => client.query(`RESET app.current_org_id`).catch(() => {}))
         .then(() => client.release())
         .catch(() => { try { client.release(); } catch (_) {} });
@@ -106,11 +119,16 @@ export async function orgContextMiddleware(req, res, next) {
  */
 export async function runWithOrg(orgId, fn) {
   const client = await pool.connect();
+  const ctx = { client, orgId, released: false, queue: Promise.resolve() };
   try {
     await client.query(`SET ROLE ${RLS_ROLE}`);
     await client.query(`SELECT set_config('app.current_org_id', $1, false)`, [orgId]);
-    return await orgContext.run({ client, orgId, released: false }, fn);
+    return await orgContext.run(ctx, fn);
   } finally {
+    // Queries fn started without awaiting them must finish on this client
+    // first; later ones get a client of their own (see query())
+    ctx.released = true;
+    await ctx.queue;
     await client.query(`RESET ROLE`).catch(() => {});
     await client.query(`RESET app.current_org_id`).catch(() => {});
     client.release();
