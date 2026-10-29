@@ -8,7 +8,10 @@
 #   GRYFFI_IMAGE, GRYFFI_VERSION   images to test (default: ghcr.io/lloydstellar/gryffi:latest)
 #   SMOKE_PORT                     port for Gryffi on 127.0.0.1 (default 3480)
 #   SMOKE_KEEP=1                   leave the containers running afterwards
+#   SMOKE_SCREENSHOTS_DIR          where the screenshots go (default tests/smoke/screenshots)
 #
+# The browser test runs in a temporary copy of this directory, so npm writes
+# no node_modules into the tree that gets released.
 # Needs Docker with Compose. The browser runs in the official Playwright image.
 set -euo pipefail
 
@@ -20,6 +23,8 @@ PLAYWRIGHT_IMAGE="mcr.microsoft.com/playwright:v1.56.1-noble"
 PROJECT="gryffi-smoke"
 
 env_file="$(mktemp)"
+work="$(mktemp -d)"
+shots="${SMOKE_SCREENSHOTS_DIR:-$SMOKE_DIR/screenshots}"
 cleanup() {
   local status=$?
   if [ "$status" != 0 ]; then
@@ -29,7 +34,7 @@ cleanup() {
   if [ "${SMOKE_KEEP:-0}" != 1 ]; then
     compose down -v --remove-orphans >/dev/null 2>&1 || true
   fi
-  rm -f "$env_file"
+  rm -rf "$env_file" "$work"
   exit "$status"
 }
 trap cleanup EXIT
@@ -68,9 +73,11 @@ code="$(compose logs app 2>/dev/null | grep -o 'setup?code=[A-Z0-9-]*' | tail -1
 [ -n "$code" ] || { echo "no setup code in the log"; exit 1; }
 
 echo "== Running the browser test"
+cp "$SMOKE_DIR"/package.json "$SMOKE_DIR"/package-lock.json "$SMOKE_DIR"/*.mjs "$work/"
+mkdir -p "$shots"
 docker run --rm --network host --ipc host \
   -u "$(id -u):$(id -g)" -e HOME=/tmp \
-  -v "$SMOKE_DIR:/smoke" -w /smoke \
-  -e SMOKE_SCREENSHOTS=/smoke/screenshots \
+  -v "$work:/smoke" -w /smoke \
+  -v "$shots:/shots" -e SMOKE_SCREENSHOTS=/shots \
   "$PLAYWRIGHT_IMAGE" \
   sh -c "npm ci --silent --no-audit --no-fund && node smoke.mjs http://127.0.0.1:$PORT '$code' http://127.0.0.1:$MOCKS_PORT"

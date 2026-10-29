@@ -56,7 +56,7 @@ Gryffi works with any service that speaks the OpenAI API: Mistral, OpenAI, OpenR
 
 ## Install
 
-You need a Linux server (Ubuntu 22.04 or newer, or Debian 12 or newer) with 2 GB of memory, and a domain name that points to it. With 4 GB, Gryffi can also read PDF, Word and PowerPoint files for the AI guides.
+You need a Linux server (Ubuntu 22.04 or newer, or Debian 12 or newer) with 2 GB of memory, and a domain name that points to it. With 4 GB of memory and 30 GB of disk on amd64, Gryffi can also read PDF, Word and PowerPoint files for the AI guides.
 
 ```bash
 curl -fsSL https://get.gryffi.com | sudo bash

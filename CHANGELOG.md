@@ -3,6 +3,20 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.9.2] - 2026-10-29
+
+- The install script stopped without a word after "Waiting for Gryffi to
+  start" when it ran with `curl | bash`. It now runs to the end and prints the
+  setup link.
+- The install script says how much it downloads, shows the download
+  progress and checks the free disk space where Docker keeps its images.
+  The document parser (17 GB on disk) is only offered with 30 GB free, and
+  not on arm64, where its image does not exist.
+- New option `--listen` (`GRYFFI_LISTEN` in `.env`) to try Gryffi on your
+  own network without a domain.
+- The release files include `env.example`. GitHub renamed `.env.example`
+  to `default.env.example`.
+
 ## [0.9.1] - 2026-10-29
 
 - The first release with images and an install script. The release

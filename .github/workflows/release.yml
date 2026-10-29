@@ -109,8 +109,10 @@ jobs:
           mkdir dist
           # Pin the version in the published compose.yml
           sed "s/\${GRYFFI_VERSION:-latest}/\${GRYFFI_VERSION:-$VERSION}/g" compose.yml > dist/compose.yml
-          cp install.sh bin/gryffi .env.example dist/
-          (cd dist && sha256sum compose.yml install.sh gryffi .env.example > SHA256SUMS)
+          # Release file names cannot start with a dot: GitHub would rename it
+          cp install.sh bin/gryffi dist/
+          cp .env.example dist/env.example
+          (cd dist && sha256sum compose.yml install.sh gryffi env.example > SHA256SUMS)
           awk -v v="$VERSION" '
             $0 ~ "^## \\[?" v "\\]?([ ]|$)" { found = 1; next }
             found && /^## / { exit }
@@ -124,5 +126,5 @@ jobs:
             dist/compose.yml
             dist/install.sh
             dist/gryffi
-            dist/.env.example
+            dist/env.example
             dist/SHA256SUMS

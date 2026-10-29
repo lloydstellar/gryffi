@@ -6,7 +6,7 @@
 |---|---|
 | Server | Ubuntu 22.04 or newer, or Debian 12 or newer, on amd64 or arm64 |
 | Memory | 2 GB. 4 GB to also read PDF, Word and PowerPoint files for the AI guides |
-| Disk | 20 GB free |
+| Disk | 20 GB free. 30 GB with the document parser, which takes 17 GB by itself |
 | Domain | A name such as `gryffi.example.com` with an A record that points to the server |
 | Ports | 80 and 443 open, unless you use a reverse proxy of your own |
 
@@ -39,9 +39,10 @@ The script is [install.sh](https://github.com/lloydstellar/gryffi/blob/main/inst
 | `--domain gryffi.example.com` | The domain, so the script does not ask |
 | `--no-https --url URL` | Use your own reverse proxy (see below) |
 | `--port 3000` | The local port for that proxy |
+| `--listen 0.0.0.0` | With `--no-https`: listen on all addresses instead of `127.0.0.1`. Only for a test (see below) |
 | `--version 1.2.3` | Install a specific version instead of the latest |
 | `--dir /opt/gryffi` | Another installation directory |
-| `--without-parser` | No PDF, Word and PowerPoint reading (saves about 2 GB of memory) |
+| `--without-parser` | No PDF, Word and PowerPoint reading. Saves a 5 GB download, 17 GB of disk and 2 GB of memory |
 | `--without-nsfw` | No NSFW check on uploaded images |
 | `--yes` | Ask nothing. Needs `--domain`, or `--no-https` with `--url` |
 
@@ -50,6 +51,8 @@ Pass options after `bash -s --`:
 ```bash
 curl -fsSL https://get.gryffi.com | sudo bash -s -- --domain gryffi.example.com --without-nsfw
 ```
+
+The script switches the document parser on when the server has 4 GB of memory and 30 GB of free disk space, and asks first. The parser image exists for amd64 only; on arm64 the parser stays off. Without it, Gryffi still reads text, Markdown, CSV and Excel files.
 
 ## The setup wizard
 
@@ -88,14 +91,32 @@ server {
 
 `proxy_buffering off` lets the setup wizard, the journey wizard and Copy & Translate show their progress while they work. `client_max_body_size` allows document uploads up to 50 MB.
 
+## A test without a domain
+
+To try Gryffi on a virtual machine or a server on your own network, without a domain or HTTPS:
+
+```bash
+curl -fsSL https://get.gryffi.com | sudo bash -s -- --no-https --listen 0.0.0.0 --url http://192.0.2.20:3000
+```
+
+Use the address of the machine in `--url`. Anyone who can reach that address on port 3000 can open Gryffi, over plain HTTP, and Docker opens the port past ufw. Do not use this on a server on the internet.
+
+Without `--listen`, Gryffi only listens on `127.0.0.1`. You can then reach it from your own computer through an SSH tunnel, with `--url http://localhost:3000`:
+
+```bash
+ssh -N -L 3000:127.0.0.1:3000 user@192.0.2.20
+```
+
+Leave that running and open `http://localhost:3000`.
+
 ## With Docker Compose by hand
 
-Every release has `compose.yml` and `.env.example`:
+Every release has `compose.yml` and `env.example`:
 
 ```bash
 mkdir -p /opt/gryffi && cd /opt/gryffi
 curl -fsSLO https://github.com/lloydstellar/gryffi/releases/latest/download/compose.yml
-curl -fsSL https://github.com/lloydstellar/gryffi/releases/latest/download/.env.example -o .env
+curl -fsSL https://github.com/lloydstellar/gryffi/releases/latest/download/env.example -o .env
 ```
 
 Fill in `.env` (see [Settings and .env](/configuration/)), then:
@@ -117,4 +138,4 @@ sudo ufw allow 80,443/tcp
 sudo ufw enable
 ```
 
-Note that Docker opens published ports past ufw. That is why every port in `compose.yml`, except those of Caddy, is bound to `127.0.0.1`.
+Note that Docker opens published ports past ufw. That is why every port in `compose.yml`, except those of Caddy, is bound to `127.0.0.1`, unless you install with `--listen`.

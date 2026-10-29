@@ -3,11 +3,13 @@
 # All settings come from .env next to this file (see .env.example). Optional
 # services are switched on with COMPOSE_PROFILES in .env:
 #   https   Caddy in front of Gryffi, with automatic HTTPS for GRYFFI_DOMAIN
-#   parser  reads PDF, Word and PowerPoint for the AI guides (needs about 2 GB RAM)
+#   parser  reads PDF, Word and PowerPoint for the AI guides (needs about 2 GB RAM
+#           and 17 GB of disk; amd64 only)
 #   nsfw    checks uploaded images for nudity
 #
 # Only Caddy listens on the network. Gryffi itself listens on 127.0.0.1, for a
-# reverse proxy of your own when you do not use the https profile.
+# reverse proxy of your own when you do not use the https profile
+# (GRYFFI_LISTEN changes that address, for a test on your own network).
 
 name: gryffi
 
@@ -37,7 +39,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "127.0.0.1:${GRYFFI_PORT:-3000}:3000"
+      - "${GRYFFI_LISTEN:-127.0.0.1}:${GRYFFI_PORT:-3000}:3000"
     depends_on:
       db:
         condition: service_healthy

@@ -32,4 +32,5 @@ Security fixes go into the latest release. Update with `gryffi update`.
   encrypts the API keys and passwords stored in the database. Backups do not
   contain it.
 - Only Caddy needs ports 80 and 443. Gryffi itself listens on 127.0.0.1.
+  Install with `--listen` only for a test on your own network.
 - Store backups (`/opt/gryffi/backups`) somewhere else as well.

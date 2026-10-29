@@ -20,6 +20,7 @@ The install script writes this file with random values. Keep a copy outside the 
 | `GRYFFI_DOMAIN` | The domain Caddy gets a certificate for (the `https` profile) |
 | `COMPOSE_PROFILES` | Optional services, comma separated: `https`, `parser`, `nsfw` |
 | `GRYFFI_PORT` | Port on `127.0.0.1` for your own reverse proxy. Default `3000` |
+| `GRYFFI_LISTEN` | The address Gryffi listens on without the `https` profile. Default `127.0.0.1`. `0.0.0.0` opens it to the network without HTTPS: only for a test |
 | `DB_PASSWORD` | Database owner, used for the database updates at start |
 | `APP_DB_PASSWORD` | Database login of the app itself, with fewer rights |
 | `REDIS_PASSWORD` | Redis, for sessions and rate limits |
@@ -34,7 +35,7 @@ Generate a value with `openssl rand -hex 32`. Do not change `OAUTH_TOKEN_KEY` on
 | Profile | Service | Needs |
 |---|---|---|
 | `https` | Caddy, with certificates from Let's Encrypt | Ports 80 and 443, and `GRYFFI_DOMAIN` |
-| `parser` | Reads PDF, Word and PowerPoint for the AI guides | About 2 GB of memory |
+| `parser` | Reads PDF, Word and PowerPoint for the AI guides | About 2 GB of memory and 17 GB of disk (a 5 GB download). amd64 only |
 | `nsfw` | Checks uploaded images for nudity | About 1 GB of memory |
 
 Text, Markdown, CSV and Excel files are read without the parser.
