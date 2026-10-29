@@ -23,6 +23,17 @@ sudo gryffi update
 
 The command makes a backup, downloads the `compose.yml` and the images of the new version, and starts them. Gryffi updates its database by itself at start. If the new version does not answer within five minutes, the command goes back to the previous version and shows the last log lines. A slow server can get more time with `GRYFFI_START_TIMEOUT=600`.
 
+Once the new version runs, the command removes the images of the previous version and replaces itself with the `gryffi` command of the new release, after checking it against `SHA256SUMS`.
+
+Installed before 0.9.4? Your `gryffi` command does not do this yet. Get the new one once:
+
+```bash
+sudo curl -fsSL https://github.com/lloydstellar/gryffi/releases/latest/download/gryffi -o /usr/local/bin/gryffi
+sudo chmod 755 /usr/local/bin/gryffi
+```
+
+Old images that are already there go with `sudo docker image prune -a`. That removes every image no container uses, also those of other programs on the server.
+
 ## Backups
 
 Every night at 03:17 `gryffi backup` runs by itself and keeps the last 7 backups in `/opt/gryffi/backups`. Change the number with `GRYFFI_BACKUP_KEEP` in `.env`; `0` switches the nightly backup off. A backup contains the database and all uploaded files, in one `.tar.gz`.

@@ -3,6 +3,13 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.9.4] - 2026-10-29
+
+- `gryffi update` removes the images of the previous version once the new
+  version runs, and replaces the `gryffi` command with the one of the new
+  release (checked against `SHA256SUMS`). Installed before this version? Get
+  the new command once, see Operations in the docs.
+
 ## [0.9.3] - 2026-10-29
 
 - The install script offers the document parser without the 30 GB disk
