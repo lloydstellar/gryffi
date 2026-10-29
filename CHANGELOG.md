@@ -3,6 +3,12 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.9.1] - 2026-10-29
+
+- The first release with images and an install script. The release
+  workflow of 0.9.0 stopped before it built anything; the software is the
+  same.
+
 ## [0.9.0] - 2026-10-29
 
 First public preview of Gryffi Community Edition, for testing before 1.0.
