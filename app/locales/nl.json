@@ -1414,6 +1414,7 @@
       "emailSettings": "E-mailinstellingen",
       "sendTo": "Verstuur formulier naar",
       "sendToPlaceholder": "email@bedrijf.nl",
+      "sendToHint": "Optioneel. Zonder adres worden de antwoorden alleen bewaard in Analyse.",
       "emailSubject": "E-mail onderwerp",
       "emailSubjectPlaceholder": "Nieuw formulier: {{title}}",
       "confirmationMessage": "Bevestigingsbericht",

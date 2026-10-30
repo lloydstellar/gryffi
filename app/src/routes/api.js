@@ -4246,13 +4246,15 @@ router.post('/forms/submit', async (req, res) => {
     }
     const recipient_email = stepCheck.rows[0].basic_props?.recipient_email;
     const email_subject = stepCheck.rows[0].basic_props?.email_subject;
-    
-    if (!recipient_email) {
-      return res.status(400).json({ success: false, error: 'No recipient email configured' });
-    }
-    
+
     if (!responses || Object.keys(responses).length === 0) {
       return res.status(400).json({ success: false, error: 'No form responses provided' });
+    }
+
+    // Preview stores no submission, so without a recipient there is nothing
+    // to do. Same as the player: the form counts as sent.
+    if (!recipient_email) {
+      return res.json({ success: true, skipped: 'no_recipient', message: 'No recipient configured, nothing sent' });
     }
     
     // Validate and decode uploaded files

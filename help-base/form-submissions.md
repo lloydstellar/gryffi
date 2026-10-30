@@ -14,7 +14,7 @@ Every form submission is stored securely on the Gryffi platform and is strictly 
 - Private journeys (accessed through magic-link invitations)
 - Public journeys
 
-Submissions made in journey preview are emailed to the configured recipient but are not stored in the statistics. See: journey-preview
+Submissions made in journey preview are emailed to the configured recipient but are not stored in the statistics. Without a recipient, nothing is sent in preview. See: journey-preview
 
 [[goto:/dashboard/analytics#forms]]
 

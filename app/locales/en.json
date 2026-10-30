@@ -1414,6 +1414,7 @@
       "emailSettings": "Email Settings",
       "sendTo": "Send form to",
       "sendToPlaceholder": "email@company.com",
+      "sendToHint": "Optional. Without an address, the responses are only saved in Analytics.",
       "emailSubject": "Email subject",
       "emailSubjectPlaceholder": "New form submission: {{title}}",
       "confirmationMessage": "Confirmation Message",

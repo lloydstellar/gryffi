@@ -20,6 +20,10 @@ Form Email Settings determine where the notification email for a Form Step is se
 
 You can change the email subject. You can use the variable '{{journey_title}}' here.
 
+### No recipient
+
+Leave **Send form to** empty if you only want to see the responses in Analytics. End users can still submit the form and continue the journey. The submission is saved in Analytics → Forms, and no email is sent. See: form-submissions
+
 ## Notification Email Contents
 
 The notification email contains:
@@ -40,7 +44,7 @@ The submission is always saved before the email is sent. If the notification ema
 
 ## Default Recipient for Wizard-Generated Forms
 
-When a Form Step is created through the Journey Wizard, the **Send form to** field is automatically pre-filled with the email address of the maker who ran the wizard. This ensures the form is submittable in the preview and by end users immediately, without an extra configuration step. You can change the recipient at any time through the steps above — the wizard value is only a sensible default, not a fixed setting.
+When a Form Step is created through the Journey Wizard, the **Send form to** field is automatically pre-filled with the email address of the maker who ran the wizard. This way you get the responses by email right away, also when you test the journey in preview. You can change the recipient at any time through the steps above — the wizard value is only a sensible default, not a fixed setting.
 
 See: journey-wizard, form-step
 

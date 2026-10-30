@@ -13,6 +13,10 @@
   <a href="https://gryffi.com">Gryffi Cloud</a>
 </p>
 
+<p align="center">
+  <img src="docs/public/images/player-phone.png" alt="Three steps of an onboarding journey on a phone: the AI guide Robin answering a question with a link to its source, a quiz question with the right answer marked, and a reward with a lunch code at the end" width="100%">
+</p>
+
 ---
 
 Most onboarding still lives in PDFs and wiki pages that new colleagues skim once and forget. Gryffi lets you build that material into a journey: a path of small steps with photos of the building, a quiz, a form, a question for an AI guide that knows your documents, and a certificate at the end. Participants open it from a link in their email, without a password, on their phone or laptop. You see who started, who finished and where people get stuck.
@@ -22,6 +26,8 @@ This is **Gryffi Community Edition**: the full product, for one organization, on
 ## What you build with it
 
 A journey is a set of steps on a canvas. Connect them in a straight line, or let the path depend on a choice or a quiz score.
+
+![The journey builder: steps for a space, a video, an AI guide, a quiz, a form, a poll and a reward on a canvas, with a new content step being added and connected](docs/public/images/journey-builder.gif)
 
 | Step | What it does |
 |---|---|
@@ -44,11 +50,15 @@ Not sure where to start? Upload a document and the journey wizard drafts a journ
 
 ## For the people running it
 
+![The dashboard of a Community Edition installation: journeys, invitations, rewards, form submissions, AI guides and usage without limits](docs/public/images/dashboard.png)
+
 - **Participants**: add them by hand, import a CSV or Excel file, or sync them from Microsoft 365 or Google Workspace. Put them in groups.
 - **Analytics**: completion per journey, a funnel per step, progress per person, comparisons between groups, quiz scores, poll results and PDF reports.
 - **Makers**: invite colleagues as admin, manager, member or read-only viewer.
 - **Public journeys**: share a journey with a link, for visitors or applicants without an invitation.
 - **API**: manage participants, groups and invitations from your own systems.
+
+![The funnel of a journey in Analytics: how many participants reached each step, from the welcome step to the reward](docs/public/images/analytics-funnel.png)
 
 ## AI on your terms
 
@@ -63,6 +73,8 @@ curl -fsSL https://get.gryffi.com | sudo bash
 ```
 
 The script checks the server, asks a few questions and shows what it will do before it changes anything. It installs Docker when needed, starts Gryffi with automatic HTTPS and prints a link to the setup wizard. The wizard creates your organization and admin account, and tests your AI provider and mail server before it saves anything.
+
+![The setup wizard: the server checks with green and orange items, and the AI provider step with Mistral, where the connection and the embedding model have been tested](docs/public/images/setup-wizard.png)
 
 Prefer to read the script first? It is [install.sh](install.sh) in this repository. Running Docker Compose or a reverse proxy of your own already? See the [installation guide](https://docs.gryffi.com/install/).
 

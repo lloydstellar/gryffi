@@ -1414,6 +1414,7 @@
       "emailSettings": "Configuración de correo",
       "sendTo": "Enviar formulario a",
       "sendToPlaceholder": "email@empresa.es",
+      "sendToHint": "Opcional. Sin dirección, las respuestas solo se guardan en Análisis.",
       "emailSubject": "Asunto del correo",
       "emailSubjectPlaceholder": "Nuevo formulario: {{title}}",
       "confirmationMessage": "Mensaje de confirmación",

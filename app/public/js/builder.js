@@ -4503,6 +4503,7 @@ class FlowBuilder {
               <label class="form-label mb-0">${window.t('builder.form.sendTo')}</label>
             </div>
             <input type="email" class="form-input" id="propRecipientEmail" value="${escapeHtml(props.recipient_email)}" placeholder="${window.t('builder.form.sendToPlaceholder')}" />
+            <p class="text-xs text-zen-400 mt-1">${window.t('builder.form.sendToHint')}</p>
           </div>
           
           <div class="mt-3">

@@ -3684,14 +3684,11 @@ router.post('/e/:token/forms/submit', async (req, res) => {
     const step = stepResult.rows[0];
     const stepBasicProps = step.basic_props || {};
     
-    // Recipient comes ONLY from the maker-configured step settings.
+    // Recipient comes ONLY from the maker-configured step settings. Without
+    // one, the submission is still saved (Analytics); only the email is skipped.
     const recipient_email = stepBasicProps.recipient_email;
     const step_title = step.title || stepBasicProps.title || 'Form';
-    
-    if (!recipient_email) {
-      return res.status(400).json({ success: false, error: 'No recipient email configured' });
-    }
-    
+
     const journeyTitle = invitation.journey_title || 'Unknown Journey';
     const companyName = invitation.org_name || 'Gryffi';
     const endUserName = `${invitation.end_user_first_name || ''} ${invitation.end_user_last_name || ''}`.trim() || 'End User';
@@ -3745,7 +3742,12 @@ router.post('/e/:token/forms/submit', async (req, res) => {
       privateSubmissionId: submissionId,
       files
     });
-    
+
+    if (!recipient_email) {
+      console.log(`[Player Form] No recipient email configured for step ${step_id}, skipping email notification`);
+      return res.json({ success: true, message: 'Form submitted successfully' });
+    }
+
     // Build and send the notification email (org language, themed)
     const emailBody = buildFormSubmissionEmailBody({
       language: orgLanguage,

@@ -1414,6 +1414,7 @@
       "emailSettings": "Paramètres e-mail",
       "sendTo": "Envoyer le formulaire à",
       "sendToPlaceholder": "email@entreprise.fr",
+      "sendToHint": "Facultatif. Sans adresse, les réponses sont seulement enregistrées dans Analyses.",
       "emailSubject": "Sujet de l'e-mail",
       "emailSubjectPlaceholder": "Nouveau formulaire : {{title}}",
       "confirmationMessage": "Message de confirmation",

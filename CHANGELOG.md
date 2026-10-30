@@ -3,6 +3,15 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.9.5] - 2026-10-30
+
+- A form step without a "Send form to" address no longer stops
+  participants with "Failed to submit form". The answers are saved in
+  Analytics, Forms, and no email is sent. The builder now says the address
+  is optional.
+- The README shows Gryffi: the player on a phone, the journey builder, the
+  dashboard, the funnel in Analytics and the setup wizard.
+
 ## [0.9.4] - 2026-10-29
 
 - `gryffi update` removes the images of the previous version once the new

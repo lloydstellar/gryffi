@@ -1414,6 +1414,7 @@
       "emailSettings": "E-Mail-Einstellungen",
       "sendTo": "Formular senden an",
       "sendToPlaceholder": "email@firma.de",
+      "sendToHint": "Optional. Ohne Adresse werden die Antworten nur in Einblicke gespeichert.",
       "emailSubject": "E-Mail-Betreff",
       "emailSubjectPlaceholder": "Neues Formular: {{title}}",
       "confirmationMessage": "Bestätigungsnachricht",
