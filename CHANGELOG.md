@@ -3,6 +3,12 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.9.6] - 2026-10-30
+
+- The documentation site builds with Vite 6.4.5 instead of Vite 5. This
+  closes nine security advisories for the development server of Vite and
+  esbuild. Gryffi itself works the same as in 0.9.5.
+
 ## [0.9.5] - 2026-10-30
 
 - A form step without a "Send form to" address no longer stops
