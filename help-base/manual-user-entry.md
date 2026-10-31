@@ -7,6 +7,13 @@ related_features: [end-user-management, csv-import]
 
 Manual User Entry allows you to add individual end users to your organization one at a time.
 
+![Add a new end user: first name (1), last name (2), email address (3) and Add User (4)](images/manual-user-entry/form.en.webp)
+
+1. First Name.
+2. Last Name.
+3. Email Address: the address the invitation goes to.
+4. Add User: the end user appears in the list below.
+
 ## Overview
 
 Manually add:
@@ -22,8 +29,8 @@ Manually add:
 ### Fill in the form
 
 1. Go to System Settings - Users - Manual Entry
-2. Fill in: First Name, Last Name, Email Address
-3. Click "Add User"
+2. Fill in: First Name (1), Last Name (2), Email Address (3)
+3. Click "Add User" (4)
 
 ## Group Assignment
 

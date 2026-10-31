@@ -2104,7 +2104,38 @@ const migrations = [
     changed_by UUID REFERENCES users(id) ON DELETE SET NULL,
     changed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
   )`,
-  `CREATE INDEX IF NOT EXISTS idx_instance_settings_audit_changed_at ON instance_settings_audit(changed_at DESC)`
+  `CREATE INDEX IF NOT EXISTS idx_instance_settings_audit_changed_at ON instance_settings_audit(changed_at DESC)`,
+
+  // 2026-10: automation emails in the player go out once per invitation and
+  // run through the journey. The player calls the trigger route on every page
+  // load and an end user can call it themselves; a row here claims the send.
+  // Automations have no id, so automation_key is a hash of their definition.
+  // Restarting a completed run sets cleared_at, so the next run sends again;
+  // the cleared rows still count towards the hourly cap per invitation.
+  `CREATE TABLE IF NOT EXISTS automation_sends (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    invitation_id UUID NOT NULL REFERENCES invitations(id) ON DELETE CASCADE,
+    automation_key VARCHAR(64) NOT NULL,
+    trigger VARCHAR(100) NOT NULL,
+    step_id UUID REFERENCES steps(id) ON DELETE SET NULL,
+    cleared_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_automation_sends_open ON automation_sends(invitation_id, automation_key) WHERE cleared_at IS NULL`,
+  `CREATE INDEX IF NOT EXISTS idx_automation_sends_invitation_created ON automation_sends(invitation_id, created_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_automation_sends_org ON automation_sends(organization_id)`,
+  `DO $$
+   BEGIN
+     ALTER TABLE automation_sends ENABLE ROW LEVEL SECURITY;
+     BEGIN
+       DROP POLICY IF EXISTS org_isolation ON automation_sends;
+     EXCEPTION WHEN OTHERS THEN NULL;
+     END;
+     CREATE POLICY org_isolation ON automation_sends
+       USING (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid)
+       WITH CHECK (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
+   END $$`
 ];
 
 async function migrate() {

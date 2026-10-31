@@ -436,6 +436,8 @@ app.get('/media/organizations/:orgId/*', async (req, res) => {
 
 // Static files (CSS/JS/images)
 app.use(express.static(path.join(__dirname, '..', 'public')));
+// Screenshots of the help base (help-base/images), shown in the help modal
+app.use('/help-images', express.static('/help-base/images', { maxAge: '1h', fallthrough: false }));
 
 // Rate limiting for specific endpoints
 app.use('/login', loginLimiter);

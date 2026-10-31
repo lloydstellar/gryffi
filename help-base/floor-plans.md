@@ -7,12 +7,18 @@ related_features: [space-step, panorama-images, image-library]
 
 Floor Plans enable interactive map-based navigation within Space Steps, allowing users to see where they are in the building when they are on a virtual tour
 
+![A floor plan as end users see it, with the marker on their location (1)](images/floor-plans/player.en.webp)
+
+1. The marker shows where the end user is: You are here. End users open the floor plan with View floor plan in a Space step.
+
 ## Overview
 
 Floor plans provide:
 
 - See on the map where the Space step is located
 - Hotspot markers
+
+End users open the floor plan with **View floor plan** in a Space step. A marker shows where they are (1).
 
 ## Setting Up Floor Plans
 

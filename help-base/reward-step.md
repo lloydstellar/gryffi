@@ -7,14 +7,21 @@ related_features: [reward-step, reward-tracking, journey-wizard]
 
 Reward Codes are the coupon codes, discount codes, or unique identifiers distributed through Reward Steps. The coupon codes are meant to be used in the real world. They are for getting end users more motivated to take journeys and finish them.
 
+![The settings of a Reward step: the reward title (2), the description (3) and where to redeem it (4)](images/reward-step/properties.en.webp)
+
+1. The Reward step on the canvas.
+2. Reward Title: the name of the reward end users see.
+3. Description: what the reward is and how to use it.
+4. Where to redeem: where end users can use their code.
+
 ## Overview
 
-In basic tab of the reward step:
+Click the Reward step (1) on the canvas to open its settings. In basic tab of the reward step:
 
 - Title - Title of the step
-- Reward Title - Title name for the reward coupon
-- Description - Discription of the reward
-- Where to redeem - The place the end user can spend their reward code
+- Reward Title (2) - Title name for the reward coupon
+- Description (3) - Discription of the reward
+- Where to redeem (4) - The place the end user can spend their reward code
 - Terms & conditions - A good description of the rules around a given reward
 - Valid until - A date in the future. The coupon must be used before that time
 - Code settings - Set if you use custom codes or random codes
@@ -22,14 +29,17 @@ In basic tab of the reward step:
 - Add new codes - To add additional codes
 - Maximum recipients - This number gives the first X end users that made it to the Reward Step a coupon code
 
-
 ## Analytics Reward Reports
 
-In Analytics - Rewards:
-View code statistics and download a PDF.
+![Rewards in Analytics: the Rewards tab (5) and a reward (6)](images/reward-step/analytics.en.webp)
+
+5. The Rewards tab in Analytics.
+6. A reward with the number of claimed and remaining codes, View codes and Download PDF.
+
+In Analytics, open the Rewards tab (5).
+For each reward (6), view code statistics and download a PDF.
 
 Example: If you give codes for a free lunch at the staff canteen. You may want to give the PDF or a printed copy to the canteen worker, so they will know who to give a free lunch to.
-
 
 ## Added by the Journey Wizard
 

@@ -7,6 +7,13 @@ related_features: [authentication, password-reset, user-settings]
 
 Password Management covers creating, changing, and securing your Gryffi account password.
 
+![Change your password: current password (1), new password (2), confirm (3) and Update password (4)](images/password-management/change.en.webp)
+
+1. Current password.
+2. New password.
+3. Confirm new password: type the new password again.
+4. Update password.
+
 ## Overview
 
 Manage your password:
@@ -44,10 +51,10 @@ Manage your password:
 
 1. Go to Settings → scroll down to the Security section
 2. Click "Change Password"
-3. Enter current password
-4. Enter new password
-5. Confirm new password
-6. Save
+3. Enter current password (1)
+4. Enter new password (2)
+5. Confirm new password (3)
+6. Click **Update password** (4)
 
 ## Password Reset
 

@@ -7,9 +7,11 @@ related_features: [end-user-management, end-user-groups, google-workspace-sync]
 
 Microsoft 365 Sync automatically imports and keeps your end users synchronized with your Microsoft 365 (Azure AD) directory.
 
-[[show:connect]]
-[[show:connected]]
+![Microsoft 365 in System Settings, Users: the option (1), Connect with Microsoft (2) and the setup instructions (3)](images/microsoft-365-sync/connect.en.webp)
 
+1. Microsoft 365: sync end users and groups from Azure AD.
+2. Connect with Microsoft: a Microsoft 365 administrator gives Gryffi access.
+3. Show or hide the setup instructions.
 ## Overview
 
 With Microsoft 365 Sync, you can:
@@ -30,7 +32,7 @@ Before connecting:
 
 ### Setup your Microsoft environment first
 
-Setup instructions:
+Setup instructions (3). You can show or hide them on the Microsoft 365 settings page:
 
 1. Grant Admin Consent
 When you click Connect, you will be redirected to Microsoft to grant admin consent for your organization. This allows Gryffi to read users and groups.
@@ -46,10 +48,12 @@ Only a Global Administrator or Privileged Role Administrator can grant admin con
 
 ### Step 1: Navigate to Sync Settings
 
+Go to System Settings → Users → **Microsoft 365** (1).
+
 [[goto:/dashboard/system-settings#users/microsoft]]
 
 ### Step 2: Click "Connect Microsoft 365"
-You'll be redirected to Microsoft login.
+Click **Connect with Microsoft** (2). You'll be redirected to Microsoft login.
 
 ### Step 3: Sign In
 Log in with your Microsoft 365 administrator account.

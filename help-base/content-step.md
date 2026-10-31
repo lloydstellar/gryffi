@@ -7,7 +7,11 @@ related_features: [journey-builder, image-library, journey-wizard]
 
 The Content Step displays text, videos, or an image to end users. It's perfect for sharing information, instructions, or multimedia content within your journey.
 
-[[show:properties]]
+![The settings of a Content step: the type of content (2) and the text editor (3)](images/content-step/properties.en.webp)
+
+1. The Content step on the canvas.
+2. What would you like to share: Text, Video or Image.
+3. The text editor, with bold, italic, lists and text size.
 
 ## Overview
 
@@ -19,19 +23,21 @@ Content Steps are versatile building blocks for delivering information. They sup
 
 ## Properties
 
+Click the Content step on the canvas (1) to open its settings.
+
 ### Basic Settings
 
 | Property | Description |
 |----------|-------------|
 | **Title** | The heading for this content section |
 | **Description** | Brief summary shown below the title |
-| **Content Type** | Choose between Text, Video or Image |
+| **Content Type** (2) | Choose between Text, Video or Image |
 
 ### Text Content
 
 When using text mode:
 
-- Write your content in the text editor
+- Write your content in the text editor (3)
 - Use formatting options for headings, bold, italic
 
 ### Video Content

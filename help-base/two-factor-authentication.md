@@ -7,7 +7,9 @@ related_features: [authentication, login, user-settings]
 
 Two-Factor Authentication adds an extra layer of security to your Gryffi account by requiring a verification code in addition to your password.
 
-[[show:settings]]
+![Two-factor authentication in Settings (1)](images/two-factor-authentication/settings.en.webp)
+
+1. Turn it on: after your password, Gryffi asks for a 4-digit code that is sent to your email address.
 
 ## Overview
 
@@ -27,8 +29,8 @@ Navigate to settings in the sidebar:
 
 ### Step 2: Enable Two-Factor Authentication
 1. Find the "Two-Factor Authentication" section
-2. Click "Enable"
-3. From now on, every time you login, an email verification is send
+2. Turn on the switch (1)
+3. From now on, every time you log in, Gryffi sends a verification code to your email address
 
 ## Logging In with 2FA
 

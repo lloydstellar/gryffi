@@ -7,7 +7,12 @@ related_features: [journey-builder, quiz-settings, journey-wizard]
 
 The Challenge Step creates quizzes with multiple-choice questions to test user knowledge. It's essential for training, assessments, and gamified learning experiences.
 
-[[show:properties]]
+![The settings of a Challenge step: a question (2), the correct answer (3) and the Advanced tab (4)](images/challenge-step/properties.en.webp)
+
+1. The Challenge step on the canvas.
+2. A question with its answer options. Click + Add Option for another option.
+3. The selected radio button marks the correct answer.
+4. Advanced: the passing score, feedback and retakes.
 
 ## Overview
 
@@ -38,10 +43,12 @@ Each question consists of:
 
 ### Adding Questions
 
+Click the Challenge step on the canvas (1) to open its settings.
+
 1. Click "Add Question" button
-2. Enter the question text
-3. Add answer options (minimum 2)
-4. Mark the correct answer(s)
+2. Enter the question text (2)
+3. Add answer options (minimum 2). Click **+ Add Option** for another option.
+4. Mark the correct answer(s) by selecting the radio button (3)
 5. Repeat for additional questions
 
 ### Quiz Settings
@@ -56,6 +63,8 @@ Each question consists of:
 | **Success message** | The message that the end user sees after passing the quiz |
 
 ## Advanced Settings
+
+The passing score, feedback and retakes are on the **Advanced** tab (4).
 
 ## Question Types
 

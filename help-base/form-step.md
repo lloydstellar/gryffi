@@ -7,7 +7,11 @@ related_features: [journey-builder, form-submissions, form-email-settings, form-
 
 The Form Step collects data from users through customizable input fields. Use it for registrations, feedback, surveys, or any data collection needs. When a user submits a form, the responses are emailed to the recipient configured in the step, and the submission is stored securely on the Gryffi platform so admins and journey managers can review it later in the Analytics dashboard.
 
-[[show:properties]]
+![The settings of a Form step: the description (2) and the form fields (3)](images/form-step/properties.en.webp)
+
+1. The Form step on the canvas.
+2. Description: tells end users what the form is for.
+3. Form fields: for each field the question, the type (such as Dropdown or Yes / No) and whether it is required.
 
 ## Overview
 
@@ -19,17 +23,19 @@ Form Steps allow you to:
 
 ## Properties
 
+Click the Form step on the canvas (1) to open its settings.
+
 ### Basic Settings
 
 | Property | Description |
 |----------|-------------|
 | **Title** | The form name (e.g., "Registration Form") |
-| **Description** | Instructions for filling out the form |
+| **Description** (2) | Instructions for filling out the form |
 | **Form Fields** | The fields that make up the form |
 
 ### Form Fields
 
-Each form can contain multiple fields:
+Each form can contain multiple fields (3):
 
 | Field Type | Description | Use Case |
 |------------|-------------|----------|

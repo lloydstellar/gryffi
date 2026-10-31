@@ -1115,8 +1115,14 @@ class FlowBuilder {
     // Update progress bar
     this.updatePlayerProgress();
     
-    // Trigger automations for journey start (only if this is a fresh start, not resume)
-    const isNewJourney = !this.player?.progress?.started_at;
+    // Trigger automations for journey start (only if this is a fresh start, not resume).
+    // The server creates the progress row (with started_at) before the player loads,
+    // and a restart clears visited_steps, so an empty visit list on the start step
+    // marks a fresh start. A reload while in a nested journey also has no visited
+    // steps, but lands on the parent's nested step.
+    const progress = this.player?.progress;
+    const isNewJourney = !progress?.visited_steps?.length &&
+      (!progress?.current_step_id || progress.current_step_id === startStep.id);
     if (isNewJourney) {
       console.log('[PlayerMode] Triggering on_journey_start automation');
       this.triggerAutomation('on_journey_start', startStep.id);
@@ -2057,6 +2063,23 @@ class FlowBuilder {
   }
   
   /**
+   * The user arrived on an end step. The end of the main journey completes
+   * it; the end step of a sub-journey is shown like any other step, with a
+   * Continue button back to the main journey (renderPreview).
+   */
+  endStepReached(step) {
+    this.previewState._endStepCompleted = false;
+    if (this.playerMode && this.isEndStepAutoComplete(step)) {
+      this.trackEndStepCompletion(step);
+    }
+    if (this.previewState.isInNestedJourney) return;
+    this.triggerAutomation('on_journey_complete', step.id);
+    if (this.playerMode) {
+      this.completePlayerJourney();
+    }
+  }
+
+  /**
    * Mark journey as completed in player mode
    */
   async completePlayerJourney() {
@@ -2475,17 +2498,8 @@ class FlowBuilder {
     // Trigger automations
     this.triggerAutomation('on_step_enter', targetStep.id);
     
-    // Check if end step
-    if (targetStep.is_end) {
-      this.triggerAutomation('on_journey_complete', targetStep.id);
-      if (this.playerMode) {
-        this.previewState._endStepCompleted = false;
-        if (this.isEndStepAutoComplete(targetStep)) {
-          this.trackEndStepCompletion(targetStep);
-        }
-        this.completePlayerJourney();
-      }
-    }
+    // Check if this is an end step
+    if (targetStep.is_end) this.endStepReached(targetStep);
   }
   
   bindEvents() {
@@ -4134,7 +4148,7 @@ class FlowBuilder {
               
               <!-- Floorplan Selector -->
               <div class="floorplan-selector mb-3">
-                <select class="form-input" id="propFloorplanId">
+                <select class="form-input" id="propFloorplanId" data-saved="${escapeHtml(props.floorplan?.enabled ? props.floorplan.floorplan_id || '' : '')}">
                   <option value="">${window.t('builder.props.selectFloorplan')}</option>
                 </select>
                 <button type="button" class="btn-secondary btn-sm mt-2" id="uploadNewFloorplanBtn">
@@ -4219,10 +4233,10 @@ class FlowBuilder {
               <div class="px-4 py-3 text-sm">
                 <div class="flex items-center justify-between text-zen-600">
                   <span id="guidePreviewKnowledge">
-                    ${selectedGuide ? `📚 ${selectedGuide.knowledge_count || 0} ${window.t('guides.stats.knowledgeSources')}` : ''}
+                    ${selectedGuide ? `📚 ${escapeHtml(window.t('guides.sourceCount', { count: Number(selectedGuide.knowledge_count) || 0 }))}` : ''}
                   </span>
                   <span id="guidePreviewUsage" class="text-zen-400">
-                    ${selectedGuide ? `${window.t('guides.stats.usedIn')} ${selectedGuide.journey_count || 0} ${window.t('guides.stats.journeys')}` : ''}
+                    ${selectedGuide ? escapeHtml(this.guideUsageText(selectedGuide)) : ''}
                   </span>
                 </div>
                 ${selectedGuide?.greeting ? `
@@ -5345,6 +5359,12 @@ class FlowBuilder {
     // Floorplan selection change
     floorplanSelect?.addEventListener('change', () => {
       const selectedId = floorplanSelect.value;
+      // A marker belongs to one floor plan: another plan starts without one
+      if (selectedId !== floorplanSelect.dataset.saved) {
+        document.getElementById('propFloorplanMarkerX').value = '';
+        document.getElementById('propFloorplanMarkerY').value = '';
+      }
+      floorplanSelect.dataset.saved = selectedId;
       if (selectedId) {
         const selectedOption = floorplanSelect.options[floorplanSelect.selectedIndex];
         const imageUrl = selectedOption.dataset.url;
@@ -6562,8 +6582,8 @@ class FlowBuilder {
         document.getElementById('guidePreviewName').textContent = guide.name;
         document.getElementById('guidePreviewRole').textContent = guide.role || window.t('builder.preview.aiAssistant');
         document.getElementById('guidePreviewPersonality').textContent = personalityLabels[guide.personality] || '😊 Friendly';
-        document.getElementById('guidePreviewKnowledge').textContent = `📚 ${guide.knowledge_count || 0} knowledge sources`;
-        document.getElementById('guidePreviewUsage').textContent = `Used in ${guide.journey_count || 0} journeys`;
+        document.getElementById('guidePreviewKnowledge').textContent = `📚 ${window.t('guides.sourceCount', { count: Number(guide.knowledge_count) || 0 })}`;
+        document.getElementById('guidePreviewUsage').textContent = this.guideUsageText(guide);
       } else {
         // Hide preview card
         previewCard?.classList.add('hidden');
@@ -6968,7 +6988,9 @@ class FlowBuilder {
         }
         // Floorplan data
         const floorplanEnabled = document.getElementById('propFloorplanEnabled')?.checked || false;
-        const floorplanId = document.getElementById('propFloorplanId')?.value || null;
+        // Until the list of floor plans has loaded, it is empty: keep the saved one
+        const floorplanSelect = document.getElementById('propFloorplanId');
+        const floorplanId = (floorplanSelect?.dataset.loaded === '1' ? floorplanSelect.value : floorplanSelect?.dataset.saved) || null;
         const markerX = document.getElementById('propFloorplanMarkerX')?.value || null;
         const markerY = document.getElementById('propFloorplanMarkerY')?.value || null;
         if (floorplanEnabled && floorplanId) {
@@ -8281,7 +8303,7 @@ class FlowBuilder {
               ${escapeHtml(question.question || window.t('builder.quiz.questionPlaceholder'))}
             </p>
             <p class="text-xs text-zen-400">
-              ${options.length} ${options.length === 1 ? window.t('builder.quiz.optionCount', { count: options.length }) : window.t('builder.quiz.optionCountPlural', { count: options.length })}
+              ${options.length === 1 ? window.t('builder.quiz.optionCount', { count: options.length }) : window.t('builder.quiz.optionCountPlural', { count: options.length })}
               ${hasCorrect ? `<span class="text-green-600 ml-2">✓ ${window.t('builder.quiz.correctAnswer')}</span>` : `<span class="text-amber-600 ml-2">⚠ ${window.t('builder.quiz.noCorrectAnswer')}</span>`}
             </p>
           </div>
@@ -9038,6 +9060,14 @@ class FlowBuilder {
   }
   
   /**
+   * "Used in 1 journey" for the guide preview in the properties panel
+   */
+  guideUsageText(guide) {
+    const count = Number(guide.journey_count) || 0;
+    return `${window.t('guides.stats.usedIn')} ${count} ${window.t(count === 1 ? 'guides.stats.journey' : 'guides.stats.journeys')}`;
+  }
+  
+  /**
    * Load floorplans for the organization
    */
   async loadFloorplans() {
@@ -9048,16 +9078,17 @@ class FlowBuilder {
       const response = await fetch('/api/floorplans');
       const data = await response.json();
       
+      // The panel was replaced while loading; the new one loads its own list
+      if (!select.isConnected) return;
+      
       if (data.success) {
         // Store floorplans for later use
         this.floorplans = data.floorplans;
         
-        // Get current selection from step props
-        const currentStep = this.steps.find(s => s.id === this.selectedStepId);
-        const currentProps = typeof currentStep?.basic_props === 'string' 
-          ? JSON.parse(currentStep.basic_props) 
-          : (currentStep?.basic_props || {});
-        const currentFloorplanId = currentProps.floorplan?.floorplan_id;
+        // The saved floor plan and marker of the step in this panel
+        const currentFloorplanId = select.dataset.saved || null;
+        const markerX = document.getElementById('propFloorplanMarkerX')?.value;
+        const markerY = document.getElementById('propFloorplanMarkerY')?.value;
         
         // Populate select
         select.innerHTML = `<option value="">${window.t('builder.props.selectFloorplan')}</option>`;
@@ -9075,9 +9106,10 @@ class FlowBuilder {
         if (currentFloorplanId) {
           const currentFloorplan = data.floorplans.find(fp => fp.id === currentFloorplanId);
           if (currentFloorplan) {
-            this.showFloorplanMarkerArea(currentFloorplan.image_url, currentProps.floorplan?.marker_x, currentProps.floorplan?.marker_y);
+            this.showFloorplanMarkerArea(currentFloorplan.image_url, markerX ? parseFloat(markerX) : null, markerY ? parseFloat(markerY) : null);
           }
         }
+        select.dataset.loaded = '1';
       }
     } catch (err) {
       console.error('Failed to load floorplans:', err);
@@ -11053,7 +11085,8 @@ class FlowBuilder {
     if (resultsDiv) {
       const totalDiv = resultsDiv.querySelector('.journey-poll-total');
       if (totalDiv) {
-        totalDiv.textContent = window.tPlayer('player.poll.respondentsPlural', { count: totalRespondents });
+        const respondentsKey = totalRespondents === 1 ? 'player.poll.respondents' : 'player.poll.respondentsPlural';
+        totalDiv.textContent = window.tPlayer(respondentsKey, { count: totalRespondents });
       }
       resultsDiv.classList.remove('hidden');
     }
@@ -12173,7 +12206,11 @@ class FlowBuilder {
       }
     }
     
-    el.textContent = parts.join(' · ');
+    // On a narrow screen, wrap after the " · " and never inside "±6 min"
+    // (the step part may still wrap if a language needs the room)
+    el.textContent = parts
+      .map((part, i) => (i === 0 ? part : part.replace(/ /g, ' ')))
+      .join(' · ');
   }
   
   buildTtsButton(card) {
@@ -13051,12 +13088,16 @@ class FlowBuilder {
         break;
     }
     
+    // The end step of a sub-journey gets a Continue button back to the main
+    // journey, with the same pacing as path buttons (a quiz first, etc.)
+    const nestedEndContinue = step.is_end && this.previewState.isInNestedJourney && step.type !== 'nested_journey';
+    
     // Navigation options with pacing
     // NESTED JOURNEY: Don't render any navigation for nested_journey steps
     // The navigation logic handles entering the nested journey directly before rendering
     if (step.type === 'nested_journey') {
       // No navigation rendered - user is immediately taken into the nested journey
-    } else if (paths.length > 0 && step.type !== 'guide') {
+    } else if ((paths.length > 0 || nestedEndContinue) && step.type !== 'guide') {
       const pacing = advancedProps.pacing || 'immediately';
       const pacingInfo = this.getPacingInfo(pacing, step.type, basicProps.media_type);
       
@@ -13110,6 +13151,14 @@ class FlowBuilder {
               <span class="flex-1">${escapeHtml(p.label)}</span>
             </button>
           `).join('')}
+          ${nestedEndContinue ? `
+            <button class="preview-option nested-journey-continue" id="nestedJourneyContinue">
+              <svg class="w-5 h-5" style="color: var(--theme-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+              </svg>
+              <span class="flex-1">${window.t('common.continue') || 'Continue'}</span>
+            </button>
+          ` : ''}
           </div>
         </div>
       `;
@@ -13147,8 +13196,9 @@ class FlowBuilder {
           `}
         </div>
       `;
-    } else if (step.is_end && this.previewState.isInNestedJourney) {
-      // In nested journey end step - show "Continue" button to return to parent
+    } else if (nestedEndContinue && step.type === 'guide') {
+      // A guide renders its own navigation; at the end of a sub-journey it
+      // gets the Continue button here
       html += `
         <div class="preview-options" id="previewNavigation">
           <div class="preview-nav-buttons" id="navButtons">
@@ -13343,17 +13393,7 @@ class FlowBuilder {
           }
           
           // Check if this is an end step
-          if (targetStep.is_end) {
-            this.triggerAutomation('on_journey_complete', targetStep.id);
-            // PLAYER MODE: Mark journey as completed
-            if (this.playerMode) {
-              this.previewState._endStepCompleted = false;
-              if (this.isEndStepAutoComplete(targetStep)) {
-                this.trackEndStepCompletion(targetStep);
-              }
-              this.completePlayerJourney();
-            }
-          }
+          if (targetStep.is_end) this.endStepReached(targetStep);
         }
       });
     });
@@ -14312,17 +14352,7 @@ class FlowBuilder {
               }
               
               // Check if this is an end step
-              if (targetStep.is_end) {
-                this.triggerAutomation('on_journey_complete', targetStep.id);
-                // PLAYER MODE: Mark journey as completed
-                if (this.playerMode) {
-                  this.previewState._endStepCompleted = false;
-                  if (this.isEndStepAutoComplete(targetStep)) {
-                    this.trackEndStepCompletion(targetStep);
-                  }
-                  this.completePlayerJourney();
-                }
-              }
+              if (targetStep.is_end) this.endStepReached(targetStep);
             }
           });
         });
@@ -16123,6 +16153,20 @@ class FlowBuilder {
     }
   }
   
+  /**
+   * "17:05" for "Last saved at". The browser's language tag can be one Intl
+   * does not accept (en-US@posix on some Linux systems); then the language
+   * of the interface is used, so a successful save never shows as failed.
+   */
+  formatSaveTime(date) {
+    const options = { hour: '2-digit', minute: '2-digit' };
+    try {
+      return new Intl.DateTimeFormat(navigator.language, options).format(date);
+    } catch {
+      return new Intl.DateTimeFormat(document.documentElement.lang || 'en', options).format(date);
+    }
+  }
+
   setSaveState(state) {
     const el = document.getElementById('saveStatus');
     if (!el) return;
@@ -16136,9 +16180,7 @@ class FlowBuilder {
       this.activeSaveCount = Math.max(0, this.activeSaveCount - 1);
       if (this.activeSaveCount === 0) {
         this.lastSavedAt = new Date();
-        const time = new Intl.DateTimeFormat(navigator.language, {
-          hour: '2-digit', minute: '2-digit'
-        }).format(this.lastSavedAt);
+        const time = this.formatSaveTime(this.lastSavedAt);
         el.textContent = window.t('builder.status.lastSaved', { time });
         el.classList.remove('hidden', 'text-red-500');
         el.classList.add('text-zen-400');
@@ -16151,9 +16193,7 @@ class FlowBuilder {
       if (this.lastSavedAt) {
         setTimeout(() => {
           if (this.activeSaveCount === 0 && this.lastSavedAt) {
-            const time = new Intl.DateTimeFormat(navigator.language, {
-              hour: '2-digit', minute: '2-digit'
-            }).format(this.lastSavedAt);
+            const time = this.formatSaveTime(this.lastSavedAt);
             el.textContent = window.t('builder.status.lastSaved', { time });
             el.classList.remove('text-red-500');
             el.classList.add('text-zen-400');

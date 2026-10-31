@@ -7,7 +7,11 @@ related_features: [guide-step, guide-knowledge-base, guide-personality, guide-id
 
 AI Guides are intelligent conversational assistants powered by AI that can answer questions, provide help, and guide users through your content.
 
-[[show:list]]
+![The AI Guides page: Create Guide (1), a guide (2) and its menu (3)](images/ai-guides-overview/list.en.webp)
+
+1. Create Guide: set up a new AI guide.
+2. A guide with its role, personality, the journeys that use it and its knowledge (sources and chunks). Click it to edit the guide.
+3. The menu of a guide: make a copy or delete it.
 
 ## Overview
 
@@ -41,8 +45,10 @@ There are two ways to create an AI Guide:
 ### Step 1: Create New Guide
 
 1. Go to Guides
-2. Click "Create Guide"
+2. Click "Create Guide" (1)
 3. Enter a name and description
+
+To edit an existing guide, click it in the list (2). Its menu (3) lets you make a copy or delete it.
 
 ### Step 2: Build Knowledge Base
 

@@ -319,7 +319,8 @@
     },
     "guides": {
       "title": "AI Guides",
-      "chunks": "chunks",
+      "chunkCount_one": "{{count}} chunk",
+      "chunkCount_other": "{{count}} chunks",
       "notUsed": "Not used in any journey"
     },
     "forms": {
@@ -936,6 +937,10 @@
   "guides": {
     "title": "AI Guides",
     "subtitle": "Create and manage your AI assistants for journeys",
+    "sourceCount_one": "{{count}} source",
+    "sourceCount_other": "{{count}} sources",
+    "chunkCount_one": "{{count}} chunk",
+    "chunkCount_other": "{{count}} chunks",
     "createGuide": "Create Guide",
     "noGuides": "No guides yet",
     "noGuidesDescription": "Create your first AI Guide to help users through your journeys.",
@@ -3552,6 +3557,13 @@
     "tryAgain": "Try again",
     "readMore": "Read more",
     "showLess": "Show less",
+    "screenshots": "Screenshots",
+    "enlargeScreenshot": "Enlarge screenshot",
+    "closeScreenshot": "Close screenshot",
+    "showMarker": "Show {{number}} in the screenshot",
+    "screenshotNumber": "Screenshot {{number}}",
+    "markerCrop": "Part of the screenshot around {{number}}",
+    "answerReady": "Answer ready",
     "notInDocs": "This topic is not yet covered in our help documentation. Please contact support for assistance.",
     "footerText": "Can't find what you're looking for?",
     "contactSupport": "Contact Support",

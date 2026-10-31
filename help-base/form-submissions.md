@@ -7,6 +7,12 @@ related_features: [form-step, form-email-settings, form-file-uploads, analytics-
 
 Form Submissions show all responses submitted through Form Steps in your journeys. They are available in the **Forms** tab of the Analytics dashboard.
 
+![Form submissions in Analytics: the Forms tab (1), the filter (2) and a submission (3)](images/form-submissions/overview.en.webp)
+
+1. The Forms tab in Analytics, with the number of submissions.
+2. Show the submissions of everyone or of one person.
+3. A submission with the answers, the name of the end user and the date.
+
 ## Overview
 
 Every form submission is stored securely on the Gryffi platform and is strictly organization-scoped: only your own organization can ever access its submissions. This applies to submissions from:
@@ -28,13 +34,14 @@ See: maker-roles
 
 ### Access Form Submissions
 
-1. Go to Analytics → Forms
+1. Go to Analytics → **Forms** (1)
 2. Use the journey filter dropdown to narrow down to a specific journey
-3. The count badge shows the number of submissions
+3. Use the filter (2) to show the submissions of everyone or of one person
+4. The count badge shows the number of submissions
 
 ### Submission Details
 
-Each submission shows:
+Each submission (3) shows:
 
 | Detail | Description |
 |--------|-------------|

@@ -7,7 +7,7 @@ related_features: [journey-builder, journey-wizard, ai-guides-overview, invitati
 
 The Dashboard is your central hub in Gryffi, providing an at-a-glance overview of your organization's journey activity, AI guides, and key metrics.
 
-[[show:overview]]
+![The dashboard with journeys, invitations, form submissions, rewards, AI guides, makers, usage and the completion rate](images/dashboard/overview.en.webp)
 
 ## Overview
 

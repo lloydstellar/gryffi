@@ -7,7 +7,11 @@ related_features: [authentication, password-reset, two-factor-authentication, or
 
 The Login page is where makers sign in to access their Gryffi account.
 
-[[show:form]]
+![Sign in: email address (1), password (2) and Forgot password (3)](images/login/form.en.webp)
+
+1. Your email address.
+2. Your password.
+3. Forgot password: get an email with a link to set a new password.
 
 ## Overview
 
@@ -19,6 +23,8 @@ The login process provides:
 - Two-factor authentication (when enabled)
 
 ## Login Form
+
+Enter your email address (1) and your password (2). Forgot your password? Click **Forgot password** (3) to get an email with a link to set a new password.
 
 ### Required Fields
 

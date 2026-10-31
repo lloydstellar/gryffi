@@ -7,7 +7,11 @@ related_features: [journey-builder, language-settings, journey-settings, ai-guid
 
 Copy & Translate allows you to create a translated copy of an existing journey in a different language. This is useful when you need to deliver the same content to audiences in multiple languages.
 
-[[show:overview]]
+![Copy & Translate: the target language (1), the title of the copy (2) and Create translated copy (3)](images/copy-translate/overview.en.webp)
+
+1. Target language: the language of the copy.
+2. Title of the translated copy: filled in for you, you can change it.
+3. Create translated copy: Gryffi makes the copy and translates every step.
 
 ## Overview
 
@@ -27,9 +31,9 @@ When you copy and translate a journey:
 3. Click the **⋮** (kebab menu) on the journey card
 4. Select **Copy to another language**
 5. In the modal:
-   - Select the **target language** from the dropdown
-   - Optionally change the **new journey name**
-6. Click **Start Translation**
+   - Select the **target language** (1) from the dropdown
+   - Optionally change the **new journey name** (2)
+6. Click **Create translated copy** (3)
 7. Wait for the translation to complete (progress bar will show status)
 
 ## What Gets Translated

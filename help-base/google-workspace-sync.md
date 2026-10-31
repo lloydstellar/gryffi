@@ -7,7 +7,10 @@ related_features: [end-user-management, end-user-groups, microsoft-365-sync]
 
 Google Workspace Sync automatically imports and synchronizes your end users from Google Workspace (formerly G Suite).
 
-[[show:connect]]
+![Google Workspace in System Settings, Users: the option (1) and Connect with Google (2)](images/google-workspace-sync/connect.en.webp)
+
+1. Google Workspace: sync end users and groups from the Google directory.
+2. Connect with Google: a Google Workspace administrator gives Gryffi access.
 
 ## Overview
 
@@ -28,6 +31,8 @@ Before connecting:
 ## Connecting Google Workspace
 
 ### Step 1: Navigate to Sync Settings
+
+Go to System Settings, Users and choose **Google Workspace** (1).
 
 [[goto:/dashboard/system-settings#users/google]]
 
@@ -55,7 +60,7 @@ Important
 Only a Google Workspace Super Admin can configure domain-wide delegation. If you're not the admin, please share these instructions with them.
 
 ### Step 3: Click "Connect With Google"
-You'll be redirected to Google sign-in.
+Click **Connect with Google** (2). You'll be redirected to Google sign-in.
 
 ### Step 4: Sign In
 Log in with your Google Workspace super admin account.

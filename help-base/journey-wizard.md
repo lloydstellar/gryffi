@@ -9,7 +9,16 @@ The Journey Wizard is a guided, step-by-step flow that creates a first version o
 
 The wizard is not a replacement for the builder — it produces a template that you still have to polish before you share it with end users.
 
-[[show:overview]]
+![Create a new journey: a blank canvas (1) or the wizard (2)](images/journey-wizard/start.en.webp)
+
+1. Start with a blank canvas: build the journey yourself, step by step.
+2. Start with the Wizard: answer a few questions and Gryffi prepares a first draft.
+
+![The first question of the wizard: the step counter (3), the choice (4) and Next (5)](images/journey-wizard/first-question.en.webp)
+
+3. Where you are in the wizard, for example Step 1 of 6.
+4. Start from a document, such as a PDF of a procedure, or describe the journey in a few sentences.
+5. Next: go to the next question.
 
 ## Overview
 
@@ -29,8 +38,8 @@ The Journey Wizard:
 1. Go to the Journeys list
 2. Click **Create journey**
 3. A choice modal appears with two cards:
-   - **Start with the Wizard** (recommended) — opens the wizard
-   - **Start with a blank canvas** — goes straight to an empty journey
+   - **Start with the Wizard** (2) (recommended): opens the wizard
+   - **Start with a blank canvas** (1): goes straight to an empty journey
 4. Pick **Start with the Wizard**
 
 The wizard opens as a modal on top of the journeys page.
@@ -48,11 +57,11 @@ If your session has expired, the wizard just opens at the first question.
 
 ## The Wizard Pages
 
-The wizard always asks the same questions in the same order, one per page. You can go back to change an earlier answer at any time, and every question is reachable from the final summary via a **Change** link.
+The wizard always asks the same questions in the same order, one per page. The step counter (3) shows where you are, for example Step 1 of 6. Click **Next** (5) to go to the next question. You can go back to change an earlier answer at any time, and every question is reachable from the final summary via a **Change** link.
 
 ### 1. Source — "Where does your journey start from?"
 
-Choose one of two starting points:
+Choose one of two starting points (4):
 
 - **I have a document** — Upload a file and Gryffi reads it to build the journey around its content. Supported formats: PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx), Excel (.xls/.xlsx), plain text (.txt), Markdown (.md), CSV, and images (.png, .jpg, .webp, .gif). Limits: **50 MB** per file, **60 pages**. If your document is longer than 60 pages, only the first 60 pages are used and the wizard warns you.
 - **I'll describe it myself** — No document needed. You type a short description on the next page.

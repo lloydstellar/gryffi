@@ -3,6 +3,44 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.10.0] - 2026-10-31
+
+- Help: an answer shows the screenshots of its help page. On a wide screen
+  they sit next to the text, and the numbers in the answer point at the
+  numbered markers in the screenshot. On a phone, a zoomed-in part of the
+  screenshot appears under the step. The help pages have new screenshots
+  in English and Dutch.
+- The help assistant finds the right page more often: in the five
+  interface languages, and with the words makers use, such as
+  "participants", "course" or "chatbot". This also works without an AI
+  provider. With an AI provider it reads the parts of a long help page
+  that fit the question, not only the beginning of the page, and it names
+  buttons as the interface does.
+- The user guide on this site shows the screenshots next to the text, with
+  the same numbered markers.
+- Automations: emails "after inactivity" are now sent, once an hour.
+  Every automation email goes out once per invitation and run, also when
+  a participant reloads the page.
+- Player: the last step of a sub-journey is shown. Before, a quiz there
+  was skipped and the main journey could count as completed without it.
+  The Continue button appears after the quiz.
+- Player on phones: the page scrolls, the guide chat and the title get
+  more room, and the step indicator wraps instead of being cut off.
+- Builder: a Space step keeps its floor plan when you change something
+  else in it. Before, any change removed the floor plan and its marker.
+- Builder: the toolbar fits from 1024 pixels wide; the step types become
+  icons on narrower screens. "Used in N journeys" counts guide steps, and
+  an unusual browser language no longer shows "Save failed" after a save
+  that worked.
+- Analytics: the start of a journey by an invited participant is counted,
+  and durations are shown in whole seconds.
+- Texts: singular forms ("1 source", "1 chunk", "1 respondent"), and the
+  Dutch, German, French and Spanish interface use expeditie, Expedition,
+  parcours and expedición everywhere.
+- Dependencies: ejs 7 and archiver 8. This closes the security advisories
+  for ejs, jake, filelist and archiver. The update runs a small database
+  migration when Gryffi starts.
+
 ## [0.9.6] - 2026-10-30
 
 - The documentation site builds with Vite 6.4.5 instead of Vite 5. This

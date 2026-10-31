@@ -841,7 +841,7 @@
           <p class="section-subtitle"><%= t('guides.detail.knowledgeBaseSubtitle') %></p>
           <% if (subscriptionUsage && subscriptionUsage.knowledgeChunks) { %>
             <div class="tier-usage-inline" style="margin-top: 8px;">
-              <span><%= subscriptionUsage.knowledgeChunks.used %> / <%= subscriptionUsage.knowledgeChunks.isUnlimited ? '∞' : subscriptionUsage.knowledgeChunks.limit %> chunks</span>
+              <span><%= subscriptionUsage.knowledgeChunks.used %> / <%= subscriptionUsage.knowledgeChunks.isUnlimited ? '∞' : subscriptionUsage.knowledgeChunks.limit %> <%= t('guides.detail.chunks') %></span>
               <% if (!subscriptionUsage.knowledgeChunks.isUnlimited) { %>
                 <div class="tier-usage-bar">
                   <div class="tier-usage-bar-fill <%= subscriptionUsage.knowledgeChunks.percentage >= 90 ? 'danger' : (subscriptionUsage.knowledgeChunks.percentage >= 70 ? 'warning' : '') %>" style="width: <%= subscriptionUsage.knowledgeChunks.percentage %>%"></div>
@@ -915,7 +915,7 @@
                 <div class="knowledge-info">
                   <p class="knowledge-name"><%= source.source_name %></p>
                   <p class="knowledge-meta">
-                    <%= source.chunks_count || 0 %> chunks · 
+                    <%= t('guides.chunkCount', { count: Number(source.chunks_count) || 0 }) %> · 
                     <%= t('guides.detail.added') %> <%= (() => {
                       const date = new Date(source.created_at);
                       const day = String(date.getDate()).padStart(2, '0');
@@ -1038,6 +1038,7 @@
       const isReadOnly = <%- safeJson(!!isViewer) %>;
       const translations = <%- safeJson({
         added: t('guides.detail.added'),
+        chunkCount: { one: t('guides.chunkCount_one'), other: t('guides.chunkCount_other') },
         fileTooLarge: t('guides.detail.fileTooLarge', { max: 50 }),
         uploadFailed: t('guides.detail.uploadFailed'),
         status: {
@@ -1048,6 +1049,13 @@
         }
       }) %>;
       let statusPollingIntervals = new Map(); // Track polling intervals per source
+
+      // "1 chunk", "3 chunks", with the plural rules of the language
+      const pluralRules = new Intl.PluralRules(currentLanguage);
+      function chunkCountText(count) {
+        const form = pluralRules.select(count) === 'one' ? 'one' : 'other';
+        return translations.chunkCount[form].replace('{{count}}', count);
+      }
 
       // Helper function to translate status
       function translateStatus(status) {
@@ -1101,7 +1109,7 @@
             const itemDate = item.dataset.createdAt;
             dateText = itemDate ? formatDate(itemDate) : formatDate(new Date().toISOString());
           }
-          const chunksText = chunksCount + ' chunks';
+          const chunksText = chunkCountText(chunksCount);
           metaEl.textContent = chunksText + ' · ' + translations.added + ' ' + dateText;
         }
         
@@ -1304,7 +1312,7 @@
             tempItem.dataset.createdAt = result.source.created_at;
           }
           const currentDate = formatDate(tempItem.dataset.createdAt);
-          tempItem.querySelector('.knowledge-meta').textContent = `0 chunks · ${translations.added} ${currentDate}`;
+          tempItem.querySelector('.knowledge-meta').textContent = `${chunkCountText(0)} · ${translations.added} ${currentDate}`;
           const statusEl = tempItem.querySelector('.knowledge-status');
           statusEl.textContent = translateStatus('processing');
           statusEl.dataset.status = 'processing';
@@ -1403,7 +1411,7 @@
             </div>
             <div class="knowledge-info">
               <p class="knowledge-name">${escapeHtml(title || 'Text note')}</p>
-              <p class="knowledge-meta">0 chunks · ${translations.added} ${currentDate}</p>
+              <p class="knowledge-meta">${escapeHtml(chunkCountText(0))} · ${translations.added} ${currentDate}</p>
             </div>
             <span class="knowledge-status status-processing" data-status="processing">${translateStatus('processing')}</span>
             <div style="display: flex; gap: 4px;">

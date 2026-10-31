@@ -23,3 +23,114 @@
   --vp-button-brand-hover-bg: #78c503;
   --vp-button-brand-active-bg: #5fa002;
 }
+
+/* User guide: screenshots with numbered markers (theme/shots.js) */
+.vp-doc figure.shot {
+  margin: 20px 0 12px;
+}
+.vp-doc .shot-image {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: #fff;
+}
+.vp-doc .shot-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+.vp-doc figure.shot figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--vp-c-text-2);
+}
+/* The ring around a marker, the rest of the screenshot dimmed */
+.shot-ring {
+  position: absolute;
+  border: 3px solid #c73d1a;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.shot-ring.is-on {
+  opacity: 1;
+}
+/* "(3)" in the text: the same orange badge as the marker in the screenshot */
+.vp-doc button.shot-ref {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin: 0 2px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #c73d1a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: 1px;
+  cursor: pointer;
+}
+.vp-doc button.shot-ref:hover,
+.vp-doc button.shot-ref.is-pinned {
+  background: #0b4b34;
+}
+.vp-doc button.shot-ref.is-pinned {
+  box-shadow: 0 0 0 2px var(--vp-c-bg), 0 0 0 4px #0b4b34;
+}
+.vp-doc button.shot-ref:focus-visible {
+  outline: 3px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+/* The numbered list under a screenshot */
+.vp-doc .shot-legend-item {
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+.vp-doc .shot-legend-item:hover {
+  background: var(--vp-c-brand-soft);
+}
+.shot-panel {
+  display: none;
+}
+
+/* Wide screens: the screenshot of the part you are reading stays next to
+   the text; the screenshots in the text keep their place, invisible, so the
+   panel knows which one belongs to the part you are reading */
+@media (min-width: 1280px) {
+  .vp-doc .shot-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    column-gap: 48px;
+    align-items: start;
+  }
+  .vp-doc .shot-panel {
+    display: block;
+    position: sticky;
+    top: calc(var(--vp-nav-height) + 32px);
+  }
+  .vp-doc .shot-panel figure.shot {
+    margin-top: 0;
+  }
+  .vp-doc .shot-text figure.shot {
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shot-ring,
+  .vp-doc .shot-legend-item {
+    transition: none;
+  }
+}

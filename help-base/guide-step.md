@@ -7,7 +7,11 @@ related_features: [journey-builder, ai-guides-overview, guide-knowledge-base, gu
 
 The Guide Step embeds an AI-powered conversational assistant into your journey. Users can ask questions and receive intelligent responses based on your knowledge base.
 
-[[show:properties]]
+![The settings of a Guide step: Select AI Guide (2) and the selected guide (3)](images/guide-step/properties.en.webp)
+
+1. The Guide step on the canvas.
+2. Select AI Guide: choose one of the guides of your organization.
+3. The selected guide, with its personality, knowledge sources and greeting.
 
 ## Overview
 
@@ -28,7 +32,7 @@ Guide Steps bring your AI Guides into the journey experience. When a user reache
 
 ### Guide Selection
 
-You must first create an AI Guide before using it in a Guide Step. The dropdown shows all available guides in your organization. The guides can be created in the main dashboard under Guides.
+You must first create an AI Guide before using it in a Guide Step. Click the Guide step on the canvas (1) to open its settings. The dropdown **Select AI Guide** (2) shows all available guides in your organization. Below it you see the selected guide with its personality, knowledge sources and greeting (3). The guides can be created in the main dashboard under Guides.
 
 [[goto:/dashboard/guides]]
 

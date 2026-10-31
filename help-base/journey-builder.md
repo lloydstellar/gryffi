@@ -7,7 +7,13 @@ related_features: [journey-wizard, space-step, guide-step, content-step, challen
 
 The Journey Builder is Gryffi's visual editor for creating interactive journeys. It uses a node-based canvas where you can add steps, connect them with paths, and create branching experiences.
 
-[[show:overview]]
+![The journey builder with the step toolbar (1), a step (2), a path label (3), Preview (4) and Save (5)](images/journey-builder/canvas.en.webp)
+
+1. The step toolbar: click Space, Guide, Content, Challenge, Form, Poll, Reward or Sub to add that step to the canvas.
+2. A step on the canvas. Click it to open its properties. The small flag marks the start step.
+3. A path label: the text of the button end users click to go to the next step.
+4. Preview: go through the journey as an end user would.
+5. Save: store your changes.
 
 ## Overview
 
@@ -30,6 +36,13 @@ The main canvas area shows all steps in your journey as cards. You can:
 - **Drag**: Move steps to organize your layout
 - **Connect**: Draw paths between steps using connection ports
 
+## Adding a Step
+
+1. Click a step type in the toolbar (1) at the top of the builder. The new step appears on the canvas.
+2. Drag the step to the place you want.
+3. Click the step (2) to fill in its properties.
+4. Connect it to the step before and after it: drag from a dot on the edge of one step to a dot on the other step (see Creating Connections).
+
 ## Step Types
 
 Add steps using the toolbar buttons. Available step types:
@@ -46,9 +59,13 @@ Add steps using the toolbar buttons. Available step types:
 
 ## Properties Panel
 
-[[show:step-panel]]
+![The properties panel of a selected step, with Preview from this step (7) and the Basic and Advanced tabs (8)](images/journey-builder/step-panel.en.webp)
 
-When you select a step, the Properties Panel appears on the right side. It contains:
+6. The selected step on the canvas.
+7. Preview from this step: start the preview at this step instead of at the beginning.
+8. The Basic and Advanced tabs with the settings of the step.
+
+When you select a step (6), the Properties Panel appears on the right side. Click **Preview from this step** (7) to start the preview at this step instead of at the beginning. The panel contains the Basic and Advanced tabs (8):
 
 ### Basic Tab
 - Step title and description
@@ -63,11 +80,11 @@ When you select a step, the Properties Panel appears on the right side. It conta
 
 The toolbar at the top provides:
 
-- **Add Step Buttons**: Quick access to create each step type
+- **Add Step Buttons** (1): Quick access to create each step type
 - **Journey Settings**: Configure title, description, flow
-- **Preview**: Test your journey before publishing
+- **Preview** (4): Test your journey before publishing
 - **Undo/Redo**: Revert or restore changes
-- **Save**: Don't forget to save your work
+- **Save** (5): Don't forget to save your work
 
 ## Creating Connections
 
@@ -77,6 +94,7 @@ To connect steps:
 2. Click and drag from an output port
 3. Release on another step's input port
 4. The path is created automatically in that direction
+5. The path label (3) is the text of the button end users click to go to the next step
 
 
 ## Saving

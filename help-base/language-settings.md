@@ -7,6 +7,10 @@ related_features: [organization-settings, journey-language, user-settings, journ
 
 Language Settings control the interface, email and PDF languages available throughout Gryffi.
 
+![Select language in Settings (1)](images/language-settings/interface.en.webp)
+
+1. Select language: the language of your own interface. It does not change the language of others or of journeys.
+
 ## Overview
 
 There are several language settings that control different parts of the platform:
@@ -72,7 +76,7 @@ This effects the journeys interface (not the journeys content), the automated em
 
 Set personal interface language:
 1. Go to Settings → Language
-2. Select default language
+2. Select your language in **Select language** (1)
 3. Save
 
 This only affects the interface of the maker setting this language. No content or other makers or end users are effected.

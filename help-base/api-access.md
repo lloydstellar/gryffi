@@ -7,7 +7,9 @@ related_features: [api-keys]
 
 The API Access feature allows developers to integrate Gryffi with external systems, automate workflows, and build custom applications.
 
-[[show:overview]]
+![API in System Settings: Generate API Key (1)](images/api-access/overview.en.webp)
+
+1. Generate API Key: create the key for the public API. Gryffi shows it once; store it in a safe place.
 
 ## Overview
 
@@ -22,7 +24,7 @@ Gryffi's API enables:
 To use the API, you need:
 
 1. **Admin role** in your organization
-2. **API Key** generated from settings
+2. **API Key** generated from settings with **Generate API Key** (1)
 
 [[goto:/dashboard/system-settings#api]]
 

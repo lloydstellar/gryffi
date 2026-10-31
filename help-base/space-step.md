@@ -7,7 +7,13 @@ related_features: [journey-builder, panorama-images, floor-plans, image-library,
 
 The Space Step represents a physical or virtual location in your journey. It's ideal for creating immersive experiences with images, panoramas, or floor plans.
 
-[[show:properties]]
+![The settings of a Space step: description (2), image type (3), image (4) and floor plan (5)](images/space-step/properties.en.webp)
+
+1. The Space step on the canvas.
+2. Description: the text end users read with the image.
+3. Image type: a normal image or a 360° panorama.
+4. Image: click Change to choose another image.
+5. Floor plan: tick Show floor plan, choose a floor plan and place the marker on the location.
 
 ## Overview
 
@@ -21,16 +27,18 @@ Space Steps are the foundation of location-based journeys. They can display:
 
 ### Basic Settings
 
+Select the Space step (1) on the canvas to open its settings.
+
 | Property | Description |
 |----------|-------------|
 | **Title** | The name of the location (e.g., "Reception Area") |
-| **Description** | Additional context about this space |
-| **Image** | The visual representation of the space |
-| **Floor plan** | The map of a place where you can place the space in |
+| **Description** (2) | Additional context about this space |
+| **Image** (4) | The visual representation of the space |
+| **Floor plan** (5) | The map of a place where you can place the space in |
 
 ### Image Types
 
-Choose the image type that best suits your content:
+Choose the image type (3) that best suits your content:
 
 1. **Standard Image**: A regular photo or illustration
 2. **Panorama (360°)**: A spherical image that users can pan around
@@ -39,7 +47,7 @@ Choose the image type that best suits your content:
 
 When using Floor Plan mode:
 
-- **Enable Floor Plan View**: Toggle to activate floor plan mode
+- **Enable Floor Plan View** (5): Toggle to activate floor plan mode
 - **Upload new floor plan**: Upload your floor plan/map
 - **Select floor plan**: Select a floor plan that was already uploaded in your organization
 

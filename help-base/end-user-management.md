@@ -7,7 +7,12 @@ related_features: [end-user-groups, csv-import, microsoft-365-sync, google-works
 
 End User Management allows you to add, organize, and manage the people who participate in your journeys.
 
-[[show:overview]]
+![End users in System Settings: ways to add end users (1), the form to add one (2), search (3) and an end user (4)](images/end-user-management/overview.en.webp)
+
+1. Four ways to add end users: Manual Entry, CSV/Excel Import, Microsoft 365 and Google Workspace.
+2. Add a new end user by first name, last name and email address.
+3. Search by name or email address.
+4. An end user with their groups and where they come from (Source).
 
 ## Overview
 
@@ -33,8 +38,8 @@ End users are the participants who experience your journeys. You can:
 ### Manual Addition
 
 1. Go to System Settings - Users
-2. Click "Manual Entry"
-3. Enter user details:
+2. Click "Manual Entry" (1)
+3. Enter user details (2):
    - First Name
    - Last Name
    - Email (required)
@@ -67,6 +72,8 @@ See: microsoft-365-sync, google-workspace-sync
 | **First Name** | User's first name |
 | **Last Name** | User's last name |
 | **Email** | Primary identifier (required) |
+
+In the list, each end user (4) shows their groups and where they come from (Source). Use search (3) to find an end user by name or email address.
 
 [[goto:/dashboard/system-settings#users]]
 

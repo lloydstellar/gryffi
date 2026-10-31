@@ -7,6 +7,11 @@ related_features: [journey-builder, ai-guides-overview]
 
 Step Assistant is the AI Guide added to another step than the Guide Step. It can help the end user with their journey, answering questions about the step they are in.
 
+![The step assistant on the Advanced tab: the guide (1) and what end users see (2)](images/step-assistant/advanced.en.webp)
+
+1. Step Assistant: choose the guide that helps end users during this step.
+2. The chosen guide. End users see a button such as Ask Robin while they are on this step.
+
 ## Overview
 
 Step assistants provide:
@@ -31,9 +36,9 @@ Step assistants provide:
 
 1. Select step in builder
 2. Go to Advanced tab
-3. Click on the dropdown menu in the Step Assistant section
+3. Click on the dropdown menu in the Step Assistant section (1)
 4. Choose one of the AI Guides made on the Guides page
-
+5. The chosen guide (2) helps end users during this step. They see a button such as Ask Robin while they are on this step
 
 ## Related Features
 

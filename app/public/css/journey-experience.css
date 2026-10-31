@@ -2554,6 +2554,14 @@
   .journey-tts-btn {
     padding: 8px 14px;
   }
+
+  /* Wrap "Step 1 of 5 · ±3 min" onto two lines instead of cutting it off
+     next to the reading controls */
+  .journey-step-indicator {
+    white-space: normal;
+    line-height: 1.35;
+    min-width: 0;
+  }
 }
 
 /* ============================================

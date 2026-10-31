@@ -7,7 +7,11 @@ related_features: [analytics-overview, poll-results, end-user-management, end-us
 
 Reports provide detailed data exports and analysis tools for journey performance, user engagement, and content effectiveness.
 
-[[show:overview]]
+![Reports in Analytics: choose a journey (1), Preview (2) and Download PDF (3)](images/reports/overview.en.webp)
+
+1. Choose the journey for the Journey Performance Report.
+2. Preview: see the report on screen.
+3. Download PDF: save the report as a PDF.
 
 ## Overview
 
@@ -36,9 +40,9 @@ Generate a detailed analysis for a specific journey.
 
 **How to generate:**
 1. Go to Analytics → Reports
-2. Select a journey from the dropdown
-3. Click "Preview" to see how the report will look
-4. Click "Download PDF" to save the report
+2. Select a journey from the dropdown (1)
+3. Click "Preview" (2) to see how the report will look
+4. Click "Download PDF" (3) to save the report
 
 ### Periodic Overview Report
 

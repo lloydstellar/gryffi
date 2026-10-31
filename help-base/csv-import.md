@@ -7,7 +7,10 @@ related_features: [end-user-management, end-user-groups, manual-user-entry]
 
 CSV Import allows you to bulk upload end users to your organization using a spreadsheet file.
 
-[[show:upload]]
+![CSV/Excel Import (1) with the file requirements and the drop zone (2)](images/csv-import/upload.en.webp)
+
+1. CSV/Excel Import in System Settings, Users.
+2. Drop your file here, or click to choose it. A file has three columns: first name, last name and email address.
 
 ## Overview
 
@@ -23,8 +26,8 @@ CSV import enables:
 
 ### Download Template
 
-1. Go to System Settings → Users → CSV/Excel Import
-2. Drag a CSV, Excel or OpenDocument spreadsheet to "Drop your file here"
+1. Go to System Settings → Users → CSV/Excel Import (1)
+2. Drag a CSV, Excel or OpenDocument spreadsheet to "Drop your file here" (2), or click it to choose a file
 
 ### Required Columns
 

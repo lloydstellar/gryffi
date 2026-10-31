@@ -7,7 +7,11 @@ related_features: [maker-roles, admin-role, organization-settings]
 
 Makers Management allows organization administrators to invite, manage, and assign roles to team members (makers) who create and manage journeys. The makers make the journeys. The end users follow the journeys.
 
-[[show:overview]]
+![The Makers page: invite a maker (1), pending invitations (2) and the makers (3)](images/makers-management/overview.en.webp)
+
+1. Invite maker: the email address and role of a new colleague.
+2. Pending invitations that have not been accepted yet.
+3. The makers of your organization with their role.
 
 ## Overview
 
@@ -33,7 +37,7 @@ Makers Management helps you:
 ### Send Invitation
 
 1. Go to Sidebar → Makers
-2. Go to Invite maker
+2. Go to Invite maker (1)
 3. Enter email address
 4. Select role (Admin, Manager, Editor, Viewer)
 5. Click "Send Invite"
@@ -47,7 +51,7 @@ Makers Management helps you:
 
 ### Pending Invitations
 
-View and manage pending invitations:
+View and manage pending invitations (2):
 - Resend invitation
 - Cancel invitation
 - Change assigned role
@@ -72,7 +76,7 @@ When inviting or editing team members:
 
 ### Changing Roles
 
-1. Find member in list
+1. Find member in the list of makers (3)
 2. Change the role with the drop down menu
 
 Changes take effect immediately.

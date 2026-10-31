@@ -7,11 +7,16 @@ related_features: [dashboard, reports, poll-results, form-submissions, end-user-
 
 The Analytics dashboard provides comprehensive insights into journey performance, user engagement, and content effectiveness across your organization.
 
-[[show:analytics]]
+![Analytics: the tabs (1), the period (2), the key figures (3) and the completion trend (4)](images/analytics-overview/analytics.en.webp)
+
+1. The tabs: Overview, Journeys, Users, Groups, Polls, Rewards, Forms and Reports.
+2. The period the figures are about.
+3. Journeys started, completion rate, average time per step and active users.
+4. How many journeys were started and completed per day.
 
 ## Overview
 
-The Analytics page consists of eight tabs:
+The Analytics page consists of eight tabs (1):
 
 | Tab | Description |
 |-----|-------------|
@@ -28,7 +33,7 @@ The Analytics page consists of eight tabs:
 
 ## Overview Tab
 
-The Overview tab displays key performance indicators for the selected time period.
+The Overview tab displays key performance indicators (3) for the selected time period (2).
 
 ### KPI Cards
 
@@ -41,7 +46,7 @@ The Overview tab displays key performance indicators for the selected time perio
 
 ### Completion Trend
 
-A line chart showing daily journey starts and completions over the selected period.
+A line chart (4) showing daily journey starts and completions over the selected period.
 
 ### Top Performing Journeys
 
@@ -194,7 +199,7 @@ Most tabs support a date range filter:
 - Last 30 days
 - Last 90 days
 
-Select the period from the dropdown to update all displayed data.
+Select the period from the dropdown (2) to update all displayed data.
 
 ## Related Features
 

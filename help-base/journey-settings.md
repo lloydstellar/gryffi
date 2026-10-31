@@ -7,7 +7,13 @@ related_features: [journey-builder, journey-wizard, journey-publishing, journey-
 
 Journey Settings allow you to configure the properties, behavior, and appearance of individual journeys.
 
-[[show:general]]
+![The journey settings: the settings button (1), title (2), start step (3), end step (4) and language (5)](images/journey-settings/general.en.webp)
+
+1. The settings button in the toolbar of the builder opens the journey settings.
+2. Journey Title.
+3. Start Step: the step where the journey begins.
+4. End Step: where the journey ends. Click + Add another end step for a second ending.
+5. Use a different language: give this journey its own interface language.
 
 ## Overview
 
@@ -25,12 +31,12 @@ Journey settings include:
 ## Accessing Settings
 
 1. Open a journey in the builder
-2. Click the "Settings" icon (gear) in toolbar in the top of the screen
+2. Click the "Settings" icon (gear) (1) in toolbar in the top of the screen
 3. Or click left on somewhere on the empty space of the canvas in the journey builder view
 
 ## General Settings
 
-- Journey Title
+- Journey Title (2)
 - Description
 - Journey Flow
 - Interface language
@@ -44,7 +50,7 @@ See: journey-wizard
 
 ### Journey Flow
 
-Set a "Start Step" and an "End Step". Without these start and end step, you can not publish the journey. Every journey needs a Start Step and at least on End Step. But you can also make multiple End Steps, so you can end your journey in multiple ways.
+Set a "Start Step" (3) and an "End Step" (4). Without these start and end step, you can not publish the journey. Every journey needs a Start Step and at least on End Step. But you can also make multiple End Steps, so you can end your journey in multiple ways.
 
 ## Language Settings
 
@@ -55,7 +61,7 @@ Journey language settings allow you to customize the language experience for end
 By default, the interface of the journey the end user sees is in your organization default language. You can override the interface language for an individual journey:
 
 1. In Journey Settings, find "Interface Language"
-2. Enable "Use a different language"
+2. Enable "Use a different language" (5)
 3. Select from available languages:
    - **Base languages**: English, Dutch, German, French, Spanish
    - **Extended languages**: Italian, Portuguese, Danish, Norwegian, Finnish, Swedish, Polish, Romanian, Turkish

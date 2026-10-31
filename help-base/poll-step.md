@@ -7,7 +7,11 @@ related_features: [journey-builder, poll-results, journey-wizard]
 
 The Poll Step presents a single question to users and collects their vote. Results can be shown in real-time, creating engaging interactive experiences.
 
-[[show:properties]]
+![The settings of a Poll step: the question (2) and the answer options (3)](images/poll-step/properties.en.webp)
+
+1. The Poll step on the canvas.
+2. Question: the one question end users answer.
+3. Answer Options: click + Add option for another option.
 
 ## Overview
 
@@ -22,6 +26,8 @@ Poll Steps are quick, single-question surveys that:
 
 ### Basic Settings
 
+Select the Poll step (1) on the canvas to open its settings.
+
 | Property | Description |
 |----------|-------------|
 | **Title** | The title of the Poll Step |
@@ -34,7 +40,7 @@ Poll Steps are quick, single-question surveys that:
 
 ### Poll Question
 
-Write a clear, engaging question. Examples:
+Write a clear, engaging question in the **Question** field (2). Examples:
 
 - "Which topic interests you most?"
 - "How would you rate today's session?"
@@ -42,7 +48,7 @@ Write a clear, engaging question. Examples:
 
 ### Answer Options
 
-Add options for users to choose from:
+Add options for users to choose from under **Answer Options** (3):
 
 1. Click "Add Option"
 2. Enter the option text

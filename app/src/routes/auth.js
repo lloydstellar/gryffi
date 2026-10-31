@@ -12,6 +12,7 @@ import i18next from 'i18next';
 import { query, getClient } from '../db/index.js';
 import { guestOnly } from '../middleware/auth.js';
 import { sendEmail, sendVerificationCodeEmail, sendAutomationEmail, sendJourneyEmail } from '../services/email.js';
+import { claimAutomationSend, releaseAutomationSend, closeAutomationRun } from '../services/automationSends.js';
 import { chatWithGuide } from '../services/mistral.js';
 import { parseCitations, getCitationSources } from '../services/knowledge.js';
 import { getAnalysisDescription } from '../services/imageAnalysis.js';
@@ -2587,6 +2588,9 @@ router.post('/e/:token/restart', async (req, res) => {
     
     const startStepId = startStepResult.rows[0]?.id || null;
     
+    // Before the reset below clears completed_at
+    await closeAutomationRun(invitation.invitation_id);
+    
     // Reset progress: clear visited_steps, answers, current_step, and completed_at
     await query(`
       UPDATE end_user_progress 
@@ -2662,6 +2666,9 @@ router.post('/e/:token/restart-and-continue', async (req, res) => {
     );
     
     const startStepId = startStepResult.rows[0]?.id || null;
+    
+    // Before the reset below clears completed_at
+    await closeAutomationRun(invitation.invitation_id);
     
     // Reset progress
     await query(`
@@ -2950,7 +2957,9 @@ router.post('/e/:token/guide/opening', playerAiLimiter, async (req, res) => {
 /**
  * POST /e/:token/automations/trigger - Trigger automation emails in player mode
  * This endpoint allows end-users (via magic link) to trigger email automations
- * Security: Token is validated before processing automations
+ * Security: Token is validated before processing automations. Each automation
+ * is sent at most once per invitation and run (automation_sends), because the
+ * player calls this on every page load and an end user can call it directly.
  */
 router.post('/e/:token/automations/trigger', async (req, res) => {
   const { token } = req.params;
@@ -3042,8 +3051,9 @@ router.post('/e/:token/automations/trigger', async (req, res) => {
     // Determine which automations to process
     const automationsToProcess = [];
     
-    // Journey-level automations
-    if (trigger === 'on_journey_start' || trigger === 'on_journey_complete' || trigger === 'on_inactivity') {
+    // Journey-level automations. on_inactivity is not accepted here: the
+    // browser cannot tell the server that its user has been inactive.
+    if (trigger === 'on_journey_start' || trigger === 'on_journey_complete') {
       automationsToProcess.push(...journeyAutomations.filter(a => a.trigger === trigger));
     }
     
@@ -3066,22 +3076,40 @@ router.post('/e/:token/automations/trigger', async (req, res) => {
     
     console.log(`[Player Automation] Processing ${automationsToProcess.length} automation(s) for trigger: ${trigger}`);
     
-    // Process automations
+    // Process automations: claim each one first (once per invitation and run)
     const results = [];
     for (const automation of automationsToProcess) {
+      // A journey-level automation belongs to no step, whatever step_id the request names
+      const claim = await claimAutomationSend({
+        organizationId: orgId,
+        invitationId: invitation.id,
+        automation,
+        stepId: stepAutomations.includes(automation) ? step.id : null
+      });
+      if (claim.skipped) {
+        results.push({ trigger: automation.trigger, template: automation.template, success: false, skipped: claim.skipped });
+        continue;
+      }
+      
       const result = await sendAutomationEmail(automation, context);
+      if (!result.success) {
+        // Not sent: release the claim so a later trigger can try again
+        await releaseAutomationSend(claim.id);
+      }
       results.push({ trigger: automation.trigger, template: automation.template, ...result });
     }
     
     const successCount = results.filter(r => r.success).length;
-    const failCount = results.filter(r => !r.success).length;
+    const skippedCount = results.filter(r => r.skipped).length;
+    const failCount = results.length - successCount - skippedCount;
     
-    console.log(`[Player Automation] Triggered ${successCount} email(s), ${failCount} failed`);
+    console.log(`[Player Automation] Triggered ${successCount} email(s), ${skippedCount} already sent, ${failCount} failed`);
     
     res.json({
       success: true,
       message: `Processed ${automationsToProcess.length} automation(s)`,
       triggered: successCount,
+      skipped: skippedCount,
       failed: failCount,
       results
     });

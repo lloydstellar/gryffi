@@ -7,7 +7,11 @@ related_features: [ai-guides-overview, guide-step, source-citations, journey-wiz
 
 The Knowledge Base is the foundation of your AI Guide's intelligence. It contains all the content your guide uses to answer questions. Upload static documents to the knowledge base with information your AI Guide can use to give answers.
 
-[[show:overview]]
+![The knowledge base of a guide: upload files (1), Add Text (2) and a knowledge source (3)](images/guide-knowledge-base/overview.en.webp)
+
+1. Click to upload files or drag them here: PDF, Word, text, Markdown, CSV, PowerPoint or images.
+2. Add Text: type or paste knowledge without a file.
+3. A knowledge source with its number of chunks and status. Completed means the guide can use it.
 
 ## Overview
 
@@ -25,7 +29,7 @@ The Knowledge Base:
 
 ### Document Upload
 
-Upload files for the AI to learn from:
+Upload files for the AI to learn from. Click the upload area (1) or drag your files onto it:
 
 | Format | Max Size | Notes |
 |--------|----------|-------|
@@ -39,7 +43,7 @@ Upload files for the AI to learn from:
 
 Write content directly:
 
-1. Click "Add Text"
+1. Click "Add Text" (2)
 2. Enter a title
 3. Write or paste what ever content you want your AI Guide to know
 4. Click "Add Knowledge"
@@ -52,7 +56,7 @@ When you create a journey with the Journey Wizard and upload a document in step 
 
 ### View Content
 
-See all knowledge base items:
+See all knowledge base items (3):
 - Title and description
 - Source type
 - Date added

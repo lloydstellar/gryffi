@@ -7,7 +7,12 @@ related_features: [team-management, custom-themes, language-settings, system-set
 
 Organization Settings allow administrators to configure company-wide preferences, like company name and language.
 
-[[show:general]]
+![Organization settings: company name (1), default language (2), country (3) and Save (4)](images/organization-settings/general.en.webp)
+
+1. Company name: shown across Gryffi.
+2. Default organization language: one language for everyone, or each maker's browser language.
+3. Country.
+4. Save.
 
 ## Overview
 
@@ -36,6 +41,8 @@ Only **Admin** role can access organization settings:
 
 1. Go to System Settings
 2. Select the "General" tab
+3. Change the company name (1), the default organization language (2) or the country (3)
+4. Click **Save** (4)
 
 ## Related Features
 

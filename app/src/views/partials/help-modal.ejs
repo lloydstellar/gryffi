@@ -1,7 +1,7 @@
 <!-- Help Assistant Modal -->
 <div id="helpModal" class="help-modal" style="display: none;">
   <div class="help-modal-overlay"></div>
-  <div class="help-modal-content">
+  <div class="help-modal-content" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
     <div class="help-modal-header">
       <div class="help-modal-header-content">
         <div class="help-modal-icon">
@@ -10,11 +10,11 @@
           </svg>
         </div>
         <div>
-          <h2><%= t('help.title') %></h2>
+          <h2 id="helpModalTitle"><%= t('help.title') %></h2>
           <p><%= t('help.subtitle') %></p>
         </div>
       </div>
-      <button type="button" class="help-modal-close" id="helpModalClose">
+      <button type="button" class="help-modal-close" id="helpModalClose" aria-label="<%= t('common.close') %>">
         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -60,10 +60,13 @@
           <p><%= t('help.searching') %></p>
         </div>
         
+        <!-- Tells screen readers that an answer arrived -->
+        <div id="helpStatus" class="sr-only" role="status" aria-live="polite"></div>
+
         <!-- Answer State -->
         <div id="helpAnswer" class="help-answer" style="display: none;">
           <div class="help-answer-content" id="helpAnswerContent">
-            <p id="helpAnswerText"></p>
+            <div id="helpAnswerText"></div>
           </div>
           
           <!-- Read More Link (shown when content is truncated) -->
@@ -75,6 +78,9 @@
               </svg>
             </button>
           </div>
+          
+          <!-- Screenshots of the help page the answer comes from -->
+          <div id="helpScreenshots" class="help-screenshots" role="group" aria-label="<%= t('help.screenshots') %>" style="display: none;"></div>
           
           <!-- Go to Page Button -->
           <div id="helpLinkContainer" class="help-link-container" style="display: none;">
@@ -509,19 +515,16 @@
     color: #1f2937;
   }
   
+  /* Plain step numbers: a round badge always means a marker in the screenshot */
   .help-list-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 28px;
-    height: 28px;
-    background: #0b4b34;
-    color: white;
-    border-radius: 50%;
-    font-size: 13px;
-    font-weight: 600;
+    min-width: 18px;
+    color: #0b4b34;
+    font-size: 14px;
+    font-weight: 700;
     flex-shrink: 0;
-    margin-top: 2px;
+  }
+  .help-list-number::after {
+    content: '.';
   }
   
   .help-step-content {
@@ -538,6 +541,32 @@
   .help-step-desc {
     display: block;
     color: #4b5563;
+  }
+
+  .help-sub-list {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+  }
+
+  .help-numbered-list .help-sub-list li {
+    display: block;
+    position: relative;
+    margin: 0;
+    padding: 3px 0 3px 16px;
+    background: none;
+    border-radius: 0;
+  }
+
+  .help-sub-list li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 13px;
+    width: 6px;
+    height: 6px;
+    background: #78c503;
+    border-radius: 50%;
   }
   
   /* Bullet lists */
@@ -635,6 +664,206 @@
   }
   
   /* Link Button */
+  /* A reference in the answer to a numbered marker in the screenshot */
+  button.help-marker {
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  button.help-marker:hover,
+  button.help-marker.is-pinned {
+    background: #0b4b34;
+  }
+  button.help-marker.is-pinned {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0b4b34;
+  }
+  /* A number without a position in the screenshot: not clickable */
+  span.help-marker {
+    background: transparent;
+    color: #c73d1a;
+    box-shadow: inset 0 0 0 1.5px #c73d1a;
+  }
+  .help-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    margin: 0 2px;
+    border-radius: 10px;
+    background: #c73d1a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: 1px;
+  }
+  .help-screenshots {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  /* The answer does not refer to the screenshots: small, under the answer */
+  .help-screenshots.is-small {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 240px));
+  }
+  .help-shot-tabs {
+    display: none;
+    gap: 6px;
+  }
+  .help-shot-tab {
+    padding: 6px 12px;
+    border: 1px solid #d4e6d0;
+    border-radius: 999px;
+    background: #fff;
+    color: #0b4b34;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .help-shot-tab[aria-pressed="true"] {
+    background: #0b4b34;
+    border-color: #0b4b34;
+    color: #fff;
+  }
+  .help-shot-tab:focus-visible,
+  .help-marker:focus-visible,
+  .help-screenshot-btn:focus-visible {
+    outline: 3px solid #0b4b34;
+    outline-offset: 2px;
+  }
+  .help-screenshot-btn {
+    position: relative;
+  }
+  /* Ring around the marker, the rest of the screenshot dimmed */
+  .help-shot-highlight {
+    position: absolute;
+    border: 3px solid #ff5a36;
+    border-radius: 8px;
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .help-shot-highlight.is-on {
+    opacity: 1;
+  }
+  /* A zoomed-in part of the screenshot after a step (narrow screens) */
+  .help-crop {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    margin: 10px 0 4px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .help-crop:not(.is-ready) {
+    display: none;
+  }
+  .help-crop img {
+    display: block;
+    max-width: none;
+  }
+  /* Wide screens: the answer on the left, the screenshot panel on the right */
+  @media (min-width: 1024px) {
+    .help-modal-content.is-wide {
+      max-width: 1120px;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .help-modal-content {
+        transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+    }
+    .help-answer.has-screens {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+      column-gap: 24px;
+      align-items: start;
+    }
+    .help-answer.has-screens > * {
+      grid-column: 1;
+    }
+    .help-answer.has-screens > .help-screenshots {
+      grid-column: 2;
+      grid-row: 1 / span 6;
+      position: sticky;
+      top: 0;
+      margin-top: 0;
+    }
+    .help-answer.has-screens .help-shot-tabs {
+      display: flex;
+    }
+    .help-answer.has-screens .help-shot {
+      display: none;
+    }
+    .help-answer.has-screens .help-shot.is-active {
+      display: block;
+    }
+    .help-answer.has-screens .help-crop {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .help-shot-highlight {
+      transition: none;
+    }
+  }
+  .help-screenshot-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+    cursor: zoom-in;
+  }
+  .help-screenshot-btn img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .help-lightbox-close:focus-visible {
+    outline: 3px solid #78c503;
+    outline-offset: 2px;
+  }
+  .help-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.85);
+  }
+  .help-lightbox[hidden] {
+    display: none;
+  }
+  .help-lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+  .help-lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    color: #0f172a;
+    font-size: 24px;
+    line-height: 44px;
+    cursor: pointer;
+  }
+
   .help-link-container {
     margin-bottom: 20px;
   }
@@ -827,6 +1056,8 @@ function openHelpModal(context) {
   var modal = document.getElementById('helpModal');
   console.log('[Help] modal element found:', !!modal);
   if (modal) {
+    // Focus goes back here when the help closes
+    if (modal.style.display !== 'flex') window._helpOpener = document.activeElement;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     
@@ -859,6 +1090,9 @@ function closeHelpModal() {
   if (modal) {
     modal.style.display = 'none';
     document.body.style.overflow = '';
+    var opener = window._helpOpener;
+    window._helpOpener = null;
+    if (opener && typeof opener.focus === 'function' && document.contains(opener)) opener.focus();
   }
 }
 
@@ -874,6 +1108,12 @@ window.closeHelpModal = closeHelpModal;
     noResults: t('help.noResults'),
     readMore: t('help.readMore') || 'Read more',
     showLess: t('help.showLess') || 'Show less',
+    enlargeScreenshot: t('help.enlargeScreenshot'),
+    closeScreenshot: t('help.closeScreenshot'),
+    showMarker: t('help.showMarker'),
+    screenshotNumber: t('help.screenshotNumber'),
+    markerCrop: t('help.markerCrop'),
+    answerReady: t('help.answerReady'),
     topics: {
       dashboard: t('help.topics.dashboard'),
       journeyBuilder: t('help.topics.journeyBuilder'),
@@ -933,6 +1173,20 @@ window.closeHelpModal = closeHelpModal;
         if (e.key === 'Escape' && modal.style.display === 'flex') {
           closeHelpModal();
         }
+      });
+
+      // Keep Tab within the help window
+      modal.addEventListener('keydown', function(e) {
+        if (e.key !== 'Tab') return;
+        var focusable = Array.prototype.filter.call(
+          modal.querySelectorAll('.help-modal-content button, .help-modal-content a[href], .help-modal-content input'),
+          function(el) { return !el.disabled && el.offsetParent !== null; }
+        );
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       });
       
       // Search handlers
@@ -1023,7 +1277,10 @@ window.closeHelpModal = closeHelpModal;
     el = document.getElementById('helpLoading');
     if (el) el.style.display = state === 'loading' ? 'flex' : 'none';
     el = document.getElementById('helpAnswer');
-    if (el) el.style.display = state === 'answer' ? 'block' : 'none';
+    if (el) el.style.display = state === 'answer' ? '' : 'none';
+    // The window is only wide for an answer with screenshots
+    el = document.querySelector('#helpModal .help-modal-content');
+    if (el && state !== 'answer') el.classList.remove('is-wide');
     el = document.getElementById('helpNoResults');
     if (el) el.style.display = state === 'noResults' ? 'flex' : 'none';
     el = document.getElementById('helpError');
@@ -1089,7 +1346,7 @@ window.closeHelpModal = closeHelpModal;
   };
   
   // Format answer text with proper HTML
-  function _formatAnswerText(text) {
+  function _formatAnswerText(text, markerNumbers) {
     if (!text) return '';
     
     // Escape HTML first
@@ -1260,6 +1517,15 @@ window.closeHelpModal = closeHelpModal;
           inList = true;
           listItems = [];
         }
+        // A bullet right after a numbered step belongs to that step
+        var lastItem = listItems[listItems.length - 1];
+        if (lastItem && !lastItem.includes('help-bullet')) {
+          var subItem = '<li>' + bulletMatch[1] + '</li>';
+          listItems[listItems.length - 1] = lastItem.endsWith('</ul></div></li>')
+            ? lastItem.slice(0, -'</ul></div></li>'.length) + subItem + '</ul></div></li>'
+            : lastItem.slice(0, -'</div></li>'.length) + '<ul class="help-sub-list">' + subItem + '</ul></div></li>';
+          continue;
+        }
         listItems.push('<li class="help-bullet">' + bulletMatch[1] + '</li>');
         continue;
       }
@@ -1275,10 +1541,232 @@ window.closeHelpModal = closeHelpModal;
     closeList();
     closeTable();
     
-    return result.join('');
+    var html = result.join('');
+    // "(5)" points at marker 5 in the screenshot: show it like that marker, as a
+    // button that highlights the marker when the screenshot has its position
+    if (markerNumbers) {
+      html = html.replace(/\((\d{1,2})\)/g, function(match, number) {
+        var label = '<span class="sr-only">(</span>' + number + '<span class="sr-only">)</span>';
+        if (markerNumbers.indexOf(number) === -1) return '<span class="help-marker">' + label + '</span>';
+        return '<button type="button" class="help-marker" data-marker="' + number + '" aria-pressed="false" aria-label="' +
+          helpTranslations.showMarker.replace('{{number}}', number) + '">' + label + '</button>';
+      });
+    }
+    return html;
   }
   
   // Display answer (global helper)
+  // Screenshots of the answer. Wide screens: a panel next to the answer that
+  // shows one screenshot at a time (tabs when there are more). Narrow screens:
+  // the screenshots below the answer. A click (or Enter) shows one full size.
+  var _helpShots = { images: [], figures: [], tabs: [], active: 0, pinned: null };
+
+  function _renderHelpScreenshots(images) {
+    var container = document.getElementById('helpScreenshots');
+    if (!container) return;
+    container.innerHTML = '';
+    _helpShots = { images: images, figures: [], tabs: [], active: 0, pinned: null };
+    if (images.length > 1) {
+      var tabs = document.createElement('div');
+      tabs.className = 'help-shot-tabs';
+      images.forEach(function(image, i) {
+        var tab = document.createElement('button');
+        tab.type = 'button';
+        tab.className = 'help-shot-tab';
+        tab.textContent = helpTranslations.screenshotNumber.replace('{{number}}', i + 1);
+        tab.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+        tab.onclick = function() { _showHelpShot(i); };
+        tabs.appendChild(tab);
+        _helpShots.tabs.push(tab);
+      });
+      // Arrow keys move between the tabs
+      tabs.addEventListener('keydown', function(e) {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        var next = (_helpShots.active + (e.key === 'ArrowRight' ? 1 : -1) + images.length) % images.length;
+        e.preventDefault();
+        _showHelpShot(next);
+        _helpShots.tabs[next].focus();
+      });
+      container.appendChild(tabs);
+    }
+    images.forEach(function(image, i) {
+      var figure = document.createElement('div');
+      figure.className = 'help-shot' + (i === 0 ? ' is-active' : '');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'help-screenshot-btn';
+      btn.setAttribute('aria-label', helpTranslations.enlargeScreenshot);
+      var img = document.createElement('img');
+      img.src = image.src;
+      img.alt = image.alt || '';
+      btn.appendChild(img);
+      var highlight = document.createElement('div');
+      highlight.className = 'help-shot-highlight';
+      highlight.setAttribute('aria-hidden', 'true');
+      btn.appendChild(highlight);
+      btn.onclick = function() { _openHelpLightbox(image, btn); };
+      figure.appendChild(btn);
+      container.appendChild(figure);
+      _helpShots.figures.push(figure);
+    });
+    container.style.display = images.length ? '' : 'none';
+  }
+
+  function _showHelpShot(index) {
+    _helpShots.active = index;
+    _helpShots.figures.forEach(function(figure, i) { figure.classList.toggle('is-active', i === index); });
+    _helpShots.tabs.forEach(function(tab, i) { tab.setAttribute('aria-pressed', i === index ? 'true' : 'false'); });
+  }
+
+  // The screenshot that holds a marker number, and the marker's position
+  function _findHelpMarker(number) {
+    for (var i = 0; i < _helpShots.images.length; i++) {
+      var marker = (_helpShots.images[i].markers || {})[number];
+      if (marker) return { index: i, marker: marker };
+    }
+    return null;
+  }
+
+  // Ring around the marker in the panel, the rest dimmed
+  function _highlightHelpMarker(number) {
+    _helpShots.figures.forEach(function(figure) { figure.querySelector('.help-shot-highlight').classList.remove('is-on'); });
+    if (!number) return;
+    var found = _findHelpMarker(number);
+    if (!found) return;
+    _showHelpShot(found.index);
+    var m = found.marker;
+    var highlight = _helpShots.figures[found.index].querySelector('.help-shot-highlight');
+    highlight.style.left = (m.x * 100) + '%';
+    highlight.style.top = (m.y * 100) + '%';
+    highlight.style.width = (m.width * 100) + '%';
+    highlight.style.height = (m.height * 100) + '%';
+    highlight.classList.add('is-on');
+  }
+
+  // A zoomed-in part of the screenshot around the given markers
+  function _helpCrop(image, numbers) {
+    var rect = null;
+    numbers.forEach(function(n) {
+      var m = (image.markers || {})[n];
+      if (!m) return;
+      rect = rect ? {
+        x1: Math.min(rect.x1, m.x), y1: Math.min(rect.y1, m.y),
+        x2: Math.max(rect.x2, m.x + m.width), y2: Math.max(rect.y2, m.y + m.height)
+      } : { x1: m.x, y1: m.y, x2: m.x + m.width, y2: m.y + m.height };
+    });
+    if (!rect) return null;
+    var crop = document.createElement('div');
+    crop.className = 'help-crop';
+    crop.setAttribute('role', 'img');
+    crop.setAttribute('aria-label', helpTranslations.markerCrop.replace('{{number}}', numbers.join(', ')));
+    var img = document.createElement('img');
+    img.alt = '';
+    img.onload = function() {
+      // Some room around the markers, within the image
+      var ratio = img.naturalWidth / img.naturalHeight;
+      var margin = 0.06;
+      var x1 = Math.max(0, rect.x1 - margin / 2);
+      var x2 = Math.min(1, rect.x2 + margin / 2);
+      var y1 = Math.max(0, rect.y1 - margin * ratio / 2);
+      var y2 = Math.min(1, rect.y2 + margin * ratio / 2);
+      var w = x2 - x1;
+      var h = y2 - y1;
+      crop.style.aspectRatio = (w * ratio / h).toFixed(4);
+      img.style.width = (100 / w) + '%';
+      img.style.marginLeft = (-x1 / w * 100) + '%';
+      // Vertical percentages of a margin refer to the width of the box
+      img.style.marginTop = (-y1 / ratio / w * 100) + '%';
+      crop.classList.add('is-ready');
+    };
+    img.src = image.src;
+    crop.appendChild(img);
+    return crop;
+  }
+
+  // Link the numbers in the answer to the screenshots: hover or focus shows the
+  // marker in the panel, a click keeps it shown; narrow screens get a crop of
+  // the screenshot after each step or paragraph with numbers
+  function _linkHelpMarkers(answerText, images) {
+    if (!answerText || !images.length) return;
+    answerText.querySelectorAll('button.help-marker').forEach(function(btn) {
+      var number = btn.getAttribute('data-marker');
+      btn.addEventListener('mouseenter', function() { _highlightHelpMarker(number); });
+      btn.addEventListener('focus', function() { _highlightHelpMarker(number); });
+      // Leaving with the mouse goes back to the pinned or focused number
+      btn.addEventListener('mouseleave', function() {
+        var focused = document.activeElement;
+        var focusedNumber = focused && focused.matches && focused.matches('button.help-marker') ? focused.getAttribute('data-marker') : null;
+        _highlightHelpMarker(_helpShots.pinned || focusedNumber);
+      });
+      btn.addEventListener('blur', function() { _highlightHelpMarker(_helpShots.pinned); });
+      btn.addEventListener('click', function() {
+        _helpShots.pinned = _helpShots.pinned === number ? null : number;
+        answerText.querySelectorAll('button.help-marker').forEach(function(other) {
+          var pinned = other.getAttribute('data-marker') === _helpShots.pinned;
+          other.classList.toggle('is-pinned', pinned);
+          other.setAttribute('aria-pressed', pinned ? 'true' : 'false');
+        });
+        _highlightHelpMarker(_helpShots.pinned || number);
+      });
+    });
+    var blocks = [];
+    answerText.querySelectorAll('button.help-marker').forEach(function(btn) {
+      // Within a step, the crop goes under all of its text (sub-items included)
+      var block = btn.closest('.help-step-content, .help-bullet-list li, p, td') || btn.parentNode;
+      if (blocks.indexOf(block) === -1) blocks.push(block);
+    });
+    blocks.forEach(function(block) {
+      var numbers = [];
+      block.querySelectorAll('button.help-marker').forEach(function(btn) {
+        var n = btn.getAttribute('data-marker');
+        if (numbers.indexOf(n) === -1) numbers.push(n);
+      });
+      var found = _findHelpMarker(numbers[0]);
+      if (!found) return;
+      var sameImage = numbers.filter(function(n) { var f = _findHelpMarker(n); return f && f.index === found.index; });
+      var crop = _helpCrop(images[found.index], sameImage);
+      if (!crop) return;
+      if (block.tagName !== 'P') block.appendChild(crop);
+      else block.parentNode.insertBefore(crop, block.nextSibling);
+    });
+  }
+
+  function _openHelpLightbox(image, trigger) {
+    var lightbox = document.getElementById('helpLightbox');
+    if (!lightbox) {
+      lightbox = document.createElement('div');
+      lightbox.id = 'helpLightbox';
+      lightbox.className = 'help-lightbox';
+      lightbox.setAttribute('role', 'dialog');
+      lightbox.setAttribute('aria-modal', 'true');
+      var close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'help-lightbox-close';
+      close.setAttribute('aria-label', helpTranslations.closeScreenshot);
+      close.textContent = '\u00d7';
+      var img = document.createElement('img');
+      lightbox.append(close, img);
+      document.body.appendChild(lightbox);
+      var hide = function() {
+        lightbox.hidden = true;
+        if (lightbox._trigger) lightbox._trigger.focus();
+      };
+      close.onclick = hide;
+      lightbox.onclick = function(e) { if (e.target === lightbox) hide(); };
+      lightbox.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') { e.stopPropagation(); hide(); }
+        if (e.key === 'Tab') { e.preventDefault(); close.focus(); }
+      });
+    }
+    var big = lightbox.querySelector('img');
+    big.src = image.src;
+    big.alt = image.alt || '';
+    lightbox.setAttribute('aria-label', image.alt || helpTranslations.enlargeScreenshot);
+    lightbox._trigger = trigger;
+    lightbox.hidden = false;
+    lightbox.querySelector('.help-lightbox-close').focus();
+  }
+  
   window._displayHelpAnswer = function(data) {
     // Set answer text with formatting
     var answerText = document.getElementById('helpAnswerText');
@@ -1287,22 +1775,38 @@ window.closeHelpModal = closeHelpModal;
     var readMoreBtn = document.getElementById('helpReadMoreBtn');
     var readMoreText = document.getElementById('helpReadMoreText');
     
-    if (answerText) answerText.innerHTML = _formatAnswerText(data.answer);
+    var images = data.images || [];
+    var markerNumbers = [];
+    images.forEach(function(image) { Object.keys(image.markers || {}).forEach(function(n) { markerNumbers.push(n); }); });
+    if (answerText) answerText.innerHTML = _formatAnswerText(data.answer, images.length ? markerNumbers : null);
+    // Side by side only when the answer points at the screenshots
+    var linked = !!(answerText && answerText.querySelector('button.help-marker'));
+    var sideBySide = linked && window.matchMedia('(min-width: 1024px)').matches;
     
     // Check if content is truncated and show "Read more" if needed
     if (answerContent && readMoreContainer && readMoreBtn) {
+      // Tabbing to a link or number in the hidden part shows the whole answer
+      if (!answerContent._expandOnFocus) {
+        answerContent._expandOnFocus = true;
+        answerContent.addEventListener('focusin', function(e) {
+          if (!answerContent.classList.contains('truncated')) return;
+          answerContent.scrollTop = 0;
+          if (e.target.getBoundingClientRect().bottom > answerContent.getBoundingClientRect().bottom - 60) readMoreBtn.onclick();
+        });
+      }
       // Reset state
       answerContent.classList.remove('truncated');
       readMoreBtn.classList.remove('expanded');
       readMoreContainer.style.display = 'none';
       if (readMoreText) readMoreText.textContent = helpTranslations.readMore;
       
-      // Check after rendering if content is too tall
+      // Check after rendering if content is too tall; next to the screenshots
+      // the whole answer stays visible, the window scrolls
       setTimeout(function() {
         var contentHeight = answerContent.scrollHeight;
         var maxHeight = 400;
         
-        if (contentHeight > maxHeight) {
+        if (!sideBySide && contentHeight > maxHeight) {
           answerContent.classList.add('truncated');
           readMoreContainer.style.display = 'block';
           
@@ -1321,6 +1825,20 @@ window.closeHelpModal = closeHelpModal;
           };
         }
       }, 50);
+    }
+    
+    _renderHelpScreenshots(images);
+    _linkHelpMarkers(answerText, images);
+    var answerEl = document.getElementById('helpAnswer');
+    if (answerEl) answerEl.classList.toggle('has-screens', linked);
+    var modalContent = document.querySelector('#helpModal .help-modal-content');
+    if (modalContent) modalContent.classList.toggle('is-wide', linked);
+    var screenshots = document.getElementById('helpScreenshots');
+    if (screenshots) screenshots.classList.toggle('is-small', images.length > 0 && !linked);
+    var status = document.getElementById('helpStatus');
+    if (status) {
+      status.textContent = '';
+      setTimeout(function() { status.textContent = helpTranslations.answerReady; }, 100);
     }
     
     // Link

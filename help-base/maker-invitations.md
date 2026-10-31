@@ -7,6 +7,13 @@ related_features: [team-management, maker-roles]
 
 Maker Invitations allow administrators to invite new makers to join your organization in Gryffi.
 
+![Invite a maker: email (1), role (2), Send invite (3) and pending invitations (4)](images/maker-invitations/invite.en.webp)
+
+1. The email address of your colleague.
+2. The role: Admin, Journey Manager, Editor or Viewer.
+3. Send invite: your colleague gets an email with a link to set a password.
+4. Pending invitations. Resend the email or Revoke the invitation.
+
 ## Overview
 
 Invite makers to:
@@ -26,6 +33,8 @@ Go to Makers → Invite maker
 
 ### Step 2: Enter Details
 
+Enter the email address of your colleague (1) and choose a role (2).
+
 | Field | Description |
 |-------|-------------|
 | Email | Invitee's email address |
@@ -34,7 +43,7 @@ Go to Makers → Invite maker
 ### Step 3: Send
 
 1. Review details
-2. Click "Send Invite"
+2. Click "Send Invite" (3)
 
 ## Invitation Email
 
@@ -49,7 +58,7 @@ Email includes:
 
 ### View Pending
 
-See all pending invitations:
+See all pending invitations (4):
 - Invitee email
 - Role assigned
 - Expire date

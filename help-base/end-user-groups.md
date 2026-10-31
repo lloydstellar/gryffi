@@ -7,7 +7,11 @@ related_features: [end-user-management, invitations-overview]
 
 End User Groups allow you to organize your end users into logical collections for easier management and targeted invitations
 
-[[show:overview]]
+![Groups in System Settings: Create Group (1), a group (2) and Manage members (3)](images/end-user-groups/overview.en.webp)
+
+1. Create Group: give the group a name and a description.
+2. A group with its description and source.
+3. Manage members: add end users to the group or remove them.
 
 ## Overview
 
@@ -23,7 +27,7 @@ Groups help you:
 ### Manual Creation
 
 1. Navigate to System Settings → Users → Groups
-2. Click "Create Group"
+2. Click "Create Group" (1)
 3. Enter group details:
    - **Group Name**: Descriptive group name
    - **Description**: Purpose of the group
@@ -33,8 +37,8 @@ Groups help you:
 
 ### Individual Assignment
 
-1. Go to a group
-2. Click the "Manage members" icon
+1. Go to a group (2)
+2. Click the "Manage members" icon (3)
 3. Select end users to add
 4. Click on "Add Members"
 5. Click "Close"

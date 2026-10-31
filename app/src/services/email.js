@@ -1100,13 +1100,36 @@ export async function sendJourneyEmail({
 }
 
 /**
+ * "Continue journey" button text in the 14 end-user languages, shared by the
+ * reminder email and the inactivity automation
+ */
+const CONTINUE_JOURNEY_BUTTON = {
+  en: 'Continue Journey',
+  nl: 'Ga Verder met Expeditie',
+  de: 'Expedition Fortsetzen',
+  fr: 'Continuer le Parcours',
+  es: 'Continuar Expedición',
+  it: 'Continua il Percorso',
+  pt: 'Continuar Jornada',
+  da: 'Fortsæt Rejse',
+  no: 'Fortsett Reise',
+  fi: 'Jatka Matkaa',
+  sv: 'Fortsätt Resa',
+  pl: 'Kontynuuj Podróż',
+  ro: 'Continuă Călătoria',
+  tr: 'Yolculuğa Devam Et'
+};
+
+/**
  * Send an automation email
  * Supports custom themes for Tier 3+ organizations
  * @param {Object} automation - The automation config from the step/journey
- * @param {Object} context - Context with user, journey, step info
+ * @param {Object} context - Context with user, journey, step info. Optional:
+ *   language (email layout and button text) and continueLink (the end user's
+ *   magic link, shown as a "Continue journey" button)
  */
 export async function sendAutomationEmail(automation, context) {
-  const { user, journey, step, organization } = context;
+  const { user, journey, step, organization, language = 'en', continueLink = null } = context;
   
   // Determine recipient
   let recipientEmail;
@@ -1138,6 +1161,12 @@ export async function sendAutomationEmail(automation, context) {
     user_email: user?.email || ''
   };
   
+  // The magic link logs in as the end user: only ever to their own address
+  if (continueLink && automation.recipient === 'current_user') {
+    variables.custom_link = continueLink;
+    variables.custom_link_text = CONTINUE_JOURNEY_BUTTON[language] || CONTINUE_JOURNEY_BUTTON.en;
+  }
+  
   try {
     const result = await sendEmail({
       to: recipientEmail,
@@ -1145,6 +1174,7 @@ export async function sendAutomationEmail(automation, context) {
       templateType: automation.template || 'journey_custom',
       variables,
       customBody: automation.body || '',
+      language,
       orgId: organization?.id || null // Pass org ID for custom theme support
     });
     
@@ -2209,7 +2239,7 @@ export async function sendReminderEmail({
       intro: `We noticed you haven't completed your journey "<strong>${journeyTitle}</strong>" at ${companyName} yet.`,
       reminder: `You still have <strong>${daysRemaining} days</strong> left to complete it. Don't miss out!`,
       instructions: 'Click the button below to continue where you left off.',
-      button: 'Continue Journey',
+      button: CONTINUE_JOURNEY_BUTTON.en,
       footer: "If you've already completed this journey or no longer wish to participate, you can ignore this email.",
       security: "This link is unique to you. Please don't share it with others."
     },
@@ -2219,7 +2249,7 @@ export async function sendReminderEmail({
       intro: `We hebben gemerkt dat je je expeditie "<strong>${journeyTitle}</strong>" bij ${companyName} nog niet hebt afgerond.`,
       reminder: `Je hebt nog <strong>${daysRemaining} dagen</strong> om het af te ronden. Mis het niet!`,
       instructions: 'Klik op de knop hieronder om verder te gaan waar je gebleven was.',
-      button: 'Ga Verder met Expeditie',
+      button: CONTINUE_JOURNEY_BUTTON.nl,
       footer: 'Als je deze expeditie al hebt afgerond of niet meer wilt deelnemen, kun je deze e-mail negeren.',
       security: 'Deze link is uniek voor jou. Deel hem alsjeblieft niet met anderen.'
     },
@@ -2229,7 +2259,7 @@ export async function sendReminderEmail({
       intro: `Wir haben bemerkt, dass du deine Expedition "<strong>${journeyTitle}</strong>" bei ${companyName} noch nicht abgeschlossen hast.`,
       reminder: `Du hast noch <strong>${daysRemaining} Tage</strong> Zeit, sie abzuschließen. Verpasse es nicht!`,
       instructions: 'Klicke auf den Button unten, um dort fortzufahren, wo du aufgehört hast.',
-      button: 'Expedition Fortsetzen',
+      button: CONTINUE_JOURNEY_BUTTON.de,
       footer: 'Wenn du diese Expedition bereits abgeschlossen hast oder nicht mehr teilnehmen möchtest, kannst du diese E-Mail ignorieren.',
       security: 'Dieser Link ist nur für dich bestimmt. Bitte teile ihn nicht mit anderen.'
     },
@@ -2239,7 +2269,7 @@ export async function sendReminderEmail({
       intro: `Nous avons remarqué que vous n'avez pas encore terminé votre parcours "<strong>${journeyTitle}</strong>" chez ${companyName}.`,
       reminder: `Il vous reste encore <strong>${daysRemaining} jours</strong> pour le terminer. Ne manquez pas cette opportunité !`,
       instructions: 'Cliquez sur le bouton ci-dessous pour reprendre là où vous vous êtes arrêté.',
-      button: 'Continuer le Parcours',
+      button: CONTINUE_JOURNEY_BUTTON.fr,
       footer: 'Si vous avez déjà terminé ce parcours ou ne souhaitez plus participer, vous pouvez ignorer cet e-mail.',
       security: 'Ce lien vous est unique. Veuillez ne pas le partager avec d\'autres.'
     },
@@ -2249,7 +2279,7 @@ export async function sendReminderEmail({
       intro: `Hemos notado que aún no has completado tu expedición "<strong>${journeyTitle}</strong>" en ${companyName}.`,
       reminder: `Todavía tienes <strong>${daysRemaining} días</strong> para completarla. ¡No te lo pierdas!`,
       instructions: 'Haz clic en el botón de abajo para continuar donde lo dejaste.',
-      button: 'Continuar Expedición',
+      button: CONTINUE_JOURNEY_BUTTON.es,
       footer: 'Si ya has completado esta expedición o ya no deseas participar, puedes ignorar este correo electrónico.',
       security: 'Este enlace es único para ti. Por favor, no lo compartas con otros.'
     },
@@ -2259,7 +2289,7 @@ export async function sendReminderEmail({
       intro: `Abbiamo notato che non hai ancora completato il tuo percorso "<strong>${journeyTitle}</strong>" presso ${companyName}.`,
       reminder: `Hai ancora <strong>${daysRemaining} giorni</strong> per completarlo. Non perdere l'occasione!`,
       instructions: 'Clicca il pulsante qui sotto per riprendere da dove avevi interrotto.',
-      button: 'Continua il Percorso',
+      button: CONTINUE_JOURNEY_BUTTON.it,
       footer: 'Se hai già completato questo percorso o non desideri più partecipare, puoi ignorare questa e-mail.',
       security: 'Questo link è unico per te. Per favore, non condividerlo con altri.'
     },
@@ -2269,7 +2299,7 @@ export async function sendReminderEmail({
       intro: `Notamos que você ainda não completou sua jornada "<strong>${journeyTitle}</strong>" na ${companyName}.`,
       reminder: `Você ainda tem <strong>${daysRemaining} dias</strong> para completá-la. Não perca!`,
       instructions: 'Clique no botão abaixo para continuar de onde parou.',
-      button: 'Continuar Jornada',
+      button: CONTINUE_JOURNEY_BUTTON.pt,
       footer: 'Se você já completou esta jornada ou não deseja mais participar, pode ignorar este e-mail.',
       security: 'Este link é exclusivo para você. Por favor, não o compartilhe com outras pessoas.'
     },
@@ -2279,7 +2309,7 @@ export async function sendReminderEmail({
       intro: `Vi har bemærket, at du endnu ikke har færdiggjort din rejse "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
       reminder: `Du har stadig <strong>${daysRemaining} dage</strong> til at færdiggøre den. Gå ikke glip af det!`,
       instructions: 'Klik på knappen nedenfor for at fortsætte, hvor du slap.',
-      button: 'Fortsæt Rejse',
+      button: CONTINUE_JOURNEY_BUTTON.da,
       footer: 'Hvis du allerede har færdiggjort denne rejse eller ikke længere ønsker at deltage, kan du ignorere denne e-mail.',
       security: 'Dette link er unikt for dig. Del det venligst ikke med andre.'
     },
@@ -2289,7 +2319,7 @@ export async function sendReminderEmail({
       intro: `Vi har lagt merke til at du ikke har fullført reisen din "<strong>${journeyTitle}</strong>" hos ${companyName} ennå.`,
       reminder: `Du har fortsatt <strong>${daysRemaining} dager</strong> igjen for å fullføre den. Ikke gå glipp av det!`,
       instructions: 'Klikk på knappen nedenfor for å fortsette der du slapp.',
-      button: 'Fortsett Reise',
+      button: CONTINUE_JOURNEY_BUTTON.no,
       footer: 'Hvis du allerede har fullført denne reisen eller ikke lenger ønsker å delta, kan du ignorere denne e-posten.',
       security: 'Denne lenken er unik for deg. Vennligst ikke del den med andre.'
     },
@@ -2299,7 +2329,7 @@ export async function sendReminderEmail({
       intro: `Huomasimme, ettet ole vielä suorittanut matkaasi "<strong>${journeyTitle}</strong>" organisaatiossa ${companyName}.`,
       reminder: `Sinulla on vielä <strong>${daysRemaining} päivää</strong> aikaa suorittaa se. Älä jää paitsi!`,
       instructions: 'Napsauta alla olevaa painiketta jatkaaksesi siitä, mihin jäit.',
-      button: 'Jatka Matkaa',
+      button: CONTINUE_JOURNEY_BUTTON.fi,
       footer: 'Jos olet jo suorittanut tämän matkan tai et halua enää osallistua, voit jättää tämän sähköpostin huomiotta.',
       security: 'Tämä linkki on tarkoitettu vain sinulle. Älä jaa sitä muille.'
     },
@@ -2309,7 +2339,7 @@ export async function sendReminderEmail({
       intro: `Vi har märkt att du inte har slutfört din resa "<strong>${journeyTitle}</strong>" hos ${companyName} ännu.`,
       reminder: `Du har fortfarande <strong>${daysRemaining} dagar</strong> kvar att slutföra den. Missa inte det!`,
       instructions: 'Klicka på knappen nedan för att fortsätta där du slutade.',
-      button: 'Fortsätt Resa',
+      button: CONTINUE_JOURNEY_BUTTON.sv,
       footer: 'Om du redan har slutfört denna resa eller inte längre vill delta kan du ignorera detta e-postmeddelande.',
       security: 'Denna länk är unik för dig. Vänligen dela den inte med andra.'
     },
@@ -2319,7 +2349,7 @@ export async function sendReminderEmail({
       intro: `Zauważyliśmy, że nie ukończyłeś jeszcze swojej podróży "<strong>${journeyTitle}</strong>" w ${companyName}.`,
       reminder: `Masz jeszcze <strong>${daysRemaining} dni</strong> na jej ukończenie. Nie przegap!`,
       instructions: 'Kliknij poniższy przycisk, aby kontynuować od miejsca, w którym skończyłeś.',
-      button: 'Kontynuuj Podróż',
+      button: CONTINUE_JOURNEY_BUTTON.pl,
       footer: 'Jeśli już ukończyłeś tę podróż lub nie chcesz już uczestniczyć, możesz zignorować tę wiadomość.',
       security: 'Ten link jest przeznaczony tylko dla Ciebie. Prosimy, nie udostępniaj go innym.'
     },
@@ -2329,7 +2359,7 @@ export async function sendReminderEmail({
       intro: `Am observat că nu ai finalizat încă călătoria "<strong>${journeyTitle}</strong>" la ${companyName}.`,
       reminder: `Mai ai <strong>${daysRemaining} zile</strong> să o finalizezi. Nu rata această oportunitate!`,
       instructions: 'Apasă butonul de mai jos pentru a continua de unde ai rămas.',
-      button: 'Continuă Călătoria',
+      button: CONTINUE_JOURNEY_BUTTON.ro,
       footer: 'Dacă ai finalizat deja această călătorie sau nu mai dorești să participi, poți ignora acest e-mail.',
       security: 'Acest link este unic pentru tine. Te rugăm să nu-l distribui altora.'
     },
@@ -2339,7 +2369,7 @@ export async function sendReminderEmail({
       intro: `${companyName} bünyesindeki "<strong>${journeyTitle}</strong>" yolculuğunuzu henüz tamamlamadığınızı fark ettik.`,
       reminder: `Tamamlamak için hâlâ <strong>${daysRemaining} gününüz</strong> var. Bu fırsatı kaçırmayın!`,
       instructions: 'Kaldığınız yerden devam etmek için aşağıdaki düğmeye tıklayın.',
-      button: 'Yolculuğa Devam Et',
+      button: CONTINUE_JOURNEY_BUTTON.tr,
       footer: 'Bu yolculuğu zaten tamamladıysanız veya artık katılmak istemiyorsanız, bu e-postayı görmezden gelebilirsiniz.',
       security: 'Bu bağlantı size özeldir. Lütfen başkalarıyla paylaşmayın.'
     }

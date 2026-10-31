@@ -149,11 +149,16 @@
         flex-shrink: 0 !important;
         flex-grow: 0 !important;
       }
+      /* Up to two lines, so a long journey title stays readable */
       .player-title {
         font-size: 14px;
-        white-space: nowrap;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
         overflow: hidden;
-        text-overflow: ellipsis;
+        overflow-wrap: anywhere;
         flex: 1;
         min-width: 0;
       }
@@ -171,6 +176,13 @@
       }
       .player-progress-container {
         top: 52px;
+      }
+    }
+    
+    /* No room for both the journey title and the greeting: the title wins */
+    @media (max-width: 480px) {
+      .player-greeting {
+        display: none;
       }
     }
     
@@ -204,7 +216,7 @@
     </div>
     <div class="player-header-right">
       <% if (typeof player !== 'undefined' && player.endUser) { %>
-        <%= t('expedition.welcome.greeting', { firstName: player.endUser.firstName }) %>
+        <span class="player-greeting"><%= t('expedition.welcome.greeting', { firstName: player.endUser.firstName }) %></span>
       <% } %>
       <% if (typeof previewMode !== 'undefined' && previewMode) { %>
         <a href="<%= typeof returnUrl !== 'undefined' ? returnUrl : '/dashboard/journeys' %>" class="preview-close-btn" title="<%= t('common.close') %>">
@@ -519,7 +531,7 @@
     </a>
     
     <div class="journey-title-section ml-4 flex items-center gap-2">
-      <h1 class="font-medium text-zen-800"><%= journey.title %></h1>
+      <h1 class="font-medium text-zen-800" title="<%= journey.title %>"><%= journey.title %></h1>
       <% if (journey.is_public) { %>
         <span class="text-xs px-2 py-0.5 rounded-full flex items-center gap-1" style="background: rgba(120, 197, 3, 0.15); color: #5a9302;">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -568,49 +580,49 @@
     
     <!-- Step type buttons - Zen style -->
     <div class="flex items-center gap-2 mr-4">
-      <span class="text-xs font-medium text-zen-500 whitespace-nowrap"><%= t('builder.toolbar.addStep') %></span>
+      <span class="toolbar-add-label text-xs font-medium text-zen-500 whitespace-nowrap"><%= t('builder.toolbar.addStep') %></span>
       <div class="flex items-center gap-1 bg-zen-100/50 rounded-xl p-1">
         <button class="step-type-btn" data-type="space" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.space') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.space') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.space') %></span>
         </button>
         <button class="step-type-btn" data-type="guide" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.guide') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.guide') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.guide') %></span>
         </button>
         <button class="step-type-btn" data-type="content" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.content') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.content') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.content') %></span>
         </button>
         <button class="step-type-btn" data-type="challenge" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.challenge') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.challenge') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.challenge') %></span>
         </button>
         <button class="step-type-btn" data-type="form" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.form') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.form') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.form') %></span>
         </button>
         <button class="step-type-btn" data-type="poll" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.poll') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.poll') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.poll') %></span>
         </button>
         <button class="step-type-btn" data-type="reward" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.reward') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.reward') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.reward') %></span>
         </button>
         <button class="step-type-btn" data-type="nested_journey" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.nestedJourney') }) %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -618,7 +630,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10v2a2 2 0 002 2h2m6-4v-2a2 2 0 00-2-2h-2"></path>
           </svg>
-          <span class="text-xs"><%= t('builder.stepTypes.nestedJourneyShort') %></span>
+          <span class="step-type-label text-xs"><%= t('builder.stepTypes.nestedJourneyShort') %></span>
         </button>
       </div>
     </div>
@@ -1047,15 +1059,19 @@
         }
       }
       
-      const keys = key.split('.');
-      let value = window.GRYFFI.translations;
-      for (const k of keys) {
-        if (value && typeof value === 'object' && k in value) {
-          value = value[k];
-        } else {
-          console.warn(`Translation key not found: ${key}`);
-          return key; // Return key if not found
-        }
+      const lookup = (path) => path.split('.').reduce(
+        (node, k) => (node && typeof node === 'object' && k in node ? node[k] : undefined),
+        window.GRYFFI.translations
+      );
+      let value = lookup(key);
+      // Plural keys as in i18next ("key_one", "key_other"), chosen by count
+      if (value === undefined && typeof params.count === 'number') {
+        const form = new Intl.PluralRules(document.documentElement.lang || 'en').select(params.count);
+        value = lookup(`${key}_${form}`) ?? lookup(`${key}_other`);
+      }
+      if (value === undefined) {
+        console.warn(`Translation key not found: ${key}`);
+        return key; // Return key if not found
       }
       // Handle interpolation (e.g., {{name}})
       if (typeof value === 'string' && Object.keys(params).length > 0) {
@@ -1745,6 +1761,46 @@
     }
     .step-type-btn:active {
       transform: scale(0.95);
+    }
+    
+    /* Some room between the title and the step types, however narrow; only
+       the title gives way */
+    .builder-toolbar-inner > .flex-1 {
+      min-width: 16px;
+    }
+    .builder-toolbar-inner > a {
+      flex-shrink: 0;
+    }
+    .builder-toolbar-inner .journey-title-section {
+      min-width: 0;
+    }
+    
+    /* Less room: no "+ Add step" label, a long journey title gets an ellipsis */
+    @media (max-width: 1439px) {
+      .toolbar-add-label {
+        display: none;
+      }
+      .journey-title-section h1 {
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+    /* Even less: the step types as icons; the name stays in the tooltip and for screen readers */
+    @media (max-width: 1365px) {
+      .step-type-btn {
+        position: relative;
+        padding: 6px;
+      }
+      .step-type-btn .step-type-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
     }
     
     .btn-ghost {
@@ -3602,12 +3658,6 @@
         align-self: center !important;
         aspect-ratio: auto !important;
       }
-      .player-title {
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
       .player-header-right {
         font-size: 13px;
         white-space: nowrap;
@@ -3629,24 +3679,20 @@
         flex-shrink: 0 !important;
       }
       
-      /* Preview Card - Full width on mobile */
+      /* Preview Card - Full width on mobile. The card grows with its content
+         and the page scrolls: a card capped to the screen hid content under
+         the navigation buttons on small phones. */
       .preview-card {
         margin: 16px;
         max-width: none;
         border-radius: 12px;
-        max-height: calc(100vh - 100px);
-        max-height: calc(100dvh - 100px); /* Dynamic viewport height for mobile browsers */
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        overflow: clip; /* Clips like hidden, but keeps the sticky chat input working */
       }
-      /* All content needs to be scrollable on mobile */
       .preview-content {
         padding: 20px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        flex: 1;
-        min-height: 0;
       }
       /* Quiz wizard specific scrolling */
       .preview-content.quiz-wizard {
@@ -3669,14 +3715,15 @@
         padding: 12px 20px;
         display: flex;
         flex-direction: column;
-        max-height: calc(100vh - 200px);
       }
       .chat-messages {
         flex: 1;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         margin-bottom: 12px;
-        min-height: 0;
+        min-height: 150px;
+        max-height: 55vh;
+        max-height: 55dvh;
       }
       .chat-input-wrapper {
         position: sticky;
@@ -3709,6 +3756,11 @@
         right: 16px;
         left: auto;
         z-index: 1000;
+      }
+      /* Room below the card, so the last answer or button can be scrolled
+         out from under the floating guide button */
+      body.player-mode:has(#guideChatWidget:not(.hidden)) .player-content {
+        padding-bottom: 72px;
       }
       .guide-chat-fab {
         padding: 8px 14px 8px 8px;

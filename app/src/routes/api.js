@@ -53,7 +53,7 @@ import {
 } from '../services/subscription.js';
 import { queueAnalysis, detectMediaType, getAnalysisDescription } from '../services/imageAnalysis.js';
 import { isImageAllowed } from '../services/nsfwDetection.js';
-import { searchHelp, generateHelpResponse, getHelpTopics } from '../services/help.js';
+import { searchHelp, generateHelpResponse, getHelpTopics, getHelpImages, getHelpDoc } from '../services/help.js';
 import { translateJourneyContent, getSupportedLanguages } from '../services/translation.js';
 import { handleTtsRequest } from '../services/tts.js';
 import multer from 'multer';
@@ -62,7 +62,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as XLSX from 'xlsx';
 import sharp from 'sharp';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -4494,7 +4494,15 @@ router.get('/guides', async (req, res) => {
     const result = await query(`
       SELECT g.*, 
              (SELECT COUNT(*) FROM knowledge_sources WHERE guide_id = g.id) as knowledge_count,
-             (SELECT COUNT(*) FROM journeys WHERE guide_id = g.id AND deleted_at IS NULL) as journey_count
+             -- Same count as the AI Guides page: the journey's guide or a guide step
+             (SELECT COUNT(*) FROM journeys j
+               WHERE j.deleted_at IS NULL AND (
+                 j.guide_id = g.id
+                 OR EXISTS (
+                   SELECT 1 FROM steps s
+                   WHERE s.journey_id = j.id AND s.type = 'guide' AND s.basic_props->>'guide_id' = g.id::text
+                 )
+               )) as journey_count
       FROM guides g 
       WHERE g.organization_id = $1 AND g.deleted_at IS NULL
       ORDER BY g.created_at DESC
@@ -6252,7 +6260,7 @@ router.get('/organization/export', async (req, res) => {
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
-    const archive = archiver('zip', { zlib: { level: 6 } });
+    const archive = new ZipArchive({ zlib: { level: 6 } });
     archive.on('error', (err) => {
       console.error('[Export] Archive error:', err);
       if (!res.headersSent) {
@@ -11212,7 +11220,7 @@ router.post('/help/search', async (req, res) => {
     };
     
     // Search relevant documentation
-    const relevantDocs = await searchHelp(userQuery.trim(), context, 5);
+    const relevantDocs = await searchHelp(userQuery.trim(), context, 5, { language });
     
     if (relevantDocs.length === 0) {
       return res.json({
@@ -11237,6 +11245,8 @@ router.post('/help/search', async (req, res) => {
       answer: response.answer,
       link: response.link,
       source: response.source,
+      // Screenshots of the page the answer comes from, in the maker's language when available
+      images: getHelpImages(relevantDocs[0], language),
       relatedTopics: relevantDocs.slice(1, 4).map(d => ({
         id: d.id,
         title: d.title
@@ -11274,17 +11284,14 @@ router.get('/help/topics', async (req, res) => {
 router.get('/help/topic/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    // Search for the specific topic
-    const docs = await searchHelp(id, '', 1);
+    const doc = await getHelpDoc(id);
     
-    if (docs.length === 0 || docs[0].id !== id) {
+    if (!doc) {
       return res.status(404).json({
         success: false,
         error: 'Help topic not found'
       });
     }
-    
-    const doc = docs[0];
 
     res.json({
       success: true,
@@ -12303,8 +12310,8 @@ router.get('/analytics/group/:groupId', async (req, res) => {
     const groupSummary = await query(`
       SELECT 
         COUNT(DISTINCT je.end_user_id) as active_users,
-        COUNT(CASE WHEN je.event_type = 'journey_started' THEN 1 END) as journeys_started,
-        COUNT(CASE WHEN je.event_type = 'journey_completed' THEN 1 END) as journeys_completed,
+        COUNT(DISTINCT CASE WHEN je.event_type IN ('journey_started', 'step_entered') THEN (je.end_user_id, je.journey_id) END) as journeys_started,
+        COUNT(DISTINCT CASE WHEN je.event_type = 'journey_completed' THEN (je.end_user_id, je.journey_id) END) as journeys_completed,
         COUNT(CASE WHEN je.event_type = 'step_completed' THEN 1 END) as steps_completed,
         AVG(CASE WHEN je.event_type = 'step_completed' AND je.duration_ms IS NOT NULL THEN je.duration_ms END) as avg_step_duration_ms
       FROM journey_events je
@@ -12556,10 +12563,11 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
     
     const journey = journeyResult.rows[0];
     
-    // Get overall journey stats
+    // Get overall journey stats. Entering a step also counts as a start: the
+    // player did not send journey_started for invited end users before 31 October 2026.
     const overallStats = await query(`
       SELECT 
-        COUNT(DISTINCT CASE WHEN event_type = 'journey_started' THEN COALESCE(end_user_id::text, session_id) END) as started,
+        COUNT(DISTINCT CASE WHEN event_type IN ('journey_started', 'step_entered') THEN COALESCE(end_user_id::text, session_id) END) as started,
         COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN COALESCE(end_user_id::text, session_id) END) as completed
       FROM journey_events
       WHERE journey_id = $1 AND organization_id = $2 AND created_at >= $3
@@ -12637,15 +12645,26 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
       return step;
     });
     
-    // Daily trend for this journey
+    // Daily trend for this journey (a user counts as started on their first start or step event)
     const dailyTrend = await query(`
+      WITH events AS (
+        SELECT event_type, created_at, COALESCE(end_user_id::text, session_id) as participant
+        FROM journey_events
+        WHERE journey_id = $1 AND organization_id = $2 AND created_at >= $3
+      ),
+      first_start AS (
+        SELECT participant, MIN(created_at) as started_at
+        FROM events
+        WHERE event_type IN ('journey_started', 'step_entered')
+        GROUP BY participant
+      )
       SELECT 
-        DATE(created_at) as date,
-        COUNT(DISTINCT CASE WHEN event_type = 'journey_started' THEN COALESCE(end_user_id::text, session_id) END) as started,
-        COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN COALESCE(end_user_id::text, session_id) END) as completed
-      FROM journey_events
-      WHERE journey_id = $1 AND organization_id = $2 AND created_at >= $3
-      GROUP BY DATE(created_at)
+        DATE(e.created_at) as date,
+        COUNT(DISTINCT CASE WHEN e.created_at = fs.started_at THEN e.participant END) as started,
+        COUNT(DISTINCT CASE WHEN e.event_type = 'journey_completed' THEN e.participant END) as completed
+      FROM events e
+      LEFT JOIN first_start fs ON fs.participant = e.participant
+      GROUP BY DATE(e.created_at)
       ORDER BY date
     `, [journeyId, orgId, sinceDate]);
     
@@ -12807,14 +12826,14 @@ router.get('/analytics/groups-overview', async (req, res) => {
       avg_quiz_score: g.avg_quiz_score ? Math.round(g.avg_quiz_score) : null
     }));
     
-    // Get organization-wide averages for benchmarking
+    // Get organization-wide averages for benchmarking (completion rate: same definition as the group rows)
     const orgAverages = await query(`
       SELECT 
         (SELECT AVG(CASE WHEN total_questions > 0 THEN (correct_count::float / total_questions) * 100 END)
          FROM quiz_attempts WHERE organization_id = $1 AND created_at >= $2) as org_avg_quiz_score,
-        (SELECT COUNT(DISTINCT end_user_id)::float / NULLIF(COUNT(DISTINCT CASE WHEN event_type = 'journey_started' THEN end_user_id END), 0) * 100
+        (SELECT COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN end_user_id END)::float / NULLIF(COUNT(DISTINCT end_user_id), 0) * 100
          FROM journey_events 
-         WHERE organization_id = $1 AND event_type IN ('journey_started', 'journey_completed') AND created_at >= $2) as org_completion_rate
+         WHERE organization_id = $1 AND created_at >= $2) as org_completion_rate
     `, [orgId, sinceDate]);
     
     res.json({
@@ -12822,7 +12841,7 @@ router.get('/analytics/groups-overview', async (req, res) => {
       groups,
       org_benchmarks: {
         avg_quiz_score: orgAverages.rows[0].org_avg_quiz_score ? Math.round(orgAverages.rows[0].org_avg_quiz_score) : null,
-        completion_rate: orgAverages.rows[0].org_completion_rate ? Math.round(orgAverages.rows[0].org_completion_rate) : null
+        completion_rate: orgAverages.rows[0].org_completion_rate !== null ? Math.round(orgAverages.rows[0].org_completion_rate) : null
       }
     });
     

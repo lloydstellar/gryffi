@@ -7,6 +7,10 @@ related_features: [journey-builder, entry-exit-messages]
 
 Step Pacing controls when users can progress from one step to the next, managing the timing and flow of journey content.
 
+![Pacing of a Guide step on the Advanced tab (1)](images/step-pacing/advanced.en.webp)
+
+1. Pacing: when end users can continue to the next step. Immediately, or after they sent 2, 4 or 6 messages to the guide.
+
 ## Overview
 
 Pacing options:
@@ -32,16 +36,14 @@ Pacing options:
 | Seconds | Wait X seconds |
 | Minutes | Wait X minutes |
 
-
 ## Configuring Pacing
 
 ### Step Settings
 
 1. Select step
 2. Go to Advanced tab
-3. Find "Pacing" section
+3. Find "Pacing" section (1)
 4. Configure options
-
 
 ## Use Cases
 
@@ -59,7 +61,6 @@ Ensure users spend time:
 Users see:
 - "Available at [time]"
 - What's required
-
 
 ## Best Practices
 

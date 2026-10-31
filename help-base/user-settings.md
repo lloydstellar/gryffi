@@ -7,7 +7,12 @@ related_features: [password-management, two-factor-authentication, language-sett
 
 Settings allow you to manage your personal account preferences, security settings, and profile information.
 
-[[show:overview]]
+![Your settings: language (1), profile (2), password (3) and two-factor authentication (4)](images/user-settings/overview.en.webp)
+
+1. The language of the interface, for you only.
+2. Your name as it appears in Gryffi and in emails.
+3. Change your password.
+4. Turn two-factor authentication on or off.
 
 ## Overview
 
@@ -26,7 +31,7 @@ User settings include:
 
 | Field | Description |
 |-------|-------------|
-| **First Name** | Your first name |
+| **First Name** (2) | Your first name |
 | **Last Name** | Your last name |
 
 ## Password Settings
@@ -34,10 +39,10 @@ User settings include:
 ### Changing Password
 
 1. Go to Settings
-2. Scroll to the Securiy section
-3. Enter current password
+2. Scroll to the Security section
+3. Enter current password (3)
 4. Enter new password twice
-5. Click "Save"
+5. Click "Update password"
 
 See: password-management
 
@@ -54,7 +59,7 @@ Enable extra security:
 
 1. Go to Settings
 2. Find "Two-Factor Authentication"
-3. Click "Enable"
+3. Turn on the switch (4)
 
 See: two-factor-authentication
 
@@ -62,7 +67,7 @@ See: two-factor-authentication
 
 ### Interface Language
 
-Choose your preferred language:
+Choose your preferred language (1):
 - English
 - Nederlands (Dutch)
 - Deutsch (German)

@@ -7,6 +7,11 @@ related_features: [journey-settings, public-journey-identification]
 
 Public Journeys are accessible to anyone with the link. They are for linking on your website or intranet. The public journeys are for everyone to see. So don't make any journeys public that have sensative data in them.
 
+![The menu of a public journey: Copy Link (1) and Convert to Private (2)](images/public-journeys/menu.en.webp)
+
+1. Copy Link: copy the public link to share it.
+2. Convert to Private: only invited end users can open the journey again.
+
 ## Overview
 
 Public journeys enable:
@@ -25,6 +30,8 @@ Public journeys enable:
 4. Click "Convert to Public"
 5. Read the warning carefully!
 
+To make the journey private again, click **Convert to Private** (2) in the same menu. After that, only invited end users can open the journey.
+
 ### Public URL
 
 Once public, the journey gets a public link:
@@ -32,7 +39,7 @@ Once public, the journey gets a public link:
 1. Go to Journeys
 2. Look for the public journey
 3. Click on the three dots in the right corner of the journey card
-4. Click "Copy Link"
+4. Click "Copy Link" (1)
 5. Your public magic link is now on your clipboard and you can paste it where you want
 
 ## Access Options
@@ -45,7 +52,6 @@ Once public, the journey gets a public link:
 | Poll step | Public end user gets to authenticate to use the Public Poll Step |
 | Form step | Public end user gets to authenticate to use the Public Form Step |
 | Reward step | Public end user gets to authenticate to get the Public Reward |
-
 
 ## Sharing Public Journeys
 

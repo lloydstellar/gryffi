@@ -7,6 +7,13 @@ related_features: [challenge-step, analytics-overview]
 
 Quiz Settings control how Challenge Steps (also known as a quiz step) behave, including scoring, timing, and feedback options.
 
+![The Advanced tab of a Challenge step: passing score (1), feedback (2), retakes (3) and the pass message (4)](images/quiz-settings/advanced.en.webp)
+
+1. Passing Score: how many answers must be correct to continue.
+2. Show feedback after each answer: end users see right away whether their answer is correct.
+3. Allow retake on failure: end users can try again when they do not pass.
+4. Pass Message: the text end users see when they pass.
+
 ## Overview
 
 In the Basic settings:
@@ -19,7 +26,7 @@ In the Advanced settings tab:
 
 - Step Assistant
 - Passing score
-- Pass Message
+- Pass Message (4)
 - Fail Message
 
 ## Questions
@@ -30,15 +37,15 @@ You can make questions with multiple answers. The blue dot in front of the answe
 
 ### Passing Score
 
-This option in the advanced settings, letting you set the minimum correct answers to continue to the next step.
+The **Passing Score** (1) option in the advanced settings lets you set the minimum correct answers to continue to the next step.
 
 ### Retry Options
 
-This option in the advanced settins, sets if the end user can have another go at the Quiz after failing.
+The option **Allow retake on failure** (3) in the advanced settings sets if the end user can have another go at the Quiz after failing.
 
 ## Feedback Settings
 
-This option in the advanced settins, lets end users see if their answer is correct immediately.
+The option **Show feedback after each answer** (2) in the advanced settings lets end users see if their answer is correct immediately.
 
 ### Question Order
 

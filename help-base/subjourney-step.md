@@ -7,11 +7,15 @@ related_features: [journey-builder, journey-settings, public-journeys]
 
 The Sub-Journey Step allows you to embed an entire published journey within another journey. This is perfect for creating modular, reusable content and reducing complexity in large journeys.
 
-[[show:properties]]
+![The settings of a Sub-Journey step: Select journey to embed (2) and the embedded journey (3)](images/subjourney-step/properties.en.webp)
+
+1. The Sub-Journey step on the canvas.
+2. Select journey to embed: choose a published journey.
+3. The embedded journey with its number of steps. It must stay published.
 
 ## Adding a Sub-Journey Step
 
-In the Journey Builder toolbar, click the **Sub** button to add a Sub-Journey Step to your canvas. The button shows "Sub" as a short label, but hovering over it displays the full name "Sub-Journey".
+In the Journey Builder toolbar, click the **Sub** button to add a Sub-Journey Step (1) to your canvas. The button shows "Sub" as a short label, but hovering over it displays the full name "Sub-Journey".
 
 ## Overview
 
@@ -33,11 +37,13 @@ Sub-Journey Steps enable you to:
 
 ### Sub-Journey Selection
 
-Only **published** journeys from your organization can be selected as sub-journeys. The dropdown shows:
+Choose the journey in **Select journey to embed** (2). Only **published** journeys from your organization can be selected as sub-journeys. The dropdown shows:
 
 - Journey title
 - Number of steps
 - Cover image (if available)
+
+The selected journey (3) is shown with its number of steps. It must stay published.
 
 ## How It Works
 

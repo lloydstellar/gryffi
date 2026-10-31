@@ -502,10 +502,10 @@
               <% } else { %>
                 <div class="flex items-center gap-4">
                   <span class="stat-number">
-                    <span><%= guide.knowledge_count || 0 %></span> <%= t('common.sources') %>
+                    <%= t('guides.sourceCount', { count: Number(guide.knowledge_count) || 0 }) %>
                   </span>
                   <span class="stat-number">
-                    <span><%= guide.chunks_count || 0 %></span> chunks
+                    <%= t('guides.chunkCount', { count: Number(guide.chunks_count) || 0 }) %>
                   </span>
                 </div>
                 <span class="text-gryffi-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">

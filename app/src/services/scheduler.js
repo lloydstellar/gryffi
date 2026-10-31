@@ -28,7 +28,8 @@ import {
   transformMicrosoftUser,
   transformMicrosoftGroup
 } from './microsoft.js';
-import { sendReminderEmail } from './email.js';
+import { sendReminderEmail, sendAutomationEmail } from './email.js';
+import { claimAutomationSend, releaseAutomationSend } from './automationSends.js';
 import { encryptToken, decryptToken, encryptStoredTokens } from './oauthTokens.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
 import { isCloud, isCommunity, getEdition } from '../edition.js';
@@ -50,6 +51,12 @@ const TOKEN_ENCRYPTION_INTERVAL = 60 * 60 * 1000;
 // Reminder check interval in milliseconds (30 minutes)
 const REMINDER_CHECK_INTERVAL = 30 * 60 * 1000;
 
+// Inactivity automations: checked hourly. They only go to end users whose
+// last activity lies between the maker's number of days and 7 days later, so
+// nobody gets one about a journey they left months ago.
+const INACTIVITY_CHECK_INTERVAL = 60 * 60 * 1000;
+const INACTIVITY_WINDOW_DAYS = 7;
+
 // Billing period check interval (daily at midnight)
 const BILLING_CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 
@@ -70,6 +77,7 @@ let microsoftSyncInterval = null;
 let trashCleanupInterval = null;
 let tokenEncryptionInterval = null;
 let reminderInterval = null;
+let inactivityInterval = null;
 let billingInterval = null;
 let dataRetentionInterval = null;
 let ttsCacheCleanupInterval = null;
@@ -983,6 +991,95 @@ async function sendInvitationReminders() {
 }
 
 /**
+ * Send "after inactivity" automation emails (journey-level, trigger
+ * on_inactivity, inactivity_days 1-30). An end user is inactive when they
+ * started the current run, did not finish it, and their last activity (a
+ * journey event or opening the link) lies between inactivity_days and
+ * inactivity_days + INACTIVITY_WINDOW_DAYS ago. Each automation goes out once
+ * per run (automation_sends). When the email goes to the end user, it gets a
+ * "Continue journey" button with their magic link.
+ */
+async function sendInactivityAutomations() {
+  try {
+    const result = await query(`
+      SELECT
+        i.id, i.token, i.organization_id,
+        eu.id as end_user_id, eu.email, eu.first_name, eu.last_name,
+        j.id as journey_id, j.title as journey_title, j.settings as journey_settings,
+        o.name as org_name,
+        COALESCE(o.settings->>'default_language', 'en') as org_language,
+        GREATEST(i.last_accessed_at, ev.last_event_at) as last_activity_at
+      FROM invitations i
+      JOIN end_user_progress eup ON eup.invitation_id = i.id
+      JOIN end_users eu ON eu.id = i.end_user_id
+      JOIN journeys j ON j.id = i.journey_id
+      JOIN organizations o ON o.id = i.organization_id
+      LEFT JOIN LATERAL (
+        SELECT MAX(created_at) as last_event_at FROM journey_events WHERE invitation_id = i.id
+      ) ev ON true
+      WHERE i.status = 'active'
+        AND i.expires_at > NOW()
+        AND eup.completed_at IS NULL
+        AND cardinality(eup.visited_steps) > 0
+        AND eu.is_active IS NOT FALSE
+        AND j.status = 'published'
+        AND j.deleted_at IS NULL
+        AND j.settings->'automations' @> '[{"trigger": "on_inactivity"}]'
+        AND GREATEST(i.last_accessed_at, ev.last_event_at) < NOW() - INTERVAL '1 day'
+        AND GREATEST(i.last_accessed_at, ev.last_event_at) > NOW() - make_interval(days => 30 + $1)
+    `, [INACTIVITY_WINDOW_DAYS]);
+    
+    let sent = 0;
+    for (const row of result.rows) {
+      const settings = typeof row.journey_settings === 'string'
+        ? JSON.parse(row.journey_settings)
+        : (row.journey_settings || {});
+      const inactiveDays = (Date.now() - new Date(row.last_activity_at).getTime()) / (24 * 60 * 60 * 1000);
+      // Same language choice as the invitation reminder
+      const language = (settings.language_override && settings.language_code)
+        ? settings.language_code
+        : row.org_language;
+      
+      for (const automation of (settings.automations || []).filter(a => a.trigger === 'on_inactivity')) {
+        const days = Math.min(30, Math.max(1, parseInt(automation.inactivity_days) || 3));
+        if (inactiveDays < days || inactiveDays > days + INACTIVITY_WINDOW_DAYS) continue;
+        
+        try {
+          const claim = await claimAutomationSend({
+            organizationId: row.organization_id,
+            invitationId: row.id,
+            automation
+          });
+          if (claim.skipped) continue;
+          
+          const sendResult = await sendAutomationEmail(automation, {
+            user: { id: row.end_user_id, email: row.email, first_name: row.first_name, last_name: row.last_name },
+            journey: { id: row.journey_id, title: row.journey_title },
+            step: null,
+            organization: { id: row.organization_id, name: row.org_name },
+            language,
+            continueLink: `${getAppBaseUrl()}/e/${row.token}`
+          });
+          if (sendResult.success) {
+            sent++;
+          } else {
+            await releaseAutomationSend(claim.id);
+          }
+        } catch (err) {
+          console.error(`[Inactivity] Failed for invitation ${row.id}:`, err.message);
+        }
+      }
+    }
+    
+    if (sent > 0) {
+      console.log(`[Inactivity] Sent ${sent} inactivity email(s)`);
+    }
+  } catch (err) {
+    console.error('[Inactivity] Error processing inactivity automations:', err.message);
+  }
+}
+
+/**
  * Clean up old data from event/log tables to prevent unbounded growth.
  * Retention periods:
  *   login_attempts: 90 days
@@ -1080,6 +1177,11 @@ export function startScheduler() {
     sendInvitationReminders();
   }, REMINDER_CHECK_INTERVAL);
   
+  // Check for inactive end users every hour
+  inactivityInterval = setInterval(() => {
+    sendInactivityAutomations();
+  }, INACTIVITY_CHECK_INTERVAL);
+  
   // Check billing periods daily (at server start and then every 24h)
   billingInterval = setInterval(() => {
     resetMonthlyBillingPeriods();
@@ -1104,6 +1206,11 @@ export function startScheduler() {
   setTimeout(() => {
     sendInvitationReminders();
   }, 120000);
+  
+  // Run initial inactivity check after 2.5 minutes
+  setTimeout(() => {
+    sendInactivityAutomations();
+  }, 150000);
   
   // Run initial billing check after 3 minutes
   setTimeout(() => {
@@ -1140,7 +1247,7 @@ export function startScheduler() {
       .catch(err => console.error('[Scheduler] Could not start cloud jobs:', err));
   }
   
-  console.log(`[Scheduler] Started (${getEdition()} edition) - Google/Microsoft sync every 15 minutes, Trash cleanup every hour, Reminders every 30 minutes, Billing reset daily, Data retention daily${isCommunity() ? ', Update check daily' : ''}${isCloud() ? ', Lint check nightly at 3:00 AM, Blacklist update daily, Unverified org cleanup hourly, Subscription reconciliation every 6 hours, Lifecycle emails hourly' : ''}`);
+  console.log(`[Scheduler] Started (${getEdition()} edition) - Google/Microsoft sync every 15 minutes, Trash cleanup every hour, Reminders every 30 minutes, Inactivity emails hourly, Billing reset daily, Data retention daily${isCommunity() ? ', Update check daily' : ''}${isCloud() ? ', Lint check nightly at 3:00 AM, Blacklist update daily, Unverified org cleanup hourly, Subscription reconciliation every 6 hours, Lifecycle emails hourly' : ''}`);
 }
 
 /**
@@ -1166,6 +1273,10 @@ export function stopScheduler() {
   if (reminderInterval) {
     clearInterval(reminderInterval);
     reminderInterval = null;
+  }
+  if (inactivityInterval) {
+    clearInterval(inactivityInterval);
+    inactivityInterval = null;
   }
   if (billingInterval) {
     clearInterval(billingInterval);
@@ -1195,4 +1306,4 @@ export default {
 };
 
 // Also export for direct use
-export { runMicrosoftSyncForAllOrgs, syncMicrosoftUsersForOrg };
+export { runMicrosoftSyncForAllOrgs, syncMicrosoftUsersForOrg, sendInactivityAutomations };

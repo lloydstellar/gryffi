@@ -6,11 +6,14 @@
  *                              app/locales/en.json). The app links to
  *                              /troubleshooting/#<code-in-lowercase-with-dashes>.
  *   guide/*.md                 the user guide, from help-base/*.md
+ *   guide/images/              the English screenshots of the user guide
+ *                              (the positions of their numbered markers go
+ *                              into the page, see withScreenshots)
  *   .vitepress/guide.json      the sidebar of the user guide
  *
  * Run from docs/: node scripts/generate.mjs
  */
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, existsSync, cpSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -91,12 +94,75 @@ function titleOf(markdown, id) {
   return heading ? heading[1].trim() : id.replace(/-/g, ' ');
 }
 
+const escapeHtml = (text) => String(text)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// A screenshot line of a help page: ![description](images/<page>/<name>.en.webp)
+const IMAGE_LINE = /^!\[([^\]]*)\]\((images\/[a-z0-9-]+\/[a-z0-9-]+)\.en\.webp\)[ \t]*$/;
+
+/**
+ * Screenshots next to the text. Each screenshot becomes a figure with the
+ * positions of its numbered markers (from <name>.en.json, written by the
+ * screenshot generator); a "(3)" in the text that points at a marker becomes
+ * a button. The theme (.vitepress/theme/shots.js) puts the screenshot of the
+ * part you are reading next to the text on wide screens and highlights a
+ * marker when you point at its number.
+ * Returns the body unchanged for a page without screenshots.
+ */
+function withScreenshots(body) {
+  const markers = {};
+  let figures = 0;
+  let inCode = false;
+  const lines = body.split('\n').map((line) => {
+    if (/^\s*```/.test(line)) inCode = !inCode;
+    if (inCode) return line;
+    const image = line.match(IMAGE_LINE);
+    if (!image) return line;
+    const [, alt, base] = image;
+    let positions = {};
+    try {
+      positions = JSON.parse(readFileSync(join(helpDir, `${base}.en.json`), 'utf8')).markers || {};
+    } catch {
+      // No marker positions: the screenshot is shown without highlights
+    }
+    Object.assign(markers, positions);
+    figures++;
+    const src = `./${base}.en.webp`;
+    return `<figure class="shot" data-markers="${escapeHtml(JSON.stringify(positions))}">` +
+      `<span class="shot-image"><img src="${src}" alt="${escapeHtml(alt)}" loading="lazy"></span>` +
+      `<figcaption>${escapeHtml(alt.replace(/ \((\d{1,2})\)/g, ''))}</figcaption></figure>`;
+  });
+  if (figures === 0) return { body, wide: false };
+
+  inCode = false;
+  const linked = lines.map((line) => {
+    if (/^\s*```/.test(line)) inCode = !inCode;
+    if (inCode || line.startsWith('<figure')) return line;
+    // Outside inline code: "**Save** (5)" -> "**Save** <button>5</button>"
+    return line.split(/(`[^`]*`)/).map((part, i) => (i % 2 ? part : part.replace(
+      / \((\d{1,2})\)(?=[\s.,;:)]|$)/g,
+      (match, number) => (markers[number]
+        ? ` <button type="button" class="shot-ref" data-marker="${number}" aria-label="Show ${number} in the screenshot">${number}</button>`
+        : match)
+    ))).join('');
+  });
+
+  // The title stays above both columns
+  const text = linked.join('\n');
+  const title = text.match(/^# .+$/m);
+  const rest = title ? text.replace(title[0], '').trim() : text;
+  return {
+    body: `${title ? title[0] + '\n\n' : ''}<div class="shot-layout">\n<div class="shot-text">\n\n${rest}\n\n</div>\n<div class="shot-panel" aria-hidden="true"></div>\n</div>`,
+    wide: true
+  };
+}
+
 function toGuidePage(markdown, id) {
   let body = markdown.replace(/^---\n[\s\S]*?\n---\n/, '');
   // Screenshot markers are not used outside the app
-  body = body.replace(/^\s*\[\[show:[^\]]*\]\]\s*$/gm, '');
+  body = body.replace(/^[ \t]*\[\[show:[^\]]*\]\][ \t]*$/gm, '');
   // In-app links become the path to open in Gryffi
-  body = body.replace(/^\s*\[\[goto:([^\]]+)\]\]\s*$/gm, 'Open in Gryffi: `$1`');
+  body = body.replace(/^[ \t]*\[\[goto:([^\]]+)\]\][ \t]*$/gm, 'Open in Gryffi: `$1`');
   body = body.replace(/\[\[goto:([^\]]+)\]\]/g, '`$1`');
   // "See: a, b" lists of help page ids become links
   body = body.replace(/^(\s*-?\s*See:\s*)(.+)$/gm, (line, prefix, list) => prefix + list
@@ -106,12 +172,26 @@ function toGuidePage(markdown, id) {
     .map((item) => (ids.has(item) ? `[${item.replace(/-/g, ' ')}](./${item})` : item))
     .join(', '));
   body = body.replace(/\n{3,}/g, '\n\n').trim();
-  return `---\ntitle: ${JSON.stringify(titleOf(markdown, id))}\n---\n\n::: v-pre\n${body}\n:::\n`;
+  const page = withScreenshots(body);
+  // A page with screenshots uses the full width; its outline gives way
+  const layout = page.wide ? 'aside: false\npageClass: guide-shots\n' : '';
+  return `---\ntitle: ${JSON.stringify(titleOf(markdown, id))}\n${layout}---\n\n::: v-pre\n${page.body}\n:::\n`;
 }
 
 const guideDir = join(docs, 'guide');
 if (existsSync(guideDir)) rmSync(guideDir, { recursive: true });
 mkdirSync(guideDir, { recursive: true });
+
+// Screenshots: the pages link to images/<page>/<name>.en.webp; the other
+// languages and the marker positions (.json) are for the help in the app only
+const imagesDir = join(helpDir, 'images');
+let images = 0;
+if (existsSync(imagesDir)) {
+  cpSync(imagesDir, join(guideDir, 'images'), {
+    recursive: true,
+    filter: (source) => !/\.(webp|json)$/.test(source) || (/\.en\.webp$/.test(source) && ++images > 0)
+  });
+}
 
 const titles = {};
 for (const file of pages) {
@@ -141,4 +221,4 @@ writeFileSync(join(guideDir, 'index.md'), `---\ntitle: User guide\n---\n\n# User
 }\n`);
 writeFileSync(join(docs, '.vitepress/guide.json'), `${JSON.stringify(sidebar, null, 2)}\n`);
 
-console.log(`Generated troubleshooting (${placed.size} codes) and the user guide (${pages.length} pages)`);
+console.log(`Generated troubleshooting (${placed.size} codes) and the user guide (${pages.length} pages, ${images} screenshots)`);
