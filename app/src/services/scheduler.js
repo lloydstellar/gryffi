@@ -18,6 +18,8 @@ import {
 } from './google.js';
 
 import { cleanupTtsCache } from './tts.js';
+import { cleanupHelpEvents } from './helpEvents.js';
+import { prewarmHelpTranslations } from './help.js';
 
 import {
   isMicrosoftConfigured,
@@ -31,6 +33,7 @@ import {
 import { sendReminderEmail, sendAutomationEmail } from './email.js';
 import { claimAutomationSend, releaseAutomationSend } from './automationSends.js';
 import { encryptToken, decryptToken, encryptStoredTokens } from './oauthTokens.js';
+import { invitationToken, protectStoredInvitationTokens } from './invitationTokens.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
 import { isCloud, isCommunity, getEdition } from '../edition.js';
 import { isFeatureEnabled, getSyncEndUserAllowance } from './subscription.js';
@@ -862,6 +865,26 @@ async function resetMonthlyBillingPeriods() {
  * Send reminder emails for invitations that are due
  * Only sends to users who haven't completed the journey
  */
+/**
+ * Invitations past their end date that nobody finished get the status
+ * "expired", so makers see them under Expired and not under Active.
+ * Before, this happened only when the participant opened the old link.
+ * The participant can still ask for a new link (auth.js, request-new-link).
+ */
+async function markExpiredInvitations() {
+  try {
+    const result = await query(`
+      UPDATE invitations SET status = 'expired'
+      WHERE status IN ('pending', 'active')
+        AND expires_at < NOW()
+        AND completions_count = 0
+    `);
+    if (result.rowCount > 0) console.log(`[Scheduler] Marked ${result.rowCount} invitation(s) as expired`);
+  } catch (err) {
+    console.error('[Scheduler] Mark expired invitations error:', err);
+  }
+}
+
 async function sendInvitationReminders() {
   try {
     // Find invitations where:
@@ -881,6 +904,7 @@ async function sendInvitationReminders() {
       SELECT 
         i.id,
         i.token,
+        i.token_encrypted,
         i.expires_at,
         i.journey_id,
         i.end_user_id,
@@ -947,7 +971,7 @@ async function sendInvitationReminders() {
         
         // Construct magic link
         const baseUrl = getAppBaseUrl();
-        const magicLink = `${baseUrl}/e/${invitation.token}`;
+        const magicLink = `${baseUrl}/e/${invitationToken(invitation)}`;
         
         // Use journey language override if set, otherwise fall back to org language
         const jSettings = typeof invitation.journey_settings === 'string'
@@ -1003,7 +1027,7 @@ async function sendInactivityAutomations() {
   try {
     const result = await query(`
       SELECT
-        i.id, i.token, i.organization_id,
+        i.id, i.token, i.token_encrypted, i.organization_id,
         eu.id as end_user_id, eu.email, eu.first_name, eu.last_name,
         j.id as journey_id, j.title as journey_title, j.settings as journey_settings,
         o.name as org_name,
@@ -1045,6 +1069,8 @@ async function sendInactivityAutomations() {
         if (inactiveDays < days || inactiveDays > days + INACTIVITY_WINDOW_DAYS) continue;
         
         try {
+          // Before the claim: a token that cannot be decrypted leaves nothing claimed
+          const continueLink = `${getAppBaseUrl()}/e/${invitationToken(row)}`;
           const claim = await claimAutomationSend({
             organizationId: row.organization_id,
             invitationId: row.id,
@@ -1058,7 +1084,7 @@ async function sendInactivityAutomations() {
             step: null,
             organization: { id: row.organization_id, name: row.org_name },
             language,
-            continueLink: `${getAppBaseUrl()}/e/${row.token}`
+            continueLink
           });
           if (sendResult.success) {
             sent++;
@@ -1085,6 +1111,7 @@ async function sendInactivityAutomations() {
  *   login_attempts: 90 days
  *   journey_events: 365 days
  *   usage_events: 365 days
+ *   help_unanswered: 90 days, help_events: 365 days
  *   processed_webhook_events: 30 days
  *   invitation_sessions: 90 days (GDPR Art. 5(1)(e) — IP/user agent)
  *   expired/completed invitations: 365 days
@@ -1113,6 +1140,11 @@ async function cleanupOldEventData() {
     `);
     if (webhookResult.rowCount > 0) results.push(`processed_webhook_events: ${webhookResult.rowCount}`);
 
+    // In-app help: unanswered questions after 90 days, counts after a year
+    const help = await cleanupHelpEvents();
+    if (help.questions > 0) results.push(`help_unanswered: ${help.questions}`);
+    if (help.events > 0) results.push(`help_events: ${help.events}`);
+
     // GDPR Art. 5(1)(e) — remove stale device sessions (IP, user agent) after 90 days
     const sessionResult = await query(`
       DELETE FROM invitation_sessions WHERE last_active_at < NOW() - INTERVAL '90 days'
@@ -1138,6 +1170,19 @@ async function cleanupOldEventData() {
 /**
  * Start the background scheduler
  */
+/**
+ * Replace plain-text magic-link tokens by a hash and an encrypted copy
+ */
+async function protectInvitationTokens(removePlain) {
+  try {
+    const { converted, removed } = await protectStoredInvitationTokens({ removePlain });
+    if (converted > 0) console.log(`[Scheduler] Magic-link tokens: ${converted} invitation(s) now stored as hash and encrypted copy`);
+    if (removed > 0) console.log(`[Scheduler] Magic-link tokens: plain copy removed from ${removed} invitation(s)`);
+  } catch (err) {
+    console.error('[Scheduler] Magic-link tokens could not be converted:', err.message);
+  }
+}
+
 export function startScheduler() {
   if (isSchedulerRunning) {
     console.log('[Scheduler] Already running');
@@ -1146,10 +1191,15 @@ export function startScheduler() {
   
   isSchedulerRunning = true;
   
-  // Encrypt OAuth tokens still stored as plaintext (from before encryption)
+  // Encrypt OAuth tokens and magic-link tokens still stored as plaintext
+  // (from before encryption)
+  // (the plain magic-link token is only removed on the hourly run: a failed
+  // update can still go back to a version that needs it, see invitationTokens.js)
   encryptStoredTokens();
+  protectInvitationTokens(false);
   tokenEncryptionInterval = setInterval(() => {
     encryptStoredTokens();
+    protectInvitationTokens(true);
   }, TOKEN_ENCRYPTION_INTERVAL);
   
   // Run Google sync every 15 minutes
@@ -1174,6 +1224,7 @@ export function startScheduler() {
   
   // Run reminder check every 30 minutes
   reminderInterval = setInterval(() => {
+    markExpiredInvitations();
     sendInvitationReminders();
   }, REMINDER_CHECK_INTERVAL);
   
@@ -1197,6 +1248,12 @@ export function startScheduler() {
     runMicrosoftSyncForAllOrgs();
   }, 35000);
   
+  // Translate the help articles for the help window ahead of time, after
+  // every start (so after a deploy); cached articles are skipped
+  setTimeout(() => {
+    prewarmHelpTranslations();
+  }, 240000);
+
   // Run initial trash cleanup after 1 minute
   setTimeout(() => {
     cleanupExpiredTrash();
@@ -1204,6 +1261,7 @@ export function startScheduler() {
   
   // Run initial reminder check after 2 minutes
   setTimeout(() => {
+    markExpiredInvitations();
     sendInvitationReminders();
   }, 120000);
   
@@ -1296,14 +1354,6 @@ export function stopScheduler() {
   console.log('[Scheduler] Stopped');
 }
 
-export default {
-  startScheduler,
-  stopScheduler,
-  runGoogleSyncForAllOrgs,
-  syncGoogleUsersForOrg,
-  runMicrosoftSyncForAllOrgs,
-  syncMicrosoftUsersForOrg
-};
 
 // Also export for direct use
 export { runMicrosoftSyncForAllOrgs, syncMicrosoftUsersForOrg, sendInactivityAutomations };

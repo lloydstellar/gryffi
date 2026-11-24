@@ -28,6 +28,7 @@
     }
     .logo img {
       height: 48px;
+      margin: 0 auto; /* Tailwind makes images block-level */
     }
     .shield-icon {
       width: 64px;
@@ -53,7 +54,7 @@
     }
     .verify-subtitle {
       font-size: 14px;
-      color: #64748b;
+      color: #5b6b80;
       margin-bottom: 24px;
     }
     .verify-explanation {
@@ -65,19 +66,19 @@
       background: #f8fafc;
       border-radius: 8px;
     }
-    .code-input-container {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
+    /* One field for the whole code: works with paste, password managers and
+       the one-time-code suggestion of the phone keyboard */
     .code-input {
-      width: 56px;
+      display: block;
+      width: 100%;
       height: 64px;
+      margin-bottom: 24px;
       border: 2px solid #d1ddd0;
       border-radius: 10px;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 700;
+      letter-spacing: 0.5em;
+      text-indent: 0.5em;
       text-align: center;
       color: #0b4b34;
       transition: all 0.15s;
@@ -90,6 +91,9 @@
     .code-input.error {
       border-color: #dc2626;
       animation: shake 0.3s ease-in-out;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .code-input.error { animation: none; }
     }
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -123,7 +127,7 @@
     .resend-link {
       margin-top: 20px;
       font-size: 14px;
-      color: #64748b;
+      color: #5b6b80;
     }
     .resend-link button {
       background: none;
@@ -179,7 +183,7 @@
       border-top: 1px solid #e5e7eb;
     }
     .back-link a {
-      color: #64748b;
+      color: #5b6b80;
       font-size: 14px;
       text-decoration: none;
     }
@@ -188,7 +192,7 @@
     }
     .email-hint {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
       margin-top: 8px;
     }
     .email-hint strong {
@@ -199,7 +203,7 @@
 <body>
   <div class="verify-container">
     <div class="logo">
-      <img src="/images/logos/Logo---transparant-lightgreen-cropped.png" alt="Gryffi">
+      <img src="/images/logos/Logo---cropped-transparant.png" alt="Gryffi">
     </div>
     
     <div class="shield-icon">
@@ -222,20 +226,16 @@
     </div>
     
     <form id="verifyForm">
-      <label style="display: block; text-align: left; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 12px;">
+      <label for="verificationCode" style="display: block; text-align: left; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 12px;">
         <%= t('auth.loginVerification.codeLabel') %>
       </label>
       
-      <div class="code-input-container">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="0">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="1">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="2">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="3">
-      </div>
+      <input type="text" id="verificationCode" name="code" class="code-input" maxlength="<%= codeLength %>"
+             inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{<%= codeLength %>}" aria-describedby="errorMessage">
       
       <p class="email-hint"><%= t('auth.loginVerification.sentTo') %> <strong><%= email %></strong></p>
       
-      <div id="errorMessage" class="error-message"></div>
+      <div id="errorMessage" class="error-message" role="alert"></div>
       <div id="successMessage" class="success-message"></div>
       
       <button type="submit" class="btn btn-primary" id="verifyBtn">
@@ -263,76 +263,36 @@
       invalid: <%-safeJson(t("auth.loginVerification.invalidCode"))%>,
       expired: <%-safeJson(t("auth.loginVerification.codeExpired"))%>
     };
+    const CODE_LENGTH = <%- safeJson(codeLength) %>;
 
     document.addEventListener('DOMContentLoaded', () => {
-      const inputs = document.querySelectorAll('.code-input');
+      const input = document.getElementById('verificationCode');
       const form = document.getElementById('verifyForm');
       const verifyBtn = document.getElementById('verifyBtn');
       const resendBtn = document.getElementById('resendBtn');
       const errorEl = document.getElementById('errorMessage');
       const successEl = document.getElementById('successMessage');
 
-      // Auto-focus first input
-      inputs[0].focus();
+      input.focus();
 
-      // Handle input
-      inputs.forEach((input, index) => {
-        input.addEventListener('input', (e) => {
-          const value = e.target.value.replace(/\D/g, '');
-          e.target.value = value;
-          
-          // Clear error styling
-          input.classList.remove('error');
-          errorEl.classList.remove('show');
-          
-          if (value && index < inputs.length - 1) {
-            inputs[index + 1].focus();
-          }
-          
-          // Auto-submit when all filled
-          if (index === inputs.length - 1 && value) {
-            const code = Array.from(inputs).map(i => i.value).join('');
-            if (code.length === 4) {
-              form.dispatchEvent(new Event('submit'));
-            }
-          }
-        });
-
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Backspace' && !input.value && index > 0) {
-            inputs[index - 1].focus();
-          }
-        });
-
-        // Handle paste
-        input.addEventListener('paste', (e) => {
-          e.preventDefault();
-          const paste = (e.clipboardData || window.clipboardData).getData('text');
-          const digits = paste.replace(/\D/g, '').slice(0, 4);
-          
-          digits.split('').forEach((digit, i) => {
-            if (inputs[i]) {
-              inputs[i].value = digit;
-            }
-          });
-          
-          if (digits.length > 0) {
-            inputs[Math.min(digits.length, inputs.length - 1)].focus();
-          }
-          
-          if (digits.length === 4) {
-            form.dispatchEvent(new Event('submit'));
-          }
-        });
+      // Digits only; submit as soon as all digits are there (typed or pasted)
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/\D/g, '').slice(0, CODE_LENGTH);
+        input.classList.remove('error');
+        input.removeAttribute('aria-invalid');
+        errorEl.classList.remove('show');
+        if (input.value.length === CODE_LENGTH) form.requestSubmit();
       });
 
       // Form submit
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        // Already checking a code (auto-submit plus Enter), or locked
+        if (verifyBtn.disabled) return;
         
-        const code = Array.from(inputs).map(i => i.value).join('');
+        const code = input.value;
         
-        if (code.length !== 4) {
+        if (code.length !== CODE_LENGTH) {
           showError(t.invalid);
           return;
         }
@@ -354,13 +314,17 @@
             window.location.href = data.redirect;
           } else {
             showError(data.error || t.invalid);
-            inputs.forEach(i => i.classList.add('error'));
+            input.classList.add('error');
+            input.setAttribute('aria-invalid', 'true');
             verifyBtn.textContent = t.submit;
             if (data.restart) {
               // Code is no longer valid: only "Back to login" helps now
-              inputs.forEach(i => { i.disabled = true; });
+              input.disabled = true;
               verifyBtn.disabled = true;
             } else {
+              // Empty the wrong code so the next try starts clean
+              input.value = '';
+              input.focus();
               verifyBtn.disabled = false;
             }
           }
@@ -385,12 +349,10 @@
           
           if (data.success) {
             showSuccess(t.resent);
-            // Clear inputs
-            inputs.forEach(i => {
-              i.value = '';
-              i.classList.remove('error');
-            });
-            inputs[0].focus();
+            input.value = '';
+            input.classList.remove('error');
+            input.removeAttribute('aria-invalid');
+            input.focus();
           } else {
             showError(data.error || 'Failed to resend');
           }

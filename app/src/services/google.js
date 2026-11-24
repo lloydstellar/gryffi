@@ -465,22 +465,3 @@ export async function testConnection(accessToken) {
     return false;
   }
 }
-
-export default {
-  isGoogleConfigured,
-  getAuthorizationUrl,
-  exchangeCodeForTokens,
-  refreshAccessToken,
-  getUserInfo,
-  listWorkspaceUsers,
-  fetchAllWorkspaceUsers,
-  transformGoogleUser,
-  getConnectedAdminInfo,
-  listWorkspaceGroups,
-  fetchAllWorkspaceGroups,
-  getGroupMembers,
-  fetchAllGroupMembers,
-  getUser,
-  transformGoogleGroup,
-  testConnection
-};

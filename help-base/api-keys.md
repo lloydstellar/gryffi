@@ -21,7 +21,7 @@ API keys enable:
 
 ### Generate New Key
 
-1. Go to System Settings → API
+1. Go to Organization → API
 2. Click "Generate API Key"
 3. **Copy the key immediately** (shown once)
 4. After you stored the key, click: I have stored the key safely
@@ -30,9 +30,10 @@ API keys enable:
 
 | Property | Description |
 |----------|-------------|
-| Created | When key was generated |
-| Last Used | Recent activity |
-| Status | Active/Inactive |
+| Created | When the key was generated |
+| Last Used | When an application last used the key |
+
+An organization has one API key. All applications that use the API share it.
 
 ## Key Security
 
@@ -40,9 +41,8 @@ API keys enable:
 
 - Store keys in environment variables
 - Never commit keys to code repositories
-- Use different keys for different applications
-- Rotate keys periodically
-- Delete unused keys
+- Rotate the key periodically
+- Revoke the key when no application uses it any more
 
 ### Key Storage
 
@@ -67,18 +67,16 @@ const apiKey = process.env.GRYFFI_API_KEY;
 
 ## Managing Keys
 
-### View All Keys
+### Key details
 
-See all organization API keys:
-- Last used
-- Status
+Organization → API shows when the key was created and when it was last used.
 
 ### Revoke Key
 
-Disable a key:
+Disable the key:
 1. Click "Revoke Key"
-3. Confirm action
-4. Key stops working immediately
+2. Confirm
+3. The key stops working immediately
 
 ## Key Rotation
 
@@ -91,7 +89,7 @@ Disable a key:
 
 ### Rotation Process
 
-1. Click Regenerate Key
+Click "Regenerate Key". The old key stops working at once, so put the new key in every application that uses the API.
 
 ## Troubleshooting
 

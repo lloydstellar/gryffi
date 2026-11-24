@@ -5,7 +5,7 @@ related_features: [maker-roles, admin-role, organization-settings]
 
 # Makers Management
 
-Makers Management allows organization administrators to invite, manage, and assign roles to team members (makers) who create and manage journeys. The makers make the journeys. The end users follow the journeys.
+Makers Management allows organization administrators to invite, manage, and assign roles to team members (makers) who create and manage journeys. The makers make the journeys. The participants follow the journeys.
 
 ![The Makers page: invite a maker (1), pending invitations (2) and the makers (3)](images/makers-management/overview.en.webp)
 
@@ -24,9 +24,9 @@ Makers Management helps you:
 
 [[goto:/dashboard/team]]
 
-## Makers vs End Users
+## Makers vs Participants
 
-| Team Members (Makers) | End Users |
+| Team Members (Makers) | Participants |
 |-----------------------|-----------|
 | Create journeys | Participate in journeys |
 | Access dashboard | Access only journey player |
@@ -39,8 +39,8 @@ Makers Management helps you:
 1. Go to Sidebar → Makers
 2. Go to Invite maker (1)
 3. Enter email address
-4. Select role (Admin, Manager, Editor, Viewer)
-5. Click "Send Invite"
+4. Select role (Admin, Journey Manager, Editor, Viewer)
+5. Click **Send invite**
 
 ### Invitation Process
 
@@ -63,7 +63,7 @@ See: maker-roles for detailed role descriptions.
 | Role | Summary |
 |------|---------|
 | **Admin** | Full access, manage team |
-| **Manager** | Create journeys, manage users |
+| **Journey Manager** | Create journeys, manage participants |
 | **Editor** | Create and edit journeys |
 | **Viewer** | View journeys and analytics |
 
@@ -119,7 +119,7 @@ Changes take effect immediately.
 - Verify email format
 - Check if already a member
 
-### "User Cannot Accept Invitation"
+### "Maker Cannot Accept Invitation"
 - Verify invitation email received
 - Check spam folder
 - Resend invitation

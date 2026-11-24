@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('invitations.title') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -141,7 +143,7 @@
     }
     .journey-option-desc {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
     }
     
     /* Option Cards */
@@ -156,7 +158,7 @@
     }
     .option-hint {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
       margin-bottom: 12px;
     }
     .option-buttons {
@@ -258,7 +260,7 @@
     }
     .user-email {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
     }
     .user-badge {
       font-size: 11px;
@@ -270,7 +272,7 @@
     }
     .selection-count {
       font-size: 14px;
-      color: #64748b;
+      color: #5b6b80;
       margin-bottom: 8px;
     }
     .selection-count strong {
@@ -296,7 +298,7 @@
       background: white;
       font-size: 14px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       cursor: pointer;
       transition: all 0.15s;
     }
@@ -381,7 +383,7 @@
     }
     .group-member-count {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -407,7 +409,7 @@
     .no-groups-message {
       text-align: center;
       padding: 32px;
-      color: #64748b;
+      color: #5b6b80;
       font-size: 14px;
     }
     .no-groups-message a {
@@ -427,7 +429,7 @@
     }
     .review-label {
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       font-size: 14px;
     }
     .review-value {
@@ -469,7 +471,11 @@
     }
     .btn:focus, .btn-primary:focus, .btn-secondary:focus {
       box-shadow: none !important;
-      outline: none !important;
+      outline: none;
+    }
+    .btn:focus-visible, .btn-primary:focus-visible, .btn-secondary:focus-visible {
+      outline: 2px solid #0b4b34;
+      outline-offset: 2px;
     }
     .btn-primary:disabled {
       background: #d1d5db !important;
@@ -487,8 +493,8 @@
       font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #64748b;
+      text-transform: none;
+      color: #5b6b80;
       padding: 10px 12px;
       border-bottom: 1px solid #e5e7eb;
     }
@@ -526,7 +532,7 @@
     }
     .status-expired {
       background: #f3f4f6;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .status-revoked {
       background: #fee2e2;
@@ -548,7 +554,7 @@
       border-radius: 6px;
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       cursor: pointer;
       transition: all 0.15s;
       border: none;
@@ -578,7 +584,7 @@
     .empty-state {
       text-align: center;
       padding: 48px 24px;
-      color: #64748b;
+      color: #5b6b80;
     }
     .empty-state-icon {
       width: 64px;
@@ -644,7 +650,7 @@
     }
     .no-permission-hint {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
       font-style: italic;
     }
     
@@ -770,11 +776,14 @@
     }
     .journey-badge-draft {
       background: #f3f4f6;
-      color: #6b7280;
+      color: #5b6b80;
     }
     
     
     /* Action buttons in table */
+    .action-btn + .action-btn {
+      margin-left: 6px;
+    }
     .action-btn {
       padding: 6px 10px;
       font-size: 12px;
@@ -888,7 +897,7 @@
     }
     .pagination-info {
       font-size: 14px;
-      color: #64748b;
+      color: #5b6b80;
     }
     .pagination-info strong {
       color: #0f172a;
@@ -944,7 +953,7 @@
       justify-content: center;
       align-items: center;
       padding: 48px;
-      color: #64748b;
+      color: #5b6b80;
     }
     .table-loading svg {
       width: 24px;
@@ -968,22 +977,22 @@
   </style>
   <script src="/js/app.js"></script>
 </head>
-<body class="min-h-screen bg-zen-50">
+<body class="min-h-screen bg-gryffi-bg">
   <div class="min-h-screen">
     <%- include('../partials/sidebar') %>
   <%- include('../partials/help-modal') %>
     <%- include('../partials/support-modal') %>
 
     <!-- Main content -->
-    <main class="main-content">
+    <main class="main-content" id="main-content" tabindex="-1">
       <%- include('../partials/free-tier-banner') %>
       <%- include('../partials/ai-credits-banner') %>
       
-      <div class="max-w-5xl mx-auto">
+      <div>
         <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-2xl font-bold text-zen-900 mb-2"><%= t('invitations.title') %></h1>
-          <p class="text-zen-600"><%= t('invitations.subtitle') %></p>
+        <div class="page-header">
+          <h1 class="page-title"><%= t('invitations.title') %></h1>
+          <p class="page-subtitle"><%= t('invitations.subtitle') %></p>
         </div>
 
         <!-- Send Invitations Card -->
@@ -1027,10 +1036,14 @@
                   </svg>
                 </div>
                 <div class="empty-state-title"><%= t('invitations.users.noUsers') %></div>
+                <% if (user && user.role === 'admin') { %>
                 <div class="empty-state-desc"><%= t('invitations.users.noUsersDescription') %></div>
-                <a href="/dashboard/system-settings#users" class="btn btn-primary">
-                  <%= t('invitations.users.goToSystemSettings') %>
+                <a href="/dashboard/participants#users" class="btn btn-primary">
+                  <%= t('invitations.users.goToParticipants') %>
                 </a>
+                <% } else { %>
+                <div class="empty-state-desc"><%= t('invitations.users.askAdmin') %></div>
+                <% } %>
               </div>
             <% } else { %>
               <!-- Wizard Steps -->
@@ -1057,7 +1070,10 @@
                 <!-- Step 1: Select Journey -->
                 <div class="wizard-panel active" data-panel="1">
                   <h3 class="text-lg font-semibold text-zen-900 mb-2"><%= t('invitations.journey.title') %></h3>
-                  <p class="text-zen-600 text-sm mb-6"><%= t('invitations.journey.subtitle') %></p>
+                  <p class="text-zen-600 text-sm <%= locals.publicJourneyCount > 0 ? 'mb-2' : 'mb-6' %>"><%= t('invitations.journey.subtitle') %></p>
+                  <% if (locals.publicJourneyCount > 0) { %>
+                    <p class="text-zen-600 text-sm mb-6"><%= t('invitations.journey.publicNotListed', { count: locals.publicJourneyCount }) %></p>
+                  <% } %>
                   
                   <div id="journeyList">
                     <% 
@@ -1369,6 +1385,9 @@
   </div>
 
   <script>
+    // Only managers and admins may revoke invitations (the API checks this too)
+    const canManageInvitations = <%- safeJson(userRole === 'admin' || userRole === 'manager') %>;
+
     // Translations for JS
     const t = {
       sending: <%-safeJson(t("invitations.review.sending"))%>,
@@ -1402,6 +1421,8 @@
         revoked: <%-safeJson(t("invitations.list.status.revoked"))%>
       },
       revoke: <%-safeJson(t("invitations.list.actions.revoke"))%>,
+      resend: <%-safeJson(t("invitations.list.actions.resend"))%>,
+      resendFailed: <%-safeJson(t("invitations.list.resendFailed"))%>,
       showing: <%-safeJson(t("invitations.list.showing") || "Showing")%>,
       of: <%-safeJson(t("invitations.list.of") || "of")%>,
       invitationsCount: <%-safeJson(t("invitations.list.invitationsCount") || "invitations")%>
@@ -1451,7 +1472,9 @@
         
         tableBody.innerHTML = invitations.map(inv => {
           const effectiveStatus = getEffectiveStatus(inv);
-          const canRevoke = inv.status === 'pending' || inv.status === 'active';
+          const canRevoke = canManageInvitations && (inv.status === 'pending' || inv.status === 'active');
+          // Send the same link again while it is still valid
+          const canResend = canRevoke && new Date(inv.expires_at) > new Date();
           
           return `
             <tr data-invitation-id="${inv.id}" data-status="${effectiveStatus}">
@@ -1468,12 +1491,17 @@
               <td>${formatDate(inv.created_at)}</td>
               <td>${formatDate(inv.expires_at)}</td>
               <td>
+                ${canResend ? `<button type="button" class="action-btn resend-btn" data-id="${inv.id}">${t.resend}</button>` : ''}
                 ${canRevoke ? `<button type="button" class="action-btn action-btn-danger revoke-btn" data-id="${inv.id}">${t.revoke}</button>` : ''}
               </td>
             </tr>
           `;
         }).join('');
         
+        tableBody.querySelectorAll('.resend-btn').forEach(btn => {
+          btn.addEventListener('click', handleResend);
+        });
+
         // Re-bind revoke buttons
         tableBody.querySelectorAll('.revoke-btn').forEach(btn => {
           btn.addEventListener('click', handleRevoke);
@@ -1497,7 +1525,7 @@
         let html = '';
         
         // Previous button
-        html += `<button class="pagination-btn" ${info.currentPage === 1 ? 'disabled' : ''} data-page="${info.currentPage - 1}">
+        html += `<button class="pagination-btn" ${info.currentPage === 1 ? 'disabled' : ''} data-page="${info.currentPage - 1}" aria-label="${escapeHtml(<%- safeJson(t('common.previous')) %>)}">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>`;
         
@@ -1523,12 +1551,12 @@
           if (page === '...') {
             html += '<span class="pagination-ellipsis">...</span>';
           } else {
-            html += `<button class="pagination-btn ${page === current ? 'active' : ''}" data-page="${page}">${page}</button>`;
+            html += `<button class="pagination-btn ${page === current ? 'active' : ''}" data-page="${page}"${page === current ? ' aria-current="page"' : ''}>${page}</button>`;
           }
         });
         
         // Next button
-        html += `<button class="pagination-btn" ${info.currentPage === pages ? 'disabled' : ''} data-page="${info.currentPage + 1}">
+        html += `<button class="pagination-btn" ${info.currentPage === pages ? 'disabled' : ''} data-page="${info.currentPage + 1}" aria-label="${escapeHtml(<%- safeJson(t('common.next')) %>)}">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>`;
         
@@ -1583,6 +1611,23 @@
         }
       }
       
+      // Send an invitation again (same link, remaining validity)
+      async function handleResend(e) {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+          const response = await fetch(`/api/invitations/${btn.dataset.id}/resend`, { method: 'POST' });
+          const data = await response.json().catch(() => ({}));
+          if (data.success) window.gryffi.toast.success(data.message);
+          else window.gryffi.toast.error(data.error || t.resendFailed);
+        } catch (err) {
+          console.error('Resend error:', err);
+          window.gryffi.toast.error(t.resendFailed);
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
       // Handle revoke
       async function handleRevoke(e) {
         const btn = e.target;
@@ -1905,7 +1950,7 @@
           groupList.innerHTML = `
             <div class="no-groups-message">
               <%= t('invitations.users.noGroups') %><br>
-              <a href="/dashboard/system-settings#users"><%= t('invitations.users.goToSystemSettings') %></a>
+              <% if (user && user.role === 'admin') { %><a href="/dashboard/participants#users"><%= t('invitations.users.goToParticipants') %></a><% } %>
             </div>
           `;
           return;
@@ -2106,7 +2151,9 @@
             
             if (data.warning && data.failed_count > 0) {
               // Show warning about partial success
-              window.gryffi.toast.show(`${data.sent_count} <%= t('invitations.sentOf') %> ${data.total_requested}. ${data.warning}`, 'warning');
+              const sentOf = <%- safeJson(t('invitations.sentOf')) %>
+                .replace('{{sent}}', data.sent_count).replace('{{total}}', data.total_requested);
+              window.gryffi.toast.show(`${sentOf} ${data.warning}`, 'warning');
             } else {
               window.gryffi.toast.show(successMessage, 'success');
             }

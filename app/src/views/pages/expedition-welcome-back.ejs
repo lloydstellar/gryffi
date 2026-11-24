@@ -44,7 +44,7 @@
     }
     .welcome-message {
       font-size: 16px;
-      color: #64748b;
+      color: #5b6b80;
       line-height: 1.6;
       margin-bottom: 32px;
     }
@@ -53,6 +53,7 @@
     }
     .logo img {
       height: 48px;
+      margin: 0 auto; /* Tailwind makes images block-level */
     }
     .button-group {
       display: flex;
@@ -81,6 +82,15 @@
       background: #083d2a;
       transform: translateY(-1px);
     }
+    .restart-error {
+      margin-top: 16px;
+      padding: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      color: #dc2626;
+      font-size: 14px;
+    }
     .btn-secondary {
       background: white;
       color: #0b4b34;
@@ -98,7 +108,7 @@
 <body>
   <div class="welcome-container">
     <div class="logo">
-      <img src="/images/logos/Logo---transparant-lightgreen-cropped.png" alt="Gryffi">
+      <img src="/images/logos/Logo---cropped-transparant.png" alt="Gryffi">
     </div>
     
     <div class="welcome-icon">
@@ -126,9 +136,22 @@
         <%= reviewButton %>
       </a>
     </div>
+    <p id="restartError" class="restart-error" role="alert" hidden></p>
   </div>
   
   <script>
+    const token = <%- safeJson(token) %>;
+    const errorMessage = <%- safeJson(errorMessage) %>;
+    const errorEl = document.getElementById('restartError');
+
+    function showRestartError(btn, btnText, originalText) {
+      errorEl.textContent = errorMessage;
+      errorEl.hidden = false;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btnText.textContent = originalText;
+    }
+
     document.getElementById('restartBtn').addEventListener('click', async function() {
       const btn = this;
       const btnText = document.getElementById('restartBtnText');
@@ -138,9 +161,10 @@
       btn.disabled = true;
       btn.style.opacity = '0.7';
       btnText.textContent = '...';
+      errorEl.hidden = true;
       
       try {
-        const response = await fetch('/e/<%= token %>/restart', {
+        const response = await fetch(`/e/${encodeURIComponent(token)}/restart`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -149,19 +173,13 @@
         
         if (data.success) {
           // Redirect to the journey (bypass welcome-back check by going directly)
-          window.location.href = '/e/<%= token %>?restart=1';
+          window.location.href = `/e/${encodeURIComponent(token)}?restart=1`;
         } else {
-          alert(data.error || 'Er ging iets mis. Probeer opnieuw.');
-          btn.disabled = false;
-          btn.style.opacity = '1';
-          btnText.textContent = originalText;
+          showRestartError(btn, btnText, originalText);
         }
       } catch (err) {
         console.error('Restart error:', err);
-        alert('Er ging iets mis. Probeer opnieuw.');
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btnText.textContent = originalText;
+        showRestartError(btn, btnText, originalText);
       }
     });
   </script>

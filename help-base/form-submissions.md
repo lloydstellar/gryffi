@@ -11,7 +11,7 @@ Form Submissions show all responses submitted through Form Steps in your journey
 
 1. The Forms tab in Analytics, with the number of submissions.
 2. Show the submissions of everyone or of one person.
-3. A submission with the answers, the name of the end user and the date.
+3. A submission with the answers, the name of the participant and the date.
 
 ## Overview
 
@@ -35,7 +35,7 @@ See: maker-roles
 ### Access Form Submissions
 
 1. Go to Analytics → **Forms** (1)
-2. Use the journey filter dropdown to narrow down to a specific journey
+2. When forms in more than one journey have submissions, use the journey filter to show one journey
 3. Use the filter (2) to show the submissions of everyone or of one person
 4. The count badge shows the number of submissions
 

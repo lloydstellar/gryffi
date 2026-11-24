@@ -5,18 +5,18 @@ related_features: [end-user-management, end-user-groups, google-workspace-sync]
 
 # Microsoft 365 Sync
 
-Microsoft 365 Sync automatically imports and keeps your end users synchronized with your Microsoft 365 (Azure AD) directory.
+Microsoft 365 Sync automatically imports and keeps your participants synchronized with your Microsoft 365 directory.
 
-![Microsoft 365 in System Settings, Users: the option (1), Connect with Microsoft (2) and the setup instructions (3)](images/microsoft-365-sync/connect.en.webp)
+![Microsoft 365 on the Participants page: the option (1), Connect with Microsoft (2) and the setup instructions (3)](images/microsoft-365-sync/connect.en.webp)
 
-1. Microsoft 365: sync end users and groups from Azure AD.
+1. Microsoft 365: sync participants and groups from Microsoft 365.
 2. Connect with Microsoft: a Microsoft 365 administrator gives Gryffi access.
 3. Show or hide the setup instructions.
 ## Overview
 
 With Microsoft 365 Sync, you can:
 
-- Automatically import users from Azure AD
+- Automatically import users from Microsoft 365
 - Keep user data synchronized
 - Sync Microsoft 365 groups to Gryffi
 - Reduce manual user management
@@ -25,7 +25,7 @@ With Microsoft 365 Sync, you can:
 
 Before connecting:
 
-1. **Global Administrator** or **Application Administrator** role in Azure AD
+1. **Global Administrator** or **Application Administrator** role in Microsoft Entra ID
 2. **Admin role** in Gryffi organization
 
 ## Connecting Microsoft 365
@@ -48,9 +48,9 @@ Only a Global Administrator or Privileged Role Administrator can grant admin con
 
 ### Step 1: Navigate to Sync Settings
 
-Go to System Settings → Users → **Microsoft 365** (1).
+Go to Participants → **Microsoft 365** (1).
 
-[[goto:/dashboard/system-settings#users/microsoft]]
+[[goto:/dashboard/participants#users/microsoft]]
 
 ### Step 2: Click "Connect Microsoft 365"
 Click **Connect with Microsoft** (2). You'll be redirected to Microsoft login.
@@ -77,7 +77,7 @@ The sync is run every 15 minutes
 ## Troubleshooting
 
 ### "Connection Failed" Error
-- Verify admin permissions in Azure AD
+- Verify admin permissions in Microsoft Entra ID
 - Check if conditional access policies block the connection
 - Try reconnecting with a different admin account
 
@@ -88,21 +88,21 @@ The sync is run every 15 minutes
 
 ### "Permission Denied"
 - Re-authorize the connection
-- Check Azure AD app registration is active
+- Check in Microsoft Entra ID that the Gryffi app is still active
 
 ## Security Considerations
 
 ### Data Access
-- Gryffi only reads user data, never writes to Azure AD
+- Gryffi only reads user data, never writes to Microsoft 365
 - No password data is transferred
 
 ### Revoking Access
 To disconnect:
-1. Go to System Settings → Users → Microsoft 365
+1. Go to Participants → Microsoft 365
 2. Click "Disconnect Microsoft 365"
 
 ## Related Features
 
-- [[goto:/dashboard/system-settings#users/microsoft]] - Sync settings
-- [[goto:/dashboard/system-settings#users/microsoft]] - View synced users
+- [[goto:/dashboard/participants#users/microsoft]] - Sync settings
+- [[goto:/dashboard/participants#users/microsoft]] - View synced users
 - See: end-user-management, google-workspace-sync

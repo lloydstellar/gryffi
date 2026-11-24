@@ -8,7 +8,8 @@
  * Uses the configured AI provider and chat model (services/aiProvider.js).
  */
 
-import { aiFetch, getAiConfig, isAiConfigured } from './aiProvider.js';
+import { aiFetch, getAiConfig, isAiConfigured, messageText } from './aiProvider.js';
+import { removeEmDashes } from '../utils/textStyle.js';
 
 
 // Wizard generation can take a while: mistral-large-latest produces up to a
@@ -23,12 +24,15 @@ const WIZARD_MISTRAL_TIMEOUT_MS = Number(process.env.WIZARD_MISTRAL_TIMEOUT_MS) 
 // on the components page we drop in safe, license-friendly placeholders that
 // they can swap out in the builder. Both are overridable via .env so ops can
 // switch to a brand-themed asset without a code change.
-//   - Video:  a generic Gryffi welcome clip on YouTube.
-//   - Image:  a free-to-use "Coming Soon" photo by Vie Studio on Pexels.
-const PLACEHOLDER_VIDEO_URL = process.env.WIZARD_PLACEHOLDER_VIDEO_URL ||
-  'https://www.youtube.com/watch?v=MLpWrANjFbI';
+//   - Video:  none by default: the step gets no link and the maker pastes
+//             their own YouTube link in the builder (the player shows the
+//             text meanwhile). Set WIZARD_PLACEHOLDER_VIDEO_URL for one.
+//   - Image:  a free-to-use "Coming Soon" photo by Vie Studio (Pexels), served by Gryffi.
+const PLACEHOLDER_VIDEO_URL = process.env.WIZARD_PLACEHOLDER_VIDEO_URL || '';
+// Served by Gryffi itself (a copy of a Pexels photo): end users do not load
+// it from a third party outside the EU
 const PLACEHOLDER_IMAGE_URL = process.env.WIZARD_PLACEHOLDER_IMAGE_URL ||
-  'https://images.pexels.com/photos/4439444/pexels-photo-4439444.jpeg';
+  '/images/wizard-placeholder.jpg';
 
 /**
  * Length is intentionally a "feel" rather than a fixed step count: the maker
@@ -72,6 +76,13 @@ const LANGUAGE_NAMES = {
   en: 'English', nl: 'Dutch', de: 'German', fr: 'French', es: 'Spanish',
   it: 'Italian', pt: 'Portuguese', da: 'Danish', no: 'Norwegian',
   fi: 'Finnish', sv: 'Swedish', pl: 'Polish', ro: 'Romanian', tr: 'Turkish'
+};
+
+// Title of a reward step when the model gave none (shown to end users)
+const REWARD_TITLE = {
+  en: 'Reward', nl: 'Beloning', de: 'Belohnung', fr: 'Récompense', es: 'Recompensa',
+  it: 'Ricompensa', pt: 'Recompensa', da: 'Belønning', no: 'Belønning', fi: 'Palkinto',
+  sv: 'Belöning', pl: 'Nagroda', ro: 'Recompensă', tr: 'Ödül'
 };
 
 const JOURNEY_TERM = {
@@ -314,7 +325,7 @@ Now design the ${journeyTerm}. Remember: invent a short fitting title and a one-
   }
 
   const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
+  const content = messageText(data);
   if (!content) throw new Error('Empty response from Mistral');
 
   let parsed;
@@ -456,7 +467,9 @@ function normalisePlan(raw, ctx) {
     const base = {
       id: Number(s.id) || (i + 1),
       type,
-      title: sanitize(s.title || `Step ${i + 1}`, 200),
+      // A reward without its own title gets its reward title, then a word
+      // in the journey language: never "Step 6" on the participant's screen
+      title: sanitize(s.title || (type === 'reward' ? (s.reward_title || REWARD_TITLE[ctx.opts.language] || REWARD_TITLE.en) : `Step ${i + 1}`), 200),
       is_start: i === 0,
       is_end: i === stepsIn.length - 1
     };
@@ -731,7 +744,8 @@ function basicPropsFor(type, s, ctx) {
       };
     case 'form':
       return {
-        intro: sanitize(s.form_intro || '', 300),
+        // "description" is what the builder edits and the player shows
+        description: sanitize(s.form_intro || '', 300),
         fields: Array.isArray(s.form_fields) && s.form_fields.length > 0
           ? s.form_fields.slice(0, 6).map((f, i) => ({
               id: `field_${i + 1}`,
@@ -758,12 +772,14 @@ function basicPropsFor(type, s, ctx) {
     }
     case 'reward':
       return {
-        title: sanitize(s.reward_title || s.title || 'Reward', 200),
+        title: sanitize(s.reward_title || s.title || REWARD_TITLE[ctx?.opts?.language] || REWARD_TITLE.en, 200),
         description: sanitize(s.reward_description || s.body || '', 500),
         redemption_location: '',
         terms_conditions: '',
         valid_until: null,
-        is_random_codes: false,
+        // Random codes: every participant gets one. Manual mode with an
+        // empty list would hand out nothing ("too late" for everyone).
+        is_random_codes: true,
         manual_codes: ''
       };
     case 'space':
@@ -789,8 +805,8 @@ function advancedPropsFor(type, s) {
       return {
         hint: '',
         max_attempts: 3,
-        pass_message: sanitize(s.feedback_correct || '', 500),
-        fail_message: sanitize(s.feedback_incorrect || '', 500)
+        pass_message: plainText(s.feedback_correct || '', 500),
+        fail_message: plainText(s.feedback_incorrect || '', 500)
       };
     case 'guide':
       return {
@@ -812,19 +828,33 @@ function advancedPropsFor(type, s) {
 
 function sanitize(str, maxLen = 500) {
   if (str === null || str === undefined) return '';
-  return String(str)
+  return removeEmDashes(String(str)
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .slice(0, maxLen)
-    .trim();
+    .trim());
+}
+
+/**
+ * Plain text from a model answer that sometimes wraps text in HTML tags.
+ * Cosmetic only: these fields are always escaped when they are shown.
+ * @param {string} str
+ * @param {number} [maxLen]
+ * @returns {string}
+ */
+function plainText(str, maxLen = 500) {
+  return sanitize(String(str ?? '')
+    .replace(/<br\s*\/?>|<\/p>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\n{3,}/g, '\n\n'), maxLen);
 }
 
 function sanitizeHtml(html) {
   if (!html) return '';
-  return String(html)
+  return removeEmDashes(String(html)
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/\son\w+="[^"]*"/gi, '')
     .replace(/\son\w+='[^']*'/gi, '')
-    .slice(0, 8000);
+    .slice(0, 8000));
 }
 
 /**
@@ -968,5 +998,3 @@ export function computePlanLayout(plan, opts = {}) {
 
   return positions;
 }
-
-export default { buildJourneyPlan, computePlanLayout };

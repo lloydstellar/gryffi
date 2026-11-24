@@ -5,13 +5,13 @@ related_features: [dashboard, reports, poll-results, form-submissions, end-user-
 
 # Analytics Overview
 
-The Analytics dashboard provides comprehensive insights into journey performance, user engagement, and content effectiveness across your organization.
+The Analytics dashboard provides comprehensive insights into journey performance, participant engagement, and content effectiveness across your organization.
 
 ![Analytics: the tabs (1), the period (2), the key figures (3) and the completion trend (4)](images/analytics-overview/analytics.en.webp)
 
-1. The tabs: Overview, Journeys, Users, Groups, Polls, Rewards, Forms and Reports.
+1. The tabs: Overview, Journeys, Participants, Groups, Polls, Rewards, Forms and Reports.
 2. The period the figures are about.
-3. Journeys started, completion rate, average time per step and active users.
+3. Journeys started, completion rate, average time per step and active participants.
 4. How many journeys were started and completed per day.
 
 ## Overview
@@ -22,7 +22,7 @@ The Analytics page consists of eight tabs (1):
 |-----|-------------|
 | Overview | High-level KPIs and trends |
 | Journeys | Funnel visualization and step analysis |
-| Users | Individual user progress and activity |
+| Participants | Individual participant progress and activity |
 | Groups | Group performance comparison |
 | Polls | Poll voting results |
 | Forms | Form submissions and uploaded files (admins and journey managers only) |
@@ -42,7 +42,7 @@ The Overview tab displays key performance indicators (3) for the selected time p
 | Journeys Started | Total journey starts in period |
 | Completion Rate | Percentage of completed journeys |
 | Avg. Duration | Average time spent per step |
-| Active Users | Unique users with activity |
+| Active Participants | Unique participants with activity |
 
 ### Completion Trend
 
@@ -67,14 +67,14 @@ Analyze individual journey performance with detailed funnel visualization.
 1. Select a journey from the dropdown
 2. View the step-by-step funnel showing:
    - Step title
-   - Users who reached each step
+   - Participants who reached each step
    - Drop-off percentage between steps
 
 ### Step Analysis
 
 | Data Point | Description |
 |------------|-------------|
-| Reached | Number of users who reached the step |
+| Reached | Number of participants who reached the step |
 | Drop-off | Percentage who didn't continue |
 | Avg Time | Average time spent on step |
 
@@ -82,24 +82,24 @@ Analyze individual journey performance with detailed funnel visualization.
 
 Click "Export PDF" next to the journey selector to download a Journey Performance Report for the selected journey.
 
-## Users Tab
+## Participants Tab
 
-Track individual end user progress and engagement.
+Track individual participant progress and engagement.
 
 [[goto:/dashboard/analytics#users]]
 
-### User Overview
+### Participant Overview
 
-The users table shows:
-- User name and email
+The participants table shows:
+- Participant name and email
 - Group membership (supports multiple groups)
 - Journeys completed
 - Average quiz score
 - Last activity date
 
-### User Details
+### Participant Details
 
-Click "View Details" on any user to see:
+Click "View Details" on any participant to see:
 - Personal information
 - Journey activity timeline
 - Quiz performance statistics
@@ -107,11 +107,11 @@ Click "View Details" on any user to see:
 
 ### Journey Replay
 
-View a detailed timeline of a user's journey experience:
+View a detailed timeline of a participant's journey experience:
 
-1. Go to Analytics - Users (tab)
-2. Search for a specific user
-3. If a user have finished a journey they have a Replay button in the Actions collumn
+1. Go to Analytics - Participants (tab)
+2. Search for a specific participant
+3. If a participant has finished a journey, there is a Replay button in the Actions column
 4. Click the Replay button next to View Details
 5. View the waterfall timeline showing:
    - Each step visited with duration
@@ -125,7 +125,7 @@ View a detailed timeline of a user's journey experience:
 
 ## Groups Tab
 
-Compare performance across end user groups.
+Compare performance across participant groups.
 
 [[goto:/dashboard/analytics#groups]]
 
@@ -133,9 +133,9 @@ Compare performance across end user groups.
 
 | Metric | Description |
 |--------|-------------|
-| Members | Total users in group |
-| Active | Users with recent activity |
-| Completed | Users who finished journeys |
+| Members | Total participants in group |
+| Active | Participants with recent activity |
+| Completed | Participants who finished journeys |
 | Completion Rate | Group completion percentage |
 | Avg Quiz Score | Group average on quizzes |
 

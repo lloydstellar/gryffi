@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Välkommen",
+    "greeting": "Välkommen, {{firstName}}!",
     "guide": "Guide",
     "aiAssistant": "AI Assistent",
     "noGuideSelected": "Ingen guide vald",
     "pleaseSelectGuide": "Välj en AI Guide i steginställningarna",
     "selectGuideForStep": "Välj en guide för detta steg.",
     "chat": {
+      "yourGuide": "Din guide",
       "typeMessage": "Skriv ditt meddelande...",
       "typeQuestion": "Skriv din fråga...",
       "askGuide": "Fråga {{name}}",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Hej! Hur kan jag hjälpa dig?",
       "chatError": "Tyvärr, jag kunde inte behandla det.",
       "connectionError": "Jag har anslutningsproblem just nu. Försök igen.",
-      "guideUnavailable": "Jag kan inte svara på frågor just nu. Du kan fortsätta med nästa steg."
+      "guideUnavailable": "Jag kan inte svara på frågor just nu. Du kan fortsätta med nästa steg.",
+      "sources": "Källor",
+      "showSource": "Visa källa {{number}}"
     },
     "content": {
       "invalidVideoUrl": "Ogiltig video-URL",
       "noContentYet": "Inget innehåll tillagt ännu",
-      "pressPlayToStart": "Tryck på spela för att börja titta"
+      "pressPlayToStart": "Klicka på Spela upp video för att börja titta",
+      "videoLoad": "Spela upp video",
+      "videoNotice": "Den här videon finns på YouTube. När du klickar på Spela upp video ansluter din webbläsare till YouTube (Google). Google får då din IP-adress och kan spara data på din enhet.",
+      "videoPrivacyLink": "Googles integritetspolicy"
     },
     "navigation": {
       "whenReady": "När du är redo:",
@@ -27,12 +34,12 @@
       "leaveJourney": "Lämna expedition?",
       "leaveJourneyMessage": "Är du säker på att du vill lämna denna expedition? Din framsteg har sparats.",
       "leaveConfirm": "Lämna",
-      "stayContinue": "Stanna"
+      "stayContinue": "Stanna",
+      "doAgain": "Vill du göra den här expeditionen igen?"
     },
     "pacing": {
       "readyToContinue": "Du kan nu fortsätta",
       "takeYourTimeMinutes": "Ta {{minutes}} minut att utforska",
-      "takeYourTimeMinutesPlural": "Ta {{minutes}} minuter att utforska",
       "takeYourTimeSeconds": "Ta din tid... {{seconds}}s",
       "keepWatching": "Fortsätt titta... {{seconds}}s",
       "chatWithGuide": "Chatta med guiden ({{count}}/{{total}} meddelanden)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "Du har redan skickat detta formulär",
         "message": "Du skickade detta formulär den {{date}}. Du kan skicka det igen eller fortsätta utan att fylla i det.",
-        "skipButton": "Fortsätt utan att skicka",
-        "submitAgain": "Skicka igen"
+        "skipButton": "Fortsätt utan att skicka"
       },
       "fileUpload": {
         "dropzone": "Dra fil hit eller klicka för att bläddra",
-        "dragActive": "Släpp filen här",
         "maxSize": "Max {{size}} MB",
         "invalidType": "Ogiltig filtyp. Tillåtet: {{types}}",
         "fileTooLarge": "Filen är för stor. Maxstorlek: {{size}} MB",
         "totalTooLarge": "Totala bilagsstorleken överskrider gränsen (38 MB)",
         "removeFile": "Ta bort fil",
-        "noFileSelected": "Ingen fil vald",
-        "fileSelected": "Fil vald: {{name}}",
         "subtypes": {
           "image": "Bild",
           "document": "Dokument",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "Den här bilden kan inte laddas upp. Välj en annan bild.",
-      "imageCheckUnavailable": "Vi kunde inte kontrollera din bild just nu. Försök igen om några minuter."
+      "imageCheckUnavailable": "Vi kunde inte kontrollera din bild just nu. Försök igen om några minuter.",
+      "fieldRequired": "Fyll i det här fältet.",
+      "invalidEmail": "Ange en giltig e-postadress, till exempel namn@foretag.se.",
+      "fileRequired": "Välj en fil för \"{{field}}\"."
     },
     "quiz": {
+      "title": "Quiz",
       "questionOf": "Fråga {{current}} av {{total}}",
-      "checkAnswer": "Kontrollera svar",
       "next": "Nästa",
       "previous": "Föregående",
       "finish": "Skicka svar",
       "correct": "Rätt!",
       "incorrect": "Inte helt rätt",
-      "tryAgain": "Försök igen",
       "score": "Din poäng",
       "passed": "Quiz klarad!",
       "completed": "Quiz slutförd",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Slutför omröstningen för att fortsätta",
       "alreadyVoted": "Du har redan röstat",
       "voteRecorded": "Din röst har registrerats",
-      "votes": "röster",
-      "votesCount": "{{count}} röst",
-      "votesCountPlural": "{{count}} röster",
       "respondents": "{{count}} deltagare",
       "respondentsPlural": "{{count}} deltagare",
-      "yourVote": "Din röst"
+      "chooseFirst": "Välj ett svar först och klicka sedan på \"Rösta\"."
     },
     "space": {
       "dragHint": "Dra för att titta runt",
       "viewFloorplan": "Visa planritning",
-      "youAreHere": "Du är här"
+      "youAreHere": "Du är här",
+      "panoramaLabel": "360°-foto: {{title}}",
+      "panoramaKeyboardHint": "Använd piltangenterna för att titta runt. Använd + och - för att zooma.",
+      "zoomIn": "Zooma in",
+      "zoomOut": "Zooma ut",
+      "panoramaLoadFailed": "360°-fotot kunde inte laddas. Ladda om sidan för att försöka igen."
     },
     "stepTypes": {
       "reward": "Belöning"
@@ -131,19 +138,20 @@
       "emailSent": "En kopia har skickats till din e-post",
       "alreadyClaimed": "Du har redan fått en belöning för denna expedition",
       "noMoreRewards": "Tyvärr, alla belöningar har delats ut",
+      "claimFailed": "Din belöning kunde inte hämtas. Ladda om sidan och försök igen.",
       "previewMode": "Förhandsvisning - Ingen riktig kod genererad",
       "claimed": "Belöning mottagen",
       "soldOut": {
         "title": "Vad synd!",
-        "message": "Tyvärr kom du för sent för att få en belöning. Alla belöningar har redan delats ut.",
-        "continueJourney": "Fortsätt expeditionen"
+        "message": "Tyvärr kom du för sent för att få en belöning. Alla belöningar har redan delats ut."
       }
     },
     "tts": {
       "listen": "Lyssna",
       "stop": "Stoppa",
       "listenLabel": "Få det här steget uppläst",
-      "stopLabel": "Stoppa uppläsningen"
+      "stopLabel": "Stoppa uppläsningen",
+      "noVoice": "Din enhet har ingen röst för det här språket. Prova en annan webbläsare eller be din IT-avdelning att installera en."
     },
     "reading": {
       "settings": "Läsinställningar",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Steg {{current}} av {{total}}",
-      "duration": "±{{minutes}} min"
+      "duration": "ungefär {{minutes}} min",
+      "stepApprox": "Steg {{current}} av ungefär {{total}}"
     },
     "session": {
       "expired": "Din session har gått ut. Klicka på Ladda om för att fortsätta.",
       "reload": "Ladda om"
+    },
+    "identify": {
+      "title": "Vem är du?",
+      "description": "Fyll i dina uppgifter för att fortsätta",
+      "poll": {
+        "title": "En röst per person",
+        "description": "För att omröstningen ska vara rättvis behöver vi ditt namn och din e-postadress. Då kan alla bara rösta en gång."
+      },
+      "reward": {
+        "title": "Hämta din belöning",
+        "description": "För att kunna skicka belöningen till dig behöver vi ditt namn och din e-postadress. Du får belöningskoden direkt i din inkorg."
+      },
+      "form": {
+        "title": "Nästan klart!",
+        "description": "Fyll i dina uppgifter så att vi vet vem som har skickat formuläret. Dina uppgifter skickas med ditt svar."
+      },
+      "firstName": "Förnamn",
+      "lastName": "Efternamn",
+      "email": "E-postadress",
+      "rememberMe": "Kom ihåg mina uppgifter till nästa gång",
+      "submit": "Fortsätt",
+      "error": "Något gick fel. Försök igen."
+    },
+    "verify": {
+      "title": "Bekräfta din e-postadress",
+      "description": "Vi har skickat en verifieringskod till {{email}}",
+      "code": "Verifieringskod",
+      "submit": "Verifiera",
+      "resend": "Skicka koden igen",
+      "codeSent": "Verifieringskoden har skickats",
+      "invalidCode": "Ogiltig verifieringskod",
+      "codeExpired": "Verifieringskoden har gått ut",
+      "tooManyAttempts": "För många felaktiga koder. Fyll i dina uppgifter igen för att få en ny kod."
+    },
+    "closeWindowMessage": "Du kan stänga den här fliken för att gå tillbaka till föregående sida.",
+    "magicLink": {
+      "expired": {
+        "title": "Länken har gått ut",
+        "message": "Den här inbjudningslänken har gått ut. Be personen som bjöd in dig om en ny länk.",
+        "messageAskInviter": "Den här inbjudningslänken har gått ut. Be {{name}} om en ny länk.",
+        "requestButton": "Be om en ny länk",
+        "requestedTitle": "Begäran skickad",
+        "requestedMessage": "Vi har bett {{name}} att skicka en ny länk till dig. Du får den via e-post.",
+        "requestedMessageOrg": "Vi har bett {{org}} att skicka en ny länk till dig. Du får den via e-post.",
+        "alreadyRequested": "En ny länk har redan begärts under de senaste 24 timmarna. Du får den via e-post så snart den har skickats."
+      },
+      "completed": {
+        "title": "Expedition slutförd",
+        "message": "Du har redan slutfört den här expeditionen. Tack för att du deltog."
+      },
+      "revoked": {
+        "title": "Inbjudan har dragits tillbaka",
+        "message": "Den här inbjudan gäller inte längre. Kontakta personen som bjöd in dig om du fortfarande behöver åtkomst."
+      },
+      "verification": {
+        "title": "Bekräfta att det är du",
+        "subtitle": "Du öppnar den här länken på en ny enhet.",
+        "explanation": "Vi har skickat en sexsiffrig kod till din e-postadress. Ange den nedan.",
+        "codeLabel": "Verifieringskod",
+        "submit": "Bekräfta",
+        "verifying": "Kontrollerar...",
+        "resend": "Skicka en ny kod",
+        "resent": "Vi har skickat en ny kod till dig. Titta i din e-post.",
+        "invalid": "Koden stämmer inte. Kontrollera koden i din e-post och försök igen.",
+        "expired": "Koden har gått ut. Klicka på Skicka en ny kod.",
+        "lockedWait": "För många felaktiga koder. Vänta 10 minuter och klicka sedan på Skicka en ny kod.",
+        "sessionExpired": "Sidan har gått ut. Öppna länken i din e-post igen.",
+        "journeyLabel": "Expedition"
+      },
+      "welcomeBack": {
+        "title": "Välkommen tillbaka, {{firstName}}!",
+        "message": "Du har redan slutfört den här expeditionen.",
+        "restartButton": "Börja om",
+        "reviewButton": "Visa tidigare försök"
+      },
+      "error": "Något gick fel. Försök igen."
+    },
+    "resume": {
+      "message": "Du har varit här förut. Vill du fortsätta där du slutade?",
+      "continue": "Fortsätt där jag var",
+      "restart": "Börja om"
     }
   }
 }

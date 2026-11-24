@@ -9,9 +9,10 @@ import { isCloud, isCommunity } from '../edition.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import i18next from 'i18next';
+import { SUPPORTED_PLAYER_LANGUAGES } from '../services/playerLocales.js';
 import { chatWithGuide, generateGuideOpening } from '../services/mistral.js';
-import { searchPhotos, getCuratedPhotos, downloadPhoto, getSuggestedSearchTerms, ensureMediaDirectories } from '../services/pexels.js';
-import { sendJourneyEmail, getEmailTemplates, getTemplateVariables, sendAutomationEmail, sendEmail, sendInvitationEmail } from '../services/email.js';
+import { searchPhotos, downloadPhoto, getSuggestedSearchTerms, ensureMediaDirectories } from '../services/pexels.js';
+import { sendJourneyEmail, sendAutomationEmail, sendEmail, sendInvitationEmail } from '../services/email.js';
 import {
   processAttachments, checkAttachmentImages, storeSubmissionFiles, resolveStoragePath as resolveFormFilePath,
   buildFormSubmissionEmailBody, buildFormSubmissionSubject, formatFileSize
@@ -20,12 +21,9 @@ import {
   createKnowledgeSource, 
   processFile, 
   processText, 
-  getKnowledgeSources, 
   deleteKnowledgeSource,
   updateTextKnowledgeSource,
-  getKnowledgeStats,
   isFileTypeSupported,
-  getSupportedFileTypes,
   parseDocument,
   formatKnowledgeError
 } from '../services/knowledge.js';
@@ -36,25 +34,24 @@ import { isValidCountryCode } from '../utils/countries.js';
 import { detectImageType } from '../utils/imageType.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
 import { encryptToken, decryptToken } from '../services/oauthTokens.js';
+import { hashInvitationToken, newInvitationToken, invitationToken } from '../services/invitationTokens.js';
 import {
-  getAllTiers,
-  getOrganizationUsage,
   getOrganizationUsageWithLimits,
   checkLimit,
   trackAiCredits,
   hasAiCreditsLeft,
   logUsageEvent,
-  getPendingNotifications,
-  acknowledgeNotification,
   isFeatureEnabled,
   getSyncEndUserAllowance,
   RESOURCE_TYPES,
-  getOrganizationTier
+  getOrganizationTier,
+  recordLimitHit
 } from '../services/subscription.js';
 import { queueAnalysis, detectMediaType, getAnalysisDescription } from '../services/imageAnalysis.js';
 import { isImageAllowed } from '../services/nsfwDetection.js';
-import { searchHelp, generateHelpResponse, getHelpTopics, getHelpImages, getHelpDoc } from '../services/help.js';
-import { translateJourneyContent, getSupportedLanguages } from '../services/translation.js';
+import { searchHelp, generateHelpResponse, getHelpTopics, getHelpArticle, helpTitleLookup, STEP_TYPE_ARTICLES } from '../services/help.js';
+import { recordHelpEvent, recordUnanswered, helpName } from '../services/helpEvents.js';
+import { translateJourneyContent, getSupportedLanguages, translateText } from '../services/translation.js';
 import { handleTtsRequest } from '../services/tts.js';
 import multer from 'multer';
 import path from 'path';
@@ -63,32 +60,25 @@ import { fileURLToPath } from 'url';
 import * as XLSX from 'xlsx';
 import sharp from 'sharp';
 import { ZipArchive } from 'archiver';
+import { newApiKey } from '../services/apiKeys.js';
+import { invitationEmailLanguage, invitationValidityText } from '../utils/invitationText.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
  * Helper function to get the filesystem path for a media URL
- * Supports both old (/media/organizations/...) and new (/uploads/organizations/...) URL structures
+ * (/uploads/organizations/...)
  * @param {string} url - The media URL from database
  * @returns {string} - The absolute filesystem path
  */
 function getMediaFilePath(url) {
-  if (!url || typeof url !== 'string') return null;
+  if (!url || typeof url !== 'string' || !url.startsWith('/uploads/')) return null;
 
-  // New structure: /uploads/... -> /app/uploads/...; old: /media/... -> /app/public/media/...
-  let root;
-  let relative;
-  if (url.startsWith('/uploads/')) {
-    root = path.resolve(__dirname, '../../uploads');
-    relative = url.slice('/uploads/'.length);
-  } else if (url.startsWith('/media/')) {
-    root = path.resolve(__dirname, '../../public/media');
-    relative = url.slice('/media/'.length);
-  } else {
-    return null;
-  }
-  // Never return a path outside the media directories (files get deleted with it)
+  // /uploads/... -> /app/uploads/...
+  const root = path.resolve(__dirname, '../../uploads');
+  const relative = url.slice('/uploads/'.length);
+  // Never return a path outside the uploads directory (files get deleted with it)
   const resolved = path.resolve(root, relative);
   return resolved.startsWith(root + path.sep) ? resolved : null;
 }
@@ -353,25 +343,6 @@ router.post('/language', async (req, res) => {
   }
 });
 
-// Get current language and available languages (public)
-router.get('/language', (req, res) => {
-  const supportedLanguages = ['en', 'nl', 'de', 'fr', 'es'];
-  const languageNames = {
-    en: 'English',
-    nl: 'Nederlands',
-    de: 'Deutsch',
-    fr: 'Français',
-    es: 'Español'
-  };
-  
-  res.json({
-    success: true,
-    current: req.language || 'en',
-    supported: supportedLanguages,
-    names: languageNames
-  });
-});
-
 // ===== PUBLIC ROUTES (for end-users via magic-link) =====
 // These routes must be before requireApiAuth so expedition users can access them
 
@@ -499,11 +470,13 @@ async function getPollAccess(req, stepId, invitationId) {
 
   let invitationOk = false;
   if (invitationId && isUuid(invitationId)) {
-    const inv = await query('SELECT token, organization_id FROM invitations WHERE id = $1', [invitationId]);
+    const inv = await query('SELECT token_hash, organization_id FROM invitations WHERE id = $1', [invitationId]);
     const row = inv.rows[0];
+    // The session keeps token hashes (older sessions: the tokens themselves)
     const sessionTokens = req.session?.verifiedExpeditionTokens || [];
+    const opened = !!row?.token_hash && sessionTokens.some(t => t === row.token_hash || hashInvitationToken(t) === row.token_hash);
     invitationOk = !!row && row.organization_id === orgId &&
-      (sessionTokens.includes(row.token) || req.session?.expedition?.invitationId === invitationId);
+      (opened || req.session?.expedition?.invitationId === invitationId);
   }
   return { orgId, isMaker, invitationOk };
 }
@@ -808,7 +781,7 @@ router.get('/polls/:stepId/check-vote', async (req, res) => {
 router.use(requireApiAuth);
 
 // Role-based access (simple + safe defaults)
-// Viewer users are read-only (except language + own account + chat)
+// Viewer users are read-only (except language + own account + chat + help)
 router.use((req, res, next) => {
   const role = req.user?.role;
   if (role !== 'viewer') return next();
@@ -827,7 +800,7 @@ router.use((req, res, next) => {
   // Own account settings stay writable: consent must always be withdrawable
   const allowWritePaths = [
     '/language', '/me', '/me/password', '/me/marketing-consent', '/me/lifecycle-emails', '/me/two-factor',
-    '/chat/guide', '/tts'
+    '/chat/guide', '/tts', '/help/search', '/help/event'
   ];
   if (allowWritePaths.includes(req.path)) return next();
 
@@ -836,6 +809,52 @@ router.use((req, res, next) => {
     message: req.t('team.messages.viewerReadOnly')
   });
 });
+
+/**
+ * POST /api/limit-hits - A maker clicked something a plan limit blocks in the
+ * browser: a disabled create button or an upgrade link (see app.js). Recorded
+ * only when the organization really is at that limit.
+ */
+const CLIENT_LIMIT_TYPES = {
+  journeys: RESOURCE_TYPES.JOURNEYS,
+  guides: RESOURCE_TYPES.GUIDES,
+  makers: RESOURCE_TYPES.MAKERS,
+  endUsers: RESOURCE_TYPES.END_USERS
+};
+const CLIENT_LIMIT_SOURCES = new Set(['button', 'upgrade_link']);
+
+router.post('/limit-hits', async (req, res) => {
+  try {
+    const { limitType, source } = req.body || {};
+    const resourceType = Object.hasOwn(CLIENT_LIMIT_TYPES, limitType) ? CLIENT_LIMIT_TYPES[limitType] : null;
+    if (!resourceType || !CLIENT_LIMIT_SOURCES.has(source)) {
+      return res.status(400).json({ success: false, error: 'Invalid limit type or source' });
+    }
+    const usageData = await getOrganizationUsageWithLimits(req.organizationId);
+    const usage = usageData?.usage?.[limitType];
+    if (usage?.isAtLimit) {
+      await recordLimitHit(req.organizationId, resourceType, {
+        source, userId: req.user?.id, current: usage.used, limit: usage.limit, tier: usageData.tier?.name
+      });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[API] Failed to record limit hit:', err);
+    res.status(500).json({ success: false, error: 'Failed to record limit hit' });
+  }
+});
+
+/**
+ * Whether the user may publish or unpublish journeys and send or revoke
+ * invitations to end users. Editors (role 'member') build, but do not
+ * decide what end users get to see.
+ * @param {import('express').Request} req
+ * @returns {boolean}
+ */
+function canPublish(req) {
+  const role = req.user?.role;
+  return role === 'admin' || role === 'manager';
+}
 
 /**
  * POST /api/tts - Generate speech for step text (journey previews)
@@ -847,61 +866,6 @@ router.post('/tts', handleTtsRequest);
 // ============================================
 // JOURNEYS
 // ============================================
-
-/**
- * GET /api/journeys/:id - Get journey with all data
- */
-router.get('/journeys/:id', async (req, res) => {
-  try {
-    const journeyId = req.params.id;
-    const orgId = req.organizationId;
-    
-    // Get journey
-    const journey = await query(`
-      SELECT * FROM journeys 
-      WHERE id = $1 AND organization_id = $2
-    `, [journeyId, orgId]);
-    
-    if (journey.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Journey not found' });
-    }
-    
-    // Get all related data in parallel
-    const [steps, paths, resources] = await Promise.all([
-      query('SELECT * FROM steps WHERE journey_id = $1 ORDER BY created_at', [journeyId]),
-      query('SELECT * FROM paths WHERE journey_id = $1 ORDER BY sort_order', [journeyId]),
-      query('SELECT * FROM resources WHERE journey_id = $1 ORDER BY name', [journeyId])
-    ]);
-    
-    // Parse journey settings and extract convenience fields
-    const journeyData = journey.rows[0];
-    if (journeyData.settings && typeof journeyData.settings === 'string') {
-      journeyData.settings = JSON.parse(journeyData.settings);
-    }
-    journeyData.automations = journeyData.settings?.automations || [];
-    journeyData.welcome_message = journeyData.settings?.welcome_message || '';
-    journeyData.completion_message = journeyData.settings?.completion_message || '';
-    journeyData.allow_skip = journeyData.settings?.allow_skip || false;
-    journeyData.track_progress = journeyData.settings?.track_progress !== false;
-    journeyData.language_override = journeyData.settings?.language_override || false;
-    journeyData.language_code = journeyData.settings?.language_code || null;
-    journeyData.guide_language_override = journeyData.settings?.guide_language_override || false;
-    journeyData.guide_language_code = journeyData.settings?.guide_language_code || null;
-    journeyData.guide_opening_override = journeyData.settings?.guide_opening_override || '';
-    
-    res.json({
-      success: true,
-      journey: journeyData,
-      steps: steps.rows,
-      paths: paths.rows,
-      resources: resources.rows
-    });
-    
-  } catch (err) {
-    console.error('API get journey error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load journey' });
-  }
-});
 
 /**
  * PUT /api/journeys/:id - Update journey
@@ -928,19 +892,24 @@ router.put('/journeys/:id', async (req, res) => {
       guide_opening_override
     } = req.body;
 
-    // Publishing permission: only manager/admin
-    if (status === 'published' && (req.user?.role === 'member')) {
-      return res.status(403).json({ success: false, message: req.t('team.messages.publishNotAllowed') });
+    // The builder sends the current status with every save; only a change
+    // of status (publish or unpublish) is limited to managers and admins
+    let currentStatus = null;
+    if (status !== undefined) {
+      const current = await query(
+        `SELECT status FROM journeys WHERE id = $1 AND organization_id = $2`,
+        [journeyId, orgId]
+      );
+      currentStatus = current.rows[0]?.status ?? null;
+      const requested = status === 'archived' ? 'draft' : status;
+      if (currentStatus !== null && requested !== currentStatus && !canPublish(req)) {
+        return res.status(403).json({ success: false, message: req.t('team.messages.publishNotAllowed') });
+      }
     }
 
     // Check if journey is used as nested journey when trying to unpublish
     if (status === 'draft') {
-      const currentJourney = await query(
-        `SELECT status FROM journeys WHERE id = $1 AND organization_id = $2`,
-        [journeyId, orgId]
-      );
-      
-      if (currentJourney.rows.length > 0 && currentJourney.rows[0].status === 'published') {
+      if (currentStatus === 'published') {
         const nestedUsage = await query(`
           SELECT j.id, j.title 
           FROM steps s
@@ -1051,6 +1020,12 @@ router.put('/journeys/:id', async (req, res) => {
       SET title = COALESCE($1, title),
           description = COALESCE($2, description),
           status = COALESCE($3, status),
+          -- Set when the journey goes live, cleared when it goes back to draft
+          published_at = CASE
+            WHEN $3::text = 'published' AND status IS DISTINCT FROM 'published' THEN NOW()
+            WHEN $3::text IS NOT NULL AND $3::text <> 'published' THEN NULL
+            ELSE published_at
+          END,
           settings = COALESCE($4, settings),
           guide_id = CASE WHEN $8::boolean THEN $5::uuid ELSE guide_id END,
           updated_at = NOW()
@@ -1232,6 +1207,7 @@ router.get('/journeys/:id/available-for-nesting', async (req, res) => {
         j.description,
         j.cover_image_url,
         j.is_public,
+        CASE WHEN (j.settings->>'language_override')::boolean THEN j.settings->>'language_code' END AS language_code,
         (SELECT COUNT(*) FROM steps WHERE journey_id = j.id) as step_count
       FROM journeys j
       WHERE j.organization_id = $1 
@@ -1262,7 +1238,9 @@ router.get('/journeys/:id/available-for-nesting', async (req, res) => {
           description: journey.description,
           cover_image_url: journey.cover_image_url,
           step_count: parseInt(journey.step_count) || 0,
-          is_public: journey.is_public
+          is_public: journey.is_public,
+          // Set only for a journey in another language than the organization's
+          language_code: journey.language_code || null
         });
       }
     }
@@ -1622,6 +1600,7 @@ router.post('/journeys/:id/restore', async (req, res) => {
     // (journeys in trash don't count towards limit, but we need to check if restoring would exceed)
     const usageData = await getOrganizationUsageWithLimits(orgId);
     if (usageData && usageData.usage.journeys.isAtLimit) {
+      await recordLimitHit(orgId, RESOURCE_TYPES.JOURNEYS, { source: 'restore', userId: req.user?.id, current: usageData.usage.journeys.used, limit: usageData.usage.journeys.limit, tier: usageData.tier?.name });
       return res.status(403).json({ 
         success: false, 
         code: 'LIMIT_EXCEEDED',
@@ -1691,6 +1670,7 @@ router.post('/journeys/:id/copy', async (req, res) => {
     // Check journey limit before copying
     const usageData = await getOrganizationUsageWithLimits(orgId);
     if (usageData && usageData.usage.journeys.isAtLimit) {
+      await recordLimitHit(orgId, RESOURCE_TYPES.JOURNEYS, { source: 'copy', userId: req.user?.id, current: usageData.usage.journeys.used, limit: usageData.usage.journeys.limit, tier: usageData.tier?.name });
       return res.status(403).json({ 
         success: false, 
         code: 'LIMIT_EXCEEDED',
@@ -1811,6 +1791,36 @@ router.post('/translate-text', async (req, res) => {
 });
 
 /**
+ * Translate the roles of the given guides for a translated journey copy.
+ * @param {Array<string|null|undefined>} guideIds - may hold duplicates and empty values
+ * @param {string} orgId
+ * @param {string} targetLang
+ * @returns {Promise<Object<string, {source: string, text: string}>>} per guide id
+ *   the role it was translated from and the translation; guides whose role did
+ *   not translate are left out
+ */
+async function translateGuideRoles(guideIds, orgId, targetLang) {
+  const ids = [...new Set(guideIds.filter(id => isUuid(id)))];
+  if (ids.length === 0) return {};
+  const result = await query(
+    'SELECT id, role FROM guides WHERE organization_id = $1 AND deleted_at IS NULL AND id = ANY($2::uuid[])',
+    [orgId, ids]
+  );
+  const roles = {};
+  for (const guide of result.rows) {
+    const source = String(guide.role || '').trim();
+    if (!source) continue;
+    try {
+      const text = String(await translateText(source, targetLang) || '').trim();
+      if (text && text !== source) roles[guide.id] = { source, text };
+    } catch (err) {
+      console.warn('[CopyTranslate] Failed to translate guide role:', err.message);
+    }
+  }
+  return roles;
+}
+
+/**
  * POST /api/journeys/:id/copy-translate - Copy and translate a journey to another language
  * Uses Server-Sent Events for progress updates
  * Admin, manager, and member can copy-translate
@@ -1863,6 +1873,7 @@ router.post('/journeys/:id/copy-translate', async (req, res) => {
     // Check journey limit before copying
     const usageData = await getOrganizationUsageWithLimits(orgId);
     if (usageData && usageData.usage.journeys.isAtLimit) {
+      await recordLimitHit(orgId, RESOURCE_TYPES.JOURNEYS, { source: 'copy_translate', userId: req.user?.id, current: usageData.usage.journeys.used, limit: usageData.usage.journeys.limit, tier: usageData.tier?.name });
       sendProgress(0, 'error', { 
         error: req.t('subscription.limits.journeysExceeded'),
         code: 'LIMIT_EXCEEDED'
@@ -1982,6 +1993,16 @@ router.post('/journeys/:id/copy-translate', async (req, res) => {
     } else {
       console.log('[CopyTranslate] Journey has no central guide assigned');
     }
+
+    // Translate the role of each guide in the journey once. Guides are shared
+    // between journeys, so the translation lives in this journey's settings,
+    // with the role it was made from: the player only uses it while the
+    // guide's role is unchanged.
+    newSettings.guide_role_translations = await translateGuideRoles(
+      [originalJourney.guide_id, ...stepsResult.rows.filter(s => s.type === 'guide').map(s => s.basic_props?.guide_id)],
+      orgId,
+      target_language
+    );
 
     // Insert new journey (including guide_id to preserve central guide assignment)
     // Ensure settings is properly JSON-serialized for PostgreSQL JSONB column
@@ -2118,10 +2139,8 @@ router.post('/journeys/:id/convert-public', async (req, res) => {
   try {
     const journeyId = req.params.id;
     const orgId = req.organizationId;
-    const userRole = req.user?.role;
-
     // Check permissions: only admin and manager can convert
-    if (userRole !== 'admin' && userRole !== 'manager') {
+    if (!canPublish(req)) {
       return res.status(403).json({ 
         success: false, 
         error: 'No permission to convert journeys' 
@@ -2201,6 +2220,155 @@ router.post('/journeys/:id/convert-public', async (req, res) => {
 });
 
 /**
+ * What to look at before a journey is published. Blocking issues (no start or
+ * end step) stop publishing on the server as well; the rest are warnings the
+ * maker can publish past ("publish anyway").
+ * @param {import('express').Request} req - for translations
+ * @param {string} journeyId
+ * @param {string} orgId
+ * @returns {Promise<Array<{code: string, blocking: boolean, stepId: string|null, message: string}>>}
+ */
+async function buildPublishCheck(req, journeyId, orgId) {
+  const [stepsResult, pathsResult, codesResult] = await Promise.all([
+    query('SELECT id, type, title, is_start, is_end, basic_props, position_x, position_y FROM steps WHERE journey_id = $1', [journeyId]),
+    query('SELECT from_step_id, to_step_id FROM paths WHERE journey_id = $1', [journeyId]),
+    query(
+      `SELECT r.step_id, COUNT(rc.id)::int AS codes
+       FROM rewards r LEFT JOIN reward_codes rc ON rc.reward_id = r.id
+       WHERE r.journey_id = $1 GROUP BY r.step_id`,
+      [journeyId]
+    )
+  ]);
+  const issues = [];
+  const add = (code, step, blocking = false) => issues.push({
+    code,
+    blocking,
+    stepId: step?.id || null,
+    message: req.t(`journeys.publishCheck.issues.${code}`, { step: step?.title || '', interpolation: { escapeValue: false } })
+  });
+
+  const start = stepsResult.rows.find(st => st.is_start);
+  if (!start) add('noStart', null, true);
+  if (!stepsResult.rows.some(st => st.is_end)) add('noEnd', null, true);
+
+  // Which steps a participant can reach from the start step
+  const next = new Map();
+  for (const p of pathsResult.rows) {
+    if (!next.has(p.from_step_id)) next.set(p.from_step_id, []);
+    next.get(p.from_step_id).push(p.to_step_id);
+  }
+  // Insertion order of this Set is the order a participant meets the steps
+  const reachable = new Set();
+  const queue = start ? [start.id] : [];
+  while (queue.length) {
+    const id = queue.shift();
+    if (reachable.has(id)) continue;
+    reachable.add(id);
+    queue.push(...(next.get(id) || []));
+  }
+
+  // Report in journey order; loose steps after that, left to right on the canvas
+  const flowIndex = new Map([...reachable].map((id, i) => [id, i]));
+  const steps = [...stepsResult.rows].sort((a, b) => {
+    const ia = flowIndex.has(a.id) ? flowIndex.get(a.id) : Infinity;
+    const ib = flowIndex.has(b.id) ? flowIndex.get(b.id) : Infinity;
+    if (ia !== ib) return ia - ib;
+    return (Number(a.position_x) - Number(b.position_x)) || (Number(a.position_y) - Number(b.position_y));
+  });
+
+  const codesByStep = new Map(codesResult.rows.map(r => [r.step_id, r.codes]));
+  const guideIds = steps.filter(st => st.type === 'guide' && st.basic_props?.guide_id).map(st => st.basic_props.guide_id);
+  const nestedIds = steps.filter(st => st.type === 'nested_journey' && st.basic_props?.nested_journey_id).map(st => st.basic_props.nested_journey_id);
+  const [guidesResult, nestedResult] = await Promise.all([
+    query('SELECT id FROM guides WHERE organization_id = $1 AND deleted_at IS NULL AND id::text = ANY($2)', [orgId, guideIds]),
+    query(`SELECT id FROM journeys WHERE organization_id = $1 AND deleted_at IS NULL AND status = 'published' AND id::text = ANY($2)`, [orgId, nestedIds])
+  ]);
+  const liveGuides = new Set(guidesResult.rows.map(r => r.id));
+  const publishedNested = new Set(nestedResult.rows.map(r => r.id));
+  const PLACEHOLDER_IMAGE = '/images/wizard-placeholder.jpg';
+
+  for (const st of steps) {
+    const bp = st.basic_props || {};
+    if (start && !reachable.has(st.id)) {
+      add('unreachable', st);
+    } else if (!st.is_end && !(next.get(st.id) || []).length) {
+      add('deadEnd', st);
+    }
+    switch (st.type) {
+      case 'reward':
+        if (bp.is_random_codes === false && !String(bp.manual_codes || '').trim() && !codesByStep.get(st.id)) add('rewardNoCodes', st);
+        break;
+      case 'content':
+        if (bp.media_type === 'video' && !bp.video_url) add('videoMissing', st);
+        if (bp.media_type === 'image' && !bp.image_url) add('imageMissing', st);
+        if (bp.media_type === 'image' && bp.image_url === PLACEHOLDER_IMAGE) add('placeholderImage', st);
+        break;
+      case 'space':
+        if (!bp.image_url) add('imageMissing', st);
+        else if (bp.image_url === PLACEHOLDER_IMAGE) add('placeholderImage', st);
+        break;
+      case 'guide':
+        if (!bp.guide_id || !liveGuides.has(bp.guide_id)) add('guideMissing', st);
+        break;
+      case 'challenge': {
+        const questions = Array.isArray(bp.questions) && bp.questions.length
+          ? bp.questions
+          : (Array.isArray(bp.options) ? [{ options: bp.options }] : []);
+        if (!questions.some(q => (q.options || []).length)) add('quizEmpty', st);
+        else if (questions.some(q => !(q.options || []).some(o => o && o.correct))) add('quizNoCorrect', st);
+        break;
+      }
+      case 'poll': {
+        const options = (bp.options || []).filter(o => String(typeof o === 'string' ? o : o?.text || '').trim());
+        if (options.length < 2) add('pollFewOptions', st);
+        break;
+      }
+      case 'nested_journey':
+        if (!bp.nested_journey_id || !publishedNested.has(bp.nested_journey_id)) add('nestedMissing', st);
+        break;
+      default:
+        break;
+    }
+  }
+  return issues;
+}
+
+/**
+ * GET /api/journeys/:id/publish-check - What to look at before publishing
+ */
+router.get('/journeys/:id/publish-check', async (req, res) => {
+  try {
+    if (!isUuid(req.params.id)) {
+      return res.status(404).json({ success: false, error: req.t('common.notFound') });
+    }
+    const journey = await query(
+      'SELECT id FROM journeys WHERE id = $1 AND organization_id = $2 AND deleted_at IS NULL',
+      [req.params.id, req.organizationId]
+    );
+    if (journey.rows.length === 0) {
+      return res.status(404).json({ success: false, error: req.t('common.notFound') });
+    }
+    const issues = await buildPublishCheck(req, req.params.id, req.organizationId);
+    res.json({
+      success: true,
+      issues,
+      labels: {
+        title: req.t('journeys.publishCheck.title'),
+        intro: req.t('journeys.publishCheck.intro'),
+        introBlocking: req.t('journeys.publishCheck.introBlocking'),
+        goToStep: req.t('journeys.publishCheck.goToStep'),
+        publishAnyway: req.t('journeys.publishCheck.publishAnyway'),
+        cancel: req.t('common.cancel'),
+        close: req.t('common.close')
+      }
+    });
+  } catch (err) {
+    console.error('[Journeys] Publish check error:', err);
+    res.status(500).json({ success: false, error: req.t('journeys.actions.statusError') });
+  }
+});
+
+/**
  * POST /api/journeys/:id/convert-private - Convert journey back to private
  * Only admin and manager can convert
  */
@@ -2208,10 +2376,8 @@ router.post('/journeys/:id/convert-private', async (req, res) => {
   try {
     const journeyId = req.params.id;
     const orgId = req.organizationId;
-    const userRole = req.user?.role;
-
     // Check permissions: only admin and manager can convert
-    if (userRole !== 'admin' && userRole !== 'manager') {
+    if (!canPublish(req)) {
       return res.status(403).json({ 
         success: false, 
         error: 'No permission to convert journeys' 
@@ -2274,44 +2440,6 @@ router.post('/journeys/:id/convert-private', async (req, res) => {
   } catch (err) {
     console.error('API convert to private error:', err);
     res.status(500).json({ success: false, error: req.t('journeys.public.convertError') });
-  }
-});
-
-/**
- * GET /api/journeys/:id/public-link - Get public link for a journey
- */
-router.get('/journeys/:id/public-link', async (req, res) => {
-  try {
-    const journeyId = req.params.id;
-    const orgId = req.organizationId;
-
-    const journeyResult = await query(
-      'SELECT id, is_public, public_token FROM journeys WHERE id = $1 AND organization_id = $2 AND deleted_at IS NULL',
-      [journeyId, orgId]
-    );
-
-    if (journeyResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Journey not found' });
-    }
-
-    const journey = journeyResult.rows[0];
-
-    if (!journey.is_public || !journey.public_token) {
-      return res.status(400).json({ success: false, error: 'Journey is not public' });
-    }
-
-    const baseUrl = getAppBaseUrl();
-    const publicLink = `${baseUrl}/p/${journey.public_token}`;
-
-    res.json({ 
-      success: true, 
-      publicLink,
-      publicToken: journey.public_token
-    });
-
-  } catch (err) {
-    console.error('API get public link error:', err);
-    res.status(500).json({ success: false, error: 'Failed to get public link' });
   }
 });
 
@@ -2838,37 +2966,6 @@ router.delete('/paths/:id', async (req, res) => {
 // ============================================
 
 /**
- * GET /api/resources/:journeyId - Get all resources for a journey
- */
-router.get('/resources/:journeyId', async (req, res) => {
-  try {
-    const journeyId = req.params.journeyId;
-    const orgId = req.organizationId;
-    
-    // Verify journey belongs to organization
-    const journeyCheck = await query(
-      'SELECT id FROM journeys WHERE id = $1 AND organization_id = $2',
-      [journeyId, orgId]
-    );
-    
-    if (journeyCheck.rows.length === 0) {
-      return res.status(403).json({ success: false, error: req.t('team.messages.noPermission') });
-    }
-    
-    const result = await query(
-      'SELECT * FROM resources WHERE journey_id = $1 ORDER BY name',
-      [journeyId]
-    );
-    
-    res.json({ success: true, resources: result.rows });
-    
-  } catch (err) {
-    console.error('API get resources error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load resources' });
-  }
-});
-
-/**
  * POST /api/resources - Create resource
  */
 router.post('/resources', async (req, res) => {
@@ -2948,110 +3045,6 @@ router.delete('/resources/:id', async (req, res) => {
 // ============================================
 // AI GUIDE CHAT
 // ============================================
-
-/**
- * POST /api/guide/chat - Chat with AI Guide
- */
-router.post('/guide/chat', async (req, res) => {
-  try {
-    const { step_id, message, conversation_history, journey_context } = req.body;
-    const orgId = req.organizationId;
-    
-    if (!(await hasAiCreditsLeft(orgId, 'maker'))) {
-      const limitMessage = req.t('subscription.limits.aiCreditsExceeded');
-      return res.status(403).json({ success: false, code: 'AI_CREDITS_EXHAUSTED', error: limitMessage, response: limitMessage });
-    }
-    
-    // Get step with guide info and journey context
-    const stepResult = await query(`
-      SELECT s.*, j.title as journey_title, j.description as journey_description
-      FROM steps s
-      JOIN journeys j ON s.journey_id = j.id
-      WHERE s.id = $1 AND j.organization_id = $2 AND s.type = 'guide'
-    `, [step_id, orgId]);
-    
-    if (stepResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Guide not found' });
-    }
-    
-    const step = stepResult.rows[0];
-    const basicProps = typeof step.basic_props === 'string' ? JSON.parse(step.basic_props) : step.basic_props;
-    const advancedProps = typeof step.advanced_props === 'string' ? JSON.parse(step.advanced_props) : step.advanced_props;
-    
-    // Build guide context with all necessary info
-    // SECURITY: Include organizationId for defense-in-depth verification
-    const guideContext = {
-      stepId: step_id, // For RAG knowledge retrieval
-      organizationId: orgId, // SECURITY: For knowledge retrieval verification
-      name: basicProps.name || step.title,
-      role: basicProps.role || 'Guide',
-      personality: basicProps.personality || 'friendly',  // Use preset key
-      customPersonality: basicProps.customPersonality || '',
-      greeting: basicProps.greeting || '',
-      instructions: advancedProps.ai_instructions || '',
-      topics: advancedProps.topics || []
-    };
-    
-    // Build journey context string
-    const journeyContextStr = journey_context || `
-This guide is part of the journey: "${step.journey_title}"
-${step.journey_description ? `Journey description: ${step.journey_description}` : ''}
-Current location: ${step.title}
-    `.trim();
-    
-    // Call Mistral AI with enhanced context
-    const aiResult = await chatWithGuide(
-      guideContext, 
-      message, 
-      conversation_history || [],
-      journeyContextStr
-    );
-    
-    // Track AI credits if usage data is available
-    if (aiResult.usage) {
-      // 1 AI credit = 1 answered question
-      await trackAiCredits(orgId, 1, {
-        model: aiResult.usage.model,
-        tokensInput: aiResult.usage.promptTokens,
-        tokensOutput: aiResult.usage.completionTokens,
-        guideId: basicProps.guide_id || null,
-        stepId: step_id,
-        context: 'builder_preview'
-      });
-    }
-    
-    // Parse citations from response
-    const { parseCitations, getCitationSources } = await import('../services/knowledge.js');
-    const citations = aiResult.response ? parseCitations(aiResult.response) : [];
-    const citationIds = [...new Set(citations.map(c => c.id))];
-    
-    // Get source information for citations (with security check)
-    let citationSources = [];
-    if (citationIds.length > 0) {
-      citationSources = await getCitationSources(citationIds, orgId);
-    }
-    
-    const responseData = { 
-      success: true, 
-      response: aiResult.response,
-      citations: citations,
-      citationSources: citationSources,
-      guide: {
-        name: guideContext.name,
-        role: guideContext.role,
-        personality: guideContext.personality
-      }
-    };
-    if (aiResult.error) {
-      responseData.serviceError = true;
-    }
-    res.json(responseData);
-    
-  } catch (err) {
-    console.error('API guide chat error:', err);
-    res.status(500).json({ success: false, error: 'Failed to chat with guide' });
-  }
-});
 
 /**
  * POST /api/guide/opening - Generate AI opening greeting for a guide
@@ -3187,7 +3180,10 @@ router.get('/media/search', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Search query required (min 2 characters)' });
     }
     
-    const results = await searchPhotos(q.trim(), parseInt(per_page), parseInt(page));
+    // The maker types in their own language
+    const results = await searchPhotos(q.trim(), parseInt(per_page), parseInt(page), {
+      language: String(req.language || '').slice(0, 2)
+    });
     
     res.json({
       success: true,
@@ -3239,25 +3235,6 @@ router.get('/media/suggestions', async (req, res) => {
   } catch (err) {
     console.error('Media suggestions error:', err);
     res.status(500).json({ success: false, error: 'Failed to get suggestions' });
-  }
-});
-
-/**
- * GET /api/media/curated - Get trending/curated photos
- */
-router.get('/media/curated', async (req, res) => {
-  try {
-    const { page = 1, per_page = 15 } = req.query;
-    
-    const results = await getCuratedPhotos(parseInt(per_page), parseInt(page));
-    
-    res.json({
-      success: true,
-      ...results
-    });
-  } catch (err) {
-    console.error('Media curated error:', err);
-    res.status(500).json({ success: false, error: 'Failed to get curated photos' });
   }
 });
 
@@ -3466,48 +3443,9 @@ router.get('/media/library', async (req, res) => {
   }
 });
 
-/**
- * DELETE /api/media/:id - Delete media file
- */
-router.delete('/media/:id', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const mediaId = req.params.id;
-    
-    // Get media info first
-    const mediaResult = await query(`
-      SELECT * FROM media WHERE id = $1 AND organization_id = $2
-    `, [mediaId, orgId]);
-    
-    if (mediaResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Media not found' });
-    }
-    
-    const media = mediaResult.rows[0];
-    
-    // Delete file from disk (supports both old and new URL structures)
-    const filePath = getMediaFilePath(media.url);
-    if (filePath && fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    
-    // Delete from database
-    await query('DELETE FROM media WHERE id = $1', [mediaId]);
-    
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Media delete error:', err);
-    res.status(500).json({ success: false, error: 'Delete failed' });
-  }
-});
-
 // ============================================
 // HEALTH CHECK
 // ============================================
-
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok', user: req.user?.email });
-});
 
 // ============================================
 // HELPERS
@@ -3594,96 +3532,6 @@ function getDefaultBasicProps(type, req = null) {
 // ============================================
 // EMAIL API
 // ============================================
-
-/**
- * GET /api/email/templates - Get available email templates
- */
-router.get('/email/templates', (req, res) => {
-  res.json({
-    success: true,
-    templates: getEmailTemplates()
-  });
-});
-
-/**
- * GET /api/email/variables - Get available template variables
- */
-router.get('/email/variables', (req, res) => {
-  res.json({
-    success: true,
-    variables: getTemplateVariables()
-  });
-});
-
-/**
- * POST /api/email/preview - Generate email preview (without sending)
- */
-router.post('/email/preview', async (req, res) => {
-  try {
-    const { 
-      to = 'preview@example.com',
-      subject = 'Preview',
-      body: _body = 'This is a preview of your email.',
-      template_type: _template_type = 'journey_info',
-      journey_id,
-      step_id,
-      link,
-      link_text
-    } = req.body;
-    const orgId = req.organizationId;
-    
-    // Get organization info
-    const orgResult = await query(
-      'SELECT name FROM organizations WHERE id = $1',
-      [orgId]
-    );
-    const companyName = orgResult.rows[0]?.name || 'Gryffi';
-    
-    // Get journey/step info
-    let journeyTitle = '';
-    let stepTitle = '';
-    if (journey_id) {
-      const journeyResult = await query(
-        'SELECT title FROM journeys WHERE id = $1 AND organization_id = $2',
-        [journey_id, orgId]
-      );
-      journeyTitle = journeyResult.rows[0]?.title || '';
-    }
-    if (step_id) {
-      const stepResult = await query(
-        'SELECT s.title FROM steps s JOIN journeys j ON j.id = s.journey_id WHERE s.id = $1 AND j.organization_id = $2',
-        [step_id, orgId]
-      );
-      stepTitle = stepResult.rows[0]?.title || '';
-    }
-    
-    // Generate preview variables
-    const variables = {
-      user_name: 'John Smith',
-      user_first_name: 'John',
-      user_email: to,
-      company_name: companyName,
-      journey_title: journeyTitle || 'Onboarding Journey',
-      step_title: stepTitle || 'Current Step',
-      subject: subject,
-      ...(link && { custom_link: link }),
-      ...(link_text && { custom_link_text: link_text })
-    };
-    
-    res.json({
-      success: true,
-      preview: {
-        to: to,
-        subject: subject,
-        variables: variables
-      }
-    });
-    
-  } catch (err) {
-    console.error('API email preview error:', err);
-    res.status(500).json({ success: false, error: 'Could not generate preview' });
-  }
-});
 
 // ============================================
 // AUTOMATION TRIGGERS
@@ -3958,260 +3806,6 @@ async function rejectWhenKnowledgeFull(req, res) {
   return true;
 }
 
-/**
- * GET /api/knowledge/supported-types - Get supported file types
- */
-router.get('/knowledge/supported-types', (req, res) => {
-  res.json({
-    success: true,
-    types: getSupportedFileTypes()
-  });
-});
-
-/**
- * GET /api/knowledge/:guideStepId - Get all knowledge sources for a guide
- */
-router.get('/knowledge/:guideStepId', async (req, res) => {
-  try {
-    const { guideStepId } = req.params;
-    const orgId = req.organizationId;
-    
-    // Verify the step belongs to this organization
-    const stepResult = await query(
-      `SELECT s.id FROM steps s 
-       JOIN journeys j ON s.journey_id = j.id 
-       WHERE s.id = $1 AND j.organization_id = $2`,
-      [guideStepId, orgId]
-    );
-    
-    if (stepResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Guide step not found' });
-    }
-    
-    const sources = (await getKnowledgeSources(guideStepId))
-      .map(source => ({ ...source, error_message: formatKnowledgeError(source.error_message, req.t) }));
-    const stats = await getKnowledgeStats(guideStepId);
-    
-    res.json({
-      success: true,
-      sources,
-      stats
-    });
-    
-  } catch (err) {
-    console.error('API knowledge get error:', err);
-    res.status(500).json({ success: false, error: 'Could not fetch knowledge sources' });
-  }
-});
-
-/**
- * POST /api/knowledge/:guideStepId/upload - Upload a file for knowledge processing
- */
-router.post('/knowledge/:guideStepId/upload', knowledgeUpload.single('file'), async (req, res) => {
-  try {
-    const { guideStepId } = req.params;
-    const orgId = req.organizationId;
-    const file = req.file;
-    
-    if (!file) {
-      return res.status(400).json({ success: false, error: 'No file uploaded' });
-    }
-    
-    if (await rejectWhenKnowledgeFull(req, res)) return;
-    
-    // Verify the step belongs to this organization and is a guide
-    const stepResult = await query(
-      `SELECT s.id, s.type FROM steps s 
-       JOIN journeys j ON s.journey_id = j.id 
-       WHERE s.id = $1 AND j.organization_id = $2`,
-      [guideStepId, orgId]
-    );
-    
-    if (stepResult.rows.length === 0) {
-      // Clean up uploaded file
-      fs.unlinkSync(file.path);
-      return res.status(404).json({ success: false, error: 'Guide step not found' });
-    }
-    
-    if (stepResult.rows[0].type !== 'guide') {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ success: false, error: 'Knowledge can only be added to AI Guide steps' });
-    }
-    
-    // Create knowledge source entry
-    const source = await createKnowledgeSource({
-      guideStepId,
-      organizationId: orgId,
-      sourceType: 'file',
-      sourceName: file.originalname,
-      originalFilename: file.originalname,
-      contentType: file.mimetype,
-      fileSize: file.size
-    });
-    
-    // Start processing in background
-    processFile(source.id, file.path, file.mimetype)
-      .then(result => {
-        console.log(`[Knowledge] File processing completed: ${result.success ? 'success' : 'failed'}`);
-      })
-      .catch(err => {
-        console.error('[Knowledge] File processing error:', err);
-      });
-    
-    res.json({
-      success: true,
-      source: {
-        id: source.id,
-        sourceName: source.source_name,
-        status: source.status
-      },
-      message: 'File uploaded and processing started'
-    });
-    
-  } catch (err) {
-    console.error('API knowledge upload error:', err);
-    // Clean up file on error
-    if (req.file) {
-      try { fs.unlinkSync(req.file.path); } catch (_e) {}
-    }
-    res.status(500).json({ success: false, error: 'Could not upload file: ' + err.message });
-  }
-});
-
-/**
- * POST /api/knowledge/:guideStepId/text - Add text as knowledge source
- */
-router.post('/knowledge/:guideStepId/text', async (req, res) => {
-  try {
-    const { guideStepId } = req.params;
-    const { name, text } = req.body;
-    const orgId = req.organizationId;
-    
-    if (!name || !text) {
-      return res.status(400).json({ success: false, error: 'Name and text are required' });
-    }
-    
-    if (text.length < 10) {
-      return res.status(400).json({ success: false, error: 'Text must be at least 10 characters' });
-    }
-    
-    if (await rejectWhenKnowledgeFull(req, res)) return;
-    
-    // Verify the step belongs to this organization and is a guide
-    const stepResult = await query(
-      `SELECT s.id, s.type FROM steps s 
-       JOIN journeys j ON s.journey_id = j.id 
-       WHERE s.id = $1 AND j.organization_id = $2`,
-      [guideStepId, orgId]
-    );
-    
-    if (stepResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Guide step not found' });
-    }
-    
-    if (stepResult.rows[0].type !== 'guide') {
-      return res.status(400).json({ success: false, error: 'Knowledge can only be added to AI Guide steps' });
-    }
-    
-    // Create knowledge source entry
-    const source = await createKnowledgeSource({
-      guideStepId,
-      organizationId: orgId,
-      sourceType: 'text',
-      sourceName: name,
-      rawText: text
-    });
-    
-    // Start processing in background
-    processText(source.id)
-      .then(result => {
-        console.log(`[Knowledge] Text processing completed: ${result.success ? 'success' : 'failed'}`);
-      })
-      .catch(err => {
-        console.error('[Knowledge] Text processing error:', err);
-      });
-    
-    res.json({
-      success: true,
-      source: {
-        id: source.id,
-        sourceName: source.source_name,
-        status: source.status
-      },
-      message: 'Text added and processing started'
-    });
-    
-  } catch (err) {
-    console.error('API knowledge text error:', err);
-    res.status(500).json({ success: false, error: 'Could not add text: ' + err.message });
-  }
-});
-
-/**
- * DELETE /api/knowledge/:guideStepId/:sourceId - Delete a knowledge source
- */
-router.delete('/knowledge/:guideStepId/:sourceId', async (req, res) => {
-  try {
-    const { guideStepId, sourceId } = req.params;
-    const orgId = req.organizationId;
-    
-    // Verify the step belongs to this organization
-    const stepResult = await query(
-      `SELECT s.id FROM steps s 
-       JOIN journeys j ON s.journey_id = j.id 
-       WHERE s.id = $1 AND j.organization_id = $2`,
-      [guideStepId, orgId]
-    );
-    
-    if (stepResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Guide step not found' });
-    }
-    
-    await deleteKnowledgeSource(sourceId, orgId);
-    
-    res.json({ success: true, message: 'Knowledge source deleted' });
-    
-  } catch (err) {
-    console.error('API knowledge delete error:', err);
-    res.status(500).json({ success: false, error: 'Could not delete knowledge source: ' + err.message });
-  }
-});
-
-/**
- * GET /api/knowledge/:guideStepId/status/:sourceId - Get processing status
- */
-router.get('/knowledge/:guideStepId/status/:sourceId', async (req, res) => {
-  try {
-    const { guideStepId, sourceId } = req.params;
-    const orgId = req.organizationId;
-    
-    const result = await query(
-      `SELECT ks.* FROM knowledge_sources ks
-       JOIN steps s ON ks.guide_step_id = s.id
-       JOIN journeys j ON s.journey_id = j.id
-       WHERE ks.id = $1 AND ks.guide_step_id = $2 AND j.organization_id = $3`,
-      [sourceId, guideStepId, orgId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Source not found' });
-    }
-    
-    const source = result.rows[0];
-    
-    res.json({
-      success: true,
-      status: source.status,
-      chunksCount: source.chunks_count,
-      errorMessage: formatKnowledgeError(source.error_message, req.t)
-    });
-    
-  } catch (err) {
-    console.error('API knowledge status error:', err);
-    res.status(500).json({ success: false, error: 'Could not get status' });
-  }
-});
-
 // ============================================
 // FORMS
 // ============================================
@@ -4260,9 +3854,11 @@ router.post('/forms/submit', async (req, res) => {
     // Validate and decode uploaded files
     let files;
     try {
-      files = processAttachments(attachments);
+      files = await processAttachments(attachments, stepCheck.rows[0].basic_props?.fields);
     } catch (attachErr) {
-      return res.status(400).json({ success: false, error: attachErr.message });
+      return res.status(400).json({
+        success: false, error: attachErr.message, code: attachErr.code, field_label: attachErr.fieldLabel
+      });
     }
 
     // Images are checked for NSFW content before anything is stored
@@ -4304,10 +3900,13 @@ router.post('/forms/submit', async (req, res) => {
       fields: stepFields,
       files: storedFiles
     });
-    const subject = email_subject || buildFormSubmissionSubject(orgLanguage, journeyTitle);
+    // A preview mails the maker who tests it, not the real recipient, so
+    // trying out a form never lands in someone else's inbox
+    const subject = `[Preview] ${email_subject || buildFormSubmissionSubject(orgLanguage, journeyTitle)}`;
+    const previewTo = req.user.email;
     
     const result = await sendJourneyEmail({
-      to: recipient_email,
+      to: previewTo,
       userName: '',
       subject,
       body: emailBody,
@@ -4331,7 +3930,7 @@ router.post('/forms/submit', async (req, res) => {
         req.user.id,
         journey_id,
         step_id,
-        recipient_email,
+        previewTo,
         subject,
         'form_submission',
         result.emailId || null,
@@ -4339,7 +3938,7 @@ router.post('/forms/submit', async (req, res) => {
         JSON.stringify({ responses, files: storedFiles.map(f => f.original_name) })
       ]);
       
-      res.json({ success: true, message: 'Form submitted successfully' });
+      res.json({ success: true, message: 'Form submitted successfully', preview_sent_to: previewTo });
     } else {
       res.status(500).json({ success: false, error: 'Failed to send form email' });
     }
@@ -4516,74 +4115,6 @@ router.get('/guides', async (req, res) => {
 });
 
 /**
- * GET /api/guides/trash - Get all deleted guides (trash)
- * Only admin and manager can view trash
- * NOTE: This route MUST be before /guides/:id to avoid 'trash' being matched as an id
- */
-router.get('/guides/trash', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const userRole = req.user?.role;
-
-    // Check permissions: only admin and manager can view trash
-    if (userRole !== 'admin' && userRole !== 'manager') {
-      return res.status(403).json({ 
-        success: false, 
-        error: req.t('guides.delete.noPermission') 
-      });
-    }
-
-    const guides = await query(`
-      SELECT g.*, 
-             (SELECT COUNT(*) FROM knowledge_sources WHERE guide_id = g.id) as knowledge_count
-      FROM guides g
-      WHERE g.organization_id = $1 AND g.deleted_at IS NOT NULL
-      ORDER BY g.deleted_at DESC
-    `, [orgId]);
-
-    res.json({ success: true, guides: guides.rows });
-
-  } catch (err) {
-    console.error('API get guides trash error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load trash' });
-  }
-});
-
-/**
- * GET /api/guides/:id - Get single guide with knowledge sources
- */
-router.get('/guides/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const orgId = req.organizationId;
-    
-    const guideResult = await query(`
-      SELECT * FROM guides WHERE id = $1 AND organization_id = $2
-    `, [id, orgId]);
-    
-    if (guideResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Guide not found' });
-    }
-    
-    const knowledgeResult = await query(`
-      SELECT id, source_type, source_name, status, chunks_count, created_at
-      FROM knowledge_sources 
-      WHERE guide_id = $1 AND organization_id = $2
-      ORDER BY created_at DESC
-    `, [id, orgId]);
-    
-    res.json({ 
-      success: true, 
-      guide: guideResult.rows[0],
-      knowledge_sources: knowledgeResult.rows
-    });
-  } catch (err) {
-    console.error('API get guide error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load guide' });
-  }
-});
-
-/**
  * POST /api/guides - Create a new guide
  */
 router.post('/guides', async (req, res) => {
@@ -4610,11 +4141,20 @@ router.post('/guides', async (req, res) => {
       });
     }
     
+    // A guide answers in its own language. A new guide starts in the default
+    // language of the organization, so a German organization does not get an
+    // English guide; the maker can change it on the guide page.
+    let language = SUPPORTED_PLAYER_LANGUAGES.includes(req.body.language) ? req.body.language : null;
+    if (!language) {
+      const org = await query("SELECT settings->>'default_language' AS lang FROM organizations WHERE id = $1", [orgId]);
+      language = SUPPORTED_PLAYER_LANGUAGES.includes(org.rows[0]?.lang) ? org.rows[0].lang : 'en';
+    }
+    
     const result = await query(`
-      INSERT INTO guides (organization_id, name, role, personality, greeting, ai_instructions, avatar_url)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO guides (organization_id, name, role, personality, greeting, ai_instructions, avatar_url, language)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [orgId, name, role || null, personality || 'friendly', greeting || null, ai_instructions || null, avatar_url || null]);
+    `, [orgId, name, role || null, personality || 'friendly', greeting || null, ai_instructions || null, avatar_url || null, language]);
     
     // Log usage event
     await logUsageEvent(orgId, 'guide_create', 'guide', result.rows[0].id, req.user?.id);
@@ -4753,6 +4293,7 @@ router.post('/guides/:id/restore', async (req, res) => {
     // Check guide limit before restoring
     const usageData = await getOrganizationUsageWithLimits(orgId);
     if (usageData && usageData.usage.guides.isAtLimit) {
+      await recordLimitHit(orgId, RESOURCE_TYPES.GUIDES, { source: 'restore', userId: req.user?.id, current: usageData.usage.guides.used, limit: usageData.usage.guides.limit, tier: usageData.tier?.name });
       return res.status(403).json({ 
         success: false, 
         code: 'LIMIT_EXCEEDED',
@@ -4839,6 +4380,7 @@ router.post('/guides/:id/copy', async (req, res) => {
     // Check guide limit before copying
     const usageData = await getOrganizationUsageWithLimits(orgId);
     if (usageData && usageData.usage.guides.isAtLimit) {
+      await recordLimitHit(orgId, RESOURCE_TYPES.GUIDES, { source: 'copy', userId: req.user?.id, current: usageData.usage.guides.used, limit: usageData.usage.guides.limit, tier: usageData.tier?.name });
       return res.status(403).json({ 
         success: false, 
         code: 'LIMIT_EXCEEDED',
@@ -4866,7 +4408,7 @@ router.post('/guides/:id/copy', async (req, res) => {
     );
     const copiedChunks = chunkCountResult.rows[0].count;
     const chunkLimit = copiedChunks > 0
-      ? await checkLimit(orgId, RESOURCE_TYPES.KNOWLEDGE_CHUNKS, copiedChunks)
+      ? await checkLimit(orgId, RESOURCE_TYPES.KNOWLEDGE_CHUNKS, copiedChunks, 'copy')
       : { allowed: true };
     if (!chunkLimit.allowed) {
       return res.status(403).json({ 
@@ -5477,11 +5019,15 @@ router.post('/me/password', async (req, res) => {
       `
         UPDATE users
         SET password_hash = $1,
+            password_changed_at = NOW(),
             updated_at = NOW()
         WHERE id = $2 AND organization_id = $3
       `,
       [passwordHash, userId, orgId]
     );
+
+    // Other sessions of this maker end at their next check; this one stays
+    req.session.authenticatedAt = Date.now();
 
     res.json({ success: true, message: req.t('settings.messages.passwordUpdated') });
   } catch (err) {
@@ -6001,25 +5547,6 @@ router.delete('/team/members/:id', async (req, res) => {
 // Note: Language routes are now defined at the top of this file (before requireApiAuth)
 // to allow language changes on the login page
 
-// Get current language and available languages (duplicate for backwards compatibility)
-router.get('/language/info', (req, res) => {
-  const supportedLanguages = ['en', 'nl', 'de', 'fr', 'es'];
-  const languageNames = {
-    en: 'English',
-    nl: 'Nederlands',
-    de: 'Deutsch',
-    fr: 'Français',
-    es: 'Español'
-  };
-  
-  res.json({
-    success: true,
-    current: req.language,
-    supported: supportedLanguages,
-    names: languageNames
-  });
-});
-
 // ============================================
 // ORGANIZATION
 // ============================================
@@ -6162,7 +5689,7 @@ router.get('/organization/export', async (req, res) => {
     }
     const orgData = org.rows[0];
     const orgSensitiveFields = [
-      'api_key_hash',
+      'api_key_hash', 'api_key_lookup',
       'google_access_token', 'google_refresh_token',
       'microsoft_access_token', 'microsoft_refresh_token',
     ];
@@ -6226,7 +5753,7 @@ router.get('/organization/export', async (req, res) => {
       reward_codes: rewardCodesRes.rows,
       end_user_groups: endUserGroupsRes.rows,
       group_memberships: groupMembersRes.rows,
-      invitations: stripSensitive(invitationsRes.rows, ['token']),
+      invitations: stripSensitive(invitationsRes.rows, ['token', 'token_hash', 'token_encrypted']),
       knowledge_sources: knowledgeSourcesRes.rows,
       floorplans: floorplansRes.rows,
       themes: themesRes.rows,
@@ -6418,6 +5945,7 @@ router.post('/end-users', async (req, res) => {
     // Check end user limit
     const usageData = await getOrganizationUsageWithLimits(orgId);
     if (usageData && usageData.usage.endUsers.isAtLimit) {
+      await recordLimitHit(orgId, RESOURCE_TYPES.END_USERS, { source: 'create', userId: req.user?.id, current: usageData.usage.endUsers.used, limit: usageData.usage.endUsers.limit, tier: usageData.tier?.name });
       return res.status(403).json({ 
         success: false, 
         code: 'LIMIT_EXCEEDED',
@@ -6612,39 +6140,6 @@ router.delete('/end-users/:id', async (req, res) => {
 });
 
 /**
- * GET /api/end-users/stats - Get statistics about end users (admin only)
- */
-router.get('/end-users/stats', async (req, res) => {
-  if (!requireTeamAdmin(req, res)) return;
-  
-  try {
-    const orgId = req.organizationId;
-    
-    const result = await query(
-      `SELECT 
-         COUNT(*) as total,
-         COUNT(*) FILTER (WHERE source = 'manual') as manual,
-         COUNT(*) FILTER (WHERE source = 'csv') as csv,
-         COUNT(*) FILTER (WHERE source = 'microsoft') as microsoft,
-         COUNT(*) FILTER (WHERE source = 'google') as google,
-         COUNT(*) FILTER (WHERE is_active = true) as active,
-         COUNT(*) FILTER (WHERE is_active = false) as inactive
-       FROM end_users
-       WHERE organization_id = $1`,
-      [orgId]
-    );
-    
-    res.json({
-      success: true,
-      stats: result.rows[0]
-    });
-  } catch (err) {
-    console.error('API end-users stats error:', err);
-    res.status(500).json({ success: false, message: req.t('systemSettings.endUsers.loadFailed') });
-  }
-});
-
-/**
  * DELETE /api/end-users/source/:source - Bulk delete end users by source (admin only)
  * Used to clean up users from a specific source (e.g., google, microsoft, csv)
  */
@@ -6768,11 +6263,12 @@ router.delete('/groups/source/:source', async (req, res) => {
 });
 
 /**
- * GET /api/groups - List all groups in org (admin only)
+ * GET /api/groups - List all groups in org (every maker; changes are admin only)
  */
 router.get('/groups', async (req, res) => {
-  if (!requireTeamAdmin(req, res)) return;
-  
+  // Every maker of the organization may list the groups (names and member
+  // counts): managers invite whole groups, and Analytics filters on them.
+  // Creating, changing and deleting groups stays admin-only.
   try {
     const orgId = req.organizationId;
     
@@ -7198,6 +6694,7 @@ function parseAndValidateSpreadsheet(buffer, _filename) {
     users: [],
     errors: [],
     warnings: [],
+    skippedRows: [], // { row, reasons: [{ code, email? }] }
     skippedHeader: false,
     totalRows: 0
   };
@@ -7258,32 +6755,28 @@ function parseAndValidateSpreadsheet(buffer, _filename) {
         });
       }
       
-      // Validation
+      // Validation: a row with a problem is skipped, the other rows are
+      // imported. Reasons are codes, translated by the route.
       const rowErrors = [];
       
       if (!firstName) {
-        rowErrors.push('First name is empty');
+        rowErrors.push({ code: 'firstNameEmpty' });
       }
       
       if (!lastName) {
-        rowErrors.push('Last name is empty');
+        rowErrors.push({ code: 'lastNameEmpty' });
       }
       
       if (!email) {
-        rowErrors.push('Email is empty');
+        rowErrors.push({ code: 'emailEmpty' });
       } else if (!isValidEmail(email)) {
-        rowErrors.push(`Invalid email format: "${email}"`);
+        rowErrors.push({ code: 'emailInvalid', email });
       } else if (seenEmails.has(email)) {
-        rowErrors.push(`Duplicate email in file: "${email}"`);
+        rowErrors.push({ code: 'emailDuplicate', email });
       }
       
       if (rowErrors.length > 0) {
-        result.errors.push({
-          row: rowNum,
-          type: 'VALIDATION_ERROR',
-          message: `Row ${rowNum}: ${rowErrors.join(', ')}`,
-          details: rowErrors
-        });
+        result.skippedRows.push({ row: rowNum, reasons: rowErrors });
       } else {
         seenEmails.add(email);
         result.users.push({
@@ -7295,7 +6788,9 @@ function parseAndValidateSpreadsheet(buffer, _filename) {
     }
     
     if (result.users.length === 0 && result.errors.length === 0) {
-      result.errors.push({ type: 'NO_DATA', message: 'No valid data rows found in the file' });
+      result.errors.push(result.skippedRows.length > 0
+        ? { type: 'NO_VALID_ROWS', message: 'None of the rows can be imported' }
+        : { type: 'NO_DATA', message: 'No valid data rows found in the file' });
     }
     
     result.success = result.errors.length === 0 && result.users.length > 0;
@@ -7332,8 +6827,17 @@ router.post('/end-users/import/validate', spreadsheetUpload.single('file'), asyn
     // Parse and validate the spreadsheet
     const parseResult = parseAndValidateSpreadsheet(req.file.buffer, req.file.originalname);
     
+    const skippedRows = parseResult.skippedRows.map(r => ({
+      row: r.row,
+      message: req.t('systemSettings.import.errors.validationError', {
+        row: r.row,
+        details: r.reasons.map(reason => req.t(`systemSettings.import.rowErrors.${reason.code}`, { email: reason.email || '' })).join(', '),
+        interpolation: { escapeValue: false }
+      })
+    }));
+
     if (!parseResult.success) {
-      // Translate error messages
+      // Translate error messages; when no row can be imported, list why
       const translatedErrors = parseResult.errors.map(err => ({
         ...err,
         message: translateImportError(req, err)
@@ -7342,7 +6846,7 @@ router.post('/end-users/import/validate', spreadsheetUpload.single('file'), asyn
       return res.json({
         success: false,
         errorType: parseResult.errors[0]?.type || 'UNKNOWN',
-        errors: translatedErrors,
+        errors: parseResult.errors[0]?.type === 'NO_VALID_ROWS' ? [...translatedErrors, ...skippedRows] : translatedErrors,
         warnings: parseResult.warnings,
         totalRows: parseResult.totalRows,
         skippedHeader: parseResult.skippedHeader
@@ -7359,6 +6863,14 @@ router.post('/end-users/import/validate', spreadsheetUpload.single('file'), asyn
     const existingEmails = new Set(existingResult.rows.map(r => r.email));
     const newUsers = parseResult.users.filter(u => !existingEmails.has(u.email));
     const duplicateUsers = parseResult.users.filter(u => existingEmails.has(u.email));
+
+    // Warn before importing when the plan has no room for all new users
+    // (the import itself takes the first ones that fit)
+    const usageData = await getOrganizationUsageWithLimits(orgId);
+    const endUserUsage = usageData?.usage?.endUsers;
+    const limitRemaining = endUserUsage && !endUserUsage.isUnlimited && endUserUsage.remaining < newUsers.length
+      ? Math.max(0, endUserUsage.remaining)
+      : null;
     
     res.json({
       success: true,
@@ -7368,7 +6880,10 @@ router.post('/end-users/import/validate', spreadsheetUpload.single('file'), asyn
         duplicates: duplicateUsers.length,
         skippedHeader: parseResult.skippedHeader,
         sampleUsers: newUsers.slice(0, 5), // Show first 5 as preview
-        duplicateEmails: duplicateUsers.map(u => u.email).slice(0, 5)
+        duplicateEmails: duplicateUsers.map(u => u.email).slice(0, 5),
+        skippedCount: skippedRows.length,
+        skippedRows: skippedRows.slice(0, 20),
+        limitRemaining
       },
       warnings: parseResult.warnings,
       // Send the validated data back so client can submit for import
@@ -7396,6 +6911,38 @@ router.post('/end-users/import/validate', spreadsheetUpload.single('file'), asyn
 });
 
 /**
+ * Order the steps of a journey as a participant meets them: breadth-first
+ * from the start step along the paths, branches from top to bottom on the
+ * canvas. Steps that no path reaches come last, left to right.
+ * @param {Array<{id: string, is_start: boolean, position_x: number, position_y: number}>} steps
+ * @param {Array<{from_step_id: string, to_step_id: string}>} paths
+ * @returns {Map<string, number>} step id -> position
+ */
+function orderStepsByFlow(steps, paths) {
+  const byId = new Map(steps.map(st => [st.id, st]));
+  const next = new Map();
+  for (const p of paths) {
+    if (!next.has(p.from_step_id)) next.set(p.from_step_id, []);
+    next.get(p.from_step_id).push(p.to_step_id);
+  }
+  const order = new Map();
+  const start = steps.find(st => st.is_start);
+  const queue = start ? [start.id] : [];
+  while (queue.length) {
+    const id = queue.shift();
+    if (order.has(id) || !byId.has(id)) continue;
+    order.set(id, order.size);
+    const targets = (next.get(id) || []).filter(t => !order.has(t))
+      .sort((a, b) => (byId.get(a)?.position_y ?? 0) - (byId.get(b)?.position_y ?? 0));
+    queue.push(...targets);
+  }
+  steps.filter(st => !order.has(st.id))
+    .sort((a, b) => a.position_x - b.position_x || a.position_y - b.position_y)
+    .forEach(st => order.set(st.id, order.size));
+  return order;
+}
+
+/**
  * Helper: Translate import error messages
  */
 function translateImportError(req, error) {
@@ -7406,6 +6953,8 @@ function translateImportError(req, error) {
       return req.t('systemSettings.import.errors.emptyFile');
     case 'NO_DATA':
       return req.t('systemSettings.import.errors.noData');
+    case 'NO_VALID_ROWS':
+      return req.t('systemSettings.import.errors.noValidRows');
     case 'PARSE_ERROR':
       return req.t('systemSettings.import.errors.parseError');
     case 'VALIDATION_ERROR':
@@ -7440,6 +6989,12 @@ router.post('/end-users/import', async (req, res) => {
     
     if (usageData && !usageData.usage.endUsers.isUnlimited) {
       const remaining = usageData.usage.endUsers.remaining;
+      if (remaining < users.length) {
+        await recordLimitHit(orgId, RESOURCE_TYPES.END_USERS, {
+          source: 'import', userId: req.user?.id,
+          current: usageData.usage.endUsers.used, limit: usageData.usage.endUsers.limit, tier: usageData.tier?.name
+        });
+      }
       if (remaining <= 0) {
         return res.status(403).json({ 
           success: false, 
@@ -8935,13 +8490,65 @@ export { syncMicrosoftUsers };
 // ============================================
 
 /**
+ * Create one invitation and email the magic link. The invitation counts as
+ * created even when the email fails (emailError: true), as it always did.
+ * @param {Object} o
+ * @param {string} o.orgId
+ * @param {string|null} o.userId - maker who sends it
+ * @param {{ id: string, title: string }} o.journey - a published journey of the org
+ * @param {{ id: string, email: string, first_name: string }} o.endUser
+ * @param {Date} o.expiresAt
+ * @param {number|null} o.maxCompletions - null for unlimited
+ * @param {boolean} o.sendReminder
+ * @param {Date|null} o.reminderAt
+ * @param {number} o.validityDays
+ * @param {string} o.companyName
+ * @param {string} o.emailLanguage
+ * @param {string|null} o.unsubscribeEmail - the maker, so a participant can ask a person to stop
+ * @returns {Promise<{ invitationId: string, emailError: boolean }>}
+ */
+async function createAndSendInvitation(o) {
+  // Secure token (URL-safe base64); the database keeps its hash and an
+  // encrypted copy, not the token (services/invitationTokens.js)
+  const { token, tokenHash, tokenEncrypted } = newInvitationToken('base64url');
+
+  const invResult = await query(
+    `INSERT INTO invitations 
+     (organization_id, token_hash, token_encrypted, journey_id, end_user_id, expires_at, max_completions, created_by, send_reminder, reminder_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING id`,
+    [o.orgId, tokenHash, tokenEncrypted, o.journey.id, o.endUser.id, o.expiresAt, o.maxCompletions, o.userId, o.sendReminder, o.reminderAt]
+  );
+  const invitationId = invResult.rows[0].id;
+
+  try {
+    await sendInvitationEmail({
+      to: o.endUser.email,
+      firstName: o.endUser.first_name,
+      journeyTitle: o.journey.title,
+      companyName: o.companyName,
+      magicLink: `${getAppBaseUrl()}/e/${token}`,
+      // Localized validity text (utils/invitationText.js)
+      validityText: invitationValidityText(o.emailLanguage, o.validityDays),
+      language: o.emailLanguage,
+      orgId: o.orgId,
+      unsubscribeEmail: o.unsubscribeEmail
+    });
+    return { invitationId, emailError: false };
+  } catch (emailErr) {
+    console.error('Failed to send invitation email:', emailErr);
+    return { invitationId, emailError: true };
+  }
+}
+
+/**
  * POST /api/invitations - Create new invitations
  * Sends magic link emails to selected end users
  */
 router.post('/invitations', async (req, res) => {
-  // Only non-viewers can create invitations
-  if (req.user?.role === 'viewer') {
-    return res.status(403).json({ success: false, error: 'Permission denied' });
+  // Only managers and admins send invitations to end users
+  if (!canPublish(req)) {
+    return res.status(403).json({ success: false, error: req.t('team.messages.invitationsNotAllowed') });
   }
 
   try {
@@ -9019,10 +8626,7 @@ router.post('/invitations', async (req, res) => {
     const orgLanguage = orgResult.rows[0]?.default_language || 'en';
 
     // Use journey language override if set, otherwise fall back to org language
-    const journeySettings = typeof journey.settings === 'string' ? JSON.parse(journey.settings) : (journey.settings || {});
-    const emailLanguage = (journeySettings.language_override && journeySettings.language_code)
-      ? journeySettings.language_code
-      : orgLanguage;
+    const emailLanguage = invitationEmailLanguage(journey.settings, orgLanguage);
 
     // Create invitations for each end user
     const results = [];
@@ -9054,64 +8658,12 @@ router.post('/invitations', async (req, res) => {
           continue;
         }
 
-        // Generate secure token (URL-safe base64)
-        const tokenBytes = crypto.randomBytes(32);
-        const token = tokenBytes.toString('base64url');
-
-        // Create invitation
-        const invResult = await query(
-          `INSERT INTO invitations 
-           (organization_id, token, journey_id, end_user_id, expires_at, max_completions, created_by, send_reminder, reminder_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-           RETURNING id`,
-          [orgId, token, journey_id, endUserId, expiresAt, maxCompletions, userId, sendReminderFlag, reminderAt]
-        );
-
-        const magicLink = `${getAppBaseUrl()}/e/${token}`;
-
-        // Send invitation email
-        try {
-          // Get localized validity text
-          const validityTextMap = {
-            en: { 7: '1 week', 14: '2 weeks', 30: '1 month', 90: '3 months' },
-            nl: { 7: '1 week', 14: '2 weken', 30: '1 maand', 90: '3 maanden' },
-            de: { 7: '1 Woche', 14: '2 Wochen', 30: '1 Monat', 90: '3 Monate' },
-            fr: { 7: '1 semaine', 14: '2 semaines', 30: '1 mois', 90: '3 mois' },
-            es: { 7: '1 semana', 14: '2 semanas', 30: '1 mes', 90: '3 meses' },
-            it: { 7: '1 settimana', 14: '2 settimane', 30: '1 mese', 90: '3 mesi' },
-            pt: { 7: '1 semana', 14: '2 semanas', 30: '1 mês', 90: '3 meses' },
-            da: { 7: '1 uge', 14: '2 uger', 30: '1 måned', 90: '3 måneder' },
-            no: { 7: '1 uke', 14: '2 uker', 30: '1 måned', 90: '3 måneder' },
-            fi: { 7: '1 viikko', 14: '2 viikkoa', 30: '1 kuukausi', 90: '3 kuukautta' },
-            sv: { 7: '1 vecka', 14: '2 veckor', 30: '1 månad', 90: '3 månader' },
-            pl: { 7: '1 tydzień', 14: '2 tygodnie', 30: '1 miesiąc', 90: '3 miesiące' },
-            ro: { 7: '1 săptămână', 14: '2 săptămâni', 30: '1 lună', 90: '3 luni' },
-            tr: { 7: '1 hafta', 14: '2 hafta', 30: '1 ay', 90: '3 ay' }
-          };
-          const validityText = validityTextMap[emailLanguage]?.[validityDays] || 
-                              validityTextMap.en[validityDays] || 
-                              `${validityDays} days`;
-
-          await sendInvitationEmail({
-            to: endUser.email,
-            firstName: endUser.first_name,
-            journeyTitle: journey.title,
-            companyName: companyName,
-            magicLink: magicLink,
-            validityText: validityText,
-            language: emailLanguage,
-            orgId: orgId,
-            // Route the unsubscribe to the maker who sent the invite so the
-            // recipient can ask the human directly to stop being invited.
-            unsubscribeEmail: req.user?.email || null
-          });
-
-          results.push({ endUserId, success: true, invitationId: invResult.rows[0].id });
-        } catch (emailErr) {
-          console.error('Failed to send invitation email:', emailErr);
-          // Still count as success since invitation was created
-          results.push({ endUserId, success: true, invitationId: invResult.rows[0].id, emailError: true });
-        }
+        const sent = await createAndSendInvitation({
+          orgId, userId, journey, endUser, expiresAt, maxCompletions,
+          sendReminder: sendReminderFlag, reminderAt, validityDays,
+          companyName, emailLanguage, unsubscribeEmail: req.user?.email || null
+        });
+        results.push({ endUserId, success: true, invitationId: sent.invitationId, ...(sent.emailError ? { emailError: true } : {}) });
 
       } catch (err) {
         console.error('Failed to create invitation for user:', endUserId, err);
@@ -9155,12 +8707,211 @@ router.post('/invitations', async (req, res) => {
 });
 
 /**
+ * POST /api/journeys/:id/send-to-self - "Send it to yourself": publish the
+ * journey if it is a draft, add the maker as a participant and email them an
+ * invitation, so they get exactly what a colleague will get. Used by the
+ * wizard's last screen and the getting-started card on the dashboard.
+ * A published journey is only visible to people who are invited.
+ */
+router.post('/journeys/:id/send-to-self', async (req, res) => {
+  if (!canPublish(req)) {
+    return res.status(403).json({ success: false, error: req.t('team.messages.publishNotAllowed') });
+  }
+
+  try {
+    const orgId = req.organizationId;
+    const userId = req.user?.id;
+    const journeyId = req.params.id;
+    if (!isUuid(journeyId)) {
+      return res.status(404).json({ success: false, error: 'Journey not found' });
+    }
+
+    const journeyResult = await query(
+      `SELECT id, title, status, settings FROM journeys
+       WHERE id = $1 AND organization_id = $2 AND deleted_at IS NULL`,
+      [journeyId, orgId]
+    );
+    const journey = journeyResult.rows[0];
+    if (!journey) {
+      return res.status(404).json({ success: false, error: 'Journey not found' });
+    }
+
+    // Publish first, with the same start/end check as PUT /journeys/:id
+    let publishedNow = false;
+    if (journey.status !== 'published') {
+      const stepsResult = await query('SELECT is_start, is_end FROM steps WHERE journey_id = $1', [journeyId]);
+      if (!stepsResult.rows.some(st => st.is_start)) {
+        return res.status(400).json({ success: false, code: 'NO_START_STEP', error: req.t('journeys.publish.noStartStep') });
+      }
+      if (!stepsResult.rows.some(st => st.is_end)) {
+        return res.status(400).json({ success: false, code: 'NO_END_STEP', error: req.t('journeys.publish.noEndStep') });
+      }
+      await query(
+        `UPDATE journeys SET status = 'published', published_at = NOW(), updated_at = NOW()
+         WHERE id = $1 AND organization_id = $2`,
+        [journeyId, orgId]
+      );
+      publishedNow = true;
+    }
+
+    // The maker as a participant of their own organization
+    const makerResult = await query(
+      'SELECT email, first_name, last_name FROM users WHERE id = $1 AND organization_id = $2',
+      [userId, orgId]
+    );
+    const maker = makerResult.rows[0];
+    const email = maker?.email?.trim().toLowerCase();
+    if (!email || isPlatformAdminEmail(email)) {
+      return res.status(400).json({ success: false, error: req.t('sendToSelf.errors.noEmail'), publishedNow });
+    }
+
+    let endUser = (await query(
+      'SELECT id, email, first_name, is_active FROM end_users WHERE organization_id = $1 AND email = $2',
+      [orgId, email]
+    )).rows[0];
+
+    if (!endUser) {
+      const usageData = await getOrganizationUsageWithLimits(orgId);
+      if (usageData?.usage?.endUsers?.isAtLimit) {
+        await recordLimitHit(orgId, RESOURCE_TYPES.END_USERS, {
+          source: 'send_to_self', userId,
+          current: usageData.usage.endUsers.used, limit: usageData.usage.endUsers.limit, tier: usageData.tier?.name
+        });
+        return res.status(403).json({
+          success: false, code: 'LIMIT_EXCEEDED', limitType: 'endUsers',
+          error: req.t('subscription.limits.endUsersExceeded'), publishedNow
+        });
+      }
+      const firstName = (maker.first_name || '').trim() || email.split('@')[0];
+      endUser = (await query(
+        `INSERT INTO end_users (organization_id, email, first_name, last_name, source)
+         VALUES ($1, $2, $3, $4, 'manual')
+         RETURNING id, email, first_name, is_active`,
+        [orgId, email, firstName.slice(0, 100), (maker.last_name || '').trim().slice(0, 100)]
+      )).rows[0];
+    } else if (endUser.is_active === false) {
+      await query('UPDATE end_users SET is_active = true, updated_at = NOW() WHERE id = $1 AND organization_id = $2', [endUser.id, orgId]);
+    }
+
+    // One open invitation per person and journey, as in POST /invitations
+    const existing = await query(
+      `SELECT id FROM invitations
+       WHERE end_user_id = $1 AND journey_id = $2 AND status IN ('pending', 'active')`,
+      [endUser.id, journeyId]
+    );
+    if (existing.rows.length > 0) {
+      return res.json({ success: true, alreadyInvited: true, email, publishedNow });
+    }
+
+    const orgResult = await query(
+      `SELECT name, settings->>'default_language' AS default_language FROM organizations WHERE id = $1`,
+      [orgId]
+    );
+    const validityDays = 14;
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + validityDays);
+
+    const sent = await createAndSendInvitation({
+      orgId, userId, journey, endUser, expiresAt,
+      // Unlimited, so the maker can walk through it again after a change
+      maxCompletions: null,
+      sendReminder: false, reminderAt: null, validityDays,
+      companyName: orgResult.rows[0]?.name || 'Gryffi',
+      emailLanguage: invitationEmailLanguage(journey.settings, orgResult.rows[0]?.default_language || 'en'),
+      unsubscribeEmail: email
+    });
+    await logUsageEvent(orgId, 'send_to_self', 'journey', journeyId, userId);
+
+    res.json({ success: true, email, publishedNow, emailError: sent.emailError });
+  } catch (err) {
+    console.error('[API] Send to self error:', err);
+    res.status(500).json({ success: false, error: req.t('sendToSelf.errors.failed') });
+  }
+});
+
+// "3 days" in the language of the invitation email
+const INVITATION_DAY_WORDS = {
+  en: ['day', 'days'], nl: ['dag', 'dagen'], de: ['Tag', 'Tage'], fr: ['jour', 'jours'],
+  es: ['día', 'días'], it: ['giorno', 'giorni'], pt: ['dia', 'dias'], da: ['dag', 'dage'],
+  no: ['dag', 'dager'], fi: ['päivä', 'päivää'], sv: ['dag', 'dagar'], pl: ['dzień', 'dni'],
+  ro: ['zi', 'zile'], tr: ['gün', 'gün']
+};
+
+/**
+ * POST /api/invitations/:id/resend - Send the same invitation link again
+ * (for example when the email got lost). Only while the link is still valid,
+ * at most once per 10 minutes. The email states the remaining validity.
+ */
+router.post('/invitations/:id/resend', async (req, res) => {
+  if (!canPublish(req)) {
+    return res.status(403).json({ success: false, error: req.t('team.messages.invitationsNotAllowed') });
+  }
+  try {
+    const orgId = req.organizationId;
+    const invId = req.params.id;
+    if (!isUuid(invId)) {
+      return res.status(404).json({ success: false, error: req.t('invitations.list.resendFailed') });
+    }
+
+    const result = await query(`
+      SELECT i.id, i.token_encrypted, i.expires_at,
+             eu.email, eu.first_name,
+             j.title as journey_title, j.status as journey_status, j.settings as journey_settings,
+             o.name as org_name, o.settings->>'default_language' as org_language
+      FROM invitations i
+      JOIN end_users eu ON eu.id = i.end_user_id
+      JOIN journeys j ON j.id = i.journey_id
+      JOIN organizations o ON o.id = i.organization_id
+      WHERE i.id = $1 AND i.organization_id = $2
+        AND i.status IN ('pending', 'active') AND i.expires_at > NOW()
+    `, [invId, orgId]);
+    const inv = result.rows[0];
+    const token = inv ? invitationToken(inv) : null;
+    if (!inv || !token || inv.journey_status !== 'published') {
+      return res.status(404).json({ success: false, error: req.t('invitations.list.resendFailed') });
+    }
+
+    // At most once per 10 minutes: claim the slot before sending
+    const claimed = await query(`
+      UPDATE invitations SET last_sent_at = NOW()
+      WHERE id = $1 AND (last_sent_at IS NULL OR last_sent_at < NOW() - INTERVAL '10 minutes')
+      RETURNING id
+    `, [invId]);
+    if (claimed.rows.length === 0) {
+      return res.status(429).json({ success: false, error: req.t('invitations.list.resendTooSoon') });
+    }
+
+    const settings = typeof inv.journey_settings === 'string' ? JSON.parse(inv.journey_settings) : (inv.journey_settings || {});
+    const emailLanguage = (settings.language_override && settings.language_code) ? settings.language_code : (inv.org_language || 'en');
+    const daysLeft = Math.max(1, Math.ceil((new Date(inv.expires_at) - Date.now()) / 86400000));
+    const [one, other] = INVITATION_DAY_WORDS[emailLanguage] || INVITATION_DAY_WORDS.en;
+
+    await sendInvitationEmail({
+      to: inv.email,
+      firstName: inv.first_name,
+      journeyTitle: inv.journey_title,
+      companyName: inv.org_name || 'Gryffi',
+      magicLink: `${getAppBaseUrl()}/e/${token}`,
+      validityText: `${daysLeft} ${daysLeft === 1 ? one : other}`,
+      language: emailLanguage,
+      orgId,
+      unsubscribeEmail: req.user?.email || null
+    });
+
+    res.json({ success: true, message: req.t('invitations.list.resent') });
+  } catch (err) {
+    console.error('API resend invitation error:', err);
+    res.status(500).json({ success: false, error: req.t('invitations.list.resendFailed') });
+  }
+});
+
+/**
  * DELETE /api/invitations/:id - Revoke an invitation
  */
 router.delete('/invitations/:id', async (req, res) => {
-  // Only non-viewers can revoke invitations
-  if (req.user?.role === 'viewer') {
-    return res.status(403).json({ success: false, error: 'Permission denied' });
+  // Only managers and admins revoke invitations
+  if (!canPublish(req)) {
+    return res.status(403).json({ success: false, error: req.t('team.messages.invitationsNotAllowed') });
   }
 
   try {
@@ -9282,79 +9033,6 @@ router.get('/invitations', async (req, res) => {
 // ============================================
 
 /**
- * GET /api/polls/:stepId - Get poll data and results for a step
- */
-router.get('/polls/:stepId', async (req, res) => {
-  try {
-    const { stepId } = req.params;
-    const orgId = req.organizationId;
-    
-    // Verify step belongs to organization
-    const stepCheck = await query(`
-      SELECT s.id, s.basic_props, j.organization_id
-      FROM steps s
-      JOIN journeys j ON s.journey_id = j.id
-      WHERE s.id = $1 AND j.organization_id = $2 AND s.type = 'poll'
-    `, [stepId, orgId]);
-    
-    if (stepCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Poll not found' });
-    }
-    
-    // Get or create poll record
-    const pollResult = await query(
-      'SELECT id FROM polls WHERE step_id = $1',
-      [stepId]
-    );
-    
-    let pollId;
-    if (pollResult.rows.length === 0) {
-      // Create poll record
-      const newPoll = await query(
-        'INSERT INTO polls (organization_id, step_id) VALUES ($1, $2) RETURNING id',
-        [orgId, stepId]
-      );
-      pollId = newPoll.rows[0].id;
-    } else {
-      pollId = pollResult.rows[0].id;
-    }
-    
-    // Get poll responses aggregated by option
-    const responsesResult = await query(`
-      SELECT 
-        unnest(selected_options) as option_index,
-        COUNT(*) as vote_count
-      FROM poll_responses
-      WHERE poll_id = $1
-      GROUP BY option_index
-      ORDER BY option_index
-    `, [pollId]);
-    
-    // Get total respondents
-    const totalResult = await query(
-      'SELECT COUNT(*) as total FROM poll_responses WHERE poll_id = $1',
-      [pollId]
-    );
-    
-    const votes = {};
-    responsesResult.rows.forEach(row => {
-      votes[row.option_index] = parseInt(row.vote_count);
-    });
-    
-    res.json({
-      success: true,
-      pollId,
-      votes,
-      totalRespondents: parseInt(totalResult.rows[0].total)
-    });
-    
-  } catch (err) {
-    console.error('API get poll error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load poll data' });
-  }
-});
-
-/**
  * POST /api/polls/:stepId/reset - Reset all poll responses (admin only)
  * Note: The vote route is now defined before requireApiAuth for public access
  */
@@ -9414,69 +9092,6 @@ router.post('/polls/:stepId/reset', async (req, res) => {
 });
 
 /**
- * GET /api/analytics/polls - Get all poll results for analytics
- */
-router.get('/analytics/polls', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    
-    // Get all polls with step/journey info and vote breakdown in two queries (avoids N+1)
-    const pollsResult = await query(`
-      SELECT 
-        p.id as poll_id,
-        p.step_id,
-        s.title as step_title,
-        s.basic_props,
-        j.id as journey_id,
-        j.title as journey_title,
-        (SELECT COUNT(*) FROM poll_responses WHERE poll_id = p.id) as total_votes,
-        (SELECT MAX(created_at) FROM poll_responses WHERE poll_id = p.id) as last_vote
-      FROM polls p
-      JOIN steps s ON p.step_id = s.id
-      JOIN journeys j ON s.journey_id = j.id
-      WHERE p.organization_id = $1
-      ORDER BY j.title, s.title
-    `, [orgId]);
-    
-    // Batch fetch vote breakdowns for all polls at once
-    const pollIds = pollsResult.rows.map(p => p.poll_id);
-    const votesByPoll = {};
-    if (pollIds.length > 0) {
-      const allVotes = await query(`
-        SELECT 
-          poll_id,
-          unnest(selected_options) as option_index,
-          COUNT(*) as vote_count
-        FROM poll_responses
-        WHERE poll_id = ANY($1)
-        GROUP BY poll_id, option_index
-        ORDER BY poll_id, option_index
-      `, [pollIds]);
-      
-      for (const row of allVotes.rows) {
-        if (!votesByPoll[row.poll_id]) votesByPoll[row.poll_id] = {};
-        votesByPoll[row.poll_id][row.option_index] = parseInt(row.vote_count);
-      }
-    }
-    
-    const polls = pollsResult.rows.map(poll => ({
-      ...poll,
-      votes: votesByPoll[poll.poll_id] || {},
-      basic_props: typeof poll.basic_props === 'string' ? JSON.parse(poll.basic_props) : poll.basic_props
-    }));
-    
-    res.json({
-      success: true,
-      polls
-    });
-    
-  } catch (err) {
-    console.error('API analytics polls error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load poll analytics' });
-  }
-});
-
-/**
  * DELETE /api/analytics/polls/archived - Delete multiple archived polls permanently
  */
 router.delete('/analytics/polls/archived', async (req, res) => {
@@ -9516,38 +9131,6 @@ router.delete('/analytics/polls/archived', async (req, res) => {
   } catch (err) {
     console.error('API delete archived polls error:', err);
     res.status(500).json({ success: false, error: 'Failed to delete archived polls' });
-  }
-});
-
-/**
- * DELETE /api/analytics/polls/archived/:pollId - Delete single archived poll permanently
- */
-router.delete('/analytics/polls/archived/:pollId', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const { pollId } = req.params;
-    
-    // Verify poll belongs to this organization and is archived
-    const pollCheck = await query(`
-      SELECT id FROM polls 
-      WHERE id = $1 AND organization_id = $2 AND is_archived = true
-    `, [pollId, orgId]);
-    
-    if (pollCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Archived poll not found' });
-    }
-    
-    // Delete poll responses first
-    await query(`DELETE FROM poll_responses WHERE poll_id = $1`, [pollId]);
-    
-    // Delete the archived poll
-    await query(`DELETE FROM polls WHERE id = $1`, [pollId]);
-    
-    res.json({ success: true });
-    
-  } catch (err) {
-    console.error('API delete archived poll error:', err);
-    res.status(500).json({ success: false, error: 'Failed to delete archived poll' });
   }
 });
 
@@ -9917,65 +9500,6 @@ router.get('/reports/journeys', async (req, res) => {
 });
 
 /**
- * GET /api/rewards - Get all rewards for organization with claim stats
- */
-router.get('/rewards', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    
-    // Get all rewards with their journey and step info
-    const rewardsResult = await query(`
-      SELECT 
-        r.id,
-        r.step_id,
-        r.journey_id,
-        r.title,
-        r.description,
-        r.redemption_location,
-        r.terms_conditions,
-        r.valid_until,
-        r.is_random_codes,
-        r.max_recipients,
-        r.created_at,
-        j.title as journey_title,
-        s.title as step_title,
-        (SELECT COUNT(*) FROM reward_codes WHERE reward_id = r.id) as total_codes,
-        (SELECT COUNT(*) FROM reward_codes WHERE reward_id = r.id AND is_claimed = true) as claimed_count
-      FROM rewards r
-      JOIN journeys j ON r.journey_id = j.id
-      JOIN steps s ON r.step_id = s.id
-      WHERE r.organization_id = $1
-      ORDER BY r.created_at DESC
-    `, [orgId]);
-    
-    res.json({
-      success: true,
-      rewards: rewardsResult.rows.map(r => ({
-        id: r.id,
-        stepId: r.step_id,
-        journeyId: r.journey_id,
-        title: r.title,
-        description: r.description,
-        redemptionLocation: r.redemption_location,
-        termsConditions: r.terms_conditions,
-        validUntil: r.valid_until,
-        isRandomCodes: r.is_random_codes,
-        maxRecipients: r.max_recipients,
-        createdAt: r.created_at,
-        journeyTitle: r.journey_title,
-        stepTitle: r.step_title,
-        totalCodes: parseInt(r.total_codes) || 0,
-        claimedCount: parseInt(r.claimed_count) || 0
-      }))
-    });
-    
-  } catch (err) {
-    console.error('API rewards error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load rewards' });
-  }
-});
-
-/**
  * GET /api/rewards/step/:stepId/status - Get reward claim status for a specific step (used by builder)
  */
 router.get('/rewards/step/:stepId/status', async (req, res) => {
@@ -10146,135 +9670,6 @@ router.get('/rewards/:rewardId/codes', async (req, res) => {
 // SUBSCRIPTION & USAGE
 // ============================================
 
-/**
- * GET /api/subscription - Get organization's subscription and usage info
- */
-router.get('/subscription', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const usageData = await getOrganizationUsageWithLimits(orgId);
-    
-    if (!usageData) {
-      return res.status(404).json({ success: false, error: 'Organization not found' });
-    }
-    
-    res.json({
-      success: true,
-      ...usageData
-    });
-  } catch (err) {
-    console.error('API subscription error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load subscription data' });
-  }
-});
-
-/**
- * GET /api/subscription/tiers - Get all available subscription tiers
- */
-router.get('/subscription/tiers', async (req, res) => {
-  try {
-    const tiers = await getAllTiers();
-    res.json({ success: true, tiers });
-  } catch (err) {
-    console.error('API tiers error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load tiers' });
-  }
-});
-
-/**
- * GET /api/subscription/usage - Get detailed usage statistics
- */
-router.get('/subscription/usage', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const usage = await getOrganizationUsage(orgId);
-    
-    res.json({
-      success: true,
-      usage
-    });
-  } catch (err) {
-    console.error('API usage error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load usage data' });
-  }
-});
-
-/**
- * GET /api/subscription/notifications - Get pending limit notifications
- */
-router.get('/subscription/notifications', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const notifications = await getPendingNotifications(orgId);
-    
-    res.json({
-      success: true,
-      notifications
-    });
-  } catch (err) {
-    console.error('API notifications error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load notifications' });
-  }
-});
-
-/**
- * POST /api/subscription/notifications/:id/acknowledge - Acknowledge a notification
- */
-router.post('/subscription/notifications/:id/acknowledge', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user?.id;
-    
-    await acknowledgeNotification(id, userId);
-    
-    res.json({ success: true });
-  } catch (err) {
-    console.error('API acknowledge notification error:', err);
-    res.status(500).json({ success: false, error: 'Failed to acknowledge notification' });
-  }
-});
-
-/**
- * POST /api/subscription/check-limit - Check if a resource can be created
- */
-router.post('/subscription/check-limit', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const { resourceType, increment } = req.body;
-    
-    const result = await checkLimit(orgId, resourceType, increment || 1);
-    
-    res.json({
-      success: true,
-      ...result
-    });
-  } catch (err) {
-    console.error('API check limit error:', err);
-    res.status(500).json({ success: false, error: 'Failed to check limit' });
-  }
-});
-
-/**
- * GET /api/subscription/feature/:featureName - Check if a feature is enabled
- */
-router.get('/subscription/feature/:featureName', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const { featureName } = req.params;
-    
-    const enabled = await isFeatureEnabled(orgId, featureName);
-    
-    res.json({
-      success: true,
-      feature: featureName,
-      enabled
-    });
-  } catch (err) {
-    console.error('API feature check error:', err);
-    res.status(500).json({ success: false, error: 'Failed to check feature' });
-  }
-});
-
 // ============================================
 // PUBLIC API KEY MANAGEMENT (Admin only)
 // ============================================
@@ -10370,23 +9765,18 @@ router.post('/api-key/generate', async (req, res) => {
       });
     }
     
-    // Generate a secure API key
-    // Format: grf_<64 hex characters> = 32 bytes of randomness
-    const randomBytes = crypto.randomBytes(32);
-    const rawApiKey = 'grf_' + randomBytes.toString('hex');
+    // Generate a secure API key: grf_<64 hex characters> (services/apiKeys.js)
+    const { apiKey: rawApiKey, hash: apiKeyHash, lookup: apiKeyLookupValue } = await newApiKey();
     
-    // Hash the API key for storage
-    const saltRounds = 10;
-    const apiKeyHash = await bcrypt.hash(rawApiKey, saltRounds);
-    
-    // Store the hash
+    // Store the hash and the lookup value, never the key itself
     await query(`
       UPDATE organizations 
       SET api_key_hash = $1, 
+          api_key_lookup = $2,
           api_key_created_at = NOW(),
           api_key_last_used_at = NULL
-      WHERE id = $2
-    `, [apiKeyHash, orgId]);
+      WHERE id = $3
+    `, [apiKeyHash, apiKeyLookupValue, orgId]);
     
     res.json({
       success: true,
@@ -10432,6 +9822,7 @@ router.delete('/api-key', async (req, res) => {
     await query(`
       UPDATE organizations 
       SET api_key_hash = NULL, 
+          api_key_lookup = NULL,
           api_key_created_at = NULL,
           api_key_last_used_at = NULL
       WHERE id = $1
@@ -10516,7 +9907,7 @@ router.post('/floorplans', memoryUpload.single('image'), async (req, res) => {
     const { name, description } = req.body;
     
     if (!name || name.trim().length === 0) {
-      return res.status(400).json({ success: false, error: req.t('errors.floorplan_name_required', 'Floorplan name is required') });
+      return res.status(400).json({ success: false, error: req.t('errors.floorplan_name_required', 'Give the floor plan a name.') });
     }
     
     const file = req.file;
@@ -10577,75 +9968,6 @@ router.post('/floorplans', memoryUpload.single('image'), async (req, res) => {
   } catch (err) {
     console.error('Floorplan upload error:', err);
     res.status(500).json({ success: false, error: req.t('errors.upload_failed', 'Failed to upload floorplan') });
-  }
-});
-
-/**
- * PUT /api/floorplans/:id - Update floorplan details
- */
-router.put('/floorplans/:id', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const floorplanId = req.params.id;
-    const { name, description } = req.body;
-    
-    if (!name || name.trim().length === 0) {
-      return res.status(400).json({ success: false, error: 'Floorplan name is required' });
-    }
-    
-    const result = await query(`
-      UPDATE floorplans 
-      SET name = $1, description = $2, updated_at = NOW()
-      WHERE id = $3 AND organization_id = $4
-      RETURNING *
-    `, [name.trim(), description || null, floorplanId, orgId]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Floorplan not found' });
-    }
-    
-    res.json({
-      success: true,
-      floorplan: result.rows[0]
-    });
-  } catch (err) {
-    console.error('Floorplan update error:', err);
-    res.status(500).json({ success: false, error: 'Failed to update floorplan' });
-  }
-});
-
-/**
- * DELETE /api/floorplans/:id - Delete a floorplan
- */
-router.delete('/floorplans/:id', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const floorplanId = req.params.id;
-    
-    // Get floorplan info first
-    const floorplanResult = await query(`
-      SELECT * FROM floorplans WHERE id = $1 AND organization_id = $2
-    `, [floorplanId, orgId]);
-    
-    if (floorplanResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Floorplan not found' });
-    }
-    
-    const floorplan = floorplanResult.rows[0];
-    
-    // Delete file from disk (supports both old and new URL structures)
-    const filePath = getMediaFilePath(floorplan.image_url);
-    if (filePath && fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    
-    // Delete from database
-    await query('DELETE FROM floorplans WHERE id = $1', [floorplanId]);
-    
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Floorplan delete error:', err);
-    res.status(500).json({ success: false, error: 'Failed to delete floorplan' });
   }
 });
 
@@ -10772,33 +10094,6 @@ router.get('/themes', async (req, res) => {
   } catch (err) {
     console.error('Themes list error:', err);
     res.status(500).json({ success: false, error: 'Failed to get themes' });
-  }
-});
-
-/**
- * GET /api/themes/:id - Get a single theme
- */
-router.get('/themes/:id', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const themeId = req.params.id;
-    
-    const result = await query(`
-      SELECT * FROM themes 
-      WHERE id = $1 AND organization_id = $2
-    `, [themeId, orgId]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Theme not found' });
-    }
-    
-    res.json({
-      success: true,
-      theme: result.rows[0]
-    });
-  } catch (err) {
-    console.error('Theme get error:', err);
-    res.status(500).json({ success: false, error: 'Failed to get theme' });
   }
 });
 
@@ -11121,83 +10416,42 @@ router.post('/themes/deactivate', async (req, res) => {
   }
 });
 
-/**
- * DELETE /api/themes/:id/logo - Remove logo from theme
- */
-router.delete('/themes/:id/logo', async (req, res) => {
-  try {
-    const orgId = req.organizationId;
-    const themeId = req.params.id;
-    
-    // Get current theme (including light logo)
-    const themeResult = await query(`
-      SELECT logo_url, logo_light_url FROM themes WHERE id = $1 AND organization_id = $2
-    `, [themeId, orgId]);
-    
-    if (themeResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Theme not found' });
-    }
-    
-    const { logo_url: logoUrl, logo_light_url: logoLightUrl } = themeResult.rows[0];
-    
-    // Delete original logo file if exists
-    if (logoUrl) {
-      const filePath = getMediaFilePath(logoUrl);
-      if (filePath && fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-    
-    // Delete light logo file if exists
-    if (logoLightUrl) {
-      const lightFilePath = getMediaFilePath(logoLightUrl);
-      if (lightFilePath && fs.existsSync(lightFilePath)) {
-        fs.unlinkSync(lightFilePath);
-      }
-    }
-    
-    // Update database
-    await query(`
-      UPDATE themes SET logo_url = NULL, logo_light_url = NULL, updated_at = NOW()
-      WHERE id = $1 AND organization_id = $2
-    `, [themeId, orgId]);
-    
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Theme logo delete error:', err);
-    res.status(500).json({ success: false, error: 'Failed to delete logo' });
-  }
-});
-
 // ============================================================================
 // HELP API ENDPOINTS
 // AI-powered help assistant for makers
 // ============================================================================
 
+const HELP_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es'];
+const helpLanguage = (value) => (HELP_LANGUAGES.includes(value) ? value : 'en');
+
 /**
  * POST /api/help/search - Search help documentation and get AI response
- * 
+ *
  * Body:
  *   query: string - User's question
  *   context: string - Current UI context (e.g., 'builder', 'settings', 'dashboard')
  *   language: string - Response language (en, nl, de, fr, es)
+ *
+ * Without an AI answer (provider busy or not configured), answer is null and
+ * the help window shows the article of the best matching page.
  */
 router.post('/help/search', async (req, res) => {
   try {
-    const { query: userQuery, context = '', language = 'en' } = req.body;
-    
+    const { query: userQuery, context = '' } = req.body;
+    const language = helpLanguage(req.body.language);
+
     if (!userQuery || typeof userQuery !== 'string' || userQuery.trim().length < 2) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Please provide a search query' 
+      return res.status(400).json({
+        success: false,
+        error: req.t('help.queryTooShort')
       });
     }
-    
-    // Gather maker and organization context for personalized responses
-    const user = req.session?.user;
+    const question = userQuery.trim().slice(0, 500);
+
+    // Role and plan of the maker: the answer mentions them only when a
+    // feature needs another role or plan
     const org = req.session?.organization;
     let tierInfo = null;
-    
     if (org?.id) {
       try {
         tierInfo = await getOrganizationTier(org.id);
@@ -11205,207 +10459,106 @@ router.post('/help/search', async (req, res) => {
         console.warn('[Help API] Could not get tier info:', e.message);
       }
     }
-    
     const makerContext = {
-      name: user?.fullName || user?.firstName || null,
-      role: user?.role || null,
+      role: req.session?.user?.role || null,
       organization: {
-        name: org?.name || null,
-        country: org?.country || null,
-        tier: tierInfo?.tier ? {
-          name: tierInfo.tier.name,
-          displayName: tierInfo.tier.displayName
-        } : null
+        tier: tierInfo?.tier ? { name: tierInfo.tier.name, displayName: tierInfo.tier.displayName } : null
       }
     };
-    
-    // Search relevant documentation
-    const relevantDocs = await searchHelp(userQuery.trim(), context, 5, { language });
-    
-    if (relevantDocs.length === 0) {
-      return res.json({
-        success: true,
-        answer: null,
-        noResults: true,
-        topics: await getHelpTopics()
-      });
-    }
-    
-    // Generate AI response based on docs and maker context
-    const response = await generateHelpResponse(
-      userQuery.trim(),
-      relevantDocs,
-      context,
+
+    // What the maker has selected in the builder: a step type and the open panel tab
+    const stepType = Object.hasOwn(STEP_TYPE_ARTICLES, req.body.stepType) ? req.body.stepType : null;
+    const tab = ['content', 'settings'].includes(req.body.tab) ? req.body.tab : null;
+    const screen = helpName(req.body.screen) || 'unknown';
+    const orgId = req.session?.organization?.id;
+
+    const relevantDocs = await searchHelp(question, typeof context === 'string' ? context.slice(0, 50) : '', 5, {
       language,
-      makerContext
-    );
+      focus: stepType ? STEP_TYPE_ARTICLES[stepType] : ''
+    });
+    recordHelpEvent(orgId, { kind: 'question', screen }).catch(err => console.error('[Help API] Count error:', err.message));
+    if (relevantDocs.length === 0) {
+      recordUnanswered(orgId, screen, question).catch(err => console.error('[Help API] Count error:', err.message));
+      return res.json({ success: true, answer: null, noResults: true });
+    }
+
+    const response = await generateHelpResponse(question, relevantDocs, context, language, makerContext, stepType ? { stepType, tab } : null);
+    // The help pages do not cover it: keep the question, it shows which article is missing
+    if (!response.answer && !response.source) {
+      recordUnanswered(orgId, screen, question).catch(err => console.error('[Help API] Count error:', err.message));
+    }
+    // Page titles in the maker's language (translated once, then cached)
+    const titleOf = await helpTitleLookup(language);
 
     res.json({
       success: true,
       answer: response.answer,
       link: response.link,
-      source: response.source,
-      // Screenshots of the page the answer comes from, in the maker's language when available
-      images: getHelpImages(relevantDocs[0], language),
-      relatedTopics: relevantDocs.slice(1, 4).map(d => ({
-        id: d.id,
-        title: d.title
-      }))
+      // The help page the answer comes from (null when the help pages do not answer it)
+      source: response.source ? { id: response.source.id, title: titleOf(response.source.id) } : null,
+      // Screenshots the answer points at, in the maker's language when available
+      images: response.images,
+      relatedTopics: relevantDocs.filter(d => d.id !== response.source?.id).slice(0, 3).map(d => ({ id: d.id, title: titleOf(d.id) }))
     });
-    
   } catch (err) {
     console.error('[Help API] Search error:', err);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to search help' 
-    });
+    res.status(500).json({ success: false, error: req.t('help.error') });
   }
 });
 
 /**
- * GET /api/help/topics - Get all available help topics
+ * POST /api/help/event - Count that help was used: the panel opened on a
+ * screen, a "What is this?" explanation or an article was read. Counts only,
+ * without the maker (services/helpEvents.js).
+ */
+router.post('/help/event', async (req, res) => {
+  try {
+    const kind = ['panel', 'tip', 'article'].includes(req.body?.kind) ? req.body.kind : null;
+    const screen = helpName(req.body?.screen);
+    if (!kind || !screen) return res.status(400).json({ success: false, error: 'Invalid event' });
+    await recordHelpEvent(req.organizationId || req.session?.organization?.id, { kind, screen, key: helpName(req.body?.key) });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Help API] Event error:', err);
+    res.status(500).json({ success: false, error: req.t('help.error') });
+  }
+});
+
+/**
+ * GET /api/help/topics?language=nl - All help pages, grouped in categories
  */
 router.get('/help/topics', async (req, res) => {
   try {
-    const topics = await getHelpTopics();
-    res.json({ success: true, topics });
+    res.json({ success: true, categories: await getHelpTopics(helpLanguage(req.query.language)) });
   } catch (err) {
     console.error('[Help API] Topics error:', err);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to load help topics' 
-    });
+    res.status(500).json({ success: false, error: req.t('help.error') });
   }
 });
 
 /**
- * GET /api/help/topic/:id - Get details for a specific help topic
+ * GET /api/help/article/:id?language=nl - One help page as an article, translated
+ * into the maker's language (the first time takes a few seconds, then cached)
  */
-router.get('/help/topic/:id', async (req, res) => {
+router.get('/help/article/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const doc = await getHelpDoc(id);
-    
-    if (!doc) {
-      return res.status(404).json({
-        success: false,
-        error: 'Help topic not found'
-      });
+    if (!/^[a-z0-9-]{1,80}$/.test(req.params.id)) {
+      return res.status(404).json({ success: false, error: req.t('help.articleNotFound') });
     }
-
-    res.json({
-      success: true,
-      topic: {
-        id: doc.id,
-        title: doc.title,
-        link: doc.links[0] || null,
-        relatedFeatures: doc.relatedFeatures
-      }
-    });
-    
+    const article = await getHelpArticle(req.params.id, helpLanguage(req.query.language));
+    if (!article) {
+      return res.status(404).json({ success: false, error: req.t('help.articleNotFound') });
+    }
+    res.json({ success: true, article });
   } catch (err) {
-    console.error('[Help API] Topic error:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to load help topic'
-    });
+    console.error('[Help API] Article error:', err);
+    res.status(500).json({ success: false, error: req.t('help.error') });
   }
 });
 
 // ============================================
 // ANALYTICS - Journey Event Tracking
 // ============================================
-
-/**
- * GET /api/analytics/events - Get journey events for testing/analysis
- * Query params:
- * - journey_id: Filter by journey
- * - end_user_id: Filter by end user
- * - event_type: Filter by event type
- * - limit: Max results (default 100)
- * - since: ISO date string to filter from
- */
-router.get('/analytics/events', async (req, res) => {
-  try {
-    const user = req.session.user;
-    const orgId = req.session.organization?.id;
-    if (!user || !orgId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-    const { journey_id, end_user_id, event_type, limit = 100, since } = req.query;
-    
-    // Build query dynamically
-    let whereClause = 'je.organization_id = $1';
-    const params = [orgId];
-    let paramIndex = 2;
-    
-    if (journey_id) {
-      whereClause += ` AND je.journey_id = $${paramIndex++}`;
-      params.push(journey_id);
-    }
-    
-    if (end_user_id) {
-      whereClause += ` AND je.end_user_id = $${paramIndex++}`;
-      params.push(end_user_id);
-    }
-    
-    if (event_type) {
-      whereClause += ` AND je.event_type = $${paramIndex++}`;
-      params.push(event_type);
-    }
-    
-    if (since) {
-      whereClause += ` AND je.created_at >= $${paramIndex++}`;
-      params.push(new Date(since));
-    }
-    
-    params.push(Math.min(parseInt(limit) || 100, 1000));
-    
-    const result = await query(`
-      SELECT 
-        je.*,
-        j.title as journey_title,
-        eu.first_name || ' ' || eu.last_name as end_user_name,
-        eu.email as end_user_email,
-        s.title as step_title,
-        s.type as step_type
-      FROM journey_events je
-      LEFT JOIN journeys j ON je.journey_id = j.id
-      LEFT JOIN end_users eu ON je.end_user_id = eu.id
-      LEFT JOIN steps s ON je.step_id = s.id
-      WHERE ${whereClause}
-      ORDER BY je.created_at DESC
-      LIMIT $${paramIndex}
-    `, params);
-    
-    // Get summary stats
-    const statsResult = await query(`
-      SELECT 
-        event_type,
-        COUNT(*) as count,
-        AVG(duration_ms) as avg_duration_ms
-      FROM journey_events
-      WHERE organization_id = $1
-      ${since ? `AND created_at >= $2` : ''}
-      GROUP BY event_type
-      ORDER BY count DESC
-    `, since ? [orgId, new Date(since)] : [orgId]);
-    
-    res.json({
-      success: true,
-      events: result.rows,
-      stats: statsResult.rows,
-      total: result.rows.length
-    });
-    
-  } catch (err) {
-    console.error('[Analytics] Events error:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to load analytics events'
-    });
-  }
-});
 
 /**
  * GET /api/analytics/summary - Get high-level analytics summary
@@ -12598,7 +11751,17 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
       ORDER BY s.is_start DESC, first_reached ASC NULLS LAST
     `, [journeyId, orgId, sinceDate]);
     
-    // Build funnel with drop-off rates (using funnelData order - sorted by when users reach each step)
+    // Put the steps in the order of the journey itself: breadth-first from
+    // the start step along the paths (branches top to bottom on the canvas).
+    // Ordering by "first reached" mixed up branches and participants.
+    const [flowSteps, flowPaths] = await Promise.all([
+      query('SELECT id, is_start, position_x, position_y FROM steps WHERE journey_id = $1', [journeyId]),
+      query('SELECT from_step_id, to_step_id FROM paths WHERE journey_id = $1', [journeyId])
+    ]);
+    const flowOrder = orderStepsByFlow(flowSteps.rows, flowPaths.rows);
+    funnelData.rows.sort((a, b) => (flowOrder.get(a.step_id) ?? Infinity) - (flowOrder.get(b.step_id) ?? Infinity));
+
+    // Build funnel with drop-off rates
     const funnel = [];
     for (let index = 0; index < funnelData.rows.length; index++) {
       const stepData = funnelData.rows[index];
@@ -12917,40 +12080,10 @@ router.get('/analytics/top-journeys', async (req, res) => {
 
 import {
   getDemoJourney,
-  getUserOnboardingState,
   updateUserOnboardingState,
-  shouldShowWelcome,
-  markHintShown,
   createVirtualJourneyFromDemo
 } from '../services/demoJourney.js';
-import { dismissTip } from '../services/tips.js';
-
-/**
- * GET /api/onboarding/state - Get current user's onboarding state
- */
-router.get('/onboarding/state', async (req, res) => {
-  try {
-    const user = req.session.user;
-    const orgId = req.session.organization?.id;
-    if (!user || !orgId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-    
-    const state = await getUserOnboardingState(user.id, orgId);
-    const showWelcome = await shouldShowWelcome(user.id, orgId);
-    
-    res.json({
-      success: true,
-      state: {
-        ...state,
-        should_show_welcome: showWelcome
-      }
-    });
-  } catch (err) {
-    console.error('[Onboarding] Get state error:', err);
-    res.status(500).json({ success: false, error: 'Failed to get onboarding state' });
-  }
-});
+import { dismissTip, dismissGettingStarted } from '../services/tips.js';
 
 /**
  * POST /api/onboarding/welcome-seen - Mark welcome modal as seen
@@ -12999,32 +12132,6 @@ router.post('/onboarding/tour-started', async (req, res) => {
 });
 
 /**
- * POST /api/onboarding/tour-completed - Mark tour as completed
- */
-router.post('/onboarding/tour-completed', async (req, res) => {
-  try {
-    const user = req.session.user;
-    const orgId = req.session.organization?.id;
-    if (!user || !orgId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-    
-    const { demo_journey_version } = req.body;
-    
-    const state = await updateUserOnboardingState(user.id, {
-      has_completed_tour: true,
-      tour_completed_at: new Date().toISOString(),
-      demo_journey_version: demo_journey_version || null
-    });
-    
-    res.json({ success: true, state });
-  } catch (err) {
-    console.error('[Onboarding] Mark tour completed error:', err);
-    res.status(500).json({ success: false, error: 'Failed to update onboarding state' });
-  }
-});
-
-/**
  * POST /api/onboarding/tour-skipped - Mark tour as skipped
  */
 router.post('/onboarding/tour-skipped', async (req, res) => {
@@ -13049,26 +12156,20 @@ router.post('/onboarding/tour-skipped', async (req, res) => {
 });
 
 /**
- * POST /api/onboarding/hint-shown - Mark a contextual hint as shown
+ * POST /api/onboarding/getting-started-dismissed - Hide the getting-started
+ * card on the dashboard for the current user
  */
-router.post('/onboarding/hint-shown', async (req, res) => {
+router.post('/onboarding/getting-started-dismissed', async (req, res) => {
   try {
     const user = req.session.user;
     if (!user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
-    
-    const { hint_id } = req.body;
-    if (!hint_id) {
-      return res.status(400).json({ success: false, error: 'hint_id is required' });
-    }
-    
-    await markHintShown(user.id, hint_id);
-    
+    await dismissGettingStarted(user.id, req.organizationId);
     res.json({ success: true });
   } catch (err) {
-    console.error('[Onboarding] Mark hint shown error:', err);
-    res.status(500).json({ success: false, error: 'Failed to mark hint as shown' });
+    console.error('[Onboarding] Dismiss getting started error:', err);
+    res.status(500).json({ success: false, error: 'Failed to hide getting started' });
   }
 });
 
@@ -13131,36 +12232,6 @@ router.get('/demo-journey', async (req, res) => {
     });
   } catch (err) {
     console.error('[Demo Journey] Get demo journey error:', err);
-    res.status(500).json({ success: false, error: 'Failed to get demo journey' });
-  }
-});
-
-/**
- * GET /api/demo-journey/:id - Get a specific demo journey by ID
- */
-router.get('/demo-journey/:id', async (req, res) => {
-  try {
-    const user = req.session.user;
-    if (!user) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-    
-    const { id } = req.params;
-    
-    const result = await query('SELECT * FROM demo_journeys WHERE id = $1 AND is_active = true', [id]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Demo journey not found' });
-    }
-    
-    const virtualJourney = createVirtualJourneyFromDemo(result.rows[0]);
-    
-    res.json({
-      success: true,
-      demo_journey: virtualJourney
-    });
-  } catch (err) {
-    console.error('[Demo Journey] Get demo journey by ID error:', err);
     res.status(500).json({ success: false, error: 'Failed to get demo journey' });
   }
 });
@@ -13417,7 +12488,7 @@ router.post('/wizard/generate', async (req, res) => {
     }
 
     // Journey tier check
-    const journeyLimit = await checkLimit(orgId, RESOURCE_TYPES.JOURNEYS);
+    const journeyLimit = await checkLimit(orgId, RESOURCE_TYPES.JOURNEYS, 1, 'wizard');
     if (!journeyLimit.allowed) {
       send({ status: 'error', code: 'LIMIT_EXCEEDED', limitType: 'journeys', error: req.t('subscription.limits.journeysExceeded') });
       return res.end();
@@ -13433,7 +12504,7 @@ router.post('/wizard/generate', async (req, res) => {
 
     // Guide tier check (only if a new guide is requested)
     if (body.guide === 'newWithKb' || body.guide === 'newNoKb') {
-      const guideLimit = await checkLimit(orgId, RESOURCE_TYPES.GUIDES);
+      const guideLimit = await checkLimit(orgId, RESOURCE_TYPES.GUIDES, 1, 'wizard');
       if (!guideLimit.allowed) {
         send({ status: 'error', code: 'LIMIT_EXCEEDED', limitType: 'guides', error: req.t('subscription.limits.guidesExceeded') });
         return res.end();
@@ -13575,7 +12646,7 @@ router.post('/wizard/generate', async (req, res) => {
       [orgId, userId, plan.title || body.title || 'Untitled', plan.description || body.description || '', guideIdForJourney]
     );
     const journeyId = journeyInsert.rows[0].id;
-    await logUsageEvent(orgId, 'journey_create', 'journey', journeyId, userId);
+    await logUsageEvent(orgId, 'journey_create', 'journey', journeyId, userId, { source: 'wizard' });
 
     // Insert steps. We pre-compute (x, y) positions with a layered graph
     // layout so branched journeys open as a tidy diamond/tree on the canvas

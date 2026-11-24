@@ -53,7 +53,7 @@ const RULES = [
       if (ctx.usage.endUsers?.isAtLimit) return null;
       // Only mention directory sync when the tier has it and nothing is connected yet
       const canSync = ctx.features.sync && !s.sync_connected;
-      return { contentKey: canSync ? 'add_end_users_sync' : 'add_end_users', link: '/dashboard/system-settings#users' };
+      return { contentKey: canSync ? 'add_end_users_sync' : 'add_end_users', link: '/dashboard/participants#users' };
     }
   },
   {
@@ -100,7 +100,7 @@ const RULES = [
     roles: ADMIN_ROLES,
     check: (s) => {
       if (s.end_users_count < GROUPS_MIN_END_USERS || s.groups_count > 0) return null;
-      return { link: '/dashboard/system-settings#users' };
+      return { link: '/dashboard/participants#users' };
     }
   },
   {
@@ -134,7 +134,7 @@ async function loadSnapshot(orgId) {
          ORDER BY j.updated_at DESC LIMIT 1
        ) x) AS latest_journey,
       (SELECT row_to_json(x) FROM (
-         SELECT j.id, j.title,
+         SELECT j.id, j.title, j.status,
                 (SELECT COUNT(*)::int FROM steps s WHERE s.journey_id = j.id) AS step_count
          FROM journeys j
          WHERE j.organization_id = $1 AND j.deleted_at IS NULL AND j.status = 'published'
@@ -160,7 +160,9 @@ async function loadSnapshot(orgId) {
          WHERE e.organization_id = $1 AND e.event_type = 'journey_completed'
            AND e.invitation_id IS NOT NULL) AS first_completion_at,
       (SELECT (o.google_refresh_token IS NOT NULL OR o.microsoft_refresh_token IS NOT NULL)
-         FROM organizations o WHERE o.id = $1) AS sync_connected
+         FROM organizations o WHERE o.id = $1) AS sync_connected,
+      (SELECT COUNT(*)::int FROM usage_events u
+         WHERE u.organization_id = $1 AND u.event_type = 'journey_preview') AS previews_total
   `, [orgId]);
 
   return { ...result.rows[0], now: new Date() };
@@ -255,4 +257,84 @@ export async function dismissTip(userId, orgId, key) {
         updated_at = NOW()
     WHERE user_id = $2
   `, [JSON.stringify(patch), userId]);
+}
+
+// ============================================
+// GETTING STARTED
+// ============================================
+
+const GETTING_STARTED_DISMISSED = 'getting_started:dismissed';
+const PUBLISH_ROLES = ['admin', 'manager'];
+
+/**
+ * The getting-started card on the dashboard: five steps from a first journey
+ * to a first participant who finished it. Only the next open step gets a
+ * button. Returns null when everything is done, the user hid the card or
+ * the role does not build. Pure, so it can be tested without a database.
+ *
+ * @returns {{ steps: Array<{ key: string, done: boolean }>, doneCount: number,
+ *   total: number, nextKey: string, journey: Object|null, canPublish: boolean } | null}
+ */
+export function buildGettingStarted(snapshot, role, hintsShown = {}) {
+  if (!BUILDER_ROLES.includes(role) || hintsShown[GETTING_STARTED_DISMISSED]) return null;
+
+  const invited = snapshot.invitations_total > 0;
+  const steps = [
+    { key: 'journey', done: snapshot.journeys_total > 0 },
+    // Organizations that already invite people are past this step
+    { key: 'preview', done: snapshot.previews_total > 0 || invited },
+    { key: 'publish', done: snapshot.journeys_published > 0 },
+    { key: 'invite', done: invited },
+    { key: 'complete', done: !!snapshot.first_completion_at }
+  ];
+  const doneCount = steps.filter(st => st.done).length;
+  if (doneCount === steps.length) return null;
+
+  const nextKey = steps.find(st => !st.done).key;
+  // Inviting goes with a journey that is already live, when there is one
+  const journey = (nextKey === 'invite' && snapshot.latest_published) || snapshot.latest_journey || null;
+  return {
+    steps,
+    doneCount,
+    total: steps.length,
+    nextKey,
+    journey: journey && { id: journey.id, title: journey.title, isDraft: journey.status !== 'published' },
+    canPublish: PUBLISH_ROLES.includes(role)
+  };
+}
+
+/**
+ * Resolve the getting-started card for a user. Never throws: on any failure
+ * the dashboard shows no card.
+ * @param {string} userId
+ * @param {string} orgId
+ * @param {string} role - users.role
+ */
+export async function getGettingStarted(userId, orgId, role) {
+  if (!BUILDER_ROLES.includes(role)) return null;
+  try {
+    const [snapshot, onboarding] = await Promise.all([
+      loadSnapshot(orgId),
+      getUserOnboardingState(userId, orgId)
+    ]);
+    return buildGettingStarted(snapshot, role, onboarding?.hints_shown || {});
+  } catch (err) {
+    console.error('[Tips] Failed to resolve getting started:', err);
+    return null;
+  }
+}
+
+/**
+ * Hide the getting-started card for this user for good.
+ * @param {string} userId
+ * @param {string} orgId
+ */
+export async function dismissGettingStarted(userId, orgId) {
+  await getUserOnboardingState(userId, orgId);
+  await query(`
+    UPDATE user_onboarding
+    SET hints_shown = COALESCE(hints_shown, '{}'::jsonb) || $1::jsonb,
+        updated_at = NOW()
+    WHERE user_id = $2
+  `, [JSON.stringify({ [GETTING_STARTED_DISMISSED]: new Date().toISOString() }), userId]);
 }

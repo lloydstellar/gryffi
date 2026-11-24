@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Bienvenue",
+    "greeting": "Bienvenue, {{firstName}} !",
     "guide": "Guide",
     "aiAssistant": "Assistant IA",
     "noGuideSelected": "Aucun guide sélectionné",
     "pleaseSelectGuide": "Veuillez sélectionner un Guide IA dans les paramètres de l'étape",
     "selectGuideForStep": "Veuillez sélectionner un guide pour cette étape.",
     "chat": {
+      "yourGuide": "Votre guide",
       "typeMessage": "Tapez votre message...",
       "typeQuestion": "Tapez votre question...",
       "askGuide": "Demander à {{name}}",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Bonjour ! Comment puis-je vous aider ?",
       "chatError": "Désolé, je n'ai pas pu traiter cela.",
       "connectionError": "J'ai des difficultés de connexion. Veuillez réessayer.",
-      "guideUnavailable": "Je ne peux pas répondre aux questions pour le moment. Vous pouvez passer à l'étape suivante."
+      "guideUnavailable": "Je ne peux pas répondre aux questions pour le moment. Vous pouvez passer à l'étape suivante.",
+      "sources": "Sources",
+      "showSource": "Afficher la source {{number}}"
     },
     "content": {
       "invalidVideoUrl": "URL vidéo invalide",
       "noContentYet": "Aucun contenu ajouté",
-      "pressPlayToStart": "Appuyez sur lecture pour commencer à regarder"
+      "pressPlayToStart": "Cliquez sur Lire la vidéo pour commencer à regarder",
+      "videoLoad": "Lire la vidéo",
+      "videoNotice": "Cette vidéo est sur YouTube. Si vous cliquez sur Lire la vidéo, votre navigateur se connecte à YouTube (Google). Google reçoit alors votre adresse IP et peut enregistrer des données sur votre appareil.",
+      "videoPrivacyLink": "Politique de confidentialité de Google"
     },
     "navigation": {
       "whenReady": "Quand vous êtes prêt :",
@@ -27,12 +34,12 @@
       "leaveJourney": "Quitter le parcours ?",
       "leaveJourneyMessage": "Êtes-vous sûr de vouloir quitter ce parcours ? Votre progression a été sauvegardée.",
       "leaveConfirm": "Quitter",
-      "stayContinue": "Rester"
+      "stayContinue": "Rester",
+      "doAgain": "Voulez-vous refaire ce parcours ?"
     },
     "pacing": {
       "readyToContinue": "Vous pouvez maintenant continuer",
       "takeYourTimeMinutes": "Prenez {{minutes}} minute pour explorer",
-      "takeYourTimeMinutesPlural": "Prenez {{minutes}} minutes pour explorer",
       "takeYourTimeSeconds": "Prenez votre temps... {{seconds}}s",
       "keepWatching": "Continuez à regarder... {{seconds}}s",
       "chatWithGuide": "Discutez avec le guide ({{count}}/{{total}} messages)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "Vous avez déjà envoyé ce formulaire",
         "message": "Vous avez envoyé ce formulaire le {{date}}. Vous pouvez l'envoyer à nouveau ou continuer sans le remplir.",
-        "skipButton": "Continuer sans envoyer",
-        "submitAgain": "Envoyer à nouveau"
+        "skipButton": "Continuer sans envoyer"
       },
       "fileUpload": {
         "dropzone": "Déposez le fichier ici ou cliquez pour parcourir",
-        "dragActive": "Déposez le fichier ici",
         "maxSize": "Max {{size}} Mo",
         "invalidType": "Type de fichier invalide. Autorisé : {{types}}",
         "fileTooLarge": "Fichier trop volumineux. Taille maximum : {{size}} Mo",
         "totalTooLarge": "La taille totale des pièces jointes dépasse la limite (38 Mo)",
         "removeFile": "Supprimer le fichier",
-        "noFileSelected": "Aucun fichier sélectionné",
-        "fileSelected": "Fichier sélectionné : {{name}}",
         "subtypes": {
           "image": "Image",
           "document": "Document",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "Cette image ne peut pas être envoyée. Veuillez choisir une autre image.",
-      "imageCheckUnavailable": "Nous n'avons pas pu vérifier votre image pour le moment. Veuillez réessayer dans quelques minutes."
+      "imageCheckUnavailable": "Nous n'avons pas pu vérifier votre image pour le moment. Veuillez réessayer dans quelques minutes.",
+      "fieldRequired": "Remplissez ce champ.",
+      "invalidEmail": "Saisissez une adresse e-mail valide, par exemple nom@entreprise.fr.",
+      "fileRequired": "Choisissez un fichier pour « {{field}} »."
     },
     "quiz": {
+      "title": "Quiz",
       "questionOf": "Question {{current}} sur {{total}}",
-      "checkAnswer": "Vérifier la réponse",
       "next": "Suivant",
       "previous": "Précédent",
       "finish": "Envoyer les réponses",
       "correct": "Correct !",
       "incorrect": "Pas tout à fait",
-      "tryAgain": "Réessayer",
       "score": "Votre score",
       "passed": "Quiz réussi !",
       "completed": "Quiz terminé",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Complétez le sondage pour continuer",
       "alreadyVoted": "Vous avez déjà voté",
       "voteRecorded": "Votre vote a été enregistré",
-      "votes": "votes",
-      "votesCount": "{{count}} vote",
-      "votesCountPlural": "{{count}} votes",
       "respondents": "{{count}} participant",
       "respondentsPlural": "{{count}} participants",
-      "yourVote": "Votre vote"
+      "chooseFirst": "Choisissez d'abord une réponse, puis cliquez sur « Voter »."
     },
     "space": {
       "dragHint": "Glissez pour regarder autour",
       "viewFloorplan": "Voir le plan",
-      "youAreHere": "Vous êtes ici"
+      "youAreHere": "Vous êtes ici",
+      "panoramaLabel": "Photo 360° : {{title}}",
+      "panoramaKeyboardHint": "Utilisez les flèches pour regarder autour. Utilisez + et - pour zoomer.",
+      "zoomIn": "Zoom avant",
+      "zoomOut": "Zoom arrière",
+      "panoramaLoadFailed": "La photo 360° n'a pas pu être chargée. Rechargez la page pour réessayer."
     },
     "stepTypes": {
       "reward": "Récompense"
@@ -131,19 +138,20 @@
       "emailSent": "Une copie a été envoyée à votre e-mail",
       "alreadyClaimed": "Vous avez déjà réclamé une récompense pour ce parcours",
       "noMoreRewards": "Désolé, toutes les récompenses ont été réclamées",
+      "claimFailed": "Votre récompense n'a pas pu être obtenue. Rechargez la page et réessayez.",
       "previewMode": "Mode aperçu - Aucun vrai code généré",
       "claimed": "Récompense réclamée",
       "soldOut": {
         "title": "Quel dommage !",
-        "message": "Malheureusement, vous êtes arrivé trop tard pour recevoir une récompense. Toutes les récompenses ont déjà été distribuées.",
-        "continueJourney": "Continuer le parcours"
+        "message": "Malheureusement, vous êtes arrivé trop tard pour recevoir une récompense. Toutes les récompenses ont déjà été distribuées."
       }
     },
     "tts": {
       "listen": "Écouter",
       "stop": "Arrêter",
       "listenLabel": "Lire cette étape à voix haute",
-      "stopLabel": "Arrêter la lecture"
+      "stopLabel": "Arrêter la lecture",
+      "noVoice": "Votre appareil n'a pas de voix pour cette langue. Essayez un autre navigateur ou demandez à votre service informatique d'en installer une."
     },
     "reading": {
       "settings": "Paramètres de lecture",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Étape {{current}} sur {{total}}",
-      "duration": "±{{minutes}} min"
+      "duration": "environ {{minutes}} min",
+      "stepApprox": "Étape {{current}} sur environ {{total}}"
     },
     "session": {
       "expired": "Votre session a expiré. Cliquez sur Recharger pour continuer.",
       "reload": "Recharger"
+    },
+    "identify": {
+      "title": "Identifiez-vous",
+      "description": "Veuillez entrer vos coordonnées pour continuer",
+      "poll": {
+        "title": "Un vote par personne",
+        "description": "Pour garantir l'équité du sondage, nous avons besoin de votre nom et de votre adresse email. Ainsi, chacun ne peut voter qu'une seule fois."
+      },
+      "reward": {
+        "title": "Réclamez votre récompense",
+        "description": "Pour vous envoyer votre récompense, nous avons besoin de votre nom et de votre adresse email. Votre code de récompense sera envoyé directement dans votre boîte de réception."
+      },
+      "form": {
+        "title": "Encore une étape !",
+        "description": "Veuillez entrer vos coordonnées afin que nous sachions qui a soumis ce formulaire. Vos informations seront incluses avec votre réponse."
+      },
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Adresse email",
+      "rememberMe": "Mémoriser mes coordonnées pour ne pas avoir à les saisir la prochaine fois",
+      "submit": "Continuer",
+      "error": "Une erreur s'est produite. Veuillez réessayer."
+    },
+    "verify": {
+      "title": "Vérifiez votre email",
+      "description": "Nous avons envoyé un code de vérification à {{email}}",
+      "code": "Code de vérification",
+      "submit": "Vérifier",
+      "resend": "Renvoyer le code",
+      "codeSent": "Code de vérification envoyé",
+      "invalidCode": "Code de vérification invalide",
+      "codeExpired": "Code de vérification expiré",
+      "tooManyAttempts": "Trop de codes incorrects. Veuillez saisir à nouveau vos informations pour recevoir un nouveau code."
+    },
+    "closeWindowMessage": "Vous pouvez fermer cet onglet pour revenir d'où vous venez.",
+    "magicLink": {
+      "expired": {
+        "title": "Lien expiré",
+        "message": "Ce lien d'invitation a expiré. Demandez un nouveau lien à la personne qui vous a invité.",
+        "messageAskInviter": "Ce lien d'invitation a expiré. Demandez un nouveau lien à {{name}}.",
+        "requestButton": "Demander un nouveau lien",
+        "requestedTitle": "Demande envoyée",
+        "requestedMessage": "Nous avons demandé à {{name}} de vous envoyer un nouveau lien. Vous le recevrez par e-mail.",
+        "requestedMessageOrg": "Nous avons demandé à {{org}} de vous envoyer un nouveau lien. Vous le recevrez par e-mail.",
+        "alreadyRequested": "Un nouveau lien a déjà été demandé au cours des dernières 24 heures. Vous le recevrez par e-mail dès qu'il sera envoyé."
+      },
+      "completed": {
+        "title": "Parcours terminé",
+        "message": "Vous avez déjà terminé ce parcours. Merci de votre participation."
+      },
+      "revoked": {
+        "title": "Invitation retirée",
+        "message": "Cette invitation n'est plus valide. Contactez la personne qui vous a invité si vous avez encore besoin d'un accès."
+      },
+      "verification": {
+        "title": "Confirmez votre identité",
+        "subtitle": "Vous ouvrez ce lien sur un nouvel appareil.",
+        "explanation": "Nous avons envoyé un code à 6 chiffres à votre adresse e-mail. Saisissez-le ci-dessous.",
+        "codeLabel": "Code de vérification",
+        "submit": "Confirmer",
+        "verifying": "Vérification...",
+        "resend": "Envoyer un nouveau code",
+        "resent": "Nous vous avons envoyé un nouveau code. Consultez vos e-mails.",
+        "invalid": "Ce code n'est pas correct. Vérifiez le code dans votre e-mail et réessayez.",
+        "expired": "Ce code a expiré. Cliquez sur Envoyer un nouveau code.",
+        "lockedWait": "Trop de codes incorrects. Attendez 10 minutes, puis cliquez sur Envoyer un nouveau code.",
+        "sessionExpired": "Cette page a expiré. Ouvrez à nouveau le lien de votre e-mail.",
+        "journeyLabel": "Parcours"
+      },
+      "welcomeBack": {
+        "title": "Bon retour, {{firstName}} !",
+        "message": "Vous avez déjà terminé ce parcours.",
+        "restartButton": "Recommencer",
+        "reviewButton": "Voir la tentative précédente"
+      },
+      "error": "Une erreur s'est produite. Veuillez réessayer."
+    },
+    "resume": {
+      "message": "Vous êtes déjà venu ici. Voulez-vous reprendre là où vous vous êtes arrêté ?",
+      "continue": "Reprendre où j'en étais",
+      "restart": "Recommencer"
     }
   }
 }

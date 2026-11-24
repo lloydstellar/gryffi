@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('pages.createJourney') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
@@ -13,7 +15,7 @@
   <%- include('../partials/help-modal') %>
   <%- include('../partials/support-modal') %>
   
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
@@ -24,6 +26,14 @@
       </div>
 
       <div class="glass-card-solid p-8">
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert-error mb-6" role="alert">
+            <p><%= error %></p>
+            <% if (typeof limitExceeded !== 'undefined' && limitExceeded && ['admin', 'manager'].includes(locals.user?.role)) { %>
+              <a href="/dashboard/subscription" class="underline font-medium"><%= t('subscription.cta.upgradeNow') %></a>
+            <% } %>
+          </div>
+        <% } %>
         <form action="/dashboard/journeys" method="POST" class="space-y-6">
           <div>
             <label for="title" class="input-label"><%= t('journeys.new.journeyTitle') %> *</label>
@@ -33,6 +43,7 @@
               name="title" 
               class="input"
               placeholder="<%= t('journeys.new.titlePlaceholder') %>"
+              value="<%= (typeof form !== 'undefined' && form.title) || '' %>"
               required
               autofocus
             >
@@ -45,7 +56,7 @@
               name="description" 
               class="input min-h-[100px]"
               placeholder="<%= t('journeys.new.descriptionPlaceholder') %>"
-            ></textarea>
+            ><%= (typeof form !== 'undefined' && form.description) || '' %></textarea>
           </div>
           
           <div class="flex items-center gap-4 pt-4">

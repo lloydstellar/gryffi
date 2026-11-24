@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('pages.dashboard') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <%- include('../partials/tier-limit-styles') %>
@@ -24,8 +26,25 @@
     
     @media (min-width: 1200px) {
       .dashboard-grid {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 3fr 2fr;
       }
+    }
+    .dashboard-todo-title {
+      margin: 4px 0 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #0b4b34;
+    }
+    a.dashboard-alert {
+      text-decoration: none;
+    }
+    a.dashboard-alert:hover span {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    a.dashboard-alert:focus-visible {
+      outline: 3px solid #78c503;
+      outline-offset: 2px;
     }
     
     .dashboard-column {
@@ -65,7 +84,7 @@
     .stat-card-mini .stat-label {
       font-size: 13px;
       color: #0b4b34;
-      opacity: 0.7;
+      opacity: 0.8;
     }
     
     /* 2-column stats grid for public/private journeys */
@@ -164,7 +183,7 @@
       justify-content: space-between;
     }
     
-    .dashboard-card-header h3 {
+    .dashboard-card-header h2 {
       font-size: 14px;
       font-weight: 600;
       color: #0b4b34;
@@ -174,7 +193,7 @@
       gap: 8px;
     }
     
-    .dashboard-card-header h3 svg {
+    .dashboard-card-header h2 svg {
       width: 18px;
       height: 18px;
       color: #0b4b34;
@@ -190,7 +209,7 @@
       color: #0b4b34;
       text-decoration: none;
       font-weight: 500;
-      opacity: 0.6;
+      opacity: 0.75;
       transition: opacity 0.15s ease;
     }
     
@@ -221,8 +240,8 @@
     .invitation-stat .label {
       font-size: 11px;
       color: #0b4b34;
-      opacity: 0.6;
-      text-transform: uppercase;
+      opacity: 0.75;
+      text-transform: none;
       letter-spacing: 0.5px;
     }
     
@@ -251,8 +270,8 @@
     .reward-stat .label {
       font-size: 11px;
       color: #0b4b34;
-      opacity: 0.6;
-      text-transform: uppercase;
+      opacity: 0.75;
+      text-transform: none;
       letter-spacing: 0.5px;
     }
     
@@ -285,7 +304,7 @@
       background: rgba(100, 116, 139, 0.08);
       border-radius: 8px;
       font-size: 12px;
-      color: #64748b;
+      color: #5b6b80;
     }
     
     /* Form Submissions Widget */
@@ -311,8 +330,8 @@
     .form-submission-stat .label {
       font-size: 11px;
       color: #0b4b34;
-      opacity: 0.6;
-      text-transform: uppercase;
+      opacity: 0.75;
+      text-transform: none;
       letter-spacing: 0.5px;
     }
     
@@ -377,7 +396,7 @@
     .form-submission-row .submission-meta {
       font-size: 11px;
       color: #0b4b34;
-      opacity: 0.6;
+      opacity: 0.75;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -394,7 +413,7 @@
     .form-submission-row .submission-date {
       font-size: 11px;
       color: #0b4b34;
-      opacity: 0.5;
+      opacity: 0.75;
       white-space: nowrap;
     }
     
@@ -404,7 +423,7 @@
       gap: 3px;
       font-size: 11px;
       font-weight: 600;
-      color: #4a7c02;
+      color: #3f6a02;
       background: rgba(120, 197, 3, 0.15);
       padding: 2px 7px;
       border-radius: 4px;
@@ -450,7 +469,7 @@
     
     .dashboard-alert.success {
       background: rgba(120, 197, 3, 0.1);
-      color: #4a7c02;
+      color: #3f6a02;
     }
 
     /* Tip card: calm, one action, dismissable */
@@ -476,7 +495,7 @@
       align-items: center;
       justify-content: center;
       background: rgba(120, 197, 3, 0.15);
-      color: #4a7c02;
+      color: #3f6a02;
     }
 
     .dashboard-tip-icon svg {
@@ -494,8 +513,8 @@
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #4a7c02;
+      text-transform: none;
+      color: #3f6a02;
       margin-bottom: 4px;
     }
 
@@ -531,7 +550,7 @@
       border: none;
       padding: 6px 2px;
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
       text-decoration: underline;
       text-underline-offset: 3px;
       cursor: pointer;
@@ -599,7 +618,7 @@
     .team-member-meta {
       font-size: 12px;
       color: #0b4b34;
-      opacity: 0.6;
+      opacity: 0.75;
     }
     
     .team-member-status {
@@ -651,18 +670,18 @@
     
     .status-badge.connected {
       background: rgba(120, 197, 3, 0.15);
-      color: #4a7c02;
+      color: #3f6a02;
     }
     
     .status-badge.disconnected {
       background: rgba(11, 75, 52, 0.08);
       color: #0b4b34;
-      opacity: 0.6;
+      opacity: 0.75;
     }
     
     .status-badge.active {
       background: rgba(120, 197, 3, 0.15);
-      color: #4a7c02;
+      color: #3f6a02;
     }
     
     /* Subscription Usage */
@@ -690,7 +709,7 @@
     
     .usage-meter-value {
       color: #0b4b34;
-      opacity: 0.6;
+      opacity: 0.75;
     }
     
     .usage-meter-bar {
@@ -758,12 +777,12 @@
       align-items: center;
       font-size: 10px;
       font-weight: 600;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.5px;
       padding: 2px 6px;
       border-radius: 4px;
-      background: rgba(185, 70, 70, 0.12);
-      color: #a94442;
+      background: #eef2f7;
+      color: #334155;
       flex-shrink: 0;
     }
     
@@ -772,8 +791,7 @@
       align-items: center;
       justify-content: space-between;
       font-size: 12px;
-      color: #0b4b34;
-      opacity: 0.6;
+      color: #4e654b;
     }
     
     /* AI Guide Items */
@@ -840,7 +858,7 @@
     .guide-meta {
       font-size: 12px;
       color: #0b4b34;
-      opacity: 0.6;
+      opacity: 0.75;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -940,70 +958,19 @@
   <%- include('../partials/support-modal') %>
   <%- include('../partials/onboarding-modal') %>
   
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
     <!-- Welcome Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title"><%= t('dashboard.welcomeBack', { name: user.firstName || user.email.split('@')[0] }) %></h1>
+        <h1 class="page-title"><%= t(user.firstLogin ? 'dashboard.welcomeFirst' : 'dashboard.welcomeBack', { name: user.firstName || user.email.split('@')[0] }) %></h1>
         <p class="page-subtitle"><%= organization.name %></p>
       </div>
     </div>
 
-    <!-- Stats Grid (All Roles) -->
-    <div class="stats-grid mb-6">
-      <div class="stat-card-mini">
-        <div class="stat-value"><%= stats.journeys?.total || 0 %></div>
-        <div class="stat-label"><%= t('dashboard.stats.journeys') %></div>
-      </div>
-      
-      <div class="stat-card-mini">
-        <div class="stat-value"><%= stats.journeys?.published || 0 %></div>
-        <div class="stat-label"><%= t('dashboard.stats.published') %></div>
-      </div>
-      
-      <div class="stat-card-mini">
-        <div class="stat-value"><%= stats.endUsers?.total || 0 %></div>
-        <div class="stat-label"><%= t('dashboard.stats.endUsers') %></div>
-      </div>
-      
-      <div class="stat-card-mini">
-        <div class="stat-value"><%= stats.guides?.total || 0 %></div>
-        <div class="stat-label"><%= t('dashboard.stats.guides') %></div>
-      </div>
-    </div>
-    
-    <% /* Public/Private Journey Stats - Only for Tier 3 (Enterprise) and Tier 4 (Custom) */ %>
-    <% const hasPublicJourneys = parseInt(stats.journeys?.public_journeys || 0) > 0; %>
-    <% if (subscriptionTier?.features?.publicJourneys && hasPublicJourneys) { %>
-    <div class="stats-grid stats-grid-2 mb-6">
-      <div class="stat-card-mini stat-card-with-icon">
-        <div class="stat-icon" style="background: rgba(11, 75, 52, 0.1); color: #0b4b34;">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value"><%= stats.journeys?.private_journeys || 0 %></div>
-          <div class="stat-label"><%= t('dashboard.stats.privateJourneys') %></div>
-        </div>
-      </div>
-      
-      <div class="stat-card-mini stat-card-with-icon">
-        <div class="stat-icon" style="background: rgba(120, 197, 3, 0.15); color: #78c503;">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value"><%= stats.journeys?.public_journeys || 0 %></div>
-          <div class="stat-label"><%= t('dashboard.stats.publicJourneys') %></div>
-        </div>
-      </div>
-    </div>
-    <% } %>
+    <%- include('../partials/getting-started') %>
 
     <% const isJourneyLimitReached = subscriptionUsage && subscriptionUsage.journeys && subscriptionUsage.journeys.isAtLimit; %>
 
@@ -1013,50 +980,75 @@
       <!-- Column 1: Journeys & Alerts -->
       <div class="dashboard-column">
         
-        <!-- Alerts Section (Editor & Admin) -->
+        <!-- To do: only what needs the maker's attention, each a link to where to act (not for viewers) -->
         <% const hasDashboardTip = typeof dashboardTip !== 'undefined' && !!dashboardTip; %>
-        <% if (userRole !== 'viewer' && (hasDashboardTip || (typeof expiringCount !== 'undefined' && expiringCount > 0) || (typeof formResponseCount !== 'undefined' && formResponseCount > 0) || (typeof staleDrafts !== 'undefined' && staleDrafts.length > 0))) { %>
+        <% const lowReward = (typeof rewardStats !== 'undefined' && rewardStats) ? rewardStats.lowStockReward : null; %>
+        <% const emptyGuides = (typeof guides !== 'undefined' && Array.isArray(guides)) ? guides.filter(g => (parseInt(g.chunks_count) || 0) === 0 && g.journeys_using && g.journeys_using.length > 0) : []; %>
+        <% const todoCount = (typeof expiringCount !== 'undefined' && expiringCount > 0 ? 1 : 0) + ((userRole === 'admin' || userRole === 'manager') && typeof formResponseCount !== 'undefined' && formResponseCount > 0 ? 1 : 0) + (typeof staleDrafts !== 'undefined' && staleDrafts.length > 0 ? 1 : 0) + (lowReward ? 1 : 0) + emptyGuides.length; %>
+        <% if (userRole !== 'viewer' && (hasDashboardTip || todoCount > 0)) { %>
         <div class="dashboard-alerts">
           <%- include('../partials/dashboard-tip') %>
 
+          <% if (todoCount > 0) { %>
+          <h2 class="dashboard-todo-title"><%= t('dashboard.todo.title') %></h2>
+          <% } %>
+
           <% if (typeof expiringCount !== 'undefined' && expiringCount > 0) { %>
-          <div class="dashboard-alert warning">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/dashboard/invitations" class="dashboard-alert warning">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span><%= t('dashboard.alerts.expiringInvitations', { count: expiringCount }) %></span>
-          </div>
+          </a>
           <% } %>
           
-          <% if (typeof formResponseCount !== 'undefined' && formResponseCount > 0) { %>
-          <div class="dashboard-alert info">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <% if ((userRole === 'admin' || userRole === 'manager') && typeof formResponseCount !== 'undefined' && formResponseCount > 0) { %>
+          <a href="/dashboard/analytics#forms" class="dashboard-alert info">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             <span><%= t('dashboard.alerts.newFormResponses', { count: formResponseCount }) %></span>
-          </div>
+          </a>
           <% } %>
           
           <% if (typeof staleDrafts !== 'undefined' && staleDrafts.length > 0) { %>
-          <div class="dashboard-alert warning">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/dashboard/journeys" class="dashboard-alert warning">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
             <span><%= t('dashboard.alerts.staleDrafts', { count: staleDrafts.length }) %></span>
-          </div>
+          </a>
           <% } %>
+
+          <% if (lowReward) { %>
+          <a href="/dashboard/analytics#rewards" class="dashboard-alert warning">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+            </svg>
+            <span><%= t('dashboard.alerts.rewardCodesLow', { count: parseInt(lowReward.remaining, 10) || 0, title: lowReward.title }) %></span>
+          </a>
+          <% } %>
+
+          <% emptyGuides.slice(0, 2).forEach(guide => { %>
+          <a href="/dashboard/guides/<%= guide.id %>" class="dashboard-alert warning">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            <span><%= t('dashboard.alerts.guideEmpty', { name: guide.name }) %></span>
+          </a>
+          <% }) %>
         </div>
         <% } %>
         
         <!-- Recent Journeys -->
         <div class="dashboard-card">
           <div class="dashboard-card-header">
-            <h3>
+            <h2>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
               </svg>
               <%= t('dashboard.recentJourneys') %>
-            </h3>
+            </h2>
             <a href="/dashboard/journeys" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
           </div>
           <div class="dashboard-card-body">
@@ -1072,7 +1064,7 @@
                 </div>
                 <div class="journey-meta">
                   <span><%= journey.step_count || 0 %> <%= t('common.steps') %></span>
-                  <span class="<%= journey.status === 'published' ? 'text-gryffi-primary' : 'text-zen-400' %>">
+                  <span class="<%= journey.status === 'published' ? 'text-gryffi-primary' : 'text-zen-600' %>">
                     <%= t('journeys.status.' + journey.status) %>
                   </span>
                 </div>
@@ -1096,15 +1088,16 @@
         </div>
         
         <!-- Subscription Usage (Admin only) -->
-        <% if ((userRole === 'admin' || userRole === 'manager') && subscriptionUsage) { %>
+        <% const nearLimit = subscriptionUsage && Object.values(subscriptionUsage).some(u => u && typeof u === 'object' && !u.isUnlimited && u.percentage >= 80); %>
+        <% if ((userRole === 'admin' || userRole === 'manager') && subscriptionUsage && nearLimit) { %>
         <div class="dashboard-card">
           <div class="dashboard-card-header">
-            <h3>
+            <h2>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
               <%= t('dashboard.usage.title') %>
-            </h3>
+            </h2>
             <a href="/dashboard/analytics#usageSection" class="dashboard-card-link"><%= t('common.details') %> →</a>
           </div>
           <div class="dashboard-card-body">
@@ -1187,7 +1180,7 @@
             
             <% if (subscriptionTier) { %>
             <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(11, 75, 52, 0.08); text-align: center;">
-              <span style="font-size: 12px; color: #0b4b34; opacity: 0.6;"><%= t('dashboard.usage.currentPlan') %>:</span>
+              <span style="font-size: 12px; color: #0b4b34; opacity: 0.75;"><%= t('dashboard.usage.currentPlan') %>:</span>
               <span style="font-size: 13px; font-weight: 600; color: #0b4b34; margin-left: 4px;"><%= subscriptionTier.displayName %></span>
             </div>
             <% } %>
@@ -1196,19 +1189,19 @@
         <% } %>
       </div>
       
-      <!-- Column 2: Invitations & AI Guides -->
+      <!-- Column 2: how participants are doing -->
       <div class="dashboard-column">
         
         <!-- Invitation Stats (Editor & Admin) -->
         <% if (userRole !== 'viewer' && typeof invitations !== 'undefined') { %>
         <div class="dashboard-card">
           <div class="dashboard-card-header">
-            <h3>
+            <h2>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
               </svg>
               <%= t('dashboard.invitationOverview') %>
-            </h3>
+            </h2>
             <a href="/dashboard/invitations" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
           </div>
           <div class="dashboard-card-body">
@@ -1234,124 +1227,16 @@
         </div>
         <% } %>
         
-        <!-- Rewards Stats (Editor & Admin) -->
-        <% if (userRole !== 'viewer' && typeof rewardStats !== 'undefined' && (rewardStats.active > 0 || rewardStats.archived > 0)) { %>
+        <!-- Completion rate (everyone except viewers) -->
+        <% if (userRole !== 'viewer' && typeof completionRate !== 'undefined') { %>
         <div class="dashboard-card">
           <div class="dashboard-card-header">
-            <h3>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-              </svg>
-              <%= t('dashboard.rewards.title') %>
-            </h3>
-            <a href="/dashboard/analytics#rewards" class="dashboard-card-link"><%= t('common.details') %> →</a>
-          </div>
-          <div class="dashboard-card-body">
-            <% if (rewardStats.active > 0) { %>
-            <div class="reward-stats">
-              <div class="reward-stat">
-                <div class="value"><%= rewardStats.active %></div>
-                <div class="label"><%= t('dashboard.rewards.active') %></div>
-              </div>
-              <div class="reward-stat claimed">
-                <div class="value"><%= rewardStats.claimed %></div>
-                <div class="label"><%= t('dashboard.rewards.claimed') %></div>
-              </div>
-              <div class="reward-stat">
-                <div class="value"><%= rewardStats.remaining %></div>
-                <div class="label"><%= t('dashboard.rewards.remaining') %></div>
-              </div>
-            </div>
-            <% if (rewardStats.lowStockReward) { %>
-            <div class="reward-warning">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-              </svg>
-              <span>"<%= rewardStats.lowStockReward.title %>" - <%= t('dashboard.rewards.lowStock', { count: rewardStats.lowStockReward.remaining }) %></span>
-            </div>
-            <% } %>
-            <% } else { %>
-            <div class="text-center py-3 text-zen-500 text-sm">
-              <%= t('dashboard.rewards.noActiveRewards') %>
-            </div>
-            <% } %>
-            <% if (rewardStats.archived > 0) { %>
-            <div class="reward-archived-info">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 14px; height: 14px; flex-shrink: 0;">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-              </svg>
-              <span><%= t('dashboard.rewards.archivedCount', { count: rewardStats.archived, claimed: rewardStats.archivedClaimed }) %></span>
-            </div>
-            <% } %>
-          </div>
-        </div>
-        <% } %>
-        
-        <!-- AI Guides Widget -->
-        <% if (typeof guides !== 'undefined' && guides.length > 0) { %>
-        <div class="dashboard-card">
-          <div class="dashboard-card-header">
-            <h3>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-              </svg>
-              <%= t('dashboard.guides.title') %>
-            </h3>
-            <a href="/dashboard/guides" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
-          </div>
-          <div class="dashboard-card-body">
-            <div class="guide-list">
-              <% guides.forEach(guide => { %>
-              <a href="/dashboard/guides/<%= guide.id %>" class="guide-item">
-                <div class="guide-avatar">
-                  <% if (guide.avatar_url) { %>
-                    <img src="<%= guide.avatar_url %>" alt="<%= guide.name %>">
-                  <% } else { %>
-                    <%= guide.name.charAt(0).toUpperCase() %>
-                  <% } %>
-                </div>
-                <div class="guide-info">
-                  <div class="guide-name"><%= guide.name %></div>
-                  <div class="guide-meta">
-                    <span class="guide-meta-item">
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                      </svg>
-                      <%= t('dashboard.guides.chunkCount', { count: parseInt(guide.chunks_count) || 0 }) %>
-                    </span>
-                  </div>
-                  <% if (guide.journeys_using && guide.journeys_using.length > 0) { %>
-                  <div class="guide-journeys">
-                    <% guide.journeys_using.slice(0, 2).forEach(j => { %>
-                    <span class="guide-journey-tag" title="<%= j.title %>"><%= j.title %></span>
-                    <% }) %>
-                    <% if (guide.journeys_using.length > 2) { %>
-                    <span class="guide-journey-tag">+<%= guide.journeys_using.length - 2 %></span>
-                    <% } %>
-                  </div>
-                  <% } else { %>
-                  <div class="guide-meta" style="margin-top: 4px; font-style: italic;">
-                    <%= t('dashboard.guides.notUsed') %>
-                  </div>
-                  <% } %>
-                </div>
-              </a>
-              <% }) %>
-            </div>
-          </div>
-        </div>
-        <% } %>
-        
-        <!-- Completion Rate (Admin & Manager only - Column 2) -->
-        <% if ((userRole === 'admin' || userRole === 'manager') && typeof completionRate !== 'undefined') { %>
-        <div class="dashboard-card">
-          <div class="dashboard-card-header">
-            <h3>
+            <h2>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
               </svg>
               <%= t('dashboard.completionRate') %>
-            </h3>
+            </h2>
           </div>
           <div class="dashboard-card-body" style="text-align: center;">
             <div class="completion-circle">
@@ -1363,205 +1248,12 @@
               </svg>
               <div class="completion-value"><%= completionRate %>%</div>
             </div>
-            <p style="font-size: 13px; color: #0b4b34; opacity: 0.7; margin: 0;"><%= t('dashboard.journeyCompletionRate') %></p>
+            <p style="font-size: 13px; color: #0b4b34; opacity: 0.8; margin: 0;"><%= t('dashboard.journeyCompletionRate') %></p>
           </div>
         </div>
         <% } %>
       </div>
       
-      <!-- Column 3: Team, System & Usage (Admin) + Completion Rate (Editor) -->
-      <div class="dashboard-column">
-        
-        <!-- Completion Rate (Editor/Member only - Column 3) -->
-        <% if ((userRole === 'member' || userRole === 'editor') && typeof completionRate !== 'undefined') { %>
-        <div class="dashboard-card">
-          <div class="dashboard-card-header">
-            <h3>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-              </svg>
-              <%= t('dashboard.completionRate') %>
-            </h3>
-          </div>
-          <div class="dashboard-card-body" style="text-align: center;">
-            <div class="completion-circle">
-              <svg width="80" height="80" viewBox="0 0 80 80">
-                <circle class="circle-bg" cx="40" cy="40" r="36"/>
-                <circle class="circle-progress" cx="40" cy="40" r="36" 
-                        stroke-dasharray="<%= 2 * Math.PI * 36 %>" 
-                        stroke-dashoffset="<%= 2 * Math.PI * 36 * (1 - completionRate / 100) %>"/>
-              </svg>
-              <div class="completion-value"><%= completionRate %>%</div>
-            </div>
-            <p style="font-size: 13px; color: #0b4b34; opacity: 0.7; margin: 0;"><%= t('dashboard.journeyCompletionRate') %></p>
-          </div>
-        </div>
-        <% } %>
-        
-        <!-- Form Submissions Widget (Admin & Manager only - may contain personal data) -->
-        <% if ((userRole === 'admin' || userRole === 'manager') && typeof formSubmissions !== 'undefined') { %>
-        <div class="dashboard-card">
-          <div class="dashboard-card-header">
-            <h3>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              <%= t('dashboard.forms.title') %>
-            </h3>
-            <a href="/dashboard/analytics#forms" class="dashboard-card-link"><%= t('common.viewAll') %> →</a>
-          </div>
-          <div class="dashboard-card-body">
-            <% if (formSubmissions.total > 0) { %>
-            <div class="form-submission-stats">
-              <div class="form-submission-stat <%= formSubmissions.lastWeek > 0 ? 'new-this-week' : '' %>">
-                <div class="value"><%= formSubmissions.lastWeek %></div>
-                <div class="label"><%= t('dashboard.forms.thisWeek') %></div>
-              </div>
-              <div class="form-submission-stat">
-                <div class="value"><%= formSubmissions.withFilesLastWeek %></div>
-                <div class="label"><%= t('dashboard.forms.withFile') %></div>
-              </div>
-              <div class="form-submission-stat">
-                <div class="value"><%= formSubmissions.total %></div>
-                <div class="label"><%= t('dashboard.forms.total') %></div>
-              </div>
-            </div>
-            
-            <% if (formSubmissions.recent && formSubmissions.recent.length > 0) { %>
-            <div class="form-submission-list">
-              <% formSubmissions.recent.forEach(submission => { %>
-              <a href="/dashboard/analytics#forms" class="form-submission-row">
-                <div class="submission-icon">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                </div>
-                <div class="submission-info">
-                  <div class="submission-title"><%= submission.step_title || t('dashboard.forms.untitledForm') %></div>
-                  <div class="submission-meta">
-                    <%= submission.journey_title %><% if (submission.submitter_name) { %> · <%= submission.submitter_name %><% } %>
-                  </div>
-                </div>
-                <div class="submission-side">
-                  <span class="submission-date"><%= new Date(submission.created_at).toLocaleDateString(language, { day: 'numeric', month: 'short' }) %></span>
-                  <% if (parseInt(submission.file_count) > 0) { %>
-                  <span class="submission-attachment" title="<%= t('dashboard.forms.hasAttachment') %>">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                    </svg>
-                    <%= submission.file_count %>
-                  </span>
-                  <% } %>
-                </div>
-              </a>
-              <% }) %>
-            </div>
-            <% } %>
-            <% } else { %>
-            <div class="empty-state-mini">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              <p><%= t('dashboard.forms.noSubmissions') %></p>
-            </div>
-            <% } %>
-          </div>
-        </div>
-        <% } %>
-        
-        <!-- Team Widget (Admin & Manager) -->
-        <% if ((userRole === 'admin' || userRole === 'manager') && typeof team !== 'undefined') { %>
-        <div class="dashboard-card">
-          <div class="dashboard-card-header">
-            <h3>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-              </svg>
-              <%= t('dashboard.team.title') %>
-            </h3>
-            <% if (userRole === 'admin') { %>
-            <a href="/dashboard/team" class="dashboard-card-link"><%= t('common.manage') %> →</a>
-            <% } %>
-          </div>
-          <div class="dashboard-card-body">
-            <div style="display: flex; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(11, 75, 52, 0.08);">
-              <div style="text-align: center; flex: 1;">
-                <div style="font-size: 24px; font-weight: 700; color: #0b4b34;"><%= team.stats?.active || 0 %></div>
-                <div style="font-size: 12px; color: #0b4b34; opacity: 0.6;"><%= t('dashboard.team.activeMembers') %></div>
-              </div>
-              <% if (team.pendingInvites > 0) { %>
-              <div style="text-align: center; flex: 1;">
-                <div style="font-size: 24px; font-weight: 700; color: #78c503;"><%= team.pendingInvites %></div>
-                <div style="font-size: 12px; color: #0b4b34; opacity: 0.6;"><%= t('dashboard.team.pendingInvites') %></div>
-              </div>
-              <% } %>
-            </div>
-            
-            <% if (team.recentActivity && team.recentActivity.length > 0) { %>
-            <div class="team-member-list">
-              <% team.recentActivity.slice(0, 3).forEach(member => { %>
-              <div class="team-member-item">
-                <div class="team-member-avatar">
-                  <%= (member.first_name || '?').charAt(0).toUpperCase() %><%= (member.last_name || '').charAt(0).toUpperCase() %>
-                </div>
-                <div class="team-member-info">
-                  <div class="team-member-name"><%= member.first_name %> <%= member.last_name %></div>
-                  <div class="team-member-meta"><%= t('team.roles.' + member.role + '.name') %></div>
-                </div>
-                <div class="team-member-status <%= member.last_login_at && (new Date() - new Date(member.last_login_at)) < 900000 ? 'online' : '' %>"></div>
-              </div>
-              <% }) %>
-            </div>
-            <% } %>
-          </div>
-        </div>
-        <% } %>
-        
-        <!-- System Status (Admin only) -->
-        <% if (userRole === 'admin' && typeof systemStatus !== 'undefined') { %>
-        <div class="dashboard-card">
-          <div class="dashboard-card-header">
-            <h3>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-              </svg>
-              <%= t('dashboard.systemStatus.title') %>
-            </h3>
-          </div>
-          <div class="dashboard-card-body">
-            <div class="system-status-list">
-              <div class="system-status-item">
-                <div class="status-label">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                  </svg>
-                  Google Workspace
-                </div>
-                <span class="status-badge <%= systemStatus.google?.connected ? 'connected' : 'disconnected' %>">
-                  <%= systemStatus.google?.connected ? t('dashboard.systemStatus.connected') : t('dashboard.systemStatus.notConnected') %>
-                </span>
-              </div>
-              
-              <div class="system-status-item">
-                <div class="status-label">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                  </svg>
-                  API
-                </div>
-                <span class="status-badge <%= systemStatus.api?.hasKey ? 'active' : 'disconnected' %>">
-                  <%= systemStatus.api?.hasKey ? t('dashboard.systemStatus.active') : t('dashboard.systemStatus.notConfigured') %>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <% } %>
-        
-      </div>
     </div>
   </main>
   

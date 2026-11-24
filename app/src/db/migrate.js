@@ -503,7 +503,7 @@ const migrations = [
     
     -- Verification status
     verified BOOLEAN DEFAULT false, -- true = device is trusted
-    verification_code VARCHAR(4),
+    verification_code VARCHAR(6),
     verification_expires_at TIMESTAMP WITH TIME ZONE,
     verification_attempts INT DEFAULT 0,
     
@@ -705,8 +705,8 @@ const migrations = [
   `INSERT INTO subscription_tiers (name, display_name, description, price_monthly, price_yearly, max_journeys, max_guides, max_makers, max_end_users, max_knowledge_chunks, max_ai_credits_monthly, sync_enabled, priority_support, dedicated_support, sort_order)
    VALUES 
      ('free', 'Free', 'Perfect for testing and solo users', 0, 0, 1, 1, 1, 10, 500, 500, false, false, false, 1),
-     ('professional', 'Professional', 'For small teams and growing businesses', 49, 490, 20, 10, 10, 100, 7000, 5000, true, false, false, 2),
-     ('enterprise', 'Enterprise', 'For larger organizations', 149, 1490, 50, 50, 30, 1000, 50000, 25000, true, true, false, 3),
+     ('professional', 'Professional', 'For small teams and growing businesses', 49, 539, 20, 10, 10, 100, 7000, 5000, true, false, false, 2),
+     ('enterprise', 'Enterprise', 'For larger organizations', 149, 1639, 50, 50, 30, 1000, 50000, 25000, true, true, false, 3),
      ('custom', 'Custom', 'Tailored solutions for enterprise needs', 0, 0, -1, -1, -1, -1, -1, -1, true, true, true, 4)
    ON CONFLICT (name) DO NOTHING`,
   
@@ -871,7 +871,7 @@ const migrations = [
   
   // User login security fields
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT false`,
-  `ALTER TABLE users ADD COLUMN IF NOT EXISTS login_verification_code VARCHAR(4)`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS login_verification_code VARCHAR(6)`,
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS login_verification_expires TIMESTAMP WITH TIME ZONE`,
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_ip INET`,
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_country VARCHAR(2)`,
@@ -1100,7 +1100,7 @@ const migrations = [
   `INSERT INTO tier_prices (tier_id, currency, price_monthly, price_yearly)
    SELECT id, 'GBP', 
      CASE WHEN price_monthly > 0 THEN ROUND(price_monthly * 0.85, 0) ELSE 0 END,
-     CASE WHEN price_yearly > 0 THEN ROUND(price_yearly * 0.85, 0) ELSE 0 END
+     CASE WHEN price_yearly > 0 THEN ROUND(price_monthly * 0.85, 0) * 11 ELSE 0 END
    FROM subscription_tiers
    ON CONFLICT (tier_id, currency) DO NOTHING`,
   
@@ -1108,7 +1108,7 @@ const migrations = [
   `INSERT INTO tier_prices (tier_id, currency, price_monthly, price_yearly)
    SELECT id, 'USD',
      CASE WHEN price_monthly > 0 THEN ROUND(price_monthly * 1.10, 0) ELSE 0 END,
-     CASE WHEN price_yearly > 0 THEN ROUND(price_yearly * 1.10, 0) ELSE 0 END
+     CASE WHEN price_yearly > 0 THEN ROUND(price_monthly * 1.10, 0) * 11 ELSE 0 END
    FROM subscription_tiers
    ON CONFLICT (tier_id, currency) DO NOTHING`,
 
@@ -2133,6 +2133,193 @@ const migrations = [
      EXCEPTION WHEN OTHERS THEN NULL;
      END;
      CREATE POLICY org_isolation ON automation_sends
+       USING (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid)
+       WITH CHECK (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
+   END $$`,
+
+  // Magic-link tokens: the database keeps a hash (to find the invitation) and
+  // an encrypted copy (for reminder emails), not the token itself
+  // (services/invitationTokens.js). The hash of existing tokens is set here;
+  // Gryffi encrypts them and clears the plain text when it starts.
+  `ALTER TABLE invitations ADD COLUMN IF NOT EXISTS token_hash VARCHAR(64)`,
+  `ALTER TABLE invitations ADD COLUMN IF NOT EXISTS token_encrypted TEXT`,
+  `ALTER TABLE invitations ALTER COLUMN token DROP NOT NULL`,
+  `UPDATE invitations SET token_hash = encode(sha256(convert_to(token, 'UTF8')), 'hex')
+   WHERE token IS NOT NULL AND token_hash IS NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_invitations_token_hash ON invitations(token_hash)`,
+
+  // Old media URLs (/media/organizations/{orgId}/...) in steps point to files
+  // that have long been in data/uploads. Rewrite them the way the old route
+  // mapped them: uploads/ became media/, everything else kept its folder.
+  `UPDATE steps SET
+     basic_props = regexp_replace(regexp_replace(basic_props::text,
+       '/media/organizations/([0-9a-fA-F-]{36})/uploads/', '/uploads/organizations/\\1/media/', 'g'),
+       '/media/organizations/([0-9a-fA-F-]{36})/', '/uploads/organizations/\\1/', 'g')::jsonb,
+     advanced_props = regexp_replace(regexp_replace(advanced_props::text,
+       '/media/organizations/([0-9a-fA-F-]{36})/uploads/', '/uploads/organizations/\\1/media/', 'g'),
+       '/media/organizations/([0-9a-fA-F-]{36})/', '/uploads/organizations/\\1/', 'g')::jsonb
+   WHERE basic_props::text LIKE '%/media/organizations/%'
+      OR advanced_props::text LIKE '%/media/organizations/%'`,
+
+  // When a maker's password was last set by a reset or a change. Sessions
+  // that logged in before that moment end (middleware/auth.js).
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ`,
+
+  // The journey wizard used to create reward steps with custom codes and an
+  // empty code list, so nobody ever received the reward. Switch exactly those
+  // to random codes: custom mode, no codes in the step and none handed out.
+  `UPDATE steps s
+   SET basic_props = jsonb_set(s.basic_props, '{is_random_codes}', 'true'::jsonb)
+   WHERE s.type = 'reward'
+     AND s.basic_props->>'is_random_codes' = 'false'
+     AND COALESCE(btrim(s.basic_props->>'manual_codes'), '') = ''
+     AND NOT EXISTS (
+       SELECT 1 FROM rewards r JOIN reward_codes rc ON rc.reward_id = r.id WHERE r.step_id = s.id
+     )`,
+  `UPDATE rewards r
+   SET is_random_codes = true, updated_at = NOW()
+   FROM steps s
+   WHERE r.step_id = s.id
+     AND r.is_random_codes = false
+     AND s.basic_props->>'is_random_codes' = 'true'
+     AND NOT EXISTS (SELECT 1 FROM reward_codes rc WHERE rc.reward_id = r.id)`,
+
+  // The journey wizard stored the form introduction as "intro", which the
+  // builder and the player never read. Move it to "description".
+  `UPDATE steps
+   SET basic_props = jsonb_set(basic_props - 'intro', '{description}', basic_props->'intro')
+   WHERE type = 'form'
+     AND COALESCE(basic_props->>'intro', '') <> ''
+     AND COALESCE(basic_props->>'description', '') = ''`,
+
+  // The wizard placeholder image used to be loaded from images.pexels.com.
+  // Gryffi now serves a copy itself; point existing steps to it.
+  `UPDATE steps
+   SET basic_props = regexp_replace(basic_props::text,
+     'https://images\\.pexels\\.com/photos/4439444/pexels-photo-4439444\\.jpeg[^"]*',
+     '/images/wizard-placeholder.jpg', 'g')::jsonb
+   WHERE basic_props::text LIKE '%images.pexels.com/photos/4439444/%'`,
+
+  // The journey wizard used to fill video steps with a YouTube video of an
+  // unrelated channel. Empty that link: the step shows its text, and the
+  // maker can add their own video in the builder.
+  `UPDATE steps
+   SET basic_props = jsonb_set(basic_props, '{video_url}', '""'::jsonb)
+   WHERE basic_props->>'video_url' LIKE '%MLpWrANjFbI%'`,
+
+  // An end user with an expired link can ask the maker for a new one, once
+  // per day (POST /e/:token/request-new-link)
+  `ALTER TABLE invitations ADD COLUMN IF NOT EXISTS new_link_requested_at TIMESTAMPTZ`,
+
+  // A maker can send an invitation again, at most once per 10 minutes
+  // (POST /api/invitations/:id/resend)
+  `ALTER TABLE invitations ADD COLUMN IF NOT EXISTS last_sent_at TIMESTAMPTZ`,
+
+  // Login codes for makers and for participants on a new device have six
+  // digits (utils/loginCode.js). Only widen a column when it is still shorter,
+  // so later runs do not lock the table.
+  `DO $$
+  BEGIN
+    IF (SELECT character_maximum_length FROM information_schema.columns
+        WHERE table_schema = current_schema() AND table_name = 'users'
+          AND column_name = 'login_verification_code') < 6 THEN
+      ALTER TABLE users ALTER COLUMN login_verification_code TYPE VARCHAR(6);
+    END IF;
+    IF (SELECT character_maximum_length FROM information_schema.columns
+        WHERE table_schema = current_schema() AND table_name = 'invitation_sessions'
+          AND column_name = 'verification_code') < 6 THEN
+      ALTER TABLE invitation_sessions ALTER COLUMN verification_code TYPE VARCHAR(6);
+    END IF;
+  END $$`,
+
+  // Gryffi calls the people who follow a journey participants. The welcome
+  // journeys for new makers still said end users; replace only those words.
+  `UPDATE demo_journeys
+   SET journey_data = replace(replace(replace(replace(replace(replace(journey_data::text,
+     'your end users', 'your participants'),
+     'Ihre Endbenutzer', 'Ihre Teilnehmer'),
+     'Ihren Endbenutzern', 'Ihren Teilnehmern'),
+     'vos utilisateurs finaux', 'vos participants'),
+     'tus usuarios finales', 'tus participantes'),
+     'je eindgebruikers', 'je deelnemers')::jsonb
+   WHERE journey_data::text ~ '(your end users|Ihren? Endbenutzer|vos utilisateurs finaux|tus usuarios finales|je eindgebruikers)'`,
+
+  // Public API keys: a SHA-256 lookup value next to the bcrypt hash, so a
+  // request finds its organization with one indexed query (services/apiKeys.js).
+  // Existing keys get the value the first time they are used.
+  `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS api_key_lookup VARCHAR(64)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_organizations_api_key_lookup
+   ON organizations (api_key_lookup) WHERE api_key_lookup IS NOT NULL`,
+
+  // Yearly billing is 11 times the monthly price ("1 month free"). The first
+  // seed used 10 times. Only the old values are corrected, so a yearly price
+  // that was set on purpose later is left alone.
+  `UPDATE subscription_tiers SET price_yearly = 539 WHERE name = 'professional' AND price_yearly = 490`,
+  `UPDATE subscription_tiers SET price_yearly = 1639 WHERE name = 'enterprise' AND price_yearly = 1490`,
+  `UPDATE tier_prices p SET price_yearly = p.price_monthly * 11, updated_at = NOW()
+   FROM subscription_tiers t
+   WHERE t.id = p.tier_id
+     AND (t.name, p.currency, p.price_yearly) IN (
+       ('professional', 'EUR', 490), ('enterprise', 'EUR', 1490),
+       ('professional', 'GBP', 417), ('enterprise', 'GBP', 1267),
+       ('professional', 'USD', 539), ('enterprise', 'USD', 1639)
+     )`,
+
+  // Partner program: the referral token of a partner link, stored at signup and
+  // added to the organization's checkout so the partner gets the commission
+  // (cloud/services/referral.js; stays empty in the Community Edition)
+  `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS creem_ref VARCHAR(512)`,
+  `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS creem_ref_at TIMESTAMPTZ`,
+
+  // Partner plan: free for approved partners of the partner program, for their own
+  // use (partner terms, Section 7). Limits for one person, with the Enterprise
+  // features partners should know: journey themes and public journeys. Inactive,
+  // so it never shows as a plan to buy; the admin CLI assigns it by hand.
+  `INSERT INTO subscription_tiers (name, display_name, description, price_monthly, price_yearly,
+     max_journeys, max_guides, max_makers, max_end_users, max_knowledge_chunks, max_ai_credits_monthly,
+     sync_enabled, priority_support, dedicated_support, custom_branding, api_access, public_journeys,
+     trash_retention_days, backup_retention_days, sort_order, is_active)
+   VALUES ('partner', 'Partner', 'Free for approved partners, for their own use', 0, 0,
+     20, 10, 2, 100, 7000, 2000,
+     false, false, false, true, false, true,
+     30, 7, 1, false)
+   ON CONFLICT (name) DO NOTHING`,
+
+  // In-app help: how often help is opened per screen, which "What is this?"
+  // explanations and articles are read, and questions it could not answer.
+  // Counts per day without a user; unanswered questions stay 90 days
+  // (services/helpEvents.js, cleaned up by the scheduler).
+  `CREATE TABLE IF NOT EXISTS help_events (
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    day DATE NOT NULL DEFAULT CURRENT_DATE,
+    screen VARCHAR(60) NOT NULL,
+    kind VARCHAR(20) NOT NULL,
+    key VARCHAR(60) NOT NULL DEFAULT '',
+    count INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (organization_id, day, screen, kind, key)
+  )`,
+  `CREATE TABLE IF NOT EXISTS help_unanswered (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    screen VARCHAR(60) NOT NULL,
+    question VARCHAR(500) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_help_unanswered_created ON help_unanswered(created_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_help_events_day ON help_events(day)`,
+  `DO $$
+   BEGIN
+     ALTER TABLE help_events ENABLE ROW LEVEL SECURITY;
+     ALTER TABLE help_unanswered ENABLE ROW LEVEL SECURITY;
+     BEGIN
+       DROP POLICY IF EXISTS org_isolation ON help_events;
+       DROP POLICY IF EXISTS org_isolation ON help_unanswered;
+     EXCEPTION WHEN OTHERS THEN NULL;
+     END;
+     CREATE POLICY org_isolation ON help_events
+       USING (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid)
+       WITH CHECK (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
+     CREATE POLICY org_isolation ON help_unanswered
        USING (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid)
        WITH CHECK (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
    END $$`

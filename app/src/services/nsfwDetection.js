@@ -187,11 +187,3 @@ export function getUserFriendlyReason(reason, locale = 'en') {
   
   return messages[locale] || messages.en;
 }
-
-export default {
-  isServiceAvailable,
-  checkImage,
-  isImageAllowed,
-  checkImageFile,
-  getUserFriendlyReason
-};

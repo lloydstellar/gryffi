@@ -761,21 +761,6 @@ export async function getCitationSources(citationIds, organizationId) {
 }
 
 /**
- * Get all knowledge sources for a guide
- */
-export async function getKnowledgeSources(guideStepId) {
-  const result = await query(
-    `SELECT id, source_type, source_name, original_filename, content_type, 
-            file_size, status, error_message, chunks_count, created_at
-     FROM knowledge_sources 
-     WHERE guide_step_id = $1
-     ORDER BY created_at DESC`,
-    [guideStepId]
-  );
-  return result.rows;
-}
-
-/**
  * Update a text knowledge source and reprocess chunks
  */
 export async function updateTextKnowledgeSource(sourceId, organizationId, title, content) {
@@ -839,39 +824,10 @@ export async function deleteKnowledgeSource(sourceId, organizationId) {
 }
 
 /**
- * Get knowledge statistics for a guide
- */
-export async function getKnowledgeStats(guideStepId) {
-  const sourcesResult = await query(
-    `SELECT 
-       COUNT(*) as total_sources,
-       SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-       SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
-       SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
-       SUM(chunks_count) as total_chunks
-     FROM knowledge_sources 
-     WHERE guide_step_id = $1`,
-    [guideStepId]
-  );
-  
-  return sourcesResult.rows[0];
-}
-
-/**
  * Check if file type is supported
  */
 export function isFileTypeSupported(mimeType) {
   return mimeType in SUPPORTED_FILE_TYPES;
-}
-
-/**
- * Get supported file types list
- */
-export function getSupportedFileTypes() {
-  return Object.entries(SUPPORTED_FILE_TYPES).map(([mime, ext]) => ({
-    mimeType: mime,
-    extension: ext
-  }));
 }
 
 /**

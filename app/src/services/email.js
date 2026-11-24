@@ -15,6 +15,7 @@ import { getAppBaseUrl } from '../utils/appUrl.js';
 import nodemailer from 'nodemailer';
 import { getSetting, getSettings } from './settings.js';
 import { isCloud } from '../edition.js';
+import { escapeHtml } from './formSubmissions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,10 +34,15 @@ const DEFAULT_THEME = {
 // ---------------------------------------------------------------------------
 // Unsubscribe / List-Unsubscribe helpers
 // ---------------------------------------------------------------------------
-// Even on transactional mail, a small unsubscribe affordance + the
-// List-Unsubscribe header improves Gmail/Outlook deliverability and gives
-// recipients a clear escape hatch. Mailto-only (no one-click POST) is
+// Mail that goes out without the recipient asking for it each time
+// (invitations, reminders, notifications) gets a small unsubscribe link and
+// the List-Unsubscribe header: that helps Gmail/Outlook deliverability and
+// gives recipients a clear escape hatch. Mailto-only (no one-click POST) is
 // intentional: we keep handling on our side.
+// Security mail the recipient triggers themselves (login and device codes,
+// password reset, address verification) and alerts to the operator pass
+// transactional: true and get neither: unsubscribing from a login code means
+// nothing, and Gmail would show an Unsubscribe button next to it.
 
 const UNSUBSCRIBE_EMAIL = 'unsubscribe@gryffi.com';
 
@@ -316,7 +322,7 @@ We're excited to have you on the team!`,
   journey_completion: {
     name: 'Journey Complete',
     subject: 'Congratulations! You\'ve completed {journey_title}',
-    body: `Amazing work, {user_first_name}! 🎉
+    body: `Amazing work, {user_first_name}!
 
 You've successfully completed the {journey_title} journey. We hope you found it helpful and informative.
 
@@ -333,48 +339,22 @@ Welcome to the team!`,
   }
 };
 
-// Available variables for templates
-const TEMPLATE_VARIABLES = {
-  user: [
-    { key: 'user_name', label: 'Employee name', example: 'John Smith' },
-    { key: 'user_email', label: 'Employee email', example: 'john@company.com' },
-    { key: 'user_first_name', label: 'First name', example: 'John' }
-  ],
-  journey: [
-    { key: 'journey_title', label: 'Journey title', example: 'Onboarding 2024' },
-    { key: 'step_title', label: 'Current step', example: 'IT Setup' }
-  ],
-  company: [
-    { key: 'company_name', label: 'Company name', example: 'Acme Corp' }
-  ],
-  custom: [
-    { key: 'subject', label: 'Subject', example: 'Welcome!' },
-    { key: 'custom_message', label: 'Custom message', example: '' },
-    { key: 'custom_link', label: 'Link', example: 'https://...' },
-    { key: 'custom_link_text', label: 'Link text', example: 'Click here' }
-  ]
-};
-
 /**
  * Replace template variables with actual values
- * Supports both {variable} and {{variable}} syntax
+ * Supports both {variable} and {{variable}} syntax. Unknown names stay as they
+ * are. One pass, so a value that contains {name} is never filled in itself.
+ * @param {string} text
+ * @param {object} variables
+ * @param {boolean} escape - HTML-escape the values (for the HTML part)
  */
-function replaceVariables(text, variables = {}) {
+function replaceVariables(text, variables = {}, escape = false) {
   if (!text) return '';
-  
-  let result = text;
-  Object.entries(variables).forEach(([key, value]) => {
-    // Replace {{variable}} format (double braces)
-    // eslint-disable-next-line security/detect-non-literal-regexp -- keys are developer-defined template variable names, not user input
-    const doubleRegex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-    result = result.replace(doubleRegex, value || '');
-    // Replace {variable} format (single braces)
-    // eslint-disable-next-line security/detect-non-literal-regexp -- keys are developer-defined template variable names, not user input
-    const singleRegex = new RegExp(`\\{${key}\\}`, 'g');
-    result = result.replace(singleRegex, value || '');
+  return text.replace(/\{\{(\w+)\}\}|\{(\w+)\}/g, (match, doubleName, singleName) => {
+    const name = doubleName || singleName;
+    if (!Object.prototype.hasOwnProperty.call(variables, name)) return match;
+    const value = String(variables[name] || '');
+    return escape ? escapeHtml(value) : value;
   });
-  
-  return result;
 }
 
 /**
@@ -409,9 +389,13 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
     bgColor: bgColor
   };
   
+  // Values are data (names of participants, titles): escaped wherever they
+  // land in the HTML. The templates around them are written by us or the maker.
+  const esc = (key) => escapeHtml(variables[key]);
+
   // If custom HTML is provided, use it directly (with variable replacement including theme colors)
   if (customHtml) {
-    return replaceVariables(customHtml, enhancedVariables);
+    return replaceVariables(customHtml, enhancedVariables, true);
   }
   
   // Logo URL - use custom logo if provided, otherwise default Gryffi logo
@@ -440,16 +424,15 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
   // Process body content - if isHtmlBody, use as-is; otherwise convert line breaks to paragraphs
   let bodyContent = '';
   if (customBody) {
-    const processedBody = replaceVariables(customBody, enhancedVariables);
     if (isHtmlBody) {
       // Body is already HTML, use directly
-      bodyContent = processedBody;
+      bodyContent = replaceVariables(customBody, enhancedVariables, true);
     } else {
-      // Convert plain text to paragraphs
-      bodyContent = processedBody
+      // Plain text (automation emails, system emails): escape, then one paragraph per line
+      bodyContent = replaceVariables(customBody, enhancedVariables)
         .split('\n')
         .filter(line => line.trim())
-        .map(line => `<p style="margin: 0 0 16px 0; line-height: 1.7; color: #334155;">${line.trim()}</p>`)
+        .map(line => `<p style="margin: 0 0 16px 0; line-height: 1.7; color: #334155;">${escapeHtml(line.trim())}</p>`)
         .join('');
     }
   }
@@ -459,12 +442,12 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
     <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
       <tr>
         <td align="center">
-          <a href="${variables.custom_link}" 
+          <a href="${esc('custom_link')}" 
              style="display: inline-block; background: ${primaryColor}; color: white; 
                     padding: 14px 36px; border-radius: 8px; text-decoration: none; 
                     font-weight: 600; font-size: 15px; letter-spacing: 0.3px;
                     box-shadow: 0 2px 4px rgba(11, 75, 52, 0.2);">
-            ${variables.custom_link_text || t.clickHere}
+            ${variables.custom_link_text ? esc('custom_link_text') : t.clickHere}
           </a>
         </td>
       </tr>
@@ -478,7 +461,7 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${replaceVariables(EMAIL_TEMPLATES[templateType]?.subject || 'Message', variables)}</title>
+  <title>${replaceVariables(EMAIL_TEMPLATES[templateType]?.subject || 'Message', variables, true)}</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -493,7 +476,7 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
   
   <!-- Preheader text (hidden but shows in email preview) -->
   <div style="display: none; max-height: 0; overflow: hidden;">
-    ${variables.preheader || replaceVariables(customBody || '', variables).replace(/<[^>]*>/g, '').substring(0, 100)}
+    ${escapeHtml(variables.preheader || (isHtmlBody ? htmlToPlainText(replaceVariables(customBody, variables, true)) : replaceVariables(customBody, variables)).replace(/\s+/g, ' ').substring(0, 100))}
   </div>
   
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: ${bgColor}; padding: 48px 20px;">
@@ -504,7 +487,7 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin-bottom: 24px;">
           <tr>
             <td align="center">
-              <img src="${logoUrl}" alt="${companyName}" width="64" height="64" 
+              <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(companyName)}" width="64" height="64" 
                    style="display: block; width: 64px; height: 64px; object-fit: contain;">
             </td>
           </tr>
@@ -525,7 +508,7 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
               <!-- Greeting -->
               ${variables.user_name ? `
                 <p style="margin: 0 0 24px 0; color: ${primaryColor}; font-size: 18px; font-weight: 600;">
-                  ${t.greeting} ${variables.user_first_name || variables.user_name},
+                  ${t.greeting} ${escapeHtml(variables.user_first_name || variables.user_name)},
                 </p>
               ` : ''}
               
@@ -552,11 +535,11 @@ function generateEmailHtml(templateType, variables = {}, customBody = '', custom
             <td style="padding: 24px 36px 32px 36px;">
               ${variables.journey_title ? `
                 <p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px; text-align: center;">
-                  ${t.partOfJourney}: <strong>${variables.journey_title}</strong>
+                  ${t.partOfJourney}: <strong>${esc('journey_title')}</strong>
                 </p>
               ` : ''}
               <p style="margin: 0; color: #94a3b8; font-size: 12px; text-align: center;">
-                ${t.sentVia} ${companyName}
+                ${t.sentVia} ${escapeHtml(companyName)}
               </p>
             </td>
           </tr>
@@ -637,6 +620,9 @@ function generateEmailText(variables = {}, customBody = '', language = 'en') {
  * @param {string} options.unsubscribeUrl - Optional HTTPS one-click unsubscribe
  *   page. When given, the footer links there and the RFC 8058
  *   List-Unsubscribe-Post header is added (used by lifecycle emails).
+ * @param {boolean} options.transactional - Security mail the recipient
+ *   triggered (codes, password reset, address verification) or an operator
+ *   alert: no unsubscribe link and no List-Unsubscribe header.
  * @param {string} options.from - Optional sender override, e.g. a personal
  *   sender for lifecycle emails. Defaults to NUNTLY_FROM_EMAIL.
  * @param {string} options.idempotencyKey - Optional key so a retried request
@@ -804,6 +790,7 @@ export async function sendEmail({
   attachments = null,
   unsubscribeEmail = null,
   unsubscribeUrl = null,
+  transactional = false,
   from = null,
   idempotencyKey = null
 }) {
@@ -820,7 +807,7 @@ export async function sendEmail({
   
   const { html, text, subject: processedSubject, headers: extraHeaders } = await renderEmail({
     to, subject, templateType, variables, customBody, customHtml, customText,
-    isHtmlBody, language, orgId, unsubscribeEmail, unsubscribeUrl
+    isHtmlBody, language, orgId, unsubscribeEmail, unsubscribeUrl, transactional
   });
 
   // Reserved test domains (RFC 2606) can never receive mail: log instead of
@@ -887,7 +874,8 @@ export async function renderEmail({
   language = 'en',
   orgId = null,
   unsubscribeEmail = null,
-  unsubscribeUrl = null
+  unsubscribeUrl = null,
+  transactional = false
 }) {
   // Get organization theme for custom branding (Tier 3+ with custom theme)
   const theme = orgId ? await getOrganizationEmailTheme(orgId) : null;
@@ -906,7 +894,7 @@ export async function renderEmail({
   const effectiveUnsubscribeEmail = (unsubscribeEmail && unsubscribeEmail.includes('@'))
     ? unsubscribeEmail
     : (isCloud() ? UNSUBSCRIBE_EMAIL : null);
-  const withUnsubscribe = !!(effectiveUnsubscribeEmail || unsubscribeUrl);
+  const withUnsubscribe = !transactional && !!(effectiveUnsubscribeEmail || unsubscribeUrl);
   
   // 1. HTML body — generate or take as-is, then ensure a discreet unsubscribe
   // affordance is present at the bottom (idempotent).
@@ -937,11 +925,11 @@ export async function renderEmail({
     // HTML bodies are stripped to readable plain text first; otherwise the
     // raw tags and inline styles would leak into the text part verbatim.
     const textSource = isHtmlBody
-      ? htmlToPlainText(replaceVariables(customBody, textVariables))
+      ? htmlToPlainText(replaceVariables(customBody, textVariables, true))
       : customBody;
     text = generateEmailText(textVariables, textSource, language);
   } else if (customHtml) {
-    text = htmlToPlainText(replaceVariables(customHtml, textVariables));
+    text = htmlToPlainText(replaceVariables(customHtml, textVariables, true));
   } else {
     text = generateEmailText(textVariables, customBody, language);
   }
@@ -959,12 +947,12 @@ export async function renderEmail({
   // one-click header is added, which Gmail and Yahoo require from senders of
   // recurring mail. Other emails keep the mailto-only variant.
   const extraHeaders = {};
-  const listUnsubscribe = [
+  const listUnsubscribe = !withUnsubscribe ? [] : [
     unsubscribeUrl && `<${unsubscribeUrl}>`,
     effectiveUnsubscribeEmail && `<${buildUnsubscribeMailto(recipientAddress, effectiveUnsubscribeEmail)}>`
   ].filter(Boolean);
   if (listUnsubscribe.length) extraHeaders['List-Unsubscribe'] = listUnsubscribe.join(', ');
-  if (unsubscribeUrl) {
+  if (withUnsubscribe && unsubscribeUrl) {
     extraHeaders['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
   }
   
@@ -976,6 +964,7 @@ export async function renderEmail({
  */
 export async function sendPasswordResetEmail(userEmail, userName, resetLink, companyName = 'Gryffi') {
   return sendEmail({
+    transactional: true,
     to: userEmail,
     subject: 'Reset your password',
     templateType: 'password_reset',
@@ -1105,17 +1094,17 @@ export async function sendJourneyEmail({
  */
 const CONTINUE_JOURNEY_BUTTON = {
   en: 'Continue Journey',
-  nl: 'Ga Verder met Expeditie',
-  de: 'Expedition Fortsetzen',
-  fr: 'Continuer le Parcours',
-  es: 'Continuar Expedición',
-  it: 'Continua il Percorso',
-  pt: 'Continuar Jornada',
-  da: 'Fortsæt Rejse',
-  no: 'Fortsett Reise',
-  fi: 'Jatka Matkaa',
-  sv: 'Fortsätt Resa',
-  pl: 'Kontynuuj Podróż',
+  nl: 'Ga verder met de expeditie',
+  de: 'Expedition fortsetzen',
+  fr: 'Continuer le parcours',
+  es: 'Continuar la expedición',
+  it: 'Continua il percorso',
+  pt: 'Continuar a jornada',
+  da: 'Fortsæt rejsen',
+  no: 'Fortsett reisen',
+  fi: 'Jatka matkaa',
+  sv: 'Fortsätt resan',
+  pl: 'Kontynuuj podróż',
   ro: 'Continuă Călătoria',
   tr: 'Yolculuğa Devam Et'
 };
@@ -1229,136 +1218,142 @@ export async function sendInvitationEmail({
   
   // Language-specific content
   // Terms: EN=Journey, NL=Expeditie, DE=Expedition, FR=Parcours, ES=Expedición
-  const translations = {
-    en: {
-      subject: `You're invited to ${journeyTitle}`,
-      greeting: `Hello ${firstName},`,
-      intro: `You've been invited to participate in "<strong>${journeyTitle}</strong>" at ${companyName}.`,
-      instructions: `Click the button below to start your journey. This link is personal and valid for <strong>${validityText}</strong>.`,
-      button: 'Start Journey',
-      footer: "If you weren't expecting this invitation, you can safely ignore this email.",
-      security: "This link is unique to you. Please don't share it with others."
-    },
-    nl: {
-      subject: `Je bent uitgenodigd voor ${journeyTitle}`,
-      greeting: `Hallo ${firstName},`,
-      intro: `Je bent uitgenodigd om deel te nemen aan "<strong>${journeyTitle}</strong>" bij ${companyName}.`,
-      instructions: `Klik op de knop hieronder om je expeditie te starten. Deze link is persoonlijk en <strong>${validityText}</strong> geldig.`,
-      button: 'Start Expeditie',
-      footer: 'Als je deze uitnodiging niet verwachtte, kun je deze e-mail negeren.',
-      security: 'Deze link is uniek voor jou. Deel hem alsjeblieft niet met anderen.'
-    },
-    de: {
-      subject: `Du bist eingeladen zu ${journeyTitle}`,
-      greeting: `Hallo ${firstName},`,
-      intro: `Du wurdest eingeladen, an "<strong>${journeyTitle}</strong>" bei ${companyName} teilzunehmen.`,
-      instructions: `Klicke auf den Button unten, um deine Expedition zu starten. Dieser Link ist persönlich und <strong>${validityText}</strong> gültig.`,
-      button: 'Expedition starten',
-      footer: 'Wenn du diese Einladung nicht erwartet hast, kannst du diese E-Mail ignorieren.',
-      security: 'Dieser Link ist nur für dich bestimmt. Bitte teile ihn nicht mit anderen.'
-    },
-    fr: {
-      subject: `Vous êtes invité à ${journeyTitle}`,
-      greeting: `Bonjour ${firstName},`,
-      intro: `Vous avez été invité à participer à "<strong>${journeyTitle}</strong>" chez ${companyName}.`,
-      instructions: `Cliquez sur le bouton ci-dessous pour commencer votre parcours. Ce lien est personnel et valide pendant <strong>${validityText}</strong>.`,
-      button: 'Commencer le Parcours',
-      footer: "Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.",
-      security: 'Ce lien vous est unique. Veuillez ne pas le partager avec d\'autres.'
-    },
-    es: {
-      subject: `Has sido invitado a ${journeyTitle}`,
-      greeting: `Hola ${firstName},`,
-      intro: `Has sido invitado a participar en "<strong>${journeyTitle}</strong>" en ${companyName}.`,
-      instructions: `Haz clic en el botón de abajo para comenzar tu expedición. Este enlace es personal y válido durante <strong>${validityText}</strong>.`,
-      button: 'Comenzar Expedición',
-      footer: 'Si no esperabas esta invitación, puedes ignorar este correo electrónico.',
-      security: 'Este enlace es único para ti. Por favor, no lo compartas con otros.'
-    },
-    it: {
-      subject: `Sei stato invitato a ${journeyTitle}`,
-      greeting: `Ciao ${firstName},`,
-      intro: `Sei stato invitato a partecipare a "<strong>${journeyTitle}</strong>" presso ${companyName}.`,
-      instructions: `Clicca il pulsante qui sotto per iniziare il tuo percorso. Questo link è personale e valido per <strong>${validityText}</strong>.`,
-      button: 'Inizia il Percorso',
-      footer: 'Se non ti aspettavi questo invito, puoi ignorare questa e-mail.',
-      security: 'Questo link è unico per te. Per favore, non condividerlo con altri.'
-    },
-    pt: {
-      subject: `Você foi convidado para ${journeyTitle}`,
-      greeting: `Olá ${firstName},`,
-      intro: `Você foi convidado a participar de "<strong>${journeyTitle}</strong>" na ${companyName}.`,
-      instructions: `Clique no botão abaixo para iniciar sua jornada. Este link é pessoal e válido por <strong>${validityText}</strong>.`,
-      button: 'Iniciar Jornada',
-      footer: 'Se você não esperava este convite, pode ignorar este e-mail.',
-      security: 'Este link é exclusivo para você. Por favor, não o compartilhe com outras pessoas.'
-    },
-    da: {
-      subject: `Du er inviteret til ${journeyTitle}`,
-      greeting: `Hej ${firstName},`,
-      intro: `Du er blevet inviteret til at deltage i "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
-      instructions: `Klik på knappen nedenfor for at starte din rejse. Dette link er personligt og gyldigt i <strong>${validityText}</strong>.`,
-      button: 'Start Rejse',
-      footer: 'Hvis du ikke forventede denne invitation, kan du ignorere denne e-mail.',
-      security: 'Dette link er unikt for dig. Del det venligst ikke med andre.'
-    },
-    no: {
-      subject: `Du er invitert til ${journeyTitle}`,
-      greeting: `Hei ${firstName},`,
-      intro: `Du har blitt invitert til å delta i "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
-      instructions: `Klikk på knappen nedenfor for å starte reisen din. Denne lenken er personlig og gyldig i <strong>${validityText}</strong>.`,
-      button: 'Start Reise',
-      footer: 'Hvis du ikke forventet denne invitasjonen, kan du ignorere denne e-posten.',
-      security: 'Denne lenken er unik for deg. Vennligst ikke del den med andre.'
-    },
-    fi: {
-      subject: `Sinut on kutsuttu: ${journeyTitle}`,
-      greeting: `Hei ${firstName},`,
-      intro: `Sinut on kutsuttu osallistumaan "<strong>${journeyTitle}</strong>" organisaatiossa ${companyName}.`,
-      instructions: `Napsauta alla olevaa painiketta aloittaaksesi matkasi. Tämä linkki on henkilökohtainen ja voimassa <strong>${validityText}</strong>.`,
-      button: 'Aloita Matka',
-      footer: 'Jos et odottanut tätä kutsua, voit jättää tämän sähköpostin huomiotta.',
-      security: 'Tämä linkki on tarkoitettu vain sinulle. Älä jaa sitä muille.'
-    },
-    sv: {
-      subject: `Du är inbjuden till ${journeyTitle}`,
-      greeting: `Hej ${firstName},`,
-      intro: `Du har blivit inbjuden att delta i "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
-      instructions: `Klicka på knappen nedan för att starta din resa. Denna länk är personlig och giltig i <strong>${validityText}</strong>.`,
-      button: 'Starta Resa',
-      footer: 'Om du inte förväntade dig denna inbjudan kan du ignorera detta e-postmeddelande.',
-      security: 'Denna länk är unik för dig. Vänligen dela den inte med andra.'
-    },
-    pl: {
-      subject: `Zaproszenie do ${journeyTitle}`,
-      greeting: `Cześć ${firstName},`,
-      intro: `Zostałeś zaproszony do udziału w "<strong>${journeyTitle}</strong>" w ${companyName}.`,
-      instructions: `Kliknij poniższy przycisk, aby rozpocząć swoją podróż. Ten link jest osobisty i ważny przez <strong>${validityText}</strong>.`,
-      button: 'Rozpocznij Podróż',
-      footer: 'Jeśli nie spodziewałeś się tego zaproszenia, możesz zignorować tę wiadomość.',
-      security: 'Ten link jest przeznaczony tylko dla Ciebie. Prosimy, nie udostępniaj go innym.'
-    },
-    ro: {
-      subject: `Ești invitat la ${journeyTitle}`,
-      greeting: `Bună ${firstName},`,
-      intro: `Ai fost invitat să participi la "<strong>${journeyTitle}</strong>" la ${companyName}.`,
-      instructions: `Apasă butonul de mai jos pentru a-ți începe călătoria. Acest link este personal și valabil pentru <strong>${validityText}</strong>.`,
-      button: 'Începe Călătoria',
-      footer: 'Dacă nu te așteptai la această invitație, poți ignora acest e-mail.',
-      security: 'Acest link este unic pentru tine. Te rugăm să nu-l distribui altora.'
-    },
-    tr: {
-      subject: `${journeyTitle} için davet edildiniz`,
-      greeting: `Merhaba ${firstName},`,
-      intro: `${companyName} bünyesindeki "<strong>${journeyTitle}</strong>" etkinliğine katılmaya davet edildiniz.`,
-      instructions: `Yolculuğunuza başlamak için aşağıdaki düğmeye tıklayın. Bu bağlantı size özeldir ve <strong>${validityText}</strong> geçerlidir.`,
-      button: 'Yolculuğu Başlat',
-      footer: 'Bu daveti beklemiyorsanız, bu e-postayı güvenle görmezden gelebilirsiniz.',
-      security: 'Bu bağlantı size özeldir. Lütfen başkalarıyla paylaşmayın.'
-    }
+  // Built twice: with escaped values for the HTML, with the plain values
+  // for the subject and the text version
+  const buildTranslations = ({ firstName, journeyTitle, companyName, validityText }) => {
+    const translations = {
+      en: {
+        subject: `You're invited to ${journeyTitle}`,
+        greeting: `Hello ${firstName},`,
+        intro: `You've been invited to participate in "<strong>${journeyTitle}</strong>" at ${companyName}.`,
+        instructions: `Click the button below to start your journey. This link is personal and valid for <strong>${validityText}</strong>. You can stop at any moment and continue later with the same link.`,
+        button: 'Start Journey',
+        footer: "If you weren't expecting this invitation, you can safely ignore this email.",
+        security: "This link is unique to you. Please don't share it with others."
+      },
+      nl: {
+        subject: `Je bent uitgenodigd voor ${journeyTitle}`,
+        greeting: `Hallo ${firstName},`,
+        intro: `Je bent uitgenodigd om deel te nemen aan "<strong>${journeyTitle}</strong>" bij ${companyName}.`,
+        instructions: `Klik op de knop hieronder om je expeditie te starten. Deze link is persoonlijk en <strong>${validityText}</strong> geldig. Je kunt op elk moment stoppen en later verdergaan met dezelfde link.`,
+        button: 'Start de expeditie',
+        footer: 'Als je deze uitnodiging niet verwachtte, kun je deze e-mail negeren.',
+        security: 'Deze link is uniek voor jou. Deel hem alsjeblieft niet met anderen.'
+      },
+      de: {
+        subject: `Sie sind eingeladen zu ${journeyTitle}`,
+        greeting: `Hallo ${firstName},`,
+        intro: `Sie wurden eingeladen, an "<strong>${journeyTitle}</strong>" bei ${companyName} teilzunehmen.`,
+        instructions: `Klicken Sie auf den Button unten, um Ihre Expedition zu starten. Dieser Link ist persönlich und <strong>${validityText}</strong> gültig. Sie können jederzeit aufhören und später mit demselben Link weitermachen.`,
+        button: 'Expedition starten',
+        footer: 'Wenn Sie diese Einladung nicht erwartet haben, können Sie diese E-Mail ignorieren.',
+        security: 'Dieser Link ist nur für Sie bestimmt. Bitte teilen Sie ihn nicht mit anderen.'
+      },
+      fr: {
+        subject: `Vous êtes invité à ${journeyTitle}`,
+        greeting: `Bonjour ${firstName},`,
+        intro: `Vous avez été invité à participer à "<strong>${journeyTitle}</strong>" chez ${companyName}.`,
+        instructions: `Cliquez sur le bouton ci-dessous pour commencer votre parcours. Ce lien est personnel et valide pendant <strong>${validityText}</strong>. Vous pouvez vous arrêter à tout moment et reprendre plus tard avec le même lien.`,
+        button: 'Commencer le parcours',
+        footer: "Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.",
+        security: 'Ce lien vous est unique. Veuillez ne pas le partager avec d\'autres.'
+      },
+      es: {
+        subject: `Has sido invitado a ${journeyTitle}`,
+        greeting: `Hola ${firstName},`,
+        intro: `Has sido invitado a participar en "<strong>${journeyTitle}</strong>" en ${companyName}.`,
+        instructions: `Haz clic en el botón de abajo para comenzar tu expedición. Este enlace es personal y válido durante <strong>${validityText}</strong>. Puedes parar en cualquier momento y continuar más tarde con el mismo enlace.`,
+        button: 'Comenzar la expedición',
+        footer: 'Si no esperabas esta invitación, puedes ignorar este correo electrónico.',
+        security: 'Este enlace es único para ti. Por favor, no lo compartas con otros.'
+      },
+      it: {
+        subject: `Sei stato invitato a ${journeyTitle}`,
+        greeting: `Ciao ${firstName},`,
+        intro: `Sei stato invitato a partecipare a "<strong>${journeyTitle}</strong>" presso ${companyName}.`,
+        instructions: `Clicca il pulsante qui sotto per iniziare il tuo percorso. Questo link è personale e valido per <strong>${validityText}</strong>. Puoi fermarti in qualsiasi momento e continuare più tardi con lo stesso link.`,
+        button: 'Inizia il percorso',
+        footer: 'Se non ti aspettavi questo invito, puoi ignorare questa e-mail.',
+        security: 'Questo link è unico per te. Per favore, non condividerlo con altri.'
+      },
+      pt: {
+        subject: `Você foi convidado para ${journeyTitle}`,
+        greeting: `Olá ${firstName},`,
+        intro: `Você foi convidado a participar de "<strong>${journeyTitle}</strong>" na ${companyName}.`,
+        instructions: `Clique no botão abaixo para iniciar sua jornada. Este link é pessoal e válido por <strong>${validityText}</strong>. Você pode parar a qualquer momento e continuar depois com o mesmo link.`,
+        button: 'Iniciar a jornada',
+        footer: 'Se você não esperava este convite, pode ignorar este e-mail.',
+        security: 'Este link é exclusivo para você. Por favor, não o compartilhe com outras pessoas.'
+      },
+      da: {
+        subject: `Du er inviteret til ${journeyTitle}`,
+        greeting: `Hej ${firstName},`,
+        intro: `Du er blevet inviteret til at deltage i "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
+        instructions: `Klik på knappen nedenfor for at starte din rejse. Dette link er personligt og gyldigt i <strong>${validityText}</strong>. Du kan stoppe når som helst og fortsætte senere med det samme link.`,
+        button: 'Start rejsen',
+        footer: 'Hvis du ikke forventede denne invitation, kan du ignorere denne e-mail.',
+        security: 'Dette link er unikt for dig. Del det venligst ikke med andre.'
+      },
+      no: {
+        subject: `Du er invitert til ${journeyTitle}`,
+        greeting: `Hei ${firstName},`,
+        intro: `Du har blitt invitert til å delta i "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
+        instructions: `Klikk på knappen nedenfor for å starte reisen din. Denne lenken er personlig og gyldig i <strong>${validityText}</strong>. Du kan stoppe når som helst og fortsette senere med den samme lenken.`,
+        button: 'Start reisen',
+        footer: 'Hvis du ikke forventet denne invitasjonen, kan du ignorere denne e-posten.',
+        security: 'Denne lenken er unik for deg. Vennligst ikke del den med andre.'
+      },
+      fi: {
+        subject: `Sinut on kutsuttu: ${journeyTitle}`,
+        greeting: `Hei ${firstName},`,
+        intro: `Sinut on kutsuttu osallistumaan "<strong>${journeyTitle}</strong>" organisaatiossa ${companyName}.`,
+        instructions: `Napsauta alla olevaa painiketta aloittaaksesi matkasi. Tämä linkki on henkilökohtainen ja voimassa <strong>${validityText}</strong>. Voit lopettaa milloin tahansa ja jatkaa myöhemmin samalla linkillä.`,
+        button: 'Aloita matka',
+        footer: 'Jos et odottanut tätä kutsua, voit jättää tämän sähköpostin huomiotta.',
+        security: 'Tämä linkki on tarkoitettu vain sinulle. Älä jaa sitä muille.'
+      },
+      sv: {
+        subject: `Du är inbjuden till ${journeyTitle}`,
+        greeting: `Hej ${firstName},`,
+        intro: `Du har blivit inbjuden att delta i "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
+        instructions: `Klicka på knappen nedan för att starta din resa. Denna länk är personlig och giltig i <strong>${validityText}</strong>. Du kan sluta när du vill och fortsätta senare med samma länk.`,
+        button: 'Starta resan',
+        footer: 'Om du inte förväntade dig denna inbjudan kan du ignorera detta e-postmeddelande.',
+        security: 'Denna länk är unik för dig. Vänligen dela den inte med andra.'
+      },
+      pl: {
+        subject: `Zaproszenie do ${journeyTitle}`,
+        greeting: `Cześć ${firstName},`,
+        intro: `Zostałeś zaproszony do udziału w "<strong>${journeyTitle}</strong>" w ${companyName}.`,
+        instructions: `Kliknij poniższy przycisk, aby rozpocząć swoją podróż. Ten link jest osobisty i ważny przez <strong>${validityText}</strong>. Możesz przerwać w dowolnym momencie i wrócić później, korzystając z tego samego linku.`,
+        button: 'Rozpocznij podróż',
+        footer: 'Jeśli nie spodziewałeś się tego zaproszenia, możesz zignorować tę wiadomość.',
+        security: 'Ten link jest przeznaczony tylko dla Ciebie. Prosimy, nie udostępniaj go innym.'
+      },
+      ro: {
+        subject: `Ești invitat la ${journeyTitle}`,
+        greeting: `Bună ${firstName},`,
+        intro: `Ai fost invitat să participi la "<strong>${journeyTitle}</strong>" la ${companyName}.`,
+        instructions: `Apasă butonul de mai jos pentru a-ți începe călătoria. Acest link este personal și valabil pentru <strong>${validityText}</strong>. Te poți opri oricând și poți continua mai târziu cu același link.`,
+        button: 'Începe călătoria',
+        footer: 'Dacă nu te așteptai la această invitație, poți ignora acest e-mail.',
+        security: 'Acest link este unic pentru tine. Te rugăm să nu-l distribui altora.'
+      },
+      tr: {
+        subject: `${journeyTitle} için davet edildiniz`,
+        greeting: `Merhaba ${firstName},`,
+        intro: `${companyName} bünyesindeki "<strong>${journeyTitle}</strong>" etkinliğine katılmaya davet edildiniz.`,
+        instructions: `Yolculuğunuza başlamak için aşağıdaki düğmeye tıklayın. Bu bağlantı size özeldir ve <strong>${validityText}</strong> geçerlidir. İstediğiniz zaman durabilir ve aynı bağlantıyla daha sonra devam edebilirsiniz.`,
+        button: 'Yolculuğu Başlat',
+        footer: 'Bu daveti beklemiyorsanız, bu e-postayı güvenle görmezden gelebilirsiniz.',
+        security: 'Bu bağlantı size özeldir. Lütfen başkalarıyla paylaşmayın.'
+      }
+    };
+    return translations[language] || translations.en;
   };
 
-  const t = translations[language] || translations.en;
+  const t = buildTranslations({ firstName: escapeHtml(firstName), journeyTitle: escapeHtml(journeyTitle), companyName: escapeHtml(companyName), validityText: escapeHtml(validityText) });
+  const tText = buildTranslations({ firstName: String(firstName ?? ''), journeyTitle: String(journeyTitle ?? ''), companyName: String(companyName ?? ''), validityText: String(validityText ?? '') });
   
   // Use custom theme colors or default Gryffi colors
   const bgColor = theme.background;
@@ -1430,7 +1425,7 @@ export async function sendInvitationEmail({
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
                 <tr>
                   <td align="center">
-                    <a href="${magicLink}" 
+                    <a href="${escapeHtml(magicLink)}" 
                        style="display: inline-block; background: ${primaryColor}; color: white; 
                               padding: 16px 48px; border-radius: 10px; text-decoration: none; 
                               font-weight: 700; font-size: 16px; letter-spacing: 0.3px;
@@ -1487,24 +1482,24 @@ export async function sendInvitationEmail({
 </html>
   `.trim();
 
-  const text = `${t.greeting}
+  const text = `${tText.greeting}
 
-${t.intro.replace(/<[^>]*>/g, '')}
+${tText.intro.replace(/<\/?strong>/g, '')}
 
-${t.instructions.replace(/<[^>]*>/g, '')}
+${tText.instructions.replace(/<\/?strong>/g, '')}
 
-${t.button}: ${magicLink}
+${tText.button}: ${magicLink}
 
-${t.security}
+${tText.security}
 
 ---
-${t.footer}
+${tText.footer}
 
 Powered by Gryffi`;
 
   return sendEmail({
     to,
-    subject: t.subject,
+    subject: tText.subject,
     templateType: 'journey_custom',
     variables: {},
     customBody: '',
@@ -1535,56 +1530,122 @@ export async function sendVerificationCodeEmail({
   // Handle missing/undefined journeyTitle gracefully
   const hasJourneyTitle = journeyTitle && journeyTitle !== 'undefined' && journeyTitle.trim() !== '';
   
+  // Plain text: escaped where it goes into the HTML. The name is typed in by
+  // the participant (also by anonymous visitors of a public journey).
+  const name = (firstName || '').trim();
+  const title = journeyTitle;
   const translations = {
     en: {
-      subject: hasJourneyTitle ? `Your verification code for ${journeyTitle}` : 'Your verification code',
-      greeting: `Hello ${firstName || 'there'},`,
-      intro: hasJourneyTitle 
-        ? `We need to verify your email to continue with "${journeyTitle}".`
-        : 'We need to verify your email to continue.',
+      subject: hasJourneyTitle ? `Your verification code for ${title}` : 'Your verification code',
+      greeting: name ? `Hello ${name},` : 'Hello,',
+      intro: hasJourneyTitle ? `We need to verify your email to continue with "${title}".` : 'We need to verify your email to continue.',
       instruction: 'Enter this code to continue:',
       expiry: 'This code expires in 10 minutes.',
       ignore: 'If you didn\'t request this code, please ignore this email.'
     },
     nl: {
-      subject: hasJourneyTitle ? `Je verificatiecode voor ${journeyTitle}` : 'Je verificatiecode',
-      greeting: `Hallo ${firstName || 'daar'},`,
-      intro: hasJourneyTitle 
-        ? `We moeten je e-mail verifiëren om door te gaan met "${journeyTitle}".`
-        : 'We moeten je e-mail verifiëren om door te gaan.',
+      subject: hasJourneyTitle ? `Je verificatiecode voor ${title}` : 'Je verificatiecode',
+      greeting: name ? `Hallo ${name},` : 'Hallo,',
+      intro: hasJourneyTitle ? `We moeten je e-mail verifiëren om door te gaan met "${title}".` : 'We moeten je e-mail verifiëren om door te gaan.',
       instruction: 'Voer deze code in om door te gaan:',
       expiry: 'Deze code verloopt over 10 minuten.',
       ignore: 'Als je deze code niet hebt aangevraagd, kun je deze e-mail negeren.'
     },
     de: {
-      subject: hasJourneyTitle ? `Dein Bestätigungscode für ${journeyTitle}` : 'Dein Bestätigungscode',
-      greeting: `Hallo ${firstName || 'dort'},`,
-      intro: hasJourneyTitle 
-        ? `Wir müssen deine E-Mail verifizieren, um mit "${journeyTitle}" fortzufahren.`
-        : 'Wir müssen deine E-Mail verifizieren, um fortzufahren.',
-      instruction: 'Gib diesen Code ein, um fortzufahren:',
+      subject: hasJourneyTitle ? `Ihr Bestätigungscode für ${title}` : 'Ihr Bestätigungscode',
+      greeting: name ? `Hallo ${name},` : 'Hallo,',
+      intro: hasJourneyTitle ? `Wir müssen Ihre E-Mail-Adresse bestätigen, damit Sie mit "${title}" fortfahren können.` : 'Wir müssen Ihre E-Mail-Adresse bestätigen, damit Sie fortfahren können.',
+      instruction: 'Geben Sie diesen Code ein, um fortzufahren:',
       expiry: 'Dieser Code läuft in 10 Minuten ab.',
-      ignore: 'Wenn du diesen Code nicht angefordert hast, ignoriere diese E-Mail.'
+      ignore: 'Wenn Sie diesen Code nicht angefordert haben, können Sie diese E-Mail ignorieren.'
     },
     fr: {
-      subject: hasJourneyTitle ? `Votre code de vérification pour ${journeyTitle}` : 'Votre code de vérification',
-      greeting: `Bonjour ${firstName || ''},`,
-      intro: hasJourneyTitle 
-        ? `Nous devons vérifier votre e-mail pour continuer avec "${journeyTitle}".`
-        : 'Nous devons vérifier votre e-mail pour continuer.',
-      instruction: 'Entrez ce code pour continuer:',
+      subject: hasJourneyTitle ? `Votre code de vérification pour ${title}` : 'Votre code de vérification',
+      greeting: name ? `Bonjour ${name},` : 'Bonjour,',
+      intro: hasJourneyTitle ? `Nous devons vérifier votre e-mail pour continuer avec "${title}".` : 'Nous devons vérifier votre e-mail pour continuer.',
+      instruction: 'Entrez ce code pour continuer :',
       expiry: 'Ce code expire dans 10 minutes.',
       ignore: 'Si vous n\'avez pas demandé ce code, veuillez ignorer cet e-mail.'
     },
     es: {
-      subject: hasJourneyTitle ? `Tu código de verificación para ${journeyTitle}` : 'Tu código de verificación',
-      greeting: `Hola ${firstName || ''},`,
-      intro: hasJourneyTitle 
-        ? `Necesitamos verificar tu correo para continuar con "${journeyTitle}".`
-        : 'Necesitamos verificar tu correo para continuar.',
+      subject: hasJourneyTitle ? `Tu código de verificación para ${title}` : 'Tu código de verificación',
+      greeting: name ? `Hola ${name},` : 'Hola,',
+      intro: hasJourneyTitle ? `Necesitamos verificar tu correo para continuar con "${title}".` : 'Necesitamos verificar tu correo para continuar.',
       instruction: 'Introduce este código para continuar:',
       expiry: 'Este código expira en 10 minutos.',
-      ignore: 'Si no solicitaste este código, por favor ignora este correo electrónico.'
+      ignore: 'Si no solicitaste este código, ignora este correo electrónico.'
+    },
+    it: {
+      subject: hasJourneyTitle ? `Il tuo codice di verifica per ${title}` : 'Il tuo codice di verifica',
+      greeting: name ? `Ciao ${name},` : 'Ciao,',
+      intro: hasJourneyTitle ? `Dobbiamo verificare la tua email per continuare con "${title}".` : 'Dobbiamo verificare la tua email per continuare.',
+      instruction: 'Inserisci questo codice per continuare:',
+      expiry: 'Questo codice scade tra 10 minuti.',
+      ignore: 'Se non hai richiesto questo codice, ignora questa email.'
+    },
+    pt: {
+      subject: hasJourneyTitle ? `Seu código de verificação para ${title}` : 'Seu código de verificação',
+      greeting: name ? `Olá ${name},` : 'Olá,',
+      intro: hasJourneyTitle ? `Precisamos verificar seu e-mail para continuar em "${title}".` : 'Precisamos verificar seu e-mail para continuar.',
+      instruction: 'Digite este código para continuar:',
+      expiry: 'Este código expira em 10 minutos.',
+      ignore: 'Se você não solicitou este código, ignore este e-mail.'
+    },
+    da: {
+      subject: hasJourneyTitle ? `Din bekræftelseskode til ${title}` : 'Din bekræftelseskode',
+      greeting: name ? `Hej ${name},` : 'Hej,',
+      intro: hasJourneyTitle ? `Vi skal bekræfte din e-mail, før du kan fortsætte med "${title}".` : 'Vi skal bekræfte din e-mail, før du kan fortsætte.',
+      instruction: 'Indtast denne kode for at fortsætte:',
+      expiry: 'Koden udløber om 10 minutter.',
+      ignore: 'Hvis du ikke har bedt om denne kode, kan du se bort fra denne e-mail.'
+    },
+    no: {
+      subject: hasJourneyTitle ? `Bekreftelseskoden din for ${title}` : 'Bekreftelseskoden din',
+      greeting: name ? `Hei ${name},` : 'Hei,',
+      intro: hasJourneyTitle ? `Vi må bekrefte e-postadressen din før du kan fortsette med "${title}".` : 'Vi må bekrefte e-postadressen din før du kan fortsette.',
+      instruction: 'Skriv inn denne koden for å fortsette:',
+      expiry: 'Koden utløper om 10 minutter.',
+      ignore: 'Hvis du ikke har bedt om denne koden, kan du se bort fra denne e-posten.'
+    },
+    sv: {
+      subject: hasJourneyTitle ? `Din verifieringskod för ${title}` : 'Din verifieringskod',
+      greeting: name ? `Hej ${name},` : 'Hej,',
+      intro: hasJourneyTitle ? `Vi behöver bekräfta din e-postadress innan du kan fortsätta med "${title}".` : 'Vi behöver bekräfta din e-postadress innan du kan fortsätta.',
+      instruction: 'Ange den här koden för att fortsätta:',
+      expiry: 'Koden går ut om 10 minuter.',
+      ignore: 'Om du inte har begärt den här koden kan du bortse från det här mejlet.'
+    },
+    fi: {
+      subject: hasJourneyTitle ? `Vahvistuskoodisi (${title})` : 'Vahvistuskoodisi',
+      greeting: name ? `Hei ${name},` : 'Hei,',
+      intro: hasJourneyTitle ? `Vahvista sähköpostiosoitteesi, jotta voit jatkaa: "${title}".` : 'Vahvista sähköpostiosoitteesi, jotta voit jatkaa.',
+      instruction: 'Jatka syöttämällä tämä koodi:',
+      expiry: 'Koodi vanhenee 10 minuutissa.',
+      ignore: 'Jos et pyytänyt tätä koodia, voit jättää tämän viestin huomiotta.'
+    },
+    pl: {
+      subject: hasJourneyTitle ? `Twój kod weryfikacyjny: ${title}` : 'Twój kod weryfikacyjny',
+      greeting: name ? `Cześć ${name},` : 'Cześć,',
+      intro: hasJourneyTitle ? `Potwierdź swój adres e-mail, aby kontynuować: „${title}”.` : 'Potwierdź swój adres e-mail, aby kontynuować.',
+      instruction: 'Wpisz ten kod, aby kontynuować:',
+      expiry: 'Kod wygaśnie za 10 minut.',
+      ignore: 'Jeśli to nie Ty prosisz o ten kod, zignoruj tę wiadomość.'
+    },
+    ro: {
+      subject: hasJourneyTitle ? `Codul dumneavoastră de verificare pentru ${title}` : 'Codul dumneavoastră de verificare',
+      greeting: name ? `Bună ziua, ${name},` : 'Bună ziua,',
+      intro: hasJourneyTitle ? `Trebuie să vă verificăm adresa de e-mail pentru a continua cu „${title}”.` : 'Trebuie să vă verificăm adresa de e-mail pentru a continua.',
+      instruction: 'Introduceți acest cod pentru a continua:',
+      expiry: 'Acest cod expiră în 10 minute.',
+      ignore: 'Dacă nu ați solicitat acest cod, ignorați acest e-mail.'
+    },
+    tr: {
+      subject: hasJourneyTitle ? `${title} için doğrulama kodunuz` : 'Doğrulama kodunuz',
+      greeting: name ? `Merhaba ${name},` : 'Merhaba,',
+      intro: hasJourneyTitle ? `"${title}" ile devam edebilmeniz için e-posta adresinizi doğrulamamız gerekiyor.` : 'Devam edebilmeniz için e-posta adresinizi doğrulamamız gerekiyor.',
+      instruction: 'Devam etmek için bu kodu girin:',
+      expiry: 'Bu kodun süresi 10 dakika içinde dolar.',
+      ignore: 'Bu kodu siz istemediyseniz bu e-postayı dikkate almayın.'
     }
   };
 
@@ -1606,7 +1667,7 @@ export async function sendVerificationCodeEmail({
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${t.subject}</title>
+  <title>${escapeHtml(t.subject)}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: ${bgColor}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
   
@@ -1636,15 +1697,15 @@ export async function sendVerificationCodeEmail({
             <td style="padding: 40px 36px;">
               
               <p style="margin: 0 0 24px 0; color: ${primaryColor}; font-size: 20px; font-weight: 600;">
-                ${t.greeting}
+                ${escapeHtml(t.greeting)}
               </p>
               
               <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.7; color: #334155;">
-                ${t.intro}
+                ${escapeHtml(t.intro)}
               </p>
               
               <p style="margin: 0 0 16px 0; font-size: 15px; color: #64748b;">
-                ${t.instruction}
+                ${escapeHtml(t.instruction)}
               </p>
               
               <!-- Verification Code -->
@@ -1657,7 +1718,7 @@ export async function sendVerificationCodeEmail({
               </div>
               
               <p style="margin: 24px 0 0 0; font-size: 13px; color: #94a3b8; text-align: center;">
-                ${t.expiry}
+                ${escapeHtml(t.expiry)}
               </p>
               
             </td>
@@ -1672,7 +1733,7 @@ export async function sendVerificationCodeEmail({
           <tr>
             <td style="padding: 24px 36px;">
               <p style="margin: 0; color: #94a3b8; font-size: 12px; text-align: center;">
-                ${t.ignore}
+                ${escapeHtml(t.ignore)}
               </p>
             </td>
           </tr>
@@ -1702,6 +1763,7 @@ ${t.ignore}
 Powered by Gryffi`;
 
   return sendEmail({
+    transactional: true,
     to,
     subject: t.subject,
     templateType: 'journey_custom',
@@ -1750,105 +1812,111 @@ export async function sendSubscriptionChangeEmail({
   const billingDisplay = billingPeriod === 'yearly' || billingPeriod === 'year' ? 'yearly' : 'monthly';
   
   // Multi-language translations
-  const translations = {
-    en: {
-      subject: isUpgrade 
-        ? `🎉 Welcome to ${newTierDisplay}!` 
-        : isDowngrade 
-          ? `Your subscription has been changed to ${newTierDisplay}`
-          : `Your ${newTierDisplay} subscription is now active`,
-      greeting: `Hello ${adminName || 'there'},`,
-      upgradeIntro: `Great news! Your organization "<strong>${organizationName}</strong>" has been successfully upgraded to the <strong>${newTierDisplay}</strong> plan.`,
-      downgradeIntro: `Your organization "<strong>${organizationName}</strong>" subscription has been changed to the <strong>${newTierDisplay}</strong> plan.`,
-      activeIntro: `Your organization "<strong>${organizationName}</strong>" now has an active <strong>${newTierDisplay}</strong> subscription.`,
-      billingInfo: `Billing: <strong>${billingDisplay === 'yearly' ? 'Annual' : 'Monthly'}</strong>`,
-      previousTier: previousTierName ? `Previous plan: ${previousTierDisplay}` : '',
-      upgradeMessage: 'You now have access to all the features included in your new plan. Explore them in your dashboard!',
-      downgradeMessage: 'Your plan features have been updated accordingly. You can upgrade again at any time.',
-      activeMessage: 'Thank you for your subscription! You now have access to all features included in your plan.',
-      button: 'Go to Dashboard',
-      questions: 'If you have any questions about your subscription, please contact our support team.',
-      footer: 'This is an automated message regarding your Gryffi subscription.'
-    },
-    nl: {
-      subject: isUpgrade 
-        ? `🎉 Welkom bij ${newTierDisplay}!` 
-        : isDowngrade 
-          ? `Je abonnement is gewijzigd naar ${newTierDisplay}`
-          : `Je ${newTierDisplay} abonnement is nu actief`,
-      greeting: `Hallo ${adminName || 'daar'},`,
-      upgradeIntro: `Goed nieuws! Je organisatie "<strong>${organizationName}</strong>" is succesvol geüpgraded naar het <strong>${newTierDisplay}</strong> abonnement.`,
-      downgradeIntro: `Je organisatie "<strong>${organizationName}</strong>" abonnement is gewijzigd naar het <strong>${newTierDisplay}</strong> abonnement.`,
-      activeIntro: `Je organisatie "<strong>${organizationName}</strong>" heeft nu een actief <strong>${newTierDisplay}</strong> abonnement.`,
-      billingInfo: `Facturering: <strong>${billingDisplay === 'yearly' ? 'Jaarlijks' : 'Maandelijks'}</strong>`,
-      previousTier: previousTierName ? `Vorig abonnement: ${previousTierDisplay}` : '',
-      upgradeMessage: 'Je hebt nu toegang tot alle functies van je nieuwe abonnement. Ontdek ze in je dashboard!',
-      downgradeMessage: 'Je abonnementsfuncties zijn dienovereenkomstig aangepast. Je kunt op elk moment weer upgraden.',
-      activeMessage: 'Bedankt voor je abonnement! Je hebt nu toegang tot alle functies van je abonnement.',
-      button: 'Ga naar Dashboard',
-      questions: 'Als je vragen hebt over je abonnement, neem dan contact op met ons supportteam.',
-      footer: 'Dit is een automatisch bericht over je Gryffi abonnement.'
-    },
-    de: {
-      subject: isUpgrade 
-        ? `🎉 Willkommen bei ${newTierDisplay}!` 
-        : isDowngrade 
-          ? `Dein Abonnement wurde auf ${newTierDisplay} geändert`
-          : `Dein ${newTierDisplay} Abonnement ist jetzt aktiv`,
-      greeting: `Hallo ${adminName || 'dort'},`,
-      upgradeIntro: `Tolle Neuigkeiten! Deine Organisation "<strong>${organizationName}</strong>" wurde erfolgreich auf das <strong>${newTierDisplay}</strong> Abonnement aktualisiert.`,
-      downgradeIntro: `Das Abonnement deiner Organisation "<strong>${organizationName}</strong>" wurde auf das <strong>${newTierDisplay}</strong> Abonnement geändert.`,
-      activeIntro: `Deine Organisation "<strong>${organizationName}</strong>" hat jetzt ein aktives <strong>${newTierDisplay}</strong> Abonnement.`,
-      billingInfo: `Abrechnung: <strong>${billingDisplay === 'yearly' ? 'Jährlich' : 'Monatlich'}</strong>`,
-      previousTier: previousTierName ? `Vorheriges Abonnement: ${previousTierDisplay}` : '',
-      upgradeMessage: 'Du hast jetzt Zugang zu allen Funktionen deines neuen Abonnements. Entdecke sie in deinem Dashboard!',
-      downgradeMessage: 'Deine Abonnement-Funktionen wurden entsprechend angepasst. Du kannst jederzeit wieder upgraden.',
-      activeMessage: 'Danke für dein Abonnement! Du hast jetzt Zugang zu allen Funktionen deines Abonnements.',
-      button: 'Zum Dashboard',
-      questions: 'Bei Fragen zu deinem Abonnement wende dich bitte an unser Support-Team.',
-      footer: 'Dies ist eine automatische Nachricht zu deinem Gryffi Abonnement.'
-    },
-    fr: {
-      subject: isUpgrade 
-        ? `🎉 Bienvenue sur ${newTierDisplay} !` 
-        : isDowngrade 
-          ? `Votre abonnement a été changé en ${newTierDisplay}`
-          : `Votre abonnement ${newTierDisplay} est maintenant actif`,
-      greeting: `Bonjour ${adminName || ''},`,
-      upgradeIntro: `Bonne nouvelle ! Votre organisation "<strong>${organizationName}</strong>" a été mise à niveau vers le plan <strong>${newTierDisplay}</strong>.`,
-      downgradeIntro: `L'abonnement de votre organisation "<strong>${organizationName}</strong>" a été changé en plan <strong>${newTierDisplay}</strong>.`,
-      activeIntro: `Votre organisation "<strong>${organizationName}</strong>" a maintenant un abonnement <strong>${newTierDisplay}</strong> actif.`,
-      billingInfo: `Facturation : <strong>${billingDisplay === 'yearly' ? 'Annuelle' : 'Mensuelle'}</strong>`,
-      previousTier: previousTierName ? `Plan précédent : ${previousTierDisplay}` : '',
-      upgradeMessage: 'Vous avez maintenant accès à toutes les fonctionnalités de votre nouveau plan. Découvrez-les dans votre tableau de bord !',
-      downgradeMessage: 'Les fonctionnalités de votre plan ont été mises à jour en conséquence. Vous pouvez mettre à niveau à nouveau à tout moment.',
-      activeMessage: 'Merci pour votre abonnement ! Vous avez maintenant accès à toutes les fonctionnalités de votre plan.',
-      button: 'Aller au Tableau de Bord',
-      questions: 'Si vous avez des questions sur votre abonnement, veuillez contacter notre équipe de support.',
-      footer: 'Ceci est un message automatique concernant votre abonnement Gryffi.'
-    },
-    es: {
-      subject: isUpgrade 
-        ? `🎉 ¡Bienvenido a ${newTierDisplay}!` 
-        : isDowngrade 
-          ? `Tu suscripción ha sido cambiada a ${newTierDisplay}`
-          : `Tu suscripción ${newTierDisplay} está ahora activa`,
-      greeting: `Hola ${adminName || ''},`,
-      upgradeIntro: `¡Buenas noticias! Tu organización "<strong>${organizationName}</strong>" ha sido actualizada exitosamente al plan <strong>${newTierDisplay}</strong>.`,
-      downgradeIntro: `La suscripción de tu organización "<strong>${organizationName}</strong>" ha sido cambiada al plan <strong>${newTierDisplay}</strong>.`,
-      activeIntro: `Tu organización "<strong>${organizationName}</strong>" ahora tiene una suscripción <strong>${newTierDisplay}</strong> activa.`,
-      billingInfo: `Facturación: <strong>${billingDisplay === 'yearly' ? 'Anual' : 'Mensual'}</strong>`,
-      previousTier: previousTierName ? `Plan anterior: ${previousTierDisplay}` : '',
-      upgradeMessage: '¡Ahora tienes acceso a todas las características de tu nuevo plan. Explóralas en tu panel de control!',
-      downgradeMessage: 'Las características de tu plan han sido actualizadas en consecuencia. Puedes volver a mejorar en cualquier momento.',
-      activeMessage: '¡Gracias por tu suscripción! Ahora tienes acceso a todas las características de tu plan.',
-      button: 'Ir al Panel',
-      questions: 'Si tienes preguntas sobre tu suscripción, por favor contacta a nuestro equipo de soporte.',
-      footer: 'Este es un mensaje automático sobre tu suscripción de Gryffi.'
-    }
+  // Built twice: with escaped values for the HTML, with the plain values
+  // for the subject and the text version
+  const buildTranslations = ({ adminName, organizationName }) => {
+    const translations = {
+      en: {
+        subject: isUpgrade 
+          ? `Welcome to ${newTierDisplay}!` 
+          : isDowngrade 
+            ? `Your subscription has been changed to ${newTierDisplay}`
+            : `Your ${newTierDisplay} subscription is now active`,
+        greeting: `Hello ${adminName || 'there'},`,
+        upgradeIntro: `Great news! Your organization "<strong>${organizationName}</strong>" has been successfully upgraded to the <strong>${newTierDisplay}</strong> plan.`,
+        downgradeIntro: `Your organization "<strong>${organizationName}</strong>" subscription has been changed to the <strong>${newTierDisplay}</strong> plan.`,
+        activeIntro: `Your organization "<strong>${organizationName}</strong>" now has an active <strong>${newTierDisplay}</strong> subscription.`,
+        billingInfo: `Billing: <strong>${billingDisplay === 'yearly' ? 'Annual' : 'Monthly'}</strong>`,
+        previousTier: previousTierName ? `Previous plan: ${previousTierDisplay}` : '',
+        upgradeMessage: 'You now have access to all the features included in your new plan. Explore them in your dashboard!',
+        downgradeMessage: 'Your plan features have been updated accordingly. You can upgrade again at any time.',
+        activeMessage: 'Thank you for your subscription! You now have access to all features included in your plan.',
+        button: 'Go to Dashboard',
+        questions: 'If you have any questions about your subscription, please contact our support team.',
+        footer: 'This is an automated message regarding your Gryffi subscription.'
+      },
+      nl: {
+        subject: isUpgrade 
+          ? `Welkom bij ${newTierDisplay}!` 
+          : isDowngrade 
+            ? `Je abonnement is gewijzigd naar ${newTierDisplay}`
+            : `Je ${newTierDisplay} abonnement is nu actief`,
+        greeting: `Hallo ${adminName || 'daar'},`,
+        upgradeIntro: `Goed nieuws! Je organisatie "<strong>${organizationName}</strong>" is succesvol geüpgraded naar het <strong>${newTierDisplay}</strong> abonnement.`,
+        downgradeIntro: `Je organisatie "<strong>${organizationName}</strong>" abonnement is gewijzigd naar het <strong>${newTierDisplay}</strong> abonnement.`,
+        activeIntro: `Je organisatie "<strong>${organizationName}</strong>" heeft nu een actief <strong>${newTierDisplay}</strong> abonnement.`,
+        billingInfo: `Facturering: <strong>${billingDisplay === 'yearly' ? 'Jaarlijks' : 'Maandelijks'}</strong>`,
+        previousTier: previousTierName ? `Vorig abonnement: ${previousTierDisplay}` : '',
+        upgradeMessage: 'Je hebt nu toegang tot alle functies van je nieuwe abonnement. Ontdek ze in je dashboard!',
+        downgradeMessage: 'Je abonnementsfuncties zijn dienovereenkomstig aangepast. Je kunt op elk moment weer upgraden.',
+        activeMessage: 'Bedankt voor je abonnement! Je hebt nu toegang tot alle functies van je abonnement.',
+        button: 'Ga naar het dashboard',
+        questions: 'Als je vragen hebt over je abonnement, neem dan contact op met ons supportteam.',
+        footer: 'Dit is een automatisch bericht over je Gryffi abonnement.'
+      },
+      de: {
+        subject: isUpgrade 
+          ? `Willkommen bei ${newTierDisplay}!` 
+          : isDowngrade 
+            ? `Ihr Abonnement wurde auf ${newTierDisplay} geändert`
+            : `Ihr ${newTierDisplay} Abonnement ist jetzt aktiv`,
+        greeting: `Hallo${adminName ? ` ${adminName}` : ''},`,
+        upgradeIntro: `Gute Nachrichten: Ihre Organisation "<strong>${organizationName}</strong>" wurde erfolgreich auf das <strong>${newTierDisplay}</strong> Abonnement aktualisiert.`,
+        downgradeIntro: `Das Abonnement Ihrer Organisation "<strong>${organizationName}</strong>" wurde auf das <strong>${newTierDisplay}</strong> Abonnement geändert.`,
+        activeIntro: `Ihre Organisation "<strong>${organizationName}</strong>" hat jetzt ein aktives <strong>${newTierDisplay}</strong> Abonnement.`,
+        billingInfo: `Abrechnung: <strong>${billingDisplay === 'yearly' ? 'Jährlich' : 'Monatlich'}</strong>`,
+        previousTier: previousTierName ? `Vorheriges Abonnement: ${previousTierDisplay}` : '',
+        upgradeMessage: 'Sie haben jetzt Zugang zu allen Funktionen Ihres neuen Abonnements. Sie finden sie in Ihrem Dashboard.',
+        downgradeMessage: 'Die Funktionen Ihres Abonnements wurden entsprechend angepasst. Sie können jederzeit wieder upgraden.',
+        activeMessage: 'Danke für Ihr Abonnement. Sie haben jetzt Zugang zu allen Funktionen Ihres Abonnements.',
+        button: 'Zum Dashboard',
+        questions: 'Bei Fragen zu Ihrem Abonnement wenden Sie sich bitte an unser Support-Team.',
+        footer: 'Dies ist eine automatische Nachricht zu Ihrem Gryffi Abonnement.'
+      },
+      fr: {
+        subject: isUpgrade 
+          ? `Bienvenue sur ${newTierDisplay} !` 
+          : isDowngrade 
+            ? `Votre abonnement a été changé en ${newTierDisplay}`
+            : `Votre abonnement ${newTierDisplay} est maintenant actif`,
+        greeting: `Bonjour ${adminName || ''},`,
+        upgradeIntro: `Bonne nouvelle ! Votre organisation "<strong>${organizationName}</strong>" a été mise à niveau vers le plan <strong>${newTierDisplay}</strong>.`,
+        downgradeIntro: `L'abonnement de votre organisation "<strong>${organizationName}</strong>" a été changé en plan <strong>${newTierDisplay}</strong>.`,
+        activeIntro: `Votre organisation "<strong>${organizationName}</strong>" a maintenant un abonnement <strong>${newTierDisplay}</strong> actif.`,
+        billingInfo: `Facturation : <strong>${billingDisplay === 'yearly' ? 'Annuelle' : 'Mensuelle'}</strong>`,
+        previousTier: previousTierName ? `Plan précédent : ${previousTierDisplay}` : '',
+        upgradeMessage: 'Vous avez maintenant accès à toutes les fonctionnalités de votre nouveau plan. Découvrez-les dans votre tableau de bord !',
+        downgradeMessage: 'Les fonctionnalités de votre plan ont été mises à jour en conséquence. Vous pouvez mettre à niveau à nouveau à tout moment.',
+        activeMessage: 'Merci pour votre abonnement ! Vous avez maintenant accès à toutes les fonctionnalités de votre plan.',
+        button: 'Aller au tableau de bord',
+        questions: 'Si vous avez des questions sur votre abonnement, veuillez contacter notre équipe de support.',
+        footer: 'Ceci est un message automatique concernant votre abonnement Gryffi.'
+      },
+      es: {
+        subject: isUpgrade 
+          ? `¡Bienvenido a ${newTierDisplay}!` 
+          : isDowngrade 
+            ? `Tu suscripción ha sido cambiada a ${newTierDisplay}`
+            : `Tu suscripción ${newTierDisplay} está ahora activa`,
+        greeting: `Hola ${adminName || ''},`,
+        upgradeIntro: `¡Buenas noticias! Tu organización "<strong>${organizationName}</strong>" ha sido actualizada exitosamente al plan <strong>${newTierDisplay}</strong>.`,
+        downgradeIntro: `La suscripción de tu organización "<strong>${organizationName}</strong>" ha sido cambiada al plan <strong>${newTierDisplay}</strong>.`,
+        activeIntro: `Tu organización "<strong>${organizationName}</strong>" ahora tiene una suscripción <strong>${newTierDisplay}</strong> activa.`,
+        billingInfo: `Facturación: <strong>${billingDisplay === 'yearly' ? 'Anual' : 'Mensual'}</strong>`,
+        previousTier: previousTierName ? `Plan anterior: ${previousTierDisplay}` : '',
+        upgradeMessage: '¡Ahora tienes acceso a todas las características de tu nuevo plan. Explóralas en tu panel de control!',
+        downgradeMessage: 'Las características de tu plan han sido actualizadas en consecuencia. Puedes volver a mejorar en cualquier momento.',
+        activeMessage: '¡Gracias por tu suscripción! Ahora tienes acceso a todas las características de tu plan.',
+        button: 'Ir al panel',
+        questions: 'Si tienes preguntas sobre tu suscripción, por favor contacta a nuestro equipo de soporte.',
+        footer: 'Este es un mensaje automático sobre tu suscripción de Gryffi.'
+      }
+    };
+    return translations[language] || translations.en;
   };
 
-  const t = translations[language] || translations.en;
+  const t = buildTranslations({ adminName: escapeHtml(adminName), organizationName: escapeHtml(organizationName) });
+  const tText = buildTranslations({ adminName: String(adminName ?? ''), organizationName: String(organizationName ?? '') });
   
   // Use custom theme colors or default Gryffi colors
   const bgColor = theme.background;
@@ -2019,32 +2087,33 @@ export async function sendSubscriptionChangeEmail({
 </html>
   `.trim();
 
-  const stripHtml = (s) => (s || '').replace(/<[^>]*>/g, '');
+  const stripHtml = (s) => (s || '').replace(/<\/?strong>/g, '');
+  const introTextPlain = isUpgrade ? tText.upgradeIntro : isDowngrade ? tText.downgradeIntro : tText.activeIntro;
   const billingLabel = billingDisplay === 'yearly'
     ? (language === 'nl' ? 'Jaarlijks' : language === 'de' ? 'Jährlich' : language === 'fr' ? 'Annuelle' : language === 'es' ? 'Anual' : 'Annual')
     : (language === 'nl' ? 'Maandelijks' : language === 'de' ? 'Monatlich' : language === 'fr' ? 'Mensuelle' : language === 'es' ? 'Mensual' : 'Monthly');
   
-  const text = `${t.greeting}
+  const text = `${tText.greeting}
 
-${stripHtml(introText)}
+${stripHtml(introTextPlain)}
 
 Plan: ${newTierDisplay}
-${stripHtml(t.billingInfo).split(':')[0]}: ${billingLabel}${previousTierName && previousTierName !== newTierName ? `\n${stripHtml(t.previousTier)}` : ''}
+${stripHtml(tText.billingInfo).split(':')[0]}: ${billingLabel}${previousTierName && previousTierName !== newTierName ? `\n${stripHtml(tText.previousTier)}` : ''}
 
 ${messageText}
 
-${t.button}: ${appUrl}/dashboard/subscription
+${tText.button}: ${appUrl}/dashboard/subscription
 
-${t.questions}
+${tText.questions}
 
 ---
-${t.footer}
+${tText.footer}
 
 Powered by Gryffi`;
 
   return sendEmail({
     to,
-    subject: t.subject,
+    subject: tText.subject,
     templateType: 'journey_custom',
     variables: {},
     customBody: '',
@@ -2052,25 +2121,6 @@ Powered by Gryffi`;
     customText: text,
     language
   });
-}
-
-/**
- * Get available templates for UI
- */
-export function getEmailTemplates() {
-  return Object.entries(EMAIL_TEMPLATES)
-    .filter(([key]) => key.startsWith('journey_'))
-    .map(([key, value]) => ({
-      id: key,
-      ...value
-    }));
-}
-
-/**
- * Get available variables for UI
- */
-export function getTemplateVariables() {
-  return TEMPLATE_VARIABLES;
 }
 
 function escapeEmailHtml(value) {
@@ -2089,8 +2139,11 @@ const AI_CREDITS_EMAIL_TEXTS = {
     body80: 'The AI guides of {org} have answered {used} of the {limit} questions in your plan this month. The counter resets on {date}.',
     body100: 'The AI guides of {org} have answered all {limit} questions in your plan this month.',
     action80: 'Do you expect more questions before {date}? Upgrade your plan so your guides keep answering.',
-    action100: 'End users can still ask about {extra} more questions. After that, the guides stop answering until {date}. In the builder preview they stop now. Upgrade your plan to keep them answering.',
-    cta: 'View plans'
+    action100: 'Participants can still ask about {extra} more questions. After that, the guides stop answering until {date}. In the builder preview they stop now. Upgrade your plan to keep them answering.',
+    cta: 'View plans',
+    contact80: 'Do you expect more questions before {date}? Contact us about a custom plan with more questions.',
+    contact100: 'Participants can still ask about {extra} more questions. After that, the guides stop answering until {date}. In the builder preview they stop now. Contact us about a custom plan with more questions.',
+    ctaContact: 'View your plan'
   },
   nl: {
     subject80: 'Je AI-gidsen hebben 80% van de vragen van deze maand gebruikt',
@@ -2098,8 +2151,11 @@ const AI_CREDITS_EMAIL_TEXTS = {
     body80: 'De AI-gidsen van {org} hebben deze maand {used} van de {limit} vragen uit je abonnement beantwoord. De teller begint opnieuw op {date}.',
     body100: 'De AI-gidsen van {org} hebben deze maand alle {limit} vragen uit je abonnement beantwoord.',
     action80: 'Verwacht je voor {date} meer vragen? Upgrade je abonnement, dan blijven je gidsen antwoorden.',
-    action100: 'Eindgebruikers kunnen nog ongeveer {extra} vragen stellen. Daarna antwoorden de gidsen niet meer tot {date}. In de preview van de builder stoppen ze nu al. Upgrade je abonnement om ze te laten doorgaan.',
-    cta: 'Bekijk abonnementen'
+    action100: 'Deelnemers kunnen nog ongeveer {extra} vragen stellen. Daarna antwoorden de gidsen niet meer tot {date}. In de preview van de builder stoppen ze nu al. Upgrade je abonnement om ze te laten doorgaan.',
+    cta: 'Bekijk abonnementen',
+    contact80: 'Verwacht je voor {date} meer vragen? Neem contact met ons op voor een abonnement op maat met meer vragen.',
+    contact100: 'Deelnemers kunnen nog ongeveer {extra} vragen stellen. Daarna antwoorden de gidsen niet meer tot {date}. In de preview van de builder stoppen ze nu al. Neem contact met ons op voor een abonnement op maat met meer vragen.',
+    ctaContact: 'Bekijk je abonnement'
   },
   de: {
     subject80: 'Ihre KI-Begleiter haben 80 % der Fragen dieses Monats genutzt',
@@ -2107,8 +2163,11 @@ const AI_CREDITS_EMAIL_TEXTS = {
     body80: 'Die KI-Begleiter von {org} haben in diesem Monat {used} von {limit} Fragen aus Ihrem Plan beantwortet. Der Zähler beginnt am {date} neu.',
     body100: 'Die KI-Begleiter von {org} haben in diesem Monat alle {limit} Fragen aus Ihrem Plan beantwortet.',
     action80: 'Erwarten Sie vor dem {date} mehr Fragen? Upgraden Sie Ihren Plan, damit Ihre Begleiter weiter antworten.',
-    action100: 'Endbenutzer können noch etwa {extra} Fragen stellen. Danach antworten die Begleiter bis zum {date} nicht mehr. In der Vorschau des Builders stoppen sie sofort. Upgraden Sie Ihren Plan, damit sie weiter antworten.',
-    cta: 'Pläne ansehen'
+    action100: 'Teilnehmer können noch etwa {extra} Fragen stellen. Danach antworten die Begleiter bis zum {date} nicht mehr. In der Vorschau des Builders stoppen sie sofort. Upgraden Sie Ihren Plan, damit sie weiter antworten.',
+    cta: 'Pläne ansehen',
+    contact80: 'Erwarten Sie vor dem {date} mehr Fragen? Kontaktieren Sie uns für einen individuellen Plan mit mehr Fragen.',
+    contact100: 'Teilnehmer können noch etwa {extra} Fragen stellen. Danach antworten die Begleiter bis zum {date} nicht mehr. In der Vorschau des Builders stoppen sie sofort. Kontaktieren Sie uns für einen individuellen Plan mit mehr Fragen.',
+    ctaContact: 'Ihren Plan ansehen'
   },
   fr: {
     subject80: 'Vos guides IA ont utilisé 80 % des questions de ce mois',
@@ -2116,8 +2175,11 @@ const AI_CREDITS_EMAIL_TEXTS = {
     body80: 'Les guides IA de {org} ont répondu ce mois-ci à {used} des {limit} questions de votre plan. Le compteur repart à zéro le {date}.',
     body100: 'Les guides IA de {org} ont répondu ce mois-ci à toutes les {limit} questions de votre plan.',
     action80: 'Vous attendez plus de questions avant le {date} ? Mettez à niveau votre plan pour que vos guides continuent de répondre.',
-    action100: 'Les utilisateurs finaux peuvent encore poser environ {extra} questions. Ensuite, les guides ne répondent plus jusqu\'au {date}. Dans l\'aperçu du builder, ils s\'arrêtent dès maintenant. Mettez à niveau votre plan pour qu\'ils continuent de répondre.',
-    cta: 'Voir les plans'
+    action100: 'Les participants peuvent encore poser environ {extra} questions. Ensuite, les guides ne répondent plus jusqu\'au {date}. Dans l\'aperçu du builder, ils s\'arrêtent dès maintenant. Mettez à niveau votre plan pour qu\'ils continuent de répondre.',
+    cta: 'Voir les plans',
+    contact80: 'Vous attendez plus de questions avant le {date} ? Contactez-nous pour un plan sur mesure avec plus de questions.',
+    contact100: 'Les participants peuvent encore poser environ {extra} questions. Ensuite, les guides ne répondent plus jusqu\'au {date}. Dans l\'aperçu du builder, ils s\'arrêtent dès maintenant. Contactez-nous pour un plan sur mesure avec plus de questions.',
+    ctaContact: 'Voir votre plan'
   },
   es: {
     subject80: 'Tus guías de IA han usado el 80 % de las preguntas de este mes',
@@ -2125,10 +2187,126 @@ const AI_CREDITS_EMAIL_TEXTS = {
     body80: 'Las guías de IA de {org} han respondido este mes {used} de las {limit} preguntas de tu plan. El contador se reinicia el {date}.',
     body100: 'Las guías de IA de {org} han respondido este mes todas las {limit} preguntas de tu plan.',
     action80: '¿Esperas más preguntas antes del {date}? Mejora tu plan para que tus guías sigan respondiendo.',
-    action100: 'Los usuarios finales aún pueden hacer unas {extra} preguntas más. Después, las guías dejan de responder hasta el {date}. En la vista previa del builder se detienen ya. Mejora tu plan para que sigan respondiendo.',
-    cta: 'Ver planes'
+    action100: 'Los participantes aún pueden hacer unas {extra} preguntas más. Después, las guías dejan de responder hasta el {date}. En la vista previa del builder se detienen ya. Mejora tu plan para que sigan respondiendo.',
+    cta: 'Ver planes',
+    contact80: '¿Esperas más preguntas antes del {date}? Contáctanos para un plan a medida con más preguntas.',
+    contact100: 'Los participantes aún pueden hacer unas {extra} preguntas más. Después, las guías dejan de responder hasta el {date}. En la vista previa del builder se detienen ya. Contáctanos para un plan a medida con más preguntas.',
+    ctaContact: 'Ver tu plan'
   }
 };
+
+const NEW_LINK_REQUEST_TEXTS = {
+  en: {
+    subject: '{name} asks for a new link to "{journey}"',
+    body: '{name} ({email}) opened an expired invitation link for "{journey}" and asks for a new one.',
+    action: 'Go to Invitations and send {name} a new invitation for this journey.',
+    cta: 'Open Invitations'
+  },
+  nl: {
+    subject: '{name} vraagt een nieuwe link voor "{journey}"',
+    body: '{name} ({email}) opende een verlopen uitnodigingslink voor "{journey}" en vraagt om een nieuwe.',
+    action: 'Ga naar Uitnodigingen en stuur {name} een nieuwe uitnodiging voor deze expeditie.',
+    cta: 'Open Uitnodigingen'
+  },
+  de: {
+    subject: '{name} bittet um einen neuen Link für "{journey}"',
+    body: '{name} ({email}) hat einen abgelaufenen Einladungslink für "{journey}" geöffnet und bittet um einen neuen.',
+    action: 'Gehen Sie zu Einladungen und senden Sie {name} eine neue Einladung für diese Expedition.',
+    cta: 'Einladungen öffnen'
+  },
+  fr: {
+    subject: '{name} demande un nouveau lien pour "{journey}"',
+    body: '{name} ({email}) a ouvert un lien d\'invitation expiré pour "{journey}" et demande un nouveau lien.',
+    action: 'Allez dans Invitations et envoyez à {name} une nouvelle invitation pour ce parcours.',
+    cta: 'Ouvrir Invitations'
+  },
+  es: {
+    subject: '{name} pide un enlace nuevo para "{journey}"',
+    body: '{name} ({email}) abrió un enlace de invitación caducado para "{journey}" y pide uno nuevo.',
+    action: 'Ve a Invitaciones y envía a {name} una nueva invitación para esta expedición.',
+    cta: 'Abrir Invitaciones'
+  }
+};
+
+/**
+ * Tell a maker that an end user opened an expired invitation link and asks
+ * for a new one.
+ * @param {Object} options
+ * @param {string} options.to - The maker who sent the invitation, or an admin
+ * @param {string} options.endUserName
+ * @param {string} options.endUserEmail
+ * @param {string} options.journeyTitle
+ * @param {string} [options.language] - Interface language of the organization
+ */
+export async function sendNewLinkRequestEmail({
+  to,
+  endUserName,
+  endUserEmail,
+  journeyTitle,
+  language = 'en'
+}) {
+  const texts = NEW_LINK_REQUEST_TEXTS[language] || NEW_LINK_REQUEST_TEXTS.en;
+  const fill = (template, values) => template.replace(/\{(\w+)\}/g, (_m, key) => values[key] ?? '');
+  const plain = { name: endUserName, email: endUserEmail, journey: journeyTitle };
+  const html = {
+    name: escapeEmailHtml(endUserName),
+    email: escapeEmailHtml(endUserEmail),
+    journey: escapeEmailHtml(journeyTitle)
+  };
+  const subject = fill(texts.subject, plain);
+  const link = `${getAppBaseUrl()}/dashboard/invitations`;
+
+  const customHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background: #f8fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 32px 36px 8px;">
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.4;">${fill(texts.subject, html)}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 16px 36px 32px;">
+              <p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 1.6;">${fill(texts.body, html)}</p>
+              <p style="margin: 0 0 24px 0; font-size: 15px; color: #334155; line-height: 1.6;">${fill(texts.action, html)}</p>
+              <a href="${link}" style="display: inline-block; padding: 14px 28px; background: #78C503; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 8px;">${escapeEmailHtml(texts.cta)}</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  const customText = `${subject}
+
+${fill(texts.body, plain)}
+
+${fill(texts.action, plain)}
+
+${texts.cta}: ${link}`;
+
+  return sendEmail({
+    to,
+    subject,
+    templateType: 'new_link_request',
+    variables: {},
+    customBody: '',
+    customHtml,
+    customText,
+    language
+  });
+}
 
 /**
  * Tell an organization admin that the AI guides used 80% or 100% of this
@@ -2137,6 +2315,7 @@ const AI_CREDITS_EMAIL_TEXTS = {
  * @param {80|100} options.level
  * @param {Date|string} options.resetDate - End of the billing period
  * @param {number} options.extraQuestions - Questions end users may still ask over the limit
+ * @param {boolean} [options.canUpgrade] - Whether a self-service plan with more questions exists
  */
 export async function sendAiCreditsEmail({
   to,
@@ -2145,6 +2324,7 @@ export async function sendAiCreditsEmail({
   limit,
   extraQuestions,
   resetDate,
+  canUpgrade = true,
   language = 'en'
 }) {
   const texts = AI_CREDITS_EMAIL_TEXTS[language] || AI_CREDITS_EMAIL_TEXTS.en;
@@ -2157,7 +2337,11 @@ export async function sendAiCreditsEmail({
 
   const subject = level === 100 ? texts.subject100 : texts.subject80;
   const body = level === 100 ? texts.body100 : texts.body80;
-  const action = level === 100 ? texts.action100 : texts.action80;
+  // No self-service plan with more questions (the highest plan): point to a custom plan
+  const action = canUpgrade
+    ? (level === 100 ? texts.action100 : texts.action80)
+    : (level === 100 ? texts.contact100 : texts.contact80);
+  const cta = canUpgrade ? texts.cta : texts.ctaContact;
   const link = `${getAppBaseUrl()}/dashboard/subscription`;
 
   const customHtml = `
@@ -2181,7 +2365,7 @@ export async function sendAiCreditsEmail({
             <td style="padding: 16px 36px 32px;">
               <p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 1.6;">${fill(escapeEmailHtml(body), html)}</p>
               <p style="margin: 0 0 24px 0; font-size: 15px; color: #334155; line-height: 1.6;">${fill(escapeEmailHtml(action), html)}</p>
-              <a href="${link}" style="display: inline-block; padding: 14px 28px; background: #78C503; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 8px;">${escapeEmailHtml(texts.cta)}</a>
+              <a href="${link}" style="display: inline-block; padding: 14px 28px; background: #78C503; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 8px;">${escapeEmailHtml(cta)}</a>
             </td>
           </tr>
         </table>
@@ -2198,7 +2382,7 @@ ${fill(body, plain)}
 
 ${fill(action, plain)}
 
-${texts.cta}: ${link}`;
+${cta}: ${link}`;
 
   return sendEmail({
     to,
@@ -2232,150 +2416,158 @@ export async function sendReminderEmail({
   
   // Language-specific content
   // Terms: EN=Journey, NL=Expeditie, DE=Expedition, FR=Parcours, ES=Expedición
-  const translations = {
-    en: {
-      subject: `Reminder: Complete your journey "${journeyTitle}"`,
-      greeting: `Hello ${firstName},`,
-      intro: `We noticed you haven't completed your journey "<strong>${journeyTitle}</strong>" at ${companyName} yet.`,
-      reminder: `You still have <strong>${daysRemaining} days</strong> left to complete it. Don't miss out!`,
-      instructions: 'Click the button below to continue where you left off.',
-      button: CONTINUE_JOURNEY_BUTTON.en,
-      footer: "If you've already completed this journey or no longer wish to participate, you can ignore this email.",
-      security: "This link is unique to you. Please don't share it with others."
-    },
-    nl: {
-      subject: `Herinnering: Rond je expeditie "${journeyTitle}" af`,
-      greeting: `Hallo ${firstName},`,
-      intro: `We hebben gemerkt dat je je expeditie "<strong>${journeyTitle}</strong>" bij ${companyName} nog niet hebt afgerond.`,
-      reminder: `Je hebt nog <strong>${daysRemaining} dagen</strong> om het af te ronden. Mis het niet!`,
-      instructions: 'Klik op de knop hieronder om verder te gaan waar je gebleven was.',
-      button: CONTINUE_JOURNEY_BUTTON.nl,
-      footer: 'Als je deze expeditie al hebt afgerond of niet meer wilt deelnemen, kun je deze e-mail negeren.',
-      security: 'Deze link is uniek voor jou. Deel hem alsjeblieft niet met anderen.'
-    },
-    de: {
-      subject: `Erinnerung: Schließe deine Expedition "${journeyTitle}" ab`,
-      greeting: `Hallo ${firstName},`,
-      intro: `Wir haben bemerkt, dass du deine Expedition "<strong>${journeyTitle}</strong>" bei ${companyName} noch nicht abgeschlossen hast.`,
-      reminder: `Du hast noch <strong>${daysRemaining} Tage</strong> Zeit, sie abzuschließen. Verpasse es nicht!`,
-      instructions: 'Klicke auf den Button unten, um dort fortzufahren, wo du aufgehört hast.',
-      button: CONTINUE_JOURNEY_BUTTON.de,
-      footer: 'Wenn du diese Expedition bereits abgeschlossen hast oder nicht mehr teilnehmen möchtest, kannst du diese E-Mail ignorieren.',
-      security: 'Dieser Link ist nur für dich bestimmt. Bitte teile ihn nicht mit anderen.'
-    },
-    fr: {
-      subject: `Rappel : Terminez votre parcours "${journeyTitle}"`,
-      greeting: `Bonjour ${firstName},`,
-      intro: `Nous avons remarqué que vous n'avez pas encore terminé votre parcours "<strong>${journeyTitle}</strong>" chez ${companyName}.`,
-      reminder: `Il vous reste encore <strong>${daysRemaining} jours</strong> pour le terminer. Ne manquez pas cette opportunité !`,
-      instructions: 'Cliquez sur le bouton ci-dessous pour reprendre là où vous vous êtes arrêté.',
-      button: CONTINUE_JOURNEY_BUTTON.fr,
-      footer: 'Si vous avez déjà terminé ce parcours ou ne souhaitez plus participer, vous pouvez ignorer cet e-mail.',
-      security: 'Ce lien vous est unique. Veuillez ne pas le partager avec d\'autres.'
-    },
-    es: {
-      subject: `Recordatorio: Completa tu expedición "${journeyTitle}"`,
-      greeting: `Hola ${firstName},`,
-      intro: `Hemos notado que aún no has completado tu expedición "<strong>${journeyTitle}</strong>" en ${companyName}.`,
-      reminder: `Todavía tienes <strong>${daysRemaining} días</strong> para completarla. ¡No te lo pierdas!`,
-      instructions: 'Haz clic en el botón de abajo para continuar donde lo dejaste.',
-      button: CONTINUE_JOURNEY_BUTTON.es,
-      footer: 'Si ya has completado esta expedición o ya no deseas participar, puedes ignorar este correo electrónico.',
-      security: 'Este enlace es único para ti. Por favor, no lo compartas con otros.'
-    },
-    it: {
-      subject: `Promemoria: Completa il tuo percorso "${journeyTitle}"`,
-      greeting: `Ciao ${firstName},`,
-      intro: `Abbiamo notato che non hai ancora completato il tuo percorso "<strong>${journeyTitle}</strong>" presso ${companyName}.`,
-      reminder: `Hai ancora <strong>${daysRemaining} giorni</strong> per completarlo. Non perdere l'occasione!`,
-      instructions: 'Clicca il pulsante qui sotto per riprendere da dove avevi interrotto.',
-      button: CONTINUE_JOURNEY_BUTTON.it,
-      footer: 'Se hai già completato questo percorso o non desideri più partecipare, puoi ignorare questa e-mail.',
-      security: 'Questo link è unico per te. Per favore, non condividerlo con altri.'
-    },
-    pt: {
-      subject: `Lembrete: Complete sua jornada "${journeyTitle}"`,
-      greeting: `Olá ${firstName},`,
-      intro: `Notamos que você ainda não completou sua jornada "<strong>${journeyTitle}</strong>" na ${companyName}.`,
-      reminder: `Você ainda tem <strong>${daysRemaining} dias</strong> para completá-la. Não perca!`,
-      instructions: 'Clique no botão abaixo para continuar de onde parou.',
-      button: CONTINUE_JOURNEY_BUTTON.pt,
-      footer: 'Se você já completou esta jornada ou não deseja mais participar, pode ignorar este e-mail.',
-      security: 'Este link é exclusivo para você. Por favor, não o compartilhe com outras pessoas.'
-    },
-    da: {
-      subject: `Påmindelse: Færdiggør din rejse "${journeyTitle}"`,
-      greeting: `Hej ${firstName},`,
-      intro: `Vi har bemærket, at du endnu ikke har færdiggjort din rejse "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
-      reminder: `Du har stadig <strong>${daysRemaining} dage</strong> til at færdiggøre den. Gå ikke glip af det!`,
-      instructions: 'Klik på knappen nedenfor for at fortsætte, hvor du slap.',
-      button: CONTINUE_JOURNEY_BUTTON.da,
-      footer: 'Hvis du allerede har færdiggjort denne rejse eller ikke længere ønsker at deltage, kan du ignorere denne e-mail.',
-      security: 'Dette link er unikt for dig. Del det venligst ikke med andre.'
-    },
-    no: {
-      subject: `Påminnelse: Fullfør reisen din "${journeyTitle}"`,
-      greeting: `Hei ${firstName},`,
-      intro: `Vi har lagt merke til at du ikke har fullført reisen din "<strong>${journeyTitle}</strong>" hos ${companyName} ennå.`,
-      reminder: `Du har fortsatt <strong>${daysRemaining} dager</strong> igjen for å fullføre den. Ikke gå glipp av det!`,
-      instructions: 'Klikk på knappen nedenfor for å fortsette der du slapp.',
-      button: CONTINUE_JOURNEY_BUTTON.no,
-      footer: 'Hvis du allerede har fullført denne reisen eller ikke lenger ønsker å delta, kan du ignorere denne e-posten.',
-      security: 'Denne lenken er unik for deg. Vennligst ikke del den med andre.'
-    },
-    fi: {
-      subject: `Muistutus: Suorita matkasi "${journeyTitle}" loppuun`,
-      greeting: `Hei ${firstName},`,
-      intro: `Huomasimme, ettet ole vielä suorittanut matkaasi "<strong>${journeyTitle}</strong>" organisaatiossa ${companyName}.`,
-      reminder: `Sinulla on vielä <strong>${daysRemaining} päivää</strong> aikaa suorittaa se. Älä jää paitsi!`,
-      instructions: 'Napsauta alla olevaa painiketta jatkaaksesi siitä, mihin jäit.',
-      button: CONTINUE_JOURNEY_BUTTON.fi,
-      footer: 'Jos olet jo suorittanut tämän matkan tai et halua enää osallistua, voit jättää tämän sähköpostin huomiotta.',
-      security: 'Tämä linkki on tarkoitettu vain sinulle. Älä jaa sitä muille.'
-    },
-    sv: {
-      subject: `Påminnelse: Slutför din resa "${journeyTitle}"`,
-      greeting: `Hej ${firstName},`,
-      intro: `Vi har märkt att du inte har slutfört din resa "<strong>${journeyTitle}</strong>" hos ${companyName} ännu.`,
-      reminder: `Du har fortfarande <strong>${daysRemaining} dagar</strong> kvar att slutföra den. Missa inte det!`,
-      instructions: 'Klicka på knappen nedan för att fortsätta där du slutade.',
-      button: CONTINUE_JOURNEY_BUTTON.sv,
-      footer: 'Om du redan har slutfört denna resa eller inte längre vill delta kan du ignorera detta e-postmeddelande.',
-      security: 'Denna länk är unik för dig. Vänligen dela den inte med andra.'
-    },
-    pl: {
-      subject: `Przypomnienie: Dokończ swoją podróż "${journeyTitle}"`,
-      greeting: `Cześć ${firstName},`,
-      intro: `Zauważyliśmy, że nie ukończyłeś jeszcze swojej podróży "<strong>${journeyTitle}</strong>" w ${companyName}.`,
-      reminder: `Masz jeszcze <strong>${daysRemaining} dni</strong> na jej ukończenie. Nie przegap!`,
-      instructions: 'Kliknij poniższy przycisk, aby kontynuować od miejsca, w którym skończyłeś.',
-      button: CONTINUE_JOURNEY_BUTTON.pl,
-      footer: 'Jeśli już ukończyłeś tę podróż lub nie chcesz już uczestniczyć, możesz zignorować tę wiadomość.',
-      security: 'Ten link jest przeznaczony tylko dla Ciebie. Prosimy, nie udostępniaj go innym.'
-    },
-    ro: {
-      subject: `Memento: Finalizează-ți călătoria "${journeyTitle}"`,
-      greeting: `Bună ${firstName},`,
-      intro: `Am observat că nu ai finalizat încă călătoria "<strong>${journeyTitle}</strong>" la ${companyName}.`,
-      reminder: `Mai ai <strong>${daysRemaining} zile</strong> să o finalizezi. Nu rata această oportunitate!`,
-      instructions: 'Apasă butonul de mai jos pentru a continua de unde ai rămas.',
-      button: CONTINUE_JOURNEY_BUTTON.ro,
-      footer: 'Dacă ai finalizat deja această călătorie sau nu mai dorești să participi, poți ignora acest e-mail.',
-      security: 'Acest link este unic pentru tine. Te rugăm să nu-l distribui altora.'
-    },
-    tr: {
-      subject: `Hatırlatma: "${journeyTitle}" yolculuğunuzu tamamlayın`,
-      greeting: `Merhaba ${firstName},`,
-      intro: `${companyName} bünyesindeki "<strong>${journeyTitle}</strong>" yolculuğunuzu henüz tamamlamadığınızı fark ettik.`,
-      reminder: `Tamamlamak için hâlâ <strong>${daysRemaining} gününüz</strong> var. Bu fırsatı kaçırmayın!`,
-      instructions: 'Kaldığınız yerden devam etmek için aşağıdaki düğmeye tıklayın.',
-      button: CONTINUE_JOURNEY_BUTTON.tr,
-      footer: 'Bu yolculuğu zaten tamamladıysanız veya artık katılmak istemiyorsanız, bu e-postayı görmezden gelebilirsiniz.',
-      security: 'Bu bağlantı size özeldir. Lütfen başkalarıyla paylaşmayın.'
-    }
+  // Built twice: with escaped values for the HTML, with the plain values
+  // for the subject and the text version
+  // "1 day", not "1 days"
+  const days = (one, other) => `${daysRemaining} ${Number(daysRemaining) === 1 ? one : other}`;
+  const buildTranslations = ({ firstName, journeyTitle, companyName }) => {
+    const translations = {
+      en: {
+        subject: `Reminder: Complete your journey "${journeyTitle}"`,
+        greeting: `Hello ${firstName},`,
+        intro: `We noticed you haven't completed your journey "<strong>${journeyTitle}</strong>" at ${companyName} yet.`,
+        reminder: `You have <strong>${days('day', 'days')}</strong> left to complete it.`,
+        instructions: 'Click the button below to open the journey. If you already started, you continue where you left off.',
+        button: CONTINUE_JOURNEY_BUTTON.en,
+        footer: "If you've already completed this journey or no longer wish to participate, you can ignore this email.",
+        security: "This link is unique to you. Please don't share it with others."
+      },
+      nl: {
+        subject: `Herinnering: Rond je expeditie "${journeyTitle}" af`,
+        greeting: `Hallo ${firstName},`,
+        intro: `We hebben gemerkt dat je je expeditie "<strong>${journeyTitle}</strong>" bij ${companyName} nog niet hebt afgerond.`,
+        reminder: `Je hebt nog <strong>${days('dag', 'dagen')}</strong> om de expeditie af te ronden.`,
+        instructions: 'Klik op de knop hieronder om de expeditie te openen. Ben je al begonnen, dan ga je verder waar je gebleven was.',
+        button: CONTINUE_JOURNEY_BUTTON.nl,
+        footer: 'Als je deze expeditie al hebt afgerond of niet meer wilt deelnemen, kun je deze e-mail negeren.',
+        security: 'Deze link is uniek voor jou. Deel hem alsjeblieft niet met anderen.'
+      },
+      de: {
+        subject: `Erinnerung: Schließen Sie Ihre Expedition "${journeyTitle}" ab`,
+        greeting: `Hallo ${firstName},`,
+        intro: `Wir haben bemerkt, dass Sie Ihre Expedition "<strong>${journeyTitle}</strong>" bei ${companyName} noch nicht abgeschlossen haben.`,
+        reminder: `Sie haben noch <strong>${days('Tag', 'Tage')}</strong> Zeit, sie abzuschließen.`,
+        instructions: 'Klicken Sie auf den Button unten, um die Expedition zu öffnen. Wenn Sie schon angefangen haben, machen Sie dort weiter, wo Sie aufgehört haben.',
+        button: CONTINUE_JOURNEY_BUTTON.de,
+        footer: 'Wenn Sie diese Expedition bereits abgeschlossen haben oder nicht mehr teilnehmen möchten, können Sie diese E-Mail ignorieren.',
+        security: 'Dieser Link ist nur für Sie bestimmt. Bitte teilen Sie ihn nicht mit anderen.'
+      },
+      fr: {
+        subject: `Rappel : Terminez votre parcours "${journeyTitle}"`,
+        greeting: `Bonjour ${firstName},`,
+        intro: `Nous avons remarqué que vous n'avez pas encore terminé votre parcours "<strong>${journeyTitle}</strong>" chez ${companyName}.`,
+        reminder: `Il vous reste <strong>${days('jour', 'jours')}</strong> pour le terminer.`,
+        instructions: 'Cliquez sur le bouton ci-dessous pour ouvrir le parcours. Si vous l\'avez déjà commencé, vous reprenez là où vous vous êtes arrêté.',
+        button: CONTINUE_JOURNEY_BUTTON.fr,
+        footer: 'Si vous avez déjà terminé ce parcours ou ne souhaitez plus participer, vous pouvez ignorer cet e-mail.',
+        security: 'Ce lien vous est unique. Veuillez ne pas le partager avec d\'autres.'
+      },
+      es: {
+        subject: `Recordatorio: Completa tu expedición "${journeyTitle}"`,
+        greeting: `Hola ${firstName},`,
+        intro: `Hemos notado que aún no has completado tu expedición "<strong>${journeyTitle}</strong>" en ${companyName}.`,
+        reminder: `Tienes <strong>${days('día', 'días')}</strong> para completarla.`,
+        instructions: 'Haz clic en el botón de abajo para abrir la expedición. Si ya empezaste, continúas donde lo dejaste.',
+        button: CONTINUE_JOURNEY_BUTTON.es,
+        footer: 'Si ya has completado esta expedición o ya no deseas participar, puedes ignorar este correo electrónico.',
+        security: 'Este enlace es único para ti. Por favor, no lo compartas con otros.'
+      },
+      it: {
+        subject: `Promemoria: Completa il tuo percorso "${journeyTitle}"`,
+        greeting: `Ciao ${firstName},`,
+        intro: `Abbiamo notato che non hai ancora completato il tuo percorso "<strong>${journeyTitle}</strong>" presso ${companyName}.`,
+        reminder: `Hai ancora <strong>${days('giorno', 'giorni')}</strong> per completarlo.`,
+        instructions: 'Clicca il pulsante qui sotto per aprire il percorso. Se lo hai già iniziato, riprendi da dove avevi interrotto.',
+        button: CONTINUE_JOURNEY_BUTTON.it,
+        footer: 'Se hai già completato questo percorso o non desideri più partecipare, puoi ignorare questa e-mail.',
+        security: 'Questo link è unico per te. Per favore, non condividerlo con altri.'
+      },
+      pt: {
+        subject: `Lembrete: Complete sua jornada "${journeyTitle}"`,
+        greeting: `Olá ${firstName},`,
+        intro: `Notamos que você ainda não completou sua jornada "<strong>${journeyTitle}</strong>" na ${companyName}.`,
+        reminder: `Você tem <strong>${days('dia', 'dias')}</strong> para completá-la.`,
+        instructions: 'Clique no botão abaixo para abrir a jornada. Se você já começou, continua de onde parou.',
+        button: CONTINUE_JOURNEY_BUTTON.pt,
+        footer: 'Se você já completou esta jornada ou não deseja mais participar, pode ignorar este e-mail.',
+        security: 'Este link é exclusivo para você. Por favor, não o compartilhe com outras pessoas.'
+      },
+      da: {
+        subject: `Påmindelse: Færdiggør din rejse "${journeyTitle}"`,
+        greeting: `Hej ${firstName},`,
+        intro: `Vi har bemærket, at du endnu ikke har færdiggjort din rejse "<strong>${journeyTitle}</strong>" hos ${companyName}.`,
+        reminder: `Du har <strong>${days('dag', 'dage')}</strong> til at færdiggøre den.`,
+        instructions: 'Klik på knappen nedenfor for at åbne rejsen. Hvis du allerede er begyndt, fortsætter du, hvor du slap.',
+        button: CONTINUE_JOURNEY_BUTTON.da,
+        footer: 'Hvis du allerede har færdiggjort denne rejse eller ikke længere ønsker at deltage, kan du ignorere denne e-mail.',
+        security: 'Dette link er unikt for dig. Del det venligst ikke med andre.'
+      },
+      no: {
+        subject: `Påminnelse: Fullfør reisen din "${journeyTitle}"`,
+        greeting: `Hei ${firstName},`,
+        intro: `Vi har lagt merke til at du ikke har fullført reisen din "<strong>${journeyTitle}</strong>" hos ${companyName} ennå.`,
+        reminder: `Du har <strong>${days('dag', 'dager')}</strong> igjen til å fullføre den.`,
+        instructions: 'Klikk på knappen nedenfor for å åpne reisen. Hvis du allerede har begynt, fortsetter du der du slapp.',
+        button: CONTINUE_JOURNEY_BUTTON.no,
+        footer: 'Hvis du allerede har fullført denne reisen eller ikke lenger ønsker å delta, kan du ignorere denne e-posten.',
+        security: 'Denne lenken er unik for deg. Vennligst ikke del den med andre.'
+      },
+      fi: {
+        subject: `Muistutus: Suorita matkasi "${journeyTitle}" loppuun`,
+        greeting: `Hei ${firstName},`,
+        intro: `Huomasimme, ettet ole vielä suorittanut matkaasi "<strong>${journeyTitle}</strong>" organisaatiossa ${companyName}.`,
+        reminder: `Sinulla on vielä <strong>${days('päivä', 'päivää')}</strong> aikaa suorittaa se.`,
+        instructions: 'Avaa matka napsauttamalla alla olevaa painiketta. Jos olet jo aloittanut, jatkat siitä, mihin jäit.',
+        button: CONTINUE_JOURNEY_BUTTON.fi,
+        footer: 'Jos olet jo suorittanut tämän matkan tai et halua enää osallistua, voit jättää tämän sähköpostin huomiotta.',
+        security: 'Tämä linkki on tarkoitettu vain sinulle. Älä jaa sitä muille.'
+      },
+      sv: {
+        subject: `Påminnelse: Slutför din resa "${journeyTitle}"`,
+        greeting: `Hej ${firstName},`,
+        intro: `Vi har märkt att du inte har slutfört din resa "<strong>${journeyTitle}</strong>" hos ${companyName} ännu.`,
+        reminder: `Du har <strong>${days('dag', 'dagar')}</strong> kvar att slutföra den.`,
+        instructions: 'Klicka på knappen nedan för att öppna resan. Om du redan har börjat fortsätter du där du slutade.',
+        button: CONTINUE_JOURNEY_BUTTON.sv,
+        footer: 'Om du redan har slutfört denna resa eller inte längre vill delta kan du ignorera detta e-postmeddelande.',
+        security: 'Denna länk är unik för dig. Vänligen dela den inte med andra.'
+      },
+      pl: {
+        subject: `Przypomnienie: Dokończ swoją podróż "${journeyTitle}"`,
+        greeting: `Cześć ${firstName},`,
+        intro: `Zauważyliśmy, że nie ukończyłeś jeszcze swojej podróży "<strong>${journeyTitle}</strong>" w ${companyName}.`,
+        reminder: `Masz jeszcze <strong>${days('dzień', 'dni')}</strong> na jej ukończenie.`,
+        instructions: 'Kliknij poniższy przycisk, aby otworzyć podróż. Jeśli już zacząłeś, kontynuujesz od miejsca, w którym skończyłeś.',
+        button: CONTINUE_JOURNEY_BUTTON.pl,
+        footer: 'Jeśli już ukończyłeś tę podróż lub nie chcesz już uczestniczyć, możesz zignorować tę wiadomość.',
+        security: 'Ten link jest przeznaczony tylko dla Ciebie. Prosimy, nie udostępniaj go innym.'
+      },
+      ro: {
+        subject: `Memento: Finalizează-ți călătoria "${journeyTitle}"`,
+        greeting: `Bună ${firstName},`,
+        intro: `Am observat că nu ai finalizat încă călătoria "<strong>${journeyTitle}</strong>" la ${companyName}.`,
+        reminder: `Mai ai <strong>${days('zi', 'zile')}</strong> să o finalizezi.`,
+        instructions: 'Apasă butonul de mai jos pentru a deschide călătoria. Dacă ai început deja, continui de unde ai rămas.',
+        button: CONTINUE_JOURNEY_BUTTON.ro,
+        footer: 'Dacă ai finalizat deja această călătorie sau nu mai dorești să participi, poți ignora acest e-mail.',
+        security: 'Acest link este unic pentru tine. Te rugăm să nu-l distribui altora.'
+      },
+      tr: {
+        subject: `Hatırlatma: "${journeyTitle}" yolculuğunuzu tamamlayın`,
+        greeting: `Merhaba ${firstName},`,
+        intro: `${companyName} bünyesindeki "<strong>${journeyTitle}</strong>" yolculuğunuzu henüz tamamlamadığınızı fark ettik.`,
+        reminder: `Tamamlamak için <strong>${daysRemaining} gününüz</strong> var.`,
+        instructions: 'Yolculuğu açmak için aşağıdaki düğmeye tıklayın. Daha önce başladıysanız kaldığınız yerden devam edersiniz.',
+        button: CONTINUE_JOURNEY_BUTTON.tr,
+        footer: 'Bu yolculuğu zaten tamamladıysanız veya artık katılmak istemiyorsanız, bu e-postayı görmezden gelebilirsiniz.',
+        security: 'Bu bağlantı size özeldir. Lütfen başkalarıyla paylaşmayın.'
+      }
+    };
+    return translations[language] || translations.en;
   };
 
-  const t = translations[language] || translations.en;
+  const t = buildTranslations({ firstName: escapeHtml(firstName), journeyTitle: escapeHtml(journeyTitle), companyName: escapeHtml(companyName) });
+  const tText = buildTranslations({ firstName: String(firstName ?? ''), journeyTitle: String(journeyTitle ?? ''), companyName: String(companyName ?? '') });
   
   // Use custom theme colors or default Gryffi colors
   const bgColor = theme.background;
@@ -2462,7 +2654,7 @@ export async function sendReminderEmail({
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
                 <tr>
                   <td align="center">
-                    <a href="${magicLink}" 
+                    <a href="${escapeHtml(magicLink)}" 
                        style="display: inline-block; padding: 16px 40px; background: ${primaryColor}; color: white; font-size: 16px; font-weight: 600; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 16px rgba(11, 75, 52, 0.25);">
                       ${t.button}
                     </a>
@@ -2516,26 +2708,26 @@ export async function sendReminderEmail({
 </html>
   `.trim();
 
-  const text = `${t.greeting}
+  const text = `${tText.greeting}
 
-${t.intro.replace(/<[^>]*>/g, '')}
+${tText.intro.replace(/<\/?strong>/g, '')}
 
-${t.reminder.replace(/<[^>]*>/g, '')}
+${tText.reminder.replace(/<\/?strong>/g, '')}
 
-${t.instructions}
+${tText.instructions}
 
-${t.button}: ${magicLink}
+${tText.button}: ${magicLink}
 
-${t.security}
+${tText.security}
 
 ---
-${t.footer}
+${tText.footer}
 
 Powered by Gryffi`;
 
   return sendEmail({
     to,
-    subject: t.subject,
+    subject: tText.subject,
     templateType: 'journey_reminder',
     variables: {},
     customBody: '',

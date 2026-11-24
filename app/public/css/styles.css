@@ -569,6 +569,18 @@ body {
   color: rgb(51 63 50 / var(--tw-text-opacity, 1));
 }
 
+/* Keyboard focus is always visible (WCAG 2.4.7). :where() keeps the
+     specificity at zero, so a component with its own focus style wins. */
+
+:where(a, button, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid #0b4b34;
+  outline-offset: 2px;
+}
+
+:where(#sidebar) :where(a, button):focus-visible {
+  outline-color: #78c503;
+}
+
 /* Custom scrollbar */
 
 ::-webkit-scrollbar {
@@ -589,7 +601,7 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(159 180 156 / var(--tw-bg-opacity, 1));
+  background-color: rgb(94 118 91 / var(--tw-bg-opacity, 1));
 }
 
 .\!container {
@@ -852,6 +864,14 @@ body {
   --tw-ring-color: rgb(11 75 52 / 0.5);
 }
 
+/* A disabled button must look disabled (e.g. Copy & Translate before a language is chosen) */
+
+.btn-primary:disabled,
+  .btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -925,7 +945,7 @@ body {
 }
 
 .btn-secondary:focus {
-  --tw-ring-color: rgb(159 180 156 / 0.5);
+  --tw-ring-color: rgb(94 118 91 / 0.5);
 }
 
 .btn-ghost {
@@ -986,7 +1006,7 @@ body {
 .btn-ghost {
   background-color: transparent;
   --tw-text-opacity: 1;
-  color: rgb(92 116 89 / var(--tw-text-opacity, 1));
+  color: rgb(78 101 75 / var(--tw-text-opacity, 1));
 }
 
 .btn-ghost:hover {
@@ -1000,7 +1020,7 @@ body {
 }
 
 .btn-ghost:focus {
-  --tw-ring-color: rgb(159 180 156 / 0.5);
+  --tw-ring-color: rgb(94 118 91 / 0.5);
 }
 
 .btn-danger {
@@ -1128,12 +1148,12 @@ body {
 
 .\!input::-moz-placeholder {
   --tw-text-opacity: 1;
-  color: rgb(159 180 156 / var(--tw-text-opacity, 1));
+  color: rgb(94 118 91 / var(--tw-text-opacity, 1));
 }
 
 .\!input::placeholder {
   --tw-text-opacity: 1;
-  color: rgb(159 180 156 / var(--tw-text-opacity, 1));
+  color: rgb(94 118 91 / var(--tw-text-opacity, 1));
 }
 
 .input {
@@ -1143,12 +1163,12 @@ body {
 
 .input::-moz-placeholder {
   --tw-text-opacity: 1;
-  color: rgb(159 180 156 / var(--tw-text-opacity, 1));
+  color: rgb(94 118 91 / var(--tw-text-opacity, 1));
 }
 
 .input::placeholder {
   --tw-text-opacity: 1;
-  color: rgb(159 180 156 / var(--tw-text-opacity, 1));
+  color: rgb(94 118 91 / var(--tw-text-opacity, 1));
 }
 
 .\!input:focus {
@@ -1454,7 +1474,7 @@ body {
 .page-subtitle {
   margin-top: 0.25rem;
   --tw-text-opacity: 1;
-  color: rgb(120 148 118 / var(--tw-text-opacity, 1));
+  color: rgb(92 116 89 / var(--tw-text-opacity, 1));
 }
 
 /* Stats card */
@@ -1473,7 +1493,7 @@ body {
   font-size: 0.875rem;
   line-height: 1.25rem;
   --tw-text-opacity: 1;
-  color: rgb(120 148 118 / var(--tw-text-opacity, 1));
+  color: rgb(92 116 89 / var(--tw-text-opacity, 1));
 }
 
 /* Journey card */
@@ -1522,7 +1542,7 @@ body {
   font-size: 0.875rem;
   line-height: 1.25rem;
   --tw-text-opacity: 1;
-  color: rgb(120 148 118 / var(--tw-text-opacity, 1));
+  color: rgb(92 116 89 / var(--tw-text-opacity, 1));
 }
 
 /* Status badges */
@@ -1752,8 +1772,6 @@ body {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-/* Connection handle */
-
 /* Alert messages */
 
 .alert {
@@ -1939,6 +1957,10 @@ body {
   margin-right: auto;
 }
 
+.-mt-0\.5 {
+  margin-top: -0.125rem;
+}
+
 .-mt-1 {
   margin-top: -0.25rem;
 }
@@ -2015,10 +2037,6 @@ body {
   margin-right: 0.5rem;
 }
 
-.mr-4 {
-  margin-right: 1rem;
-}
-
 .mt-0\.5 {
   margin-top: 0.125rem;
 }
@@ -2062,6 +2080,10 @@ body {
   -webkit-line-clamp: 2;
 }
 
+.\!block {
+  display: block !important;
+}
+
 .block {
   display: block;
 }
@@ -2086,46 +2108,6 @@ body {
   display: table;
 }
 
-.inline-table {
-  display: inline-table;
-}
-
-.table-caption {
-  display: table-caption;
-}
-
-.table-cell {
-  display: table-cell;
-}
-
-.table-column {
-  display: table-column;
-}
-
-.table-column-group {
-  display: table-column-group;
-}
-
-.table-footer-group {
-  display: table-footer-group;
-}
-
-.table-header-group {
-  display: table-header-group;
-}
-
-.table-row-group {
-  display: table-row-group;
-}
-
-.table-row {
-  display: table-row;
-}
-
-.flow-root {
-  display: flow-root;
-}
-
 .\!grid {
   display: grid !important;
 }
@@ -2134,16 +2116,8 @@ body {
   display: grid;
 }
 
-.inline-grid {
-  display: inline-grid;
-}
-
 .contents {
   display: contents;
-}
-
-.list-item {
-  display: list-item;
 }
 
 .hidden {
@@ -2224,10 +2198,6 @@ body {
 
 .max-h-40 {
   max-height: 10rem;
-}
-
-.max-h-\[60vh\] {
-  max-height: 60vh;
 }
 
 .max-h-\[80vh\] {
@@ -2324,10 +2294,6 @@ body {
 
 .max-w-sm {
   max-width: 24rem;
-}
-
-.max-w-xs {
-  max-width: 20rem;
 }
 
 .flex-1 {
@@ -2472,6 +2438,15 @@ body {
   gap: 1.5rem;
 }
 
+.gap-x-3 {
+  -moz-column-gap: 0.75rem;
+       column-gap: 0.75rem;
+}
+
+.gap-y-1 {
+  row-gap: 0.25rem;
+}
+
 .space-y-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
   margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
@@ -2532,10 +2507,6 @@ body {
 
 .whitespace-nowrap {
   white-space: nowrap;
-}
-
-.break-all {
-  word-break: break-all;
 }
 
 .rounded {
@@ -2642,10 +2613,6 @@ body {
   border-color: rgb(200 212 198 / var(--tw-border-opacity, 1));
 }
 
-.border-t-transparent {
-  border-top-color: transparent;
-}
-
 .bg-amber-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(254 243 199 / var(--tw-bg-opacity, 1));
@@ -2663,16 +2630,6 @@ body {
 
 .bg-black\/50 {
   background-color: rgb(0 0 0 / 0.5);
-}
-
-.bg-blue-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(219 234 254 / var(--tw-bg-opacity, 1));
-}
-
-.bg-green-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(220 252 231 / var(--tw-bg-opacity, 1));
 }
 
 .bg-green-50 {
@@ -2719,11 +2676,6 @@ body {
   background-color: rgb(11 75 52 / 0.05);
 }
 
-.bg-red-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(254 226 226 / var(--tw-bg-opacity, 1));
-}
-
 .bg-red-50 {
   --tw-bg-opacity: 1;
   background-color: rgb(254 242 242 / var(--tw-bg-opacity, 1));
@@ -2742,17 +2694,8 @@ body {
   background-color: rgb(255 255 255 / 0.5);
 }
 
-.bg-white\/80 {
-  background-color: rgb(255 255 255 / 0.8);
-}
-
 .bg-white\/90 {
   background-color: rgb(255 255 255 / 0.9);
-}
-
-.bg-yellow-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(254 249 195 / var(--tw-bg-opacity, 1));
 }
 
 .bg-zen-100 {
@@ -2870,6 +2813,11 @@ body {
   padding-right: 1rem;
 }
 
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
 .px-6 {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
@@ -2923,6 +2871,10 @@ body {
 .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem;
+}
+
+.pb-2 {
+  padding-bottom: 0.5rem;
 }
 
 .pb-4 {
@@ -3029,10 +2981,6 @@ body {
   text-transform: uppercase;
 }
 
-.lowercase {
-  text-transform: lowercase;
-}
-
 .capitalize {
   text-transform: capitalize;
 }
@@ -3072,16 +3020,6 @@ body {
   color: rgb(180 83 9 / var(--tw-text-opacity, 1));
 }
 
-.text-blue-500 {
-  --tw-text-opacity: 1;
-  color: rgb(59 130 246 / var(--tw-text-opacity, 1));
-}
-
-.text-blue-700 {
-  --tw-text-opacity: 1;
-  color: rgb(29 78 216 / var(--tw-text-opacity, 1));
-}
-
 .text-gray-500 {
   --tw-text-opacity: 1;
   color: rgb(107 114 128 / var(--tw-text-opacity, 1));
@@ -3095,11 +3033,6 @@ body {
 .text-green-600 {
   --tw-text-opacity: 1;
   color: rgb(22 163 74 / var(--tw-text-opacity, 1));
-}
-
-.text-green-700 {
-  --tw-text-opacity: 1;
-  color: rgb(21 128 61 / var(--tw-text-opacity, 1));
 }
 
 .text-gryffi-accent {
@@ -3131,18 +3064,13 @@ body {
   color: rgb(220 38 38 / var(--tw-text-opacity, 1));
 }
 
-.text-red-700 {
-  --tw-text-opacity: 1;
-  color: rgb(185 28 28 / var(--tw-text-opacity, 1));
-}
-
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 
-.text-white\/50 {
-  color: rgb(255 255 255 / 0.5);
+.text-white\/70 {
+  color: rgb(255 255 255 / 0.7);
 }
 
 .text-yellow-600 {
@@ -3167,17 +3095,17 @@ body {
 
 .text-zen-400 {
   --tw-text-opacity: 1;
-  color: rgb(159 180 156 / var(--tw-text-opacity, 1));
+  color: rgb(94 118 91 / var(--tw-text-opacity, 1));
 }
 
 .text-zen-500 {
   --tw-text-opacity: 1;
-  color: rgb(120 148 118 / var(--tw-text-opacity, 1));
+  color: rgb(92 116 89 / var(--tw-text-opacity, 1));
 }
 
 .text-zen-600 {
   --tw-text-opacity: 1;
-  color: rgb(92 116 89 / var(--tw-text-opacity, 1));
+  color: rgb(78 101 75 / var(--tw-text-opacity, 1));
 }
 
 .text-zen-700 {
@@ -3197,14 +3125,6 @@ body {
 
 .underline {
   text-decoration-line: underline;
-}
-
-.overline {
-  text-decoration-line: overline;
-}
-
-.line-through {
-  text-decoration-line: line-through;
 }
 
 .accent-gryffi-primary {
@@ -3264,12 +3184,6 @@ body {
 .shadow-xl {
   --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-
-.shadow-zen {
-  --tw-shadow: 0 2px 20px rgba(11, 75, 52, 0.08);
-  --tw-shadow-colored: 0 2px 20px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
@@ -3908,11 +3822,6 @@ textarea:focus::placeholder {
   border-color: rgb(11 75 52 / var(--tw-border-opacity, 1));
 }
 
-.hover\:border-zen-200:hover {
-  --tw-border-opacity: 1;
-  border-color: rgb(226 232 225 / var(--tw-border-opacity, 1));
-}
-
 .hover\:border-zen-300:hover {
   --tw-border-opacity: 1;
   border-color: rgb(200 212 198 / var(--tw-border-opacity, 1));
@@ -4003,7 +3912,7 @@ textarea:focus::placeholder {
 
 .hover\:text-zen-600:hover {
   --tw-text-opacity: 1;
-  color: rgb(92 116 89 / var(--tw-text-opacity, 1));
+  color: rgb(78 101 75 / var(--tw-text-opacity, 1));
 }
 
 .hover\:text-zen-700:hover {
@@ -4017,11 +3926,6 @@ textarea:focus::placeholder {
 
 .hover\:opacity-90:hover {
   opacity: 0.9;
-}
-
-.focus\:border-gryffi-accent:focus {
-  --tw-border-opacity: 1;
-  border-color: rgb(120 197 3 / var(--tw-border-opacity, 1));
 }
 
 .focus\:border-gryffi-primary:focus {
@@ -4047,6 +3951,22 @@ textarea:focus::placeholder {
 .focus\:ring-gryffi-primary:focus {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(11 75 52 / var(--tw-ring-opacity, 1));
+}
+
+.focus-visible\:outline-none:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-visible\:ring-2:focus-visible {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+.focus-visible\:ring-gryffi-accent:focus-visible {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(120 197 3 / var(--tw-ring-opacity, 1));
 }
 
 .disabled\:cursor-not-allowed:disabled {

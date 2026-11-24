@@ -165,6 +165,7 @@ async function sendRateLimitAlert(ip, endpoint, limit, windowMinutes) {
 
   try {
     await sendEmail({
+      transactional: true,
       to: alertEmail,
       subject: `[Gryffi Security] Rate Limit Overschreden - ${ip}`,
       customHtml: html
@@ -198,6 +199,7 @@ function createLimiter(options) {
     endpoint,
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
+    requestWasSuccessful,
     skip = () => false,
     skipInternalIps = true,  // By default, skip rate limiting for internal IPs
     keySuffix = null         // Optional (req) => string, e.g. the journey token
@@ -235,6 +237,7 @@ function createLimiter(options) {
     },
     skipSuccessfulRequests,
     skipFailedRequests,
+    ...(requestWasSuccessful ? { requestWasSuccessful } : {}),
     
     // Handler when limit is exceeded
     handler: async (req, res) => {
@@ -324,7 +327,10 @@ export const publicApiAuthFailureLimiter = createLimiter({
   max: 30,
   keyPrefix: 'public-api-authfail',
   endpoint: 'Public API authentication failures',
-  skipSuccessfulRequests: true
+  skipSuccessfulRequests: true,
+  // Only a rejected key counts. A valid key that gets 404 or 409 answers
+  // (participant unknown, invitation exists) is a working integration.
+  requestWasSuccessful: (req, res) => res.statusCode !== 401
 });
 
 /**
@@ -410,16 +416,6 @@ export function isInvalidTokenBlocked(req) {
 }
 
 /**
- * Unauthenticated API rate limiter
- * 200 requests per 15 minutes per IP
- */
-export const unauthenticatedApiLimiter = createLimiter({
-  max: 200,
-  keyPrefix: 'unauth-api',
-  endpoint: 'Unauthenticated API'
-});
-
-/**
  * Authenticated API rate limiter - more generous
  * 1000 requests per 15 minutes per IP
  */
@@ -488,20 +484,3 @@ export const publicApiLimiter = rateLimit({
 
 // Export helpers
 export { getClientIp, isInternalIp };
-
-export default {
-  globalLimiter,
-  loginLimiter,
-  authLimiter,
-  magicLinkLimiter,
-  unauthenticatedApiLimiter,
-  authenticatedApiLimiter,
-  publicApiLimiter,
-  playerAiLimiter,
-  playerTtsLimiter,
-  publicApiAuthFailureLimiter,
-  trackInvalidToken,
-  isInvalidTokenBlocked,
-  getClientIp,
-  isInternalIp
-};

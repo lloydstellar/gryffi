@@ -5,14 +5,14 @@ related_features: [form-step, form-submissions, form-file-uploads, email-templat
 
 # Form Email Settings
 
-Form Email Settings determine where the notification email for a Form Step is sent. Every time an end user submits the form, Gryffi sends the responses to the recipient email address configured here.
+Form Email Settings determine where the notification email for a Form Step is sent. Every time a participant submits the form, Gryffi sends the responses to the recipient email address configured here.
 
 ## Configuration
 
 ### Step 1: Access Settings
 
 1. Open Form Step
-2. Go to Settings tab
+2. Go to the What they see tab
 3. Find "Send form to"
 4. Type the email address
 
@@ -22,7 +22,7 @@ You can change the email subject. You can use the variable '{{journey_title}}' h
 
 ### No recipient
 
-Leave **Send form to** empty if you only want to see the responses in Analytics. End users can still submit the form and continue the journey. The submission is saved in Analytics → Forms, and no email is sent. See: form-submissions
+Leave **Send form to** empty if you only want to see the responses in Analytics. Participants can still submit the form and continue the journey. The submission is saved in Analytics → Forms, and no email is sent. See: form-submissions
 
 ## Notification Email Contents
 
@@ -40,11 +40,11 @@ The notification email is sent in your organization's default language. All 14 j
 
 ### Delivery Reliability
 
-The submission is always saved before the email is sent. If the notification email cannot be delivered, the submission is not lost — it remains available in Analytics → Forms. See: form-submissions
+The submission is always saved before the email is sent. If the notification email cannot be delivered, the submission is not lost. It remains available in Analytics → Forms. See: form-submissions
 
 ## Default Recipient for Wizard-Generated Forms
 
-When a Form Step is created through the Journey Wizard, the **Send form to** field is automatically pre-filled with the email address of the maker who ran the wizard. This way you get the responses by email right away, also when you test the journey in preview. You can change the recipient at any time through the steps above — the wizard value is only a sensible default, not a fixed setting.
+When a Form Step is created through the Journey Wizard, the **Send form to** field is automatically pre-filled with the email address of the maker who ran the wizard. This way you get the responses by email right away, also when you test the journey in preview. You can change the recipient at any time through the steps above. The wizard only fills in a default.
 
 See: journey-wizard, form-step
 

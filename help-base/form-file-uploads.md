@@ -5,7 +5,7 @@ related_features: [form-step, form-submissions, form-email-settings]
 
 # Form File Uploads
 
-Form File Uploads allow users to upload files when submitting forms in your journeys. Uploaded files are stored securely on the Gryffi platform and shared through secure download links.
+Form File Uploads allow participants to upload files when submitting forms in your journeys. Uploaded files are stored securely on the Gryffi platform and shared through secure download links.
 
 ## Overview
 

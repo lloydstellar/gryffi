@@ -216,9 +216,6 @@ export const ALL_COUNTRIES = [
   { code: 'ZW', name: 'Zimbabwe' },
 ];
 
-// Target country codes for quick lookup
-export const TARGET_COUNTRY_CODES = TARGET_COUNTRIES.map(c => c.code);
-
 // ============================================
 // CURRENCY MAPPING
 // ============================================
@@ -251,12 +248,6 @@ export function getCurrencyForCountry(countryCode) {
   return 'USD';
 }
 
-// Get currency info for a country
-export function getCurrencyInfoForCountry(countryCode) {
-  const currencyCode = getCurrencyForCountry(countryCode);
-  return CURRENCIES[currencyCode];
-}
-
 export function localizeCountries(countries, locale = 'en') {
   let displayNames = null;
   try {
@@ -271,21 +262,7 @@ export function localizeCountries(countries, locale = 'en') {
   }));
 }
 
-// Get country name by code
-export function getCountryName(code) {
-  const country = ALL_COUNTRIES.find(c => c.code === code);
-  return country ? country.name : code;
-}
-
 // Validate country code
 export function isValidCountryCode(code) {
   return typeof code === 'string' && ALL_COUNTRIES.some(c => c.code === code.toUpperCase());
 }
-
-export default {
-  TARGET_COUNTRIES,
-  ALL_COUNTRIES,
-  TARGET_COUNTRY_CODES,
-  getCountryName,
-  isValidCountryCode
-};

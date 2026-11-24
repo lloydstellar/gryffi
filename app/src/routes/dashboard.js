@@ -2,11 +2,12 @@
  * Dashboard Routes
  * Main application views
  */
+import { annotateNestedLengths } from '../services/journeyLength.js';
 import { Router } from 'express';
 import i18next from 'i18next';
 import { query } from '../db/index.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
-import { checkLimit, logUsageEvent, getOrganizationUsageWithLimits, RESOURCE_TYPES, AI_PLAYER_GRACE } from '../services/subscription.js';
+import { checkLimit, logUsageEvent, getOrganizationUsageWithLimits, RESOURCE_TYPES, AI_PLAYER_GRACE, recordLimitHit } from '../services/subscription.js';
 import { TARGET_COUNTRIES, ALL_COUNTRIES, localizeCountries } from '../utils/countries.js';
 import { getPlayerLocale } from '../services/playerLocales.js';
 import { 
@@ -14,7 +15,7 @@ import {
   shouldShowWelcome,
   createVirtualJourneyFromDemo 
 } from '../services/demoJourney.js';
-import { getActiveTip } from '../services/tips.js';
+import { getActiveTip, getGettingStarted } from '../services/tips.js';
 import { formatKnowledgeError } from '../services/knowledge.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
 import { isCloud, isCommunity } from '../edition.js';
@@ -212,8 +213,12 @@ router.get('/', async (req, res) => {
       `, [orgId]);
       dashboardData.staleDrafts = draftJourneys.rows;
 
-      // One behaviour-driven tip at a time (never for viewers, never for tier-locked features)
-      dashboardData.dashboardTip = await getActiveTip(req.session.user.id, orgId, userRole);
+      // One nudge at a time (never for viewers, never for tier-locked features):
+      // while the getting-started card is open there is no tip
+      dashboardData.gettingStarted = await getGettingStarted(req.session.user.id, orgId, userRole);
+      dashboardData.dashboardTip = dashboardData.gettingStarted
+        ? null
+        : await getActiveTip(req.session.user.id, orgId, userRole);
       
       // Reward statistics
       // For random codes: remaining = max_recipients - claimed (codes are created on claim)
@@ -232,7 +237,7 @@ router.get('/', async (req, res) => {
             CASE WHEN NOT COALESCE(r.is_archived, false) THEN
               CASE WHEN r.is_random_codes THEN
                 CASE WHEN r.max_recipients IS NOT NULL THEN
-                  r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc2 WHERE rc2.reward_id = r.id AND rc2.is_claimed = true)
+                  GREATEST(0, r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc2 WHERE rc2.reward_id = r.id AND rc2.is_claimed = true))
                 ELSE 0 END
               ELSE
                 (SELECT COUNT(*) FROM reward_codes rc2 WHERE rc2.reward_id = r.id AND rc2.is_claimed = false)
@@ -257,7 +262,7 @@ router.get('/', async (req, res) => {
           CASE 
             WHEN r.is_random_codes THEN
               CASE WHEN r.max_recipients IS NOT NULL THEN
-                r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true)
+                GREATEST(0, r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true))
               ELSE NULL END
             ELSE
               (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = false)
@@ -270,7 +275,7 @@ router.get('/', async (req, res) => {
           CASE 
             WHEN r.is_random_codes THEN
               CASE WHEN r.max_recipients IS NOT NULL THEN
-                r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true)
+                GREATEST(0, r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true))
               ELSE NULL END
             ELSE
               (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = false)
@@ -280,7 +285,7 @@ router.get('/', async (req, res) => {
           CASE 
             WHEN r.is_random_codes THEN
               CASE WHEN r.max_recipients IS NOT NULL THEN
-                r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true)
+                GREATEST(0, r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true))
               ELSE NULL END
             ELSE
               (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = false)
@@ -290,7 +295,7 @@ router.get('/', async (req, res) => {
           CASE 
             WHEN r.is_random_codes THEN
               CASE WHEN r.max_recipients IS NOT NULL THEN
-                r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true)
+                GREATEST(0, r.max_recipients - (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = true))
               ELSE NULL END
             ELSE
               (SELECT COUNT(*) FROM reward_codes rc WHERE rc.reward_id = r.id AND rc.is_claimed = false)
@@ -539,7 +544,14 @@ router.get('/journeys/new', (req, res) => {
       code: 403
     });
   }
-  res.render('pages/journey-new', {});
+  // Messages from a failed POST /journeys: shown once, then cleared
+  const error = req.session.error || null;
+  const limitExceeded = req.session.limitExceeded || null;
+  const form = req.session.newJourneyForm || {};
+  delete req.session.error;
+  delete req.session.limitExceeded;
+  delete req.session.newJourneyForm;
+  res.render('pages/journey-new', { error, limitExceeded, form });
 });
 
 /**
@@ -557,8 +569,11 @@ router.post('/journeys', async (req, res) => {
   const orgId = req.session.organization.id;
   const userId = req.session.user.id;
   
+  // Keep what the maker typed when the form comes back with a message
+  req.session.newJourneyForm = { title: title || '', description: description || '' };
+
   if (!title || title.trim().length === 0) {
-    req.session.error = 'Please enter a title for your journey';
+    req.session.error = req.t('journeys.wizard.errors.titleRequired');
     return res.redirect('/dashboard/journeys/new');
   }
   
@@ -584,12 +599,13 @@ router.post('/journeys', async (req, res) => {
     
     // Log usage event
     await logUsageEvent(orgId, 'journey_create', 'journey', result.rows[0].id, userId);
+    delete req.session.newJourneyForm;
     
     res.redirect(`/dashboard/builder/${result.rows[0].id}`);
     
   } catch (err) {
     console.error('Create journey error:', err);
-    req.session.error = 'Failed to create journey';
+    req.session.error = req.t('journeys.new.createFailed');
     res.redirect('/dashboard/journeys/new');
   }
 });
@@ -676,6 +692,7 @@ router.get('/preview/:id', async (req, res) => {
         WHERE journey_id = $1
         ORDER BY created_at
       `, [journeyId]);
+      await annotateNestedLengths(stepsResult.rows);
       
       // Get paths (connections between steps)
       pathsResult = await query(`
@@ -702,6 +719,17 @@ router.get('/preview/:id', async (req, res) => {
       `, [orgId]);
       
       journey = journeyResult.rows[0];
+
+      // First preview per journey, for the getting-started card on the dashboard
+      query(`
+        INSERT INTO usage_events (organization_id, user_id, event_type, resource_type, resource_id)
+        SELECT $1::uuid, $2::uuid, 'journey_preview', 'journey', $3::uuid
+        WHERE NOT EXISTS (
+          SELECT 1 FROM usage_events
+          WHERE organization_id = $1::uuid AND event_type = 'journey_preview' AND resource_id = $3::uuid
+        )
+      `, [orgId, req.session.user?.id || null, journeyId])
+        .catch(err => console.error('[Dashboard] Failed to record preview:', err.message));
     }
     const settings = typeof journey.settings === 'string' 
       ? JSON.parse(journey.settings) 
@@ -717,6 +745,7 @@ router.get('/preview/:id', async (req, res) => {
     journey.guide_language_override = settings.guide_language_override || false;
     journey.guide_language_code = settings.guide_language_code || null;
     journey.guide_opening_override = settings.guide_opening_override || '';
+    journey.guide_role_translations = settings.guide_role_translations || {};
     
     // Get organization default language from settings
     const orgSettings = req.session.organization?.settings || {};
@@ -773,6 +802,8 @@ router.get('/preview/:id', async (req, res) => {
       previewMode: true, // Flag to indicate this is preview (not actual end-user)
       publicMode: journey.is_public || false, // Enable public mode if journey is public
       isDemoJourney: isDemoJourney,
+      // End of the demo tour: offer "Create your first journey" only to makers who can
+      canCreateJourney: req.session?.user?.role !== 'viewer',
       returnUrl: returnUrl,
       APP_URL: getAppBaseUrl(),
       // Pass journey language for preview mode - in fullscreen preview both use journey language
@@ -892,6 +923,7 @@ router.get('/builder/:id', async (req, res) => {
         ORDER BY created_at
       `, [journeyId]);
       steps = stepsResult.rows;
+      await annotateNestedLengths(steps);
       
       // Get paths (connections between steps)
       const pathsResult = await query(`
@@ -925,6 +957,7 @@ router.get('/builder/:id', async (req, res) => {
     journey.guide_language_override = settings.guide_language_override || false;
     journey.guide_language_code = settings.guide_language_code || null;
     journey.guide_opening_override = settings.guide_opening_override || '';
+    journey.guide_role_translations = settings.guide_role_translations || {};
     
     // Get organization default language from settings
     const orgSettings = req.session.organization?.settings || {};
@@ -1262,6 +1295,13 @@ router.get('/invitations', async (req, res) => {
         title ASC
     `, [orgId]);
     
+    // Public journeys are shared with a link and never appear here: the page says so
+    const publicJourneys = await query(`
+      SELECT COUNT(*)::int AS count
+      FROM journeys
+      WHERE organization_id = $1 AND deleted_at IS NULL AND status = 'published' AND is_public = true
+    `, [orgId]);
+
     // Get end users
     const endUsers = await query(`
       SELECT id, first_name, last_name, email, source, is_active
@@ -1316,6 +1356,7 @@ router.get('/invitations', async (req, res) => {
     res.render('pages/invitations', {
       publishedJourneys: publishedJourneys.rows,
       allJourneys: allJourneys.rows,
+      publicJourneyCount: publicJourneys.rows[0]?.count || 0,
       endUsers: endUsers.rows,
       invitations: invitations.rows,
       statusCounts: counts,
@@ -1395,6 +1436,13 @@ router.get('/team', (req, res) => {
       code: 403
     });
   }
+  // Opening the team page at the maker limit means someone wanted to add a colleague
+  const makerUsage = res.locals.subscriptionUsage?.makers;
+  if (makerUsage?.isAtLimit) {
+    recordLimitHit(req.session.organization.id, RESOURCE_TYPES.MAKERS, {
+      source: 'team_page', userId: req.session.user?.id, current: makerUsage.used, limit: makerUsage.limit
+    });
+  }
   // Load fresh organization info (incl. settings) for Organization card
   query('SELECT id, name, slug, logo_url, settings FROM organizations WHERE id = $1', [req.session.organization.id])
     .then((orgRes) => {
@@ -1429,9 +1477,12 @@ router.get('/team', (req, res) => {
 });
 
 /**
- * GET /system-settings - Advanced system settings (admin only)
+ * Render the system settings view. The same view serves the Participants page
+ * (end users, import, directory sync, groups) and System settings (general,
+ * API, themes).
+ * @param {'system'|'participants'} section
  */
-router.get('/system-settings', requireAdmin, async (req, res) => {
+async function renderSystemSettings(req, res, section) {
   // Load organization info for organization settings section
   let organization = req.session.organization;
   
@@ -1462,13 +1513,24 @@ router.get('/system-settings', requireAdmin, async (req, res) => {
   const apiUrl = process.env.API_URL || getAppBaseUrl();
   
   res.render('pages/system-settings', { 
+    section,
     organization, 
     apiUrl,
     googleClientId: await getSetting('google.clientId'),
     targetCountries: localizeCountries(TARGET_COUNTRIES, req.language || 'en'),
     allCountries: localizeCountries(ALL_COUNTRIES, req.language || 'en')
   });
-});
+}
+
+/**
+ * GET /system-settings - Advanced system settings (admin only)
+ */
+router.get('/system-settings', requireAdmin, (req, res) => renderSystemSettings(req, res, 'system'));
+
+/**
+ * GET /participants - Add, import, sync and group end users (admin only)
+ */
+router.get('/participants', requireAdmin, (req, res) => renderSystemSettings(req, res, 'participants'));
 
 /**
  * GET /analytics - Analytics dashboard with poll results

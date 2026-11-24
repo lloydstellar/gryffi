@@ -5,7 +5,8 @@
  */
 
 import { retrieveKnowledge, verifyAndCleanCitations, parseCitations } from './knowledge.js';
-import { aiFetch, getAiConfig, isAiConfigured } from './aiProvider.js';
+import { removeEmDashes } from '../utils/textStyle.js';
+import { aiFetch, getAiConfig, isAiConfigured, messageText } from './aiProvider.js';
 
 
 /**
@@ -20,7 +21,7 @@ import { aiFetch, getAiConfig, isAiConfigured } from './aiProvider.js';
 const NO_KNOWLEDGE_FALLBACKS = {
   en: "I don't have specific information about that in my knowledge base. I'd recommend asking your manager, a colleague, or the relevant department for accurate information.",
   nl: "Daar heb ik helaas geen specifieke informatie over in mijn kennisbank. Ik raad je aan dit aan je manager, een collega of de juiste afdeling te vragen voor betrouwbare informatie.",
-  de: "Dazu habe ich leider keine spezifischen Informationen in meiner Wissensdatenbank. Ich empfehle, deine Vorgesetzten, einen Kollegen oder die zuständige Abteilung für genaue Informationen zu fragen.",
+  de: "Dazu habe ich leider keine spezifischen Informationen in meiner Wissensdatenbank. Fragen Sie am besten Ihre Führungskraft, eine Kollegin oder einen Kollegen oder die zuständige Abteilung.",
   fr: "Je n'ai pas d'informations spécifiques à ce sujet dans ma base de connaissances. Je te recommande de demander à ton manager, un collègue ou le service concerné pour obtenir des informations précises.",
   es: "No tengo información específica sobre eso en mi base de conocimientos. Te recomiendo preguntar a tu responsable, a un compañero o al departamento correspondiente para obtener información precisa.",
   it: "Non ho informazioni specifiche su questo nella mia base di conoscenza. Ti consiglio di chiedere al tuo responsabile, a un collega o al reparto competente per informazioni accurate.",
@@ -88,6 +89,9 @@ function cleanResponse(text) {
   else if (cleaned.startsWith('```') && cleaned.endsWith('```')) {
     cleaned = cleaned.slice(3, -3).trim();
   }
+
+  // No em dashes in Gryffi (models use them anyway)
+  cleaned = removeEmDashes(cleaned);
   
   return cleaned.trim();
 }
@@ -305,7 +309,7 @@ Respond with ONLY a valid JSON object, no extra text:
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const content = messageText(data);
     if (!content) {
       return { intent: heuristicIntent(userMessage), usage: null };
     }
@@ -354,9 +358,9 @@ function buildSystemPrompt(guide, journeyContext = '', knowledgeContext = [], in
   const languageName = LANGUAGE_NAMES[language] || 'English';
   const isConversational = intent === 'conversational';
 
-  const languageInstruction = language !== 'en'
-    ? `\n=== LANGUAGE ===\nIMPORTANT: You MUST respond in ${languageName}. All your responses should be in ${languageName}, not English. This is critical.\n`
-    : '';
+  // Always answer in the guide's language, also when the user writes in
+  // another one: the journey, its texts and its sources are in that language.
+  const languageInstruction = `\n=== LANGUAGE ===\nIMPORTANT: You MUST respond in ${languageName}, also when the user writes in another language. All your responses should be in ${languageName}.\n`;
 
   const personalityBlock = guide.personality === 'custom'
     ? (guide.customPersonality || personality.traits)
@@ -533,6 +537,7 @@ ${journeyContext}
 - Use the appropriate tone for your personality type
 - Be conversational but professional
 - NEVER use emojis, emoticons, or special symbols like 😊 🎉 👍
+- NEVER use em dashes (\u2014); use a comma, a period or a colon instead
 - NEVER use bracketed text like [note], [disclaimer], or [I don't have...] - always speak naturally
 - If you don't know something, say so naturally in a conversational way
 - Help guide the user to their next steps when appropriate
@@ -694,7 +699,7 @@ export async function chatWithGuide(guide, userMessage, conversationHistory = []
       }
 
       const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
+      const content = messageText(data);
 
       if (!content) {
         console.error('[Mistral] Empty response from API');
@@ -800,10 +805,7 @@ export async function generateGuideOpening(guide, journeyContext = '') {
   const language = guide.language || 'en';
   const languageName = LANGUAGE_NAMES[language] || 'English';
   
-  // Language instruction for non-English guides
-  const languageInstruction = language !== 'en'
-    ? `\n=== LANGUAGE ===\nIMPORTANT: Generate the greeting in ${languageName}. The entire greeting MUST be in ${languageName}.\n`
-    : '';
+  const languageInstruction = `\n=== LANGUAGE ===\nIMPORTANT: Generate the greeting in ${languageName}. The entire greeting MUST be in ${languageName}.\n`;
   
   // Build a special prompt for generating the opening
   const openingPrompt = `You are ${guide.name}, a ${guide.role} in an interactive corporate training system.
@@ -824,7 +826,7 @@ ${journeyContext ? `Current situation: ${journeyContext}` : ''}
 - Match your personality type: ${personality.name}
 - Don't ask too many questions at once
 - Make the person feel comfortable
-${language !== 'en' ? `- RESPOND IN ${languageName.toUpperCase()} ONLY` : ''}
+- RESPOND IN ${languageName.toUpperCase()} ONLY
 
 Generate ONLY the greeting, nothing else.`;
 
@@ -855,7 +857,7 @@ Generate ONLY the greeting, nothing else.`;
       }
       
       const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
+      const content = messageText(data);
       
       if (!content) {
         return { success: false };
@@ -1037,5 +1039,3 @@ export function getPersonalityPresets() {
     example: value.example
   }));
 }
-
-export default { chatWithGuide, getPersonalityPresets, PERSONALITY_PRESETS };

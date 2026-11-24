@@ -5,21 +5,21 @@ related_features: [end-user-management, end-user-groups, microsoft-365-sync]
 
 # Google Workspace Sync
 
-Google Workspace Sync automatically imports and synchronizes your end users from Google Workspace (formerly G Suite).
+Google Workspace Sync automatically imports and synchronizes your participants from Google Workspace (formerly G Suite).
 
-![Google Workspace in System Settings, Users: the option (1) and Connect with Google (2)](images/google-workspace-sync/connect.en.webp)
+![Google Workspace on the Participants page: the option (1) and Connect with Google (2)](images/google-workspace-sync/connect.en.webp)
 
-1. Google Workspace: sync end users and groups from the Google directory.
+1. Google Workspace: sync participants and groups from Google Workspace.
 2. Connect with Google: a Google Workspace administrator gives Gryffi access.
 
 ## Overview
 
 With Google Workspace Sync, you can:
 
-- Automatically import end users from Google directory
-- Keep end user information synchronized
+- Automatically import participants from Google Workspace
+- Keep participant information synchronized
 - Sync Google Groups to Gryffi
-- Eliminate manual end user management
+- Eliminate manual participant management
 
 ## Prerequisites
 
@@ -32,9 +32,9 @@ Before connecting:
 
 ### Step 1: Navigate to Sync Settings
 
-Go to System Settings, Users and choose **Google Workspace** (1).
+Go to Participants and choose **Google Workspace** (1).
 
-[[goto:/dashboard/system-settings#users/google]]
+[[goto:/dashboard/participants#users/google]]
 
 ### Step 2: First make your Google Workspace ready for the sync
 Before connecting, your Google Workspace administrator needs to authorize this application.
@@ -69,7 +69,7 @@ Log in with your Google Workspace super admin account.
 Approve all the permissions for Gryffi:
 
 ### Step 6: Configure Sync Options
-After connecting, configure your sync preferences. Like what groups or end users to sync.
+After connecting, configure your sync preferences. Like what groups or participants to sync.
 
 ## Sync Configuration
 
@@ -93,6 +93,6 @@ Sync is scheduled every 15 minutes. You can also manually sync if you don't want
 
 ## Related Features
 
-- [[goto:/dashboard/system-settings#users/google]] - Sync settings
-- [[goto:/dashboard/system-settings#users/google]] - View synced users
+- [[goto:/dashboard/participants#users/google]] - Sync settings
+- [[goto:/dashboard/participants#users/google]] - View synced users
 - See: end-user-management, microsoft-365-sync

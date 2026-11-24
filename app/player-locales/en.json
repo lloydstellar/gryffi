@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Welcome",
+    "greeting": "Welcome, {{firstName}}!",
     "guide": "Guide",
     "aiAssistant": "AI Assistant",
     "noGuideSelected": "No guide selected",
     "pleaseSelectGuide": "Please select an AI Guide in the step settings",
     "selectGuideForStep": "Please select a guide for this step.",
     "chat": {
+      "yourGuide": "Your guide",
       "typeMessage": "Type your message...",
       "typeQuestion": "Type your question...",
       "askGuide": "Ask {{name}}",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Hello! How can I help you?",
       "chatError": "Sorry, I couldn't process that.",
       "connectionError": "I'm having trouble connecting right now. Please try again.",
-      "guideUnavailable": "I can't answer questions right now. You can continue with the next step."
+      "guideUnavailable": "I can't answer questions right now. You can continue with the next step.",
+      "sources": "Sources",
+      "showSource": "Show source {{number}}"
     },
     "content": {
       "invalidVideoUrl": "Invalid video URL",
       "noContentYet": "No content added yet",
-      "pressPlayToStart": "Press play to start watching"
+      "pressPlayToStart": "Click Play video to start watching",
+      "videoLoad": "Play video",
+      "videoNotice": "This video is on YouTube. When you click Play video, your browser connects to YouTube (Google). Google then receives your IP address and may store data on your device.",
+      "videoPrivacyLink": "Google privacy policy"
     },
     "navigation": {
       "whenReady": "When you're ready:",
@@ -27,12 +34,12 @@
       "leaveJourney": "Leave expedition?",
       "leaveJourneyMessage": "Are you sure you want to leave this expedition? Your progress has been saved.",
       "leaveConfirm": "Leave",
-      "stayContinue": "Stay"
+      "stayContinue": "Stay",
+      "doAgain": "Do you want to go through this journey again?"
     },
     "pacing": {
       "readyToContinue": "You can now continue",
       "takeYourTimeMinutes": "Take {{minutes}} minute to explore",
-      "takeYourTimeMinutesPlural": "Take {{minutes}} minutes to explore",
       "takeYourTimeSeconds": "Take your time... {{seconds}}s",
       "keepWatching": "Keep watching... {{seconds}}s",
       "chatWithGuide": "Chat with the guide ({{count}}/{{total}} messages)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "You've already submitted this form",
         "message": "You submitted this form on {{date}}. You can submit it again or continue without filling it out.",
-        "skipButton": "Continue without submitting",
-        "submitAgain": "Submit again"
+        "skipButton": "Continue without submitting"
       },
       "fileUpload": {
         "dropzone": "Drop file here or click to browse",
-        "dragActive": "Drop the file here",
         "maxSize": "Max {{size}} MB",
         "invalidType": "Invalid file type. Allowed: {{types}}",
         "fileTooLarge": "File too large. Maximum size: {{size}} MB",
         "totalTooLarge": "Total attachment size exceeds limit (38 MB)",
         "removeFile": "Remove file",
-        "noFileSelected": "No file selected",
-        "fileSelected": "File selected: {{name}}",
         "subtypes": {
           "image": "Image",
           "document": "Document",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "This image cannot be uploaded. Choose a different image.",
-      "imageCheckUnavailable": "We could not check your image right now. Try again in a few minutes."
+      "imageCheckUnavailable": "We could not check your image right now. Try again in a few minutes.",
+      "fieldRequired": "Fill in this field.",
+      "invalidEmail": "Enter a valid email address, for example name@company.com.",
+      "fileRequired": "Choose a file for \"{{field}}\"."
     },
     "quiz": {
+      "title": "Quiz",
       "questionOf": "Question {{current}} of {{total}}",
-      "checkAnswer": "Check Answer",
       "next": "Next",
       "previous": "Previous",
       "finish": "Submit answers",
       "correct": "Correct!",
       "incorrect": "Not quite right",
-      "tryAgain": "Try again",
       "score": "Your score",
       "passed": "Quiz passed!",
       "completed": "Quiz completed",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Complete the poll to continue",
       "alreadyVoted": "You have already voted",
       "voteRecorded": "Your vote has been recorded",
-      "votes": "votes",
-      "votesCount": "{{count}} vote",
-      "votesCountPlural": "{{count}} votes",
       "respondents": "{{count}} respondent",
       "respondentsPlural": "{{count}} respondents",
-      "yourVote": "Your vote"
+      "chooseFirst": "Choose an answer first, then click \"Submit vote\"."
     },
     "space": {
       "dragHint": "Drag to look around",
       "viewFloorplan": "View floor plan",
-      "youAreHere": "You are here"
+      "youAreHere": "You are here",
+      "panoramaLabel": "360° photo: {{title}}",
+      "panoramaKeyboardHint": "Use the arrow keys to look around. Use + and - to zoom.",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "panoramaLoadFailed": "The 360° photo could not be loaded. Reload the page to try again."
     },
     "stepTypes": {
       "reward": "Reward"
@@ -131,19 +138,20 @@
       "emailSent": "A copy has been sent to your email",
       "alreadyClaimed": "You have already claimed a reward for this journey",
       "noMoreRewards": "Sorry, all rewards have been claimed",
+      "claimFailed": "Your reward could not be claimed. Reload the page and try again.",
       "previewMode": "Preview mode - No real code generated",
       "claimed": "Reward claimed",
       "soldOut": {
         "title": "What a pity!",
-        "message": "Unfortunately, you were too late to receive a reward. All rewards have already been handed out.",
-        "continueJourney": "Continue journey"
+        "message": "Unfortunately, you were too late to receive a reward. All rewards have already been handed out."
       }
     },
     "tts": {
       "listen": "Listen",
       "stop": "Stop",
       "listenLabel": "Read this step aloud",
-      "stopLabel": "Stop reading aloud"
+      "stopLabel": "Stop reading aloud",
+      "noVoice": "Your device has no voice for this language. Try another browser, or ask your IT department to install one."
     },
     "reading": {
       "settings": "Reading settings",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Step {{current}} of {{total}}",
-      "duration": "±{{minutes}} min"
+      "duration": "about {{minutes}} min",
+      "stepApprox": "Step {{current}} of about {{total}}"
     },
     "session": {
       "expired": "Your session has ended. Click Reload to continue.",
       "reload": "Reload"
+    },
+    "identify": {
+      "title": "Identify Yourself",
+      "description": "Please enter your details to continue",
+      "poll": {
+        "title": "One vote per person",
+        "description": "To keep the poll fair, we need your name and email address. This way everyone can only vote once."
+      },
+      "reward": {
+        "title": "Claim your reward",
+        "description": "To send you the reward, we need your name and email address. Your reward code will be delivered straight to your inbox."
+      },
+      "form": {
+        "title": "Almost there!",
+        "description": "Please enter your details so we know who submitted this form. Your information will be included with your response."
+      },
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "rememberMe": "Remember my details so I don't have to fill them in next time",
+      "submit": "Continue",
+      "error": "Something went wrong. Please try again."
+    },
+    "verify": {
+      "title": "Verify Your Email",
+      "description": "We've sent a verification code to {{email}}",
+      "code": "Verification Code",
+      "submit": "Verify",
+      "resend": "Resend Code",
+      "codeSent": "Verification code sent",
+      "invalidCode": "Invalid verification code",
+      "codeExpired": "Verification code expired",
+      "tooManyAttempts": "Too many incorrect codes. Enter your details again to get a new code."
+    },
+    "closeWindowMessage": "You can close this tab to return to where you came from.",
+    "magicLink": {
+      "expired": {
+        "title": "Link expired",
+        "message": "This invitation link has expired. Ask the person who invited you for a new link.",
+        "messageAskInviter": "This invitation link has expired. Ask {{name}} for a new link.",
+        "requestButton": "Ask for a new link",
+        "requestedTitle": "Request sent",
+        "requestedMessage": "We asked {{name}} to send you a new link. You will get it by email.",
+        "requestedMessageOrg": "We asked {{org}} to send you a new link. You will get it by email.",
+        "alreadyRequested": "A new link was already requested in the last 24 hours. You will get it by email as soon as it is sent."
+      },
+      "completed": {
+        "title": "Journey completed",
+        "message": "You have already completed this journey. Thank you for taking part."
+      },
+      "revoked": {
+        "title": "Invitation withdrawn",
+        "message": "This invitation is no longer valid. Ask the person who invited you if you still need access."
+      },
+      "verification": {
+        "title": "Confirm it's you",
+        "subtitle": "You are opening this link on a new device.",
+        "explanation": "We sent a 6-digit code to your email address. Enter it below.",
+        "codeLabel": "Verification code",
+        "submit": "Confirm",
+        "verifying": "Checking...",
+        "resend": "Send a new code",
+        "resent": "We sent you a new code. Check your email.",
+        "invalid": "This code is not correct. Check the code in your email and try again.",
+        "expired": "This code has expired. Click Send a new code.",
+        "lockedWait": "Too many incorrect codes. Wait 10 minutes, then click Send a new code.",
+        "sessionExpired": "This page has expired. Open the link in your email again.",
+        "journeyLabel": "Journey"
+      },
+      "welcomeBack": {
+        "title": "Welcome back, {{firstName}}!",
+        "message": "You have already completed this journey.",
+        "restartButton": "Start again",
+        "reviewButton": "View previous attempt"
+      },
+      "error": "Something went wrong. Please try again."
+    },
+    "resume": {
+      "message": "You were here before. Do you want to continue where you left off?",
+      "continue": "Continue where I was",
+      "restart": "Start again"
     }
   }
 }

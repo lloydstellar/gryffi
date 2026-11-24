@@ -23,6 +23,8 @@ sudo gryffi update
 
 The command makes a backup, downloads the `compose.yml` and the images of the new version, and starts them. Gryffi updates its database by itself at start. If the new version does not answer within five minutes, the command goes back to the previous version and shows the last log lines. A slow server can get more time with `GRYFFI_START_TIMEOUT=600`.
 
+`sudo gryffi update <version>` also goes back to an older version, for example `sudo gryffi update 0.10.0`. From 0.11.0 on, magic links are stored as a hash and an encrypted copy; versions before 0.11.0 only read the plain token. The command (1.2.0 or later) therefore writes the tokens back before it installs such a version, so the links in sent emails keep working.
+
 Once the new version runs, the command removes the images of the previous version and replaces itself with the `gryffi` command of the new release, after checking it against `SHA256SUMS`.
 
 Installed before 0.9.4? Your `gryffi` command does not do this yet. Get the new one once:

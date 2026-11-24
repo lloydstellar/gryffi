@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Hoş geldiniz",
+    "greeting": "Hoş geldiniz, {{firstName}}!",
     "guide": "Rehber",
     "aiAssistant": "AI Asistanı",
     "noGuideSelected": "Rehber seçilmedi",
     "pleaseSelectGuide": "Lütfen adım ayarlarında bir AI Rehber seçin",
     "selectGuideForStep": "Lütfen bu adım için bir rehber seçin.",
     "chat": {
+      "yourGuide": "Rehberiniz",
       "typeMessage": "Mesajınızı yazın...",
       "typeQuestion": "Sorunuzu yazın...",
       "askGuide": "{{name}} sor",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Merhaba! Size nasıl yardımcı olabilirim?",
       "chatError": "Üzgünüm, bunu işleyemedim.",
       "connectionError": "Bağlantı sorunları yaşıyorum. Lütfen tekrar deneyin.",
-      "guideUnavailable": "Şu anda soruları yanıtlayamıyorum. Bir sonraki adıma geçebilirsiniz."
+      "guideUnavailable": "Şu anda soruları yanıtlayamıyorum. Bir sonraki adıma geçebilirsiniz.",
+      "sources": "Kaynaklar",
+      "showSource": "{{number}}. kaynağı göster"
     },
     "content": {
       "invalidVideoUrl": "Geçersiz video URL'si",
       "noContentYet": "Henüz içerik eklenmedi",
-      "pressPlayToStart": "İzlemeye başlamak için oynat'a basın"
+      "pressPlayToStart": "İzlemeye başlamak için Videoyu oynat'a tıklayın",
+      "videoLoad": "Videoyu oynat",
+      "videoNotice": "Bu video YouTube'da. Videoyu oynat'a tıkladığınızda tarayıcınız YouTube'a (Google) bağlanır. Google bu sırada IP adresinizi alır ve cihazınızda veri saklayabilir.",
+      "videoPrivacyLink": "Google gizlilik politikası"
     },
     "navigation": {
       "whenReady": "Hazır olduğunuzda:",
@@ -27,12 +34,12 @@
       "leaveJourney": "Keşiften ayrıl?",
       "leaveJourneyMessage": "Bu keşiften ayrılmak istediğinizden emin misiniz? İlerlemeniz kaydedildi.",
       "leaveConfirm": "Ayrıl",
-      "stayContinue": "Kal"
+      "stayContinue": "Kal",
+      "doAgain": "Bu keşfi yeniden yapmak ister misiniz?"
     },
     "pacing": {
       "readyToContinue": "Şimdi devam edebilirsiniz",
       "takeYourTimeMinutes": "Keşfetmek için {{minutes}} dakika ayırın",
-      "takeYourTimeMinutesPlural": "Keşfetmek için {{minutes}} dakika ayırın",
       "takeYourTimeSeconds": "Acele etmeyin... {{seconds}}s",
       "keepWatching": "İzlemeye devam edin... {{seconds}}s",
       "chatWithGuide": "Rehberle sohbet edin ({{count}}/{{total}} mesaj)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "Bu formu zaten gönderdiniz",
         "message": "Bu formu {{date}} tarihinde gönderdiniz. Tekrar gönderebilir veya doldurmadan devam edebilirsiniz.",
-        "skipButton": "Göndermeden devam et",
-        "submitAgain": "Tekrar gönder"
+        "skipButton": "Göndermeden devam et"
       },
       "fileUpload": {
         "dropzone": "Dosyayı buraya sürükleyin veya göz atmak için tıklayın",
-        "dragActive": "Dosyayı buraya bırakın",
         "maxSize": "Maks {{size}} MB",
         "invalidType": "Geçersiz dosya türü. İzin verilen: {{types}}",
         "fileTooLarge": "Dosya çok büyük. Maksimum boyut: {{size}} MB",
         "totalTooLarge": "Toplam ek boyutu sınırı aşıyor (38 MB)",
         "removeFile": "Dosyayı kaldır",
-        "noFileSelected": "Dosya seçilmedi",
-        "fileSelected": "Seçilen dosya: {{name}}",
         "subtypes": {
           "image": "Resim",
           "document": "Belge",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "Bu görsel yüklenemiyor. Lütfen başka bir görsel seçin.",
-      "imageCheckUnavailable": "Görselinizi şu anda kontrol edemedik. Lütfen birkaç dakika sonra tekrar deneyin."
+      "imageCheckUnavailable": "Görselinizi şu anda kontrol edemedik. Lütfen birkaç dakika sonra tekrar deneyin.",
+      "fieldRequired": "Bu alanı doldurun.",
+      "invalidEmail": "Geçerli bir e-posta adresi girin, örneğin ad@sirket.com.",
+      "fileRequired": "\"{{field}}\" için bir dosya seçin."
     },
     "quiz": {
+      "title": "Sınav",
       "questionOf": "Soru {{current}} / {{total}}",
-      "checkAnswer": "Cevabı kontrol et",
       "next": "Sonraki",
       "previous": "Önceki",
       "finish": "Cevapları gönder",
       "correct": "Doğru!",
       "incorrect": "Tam değil",
-      "tryAgain": "Tekrar dene",
       "score": "Puanınız",
       "passed": "Test başarıldı!",
       "completed": "Sınav tamamlandı",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Devam etmek için anketi tamamlayın",
       "alreadyVoted": "Zaten oy verdiniz",
       "voteRecorded": "Oyunuz kaydedildi",
-      "votes": "oy",
-      "votesCount": "{{count}} oy",
-      "votesCountPlural": "{{count}} oy",
       "respondents": "{{count}} katılımcı",
       "respondentsPlural": "{{count}} katılımcı",
-      "yourVote": "Oyunuz"
+      "chooseFirst": "Önce bir cevap seçin, ardından \"Oy ver\" düğmesine tıklayın."
     },
     "space": {
       "dragHint": "Etrafına bakmak için sürükle",
       "viewFloorplan": "Kat planını göster",
-      "youAreHere": "Buradasınız"
+      "youAreHere": "Buradasınız",
+      "panoramaLabel": "360° fotoğraf: {{title}}",
+      "panoramaKeyboardHint": "Etrafına bakmak için ok tuşlarını kullan. Yakınlaştırmak veya uzaklaştırmak için + ve - tuşlarını kullan.",
+      "zoomIn": "Yakınlaştır",
+      "zoomOut": "Uzaklaştır",
+      "panoramaLoadFailed": "360° fotoğraf yüklenemedi. Tekrar denemek için sayfayı yenile."
     },
     "stepTypes": {
       "reward": "Ödül"
@@ -131,19 +138,20 @@
       "emailSent": "Bir kopya e-postanıza gönderildi",
       "alreadyClaimed": "Bu keşif için zaten bir ödül aldınız",
       "noMoreRewards": "Üzgünüz, tüm ödüller tükendi",
+      "claimFailed": "Ödülünüz alınamadı. Sayfayı yeniden yükleyin ve tekrar deneyin.",
       "previewMode": "Önizleme modu - Gerçek kod oluşturulmadı",
       "claimed": "Ödül alındı",
       "soldOut": {
         "title": "Ne yazık!",
-        "message": "Maalesef ödül almak için çok geç kaldınız. Tüm ödüller dağıtıldı.",
-        "continueJourney": "Keşfe devam et"
+        "message": "Maalesef ödül almak için çok geç kaldınız. Tüm ödüller dağıtıldı."
       }
     },
     "tts": {
       "listen": "Dinle",
       "stop": "Durdur",
       "listenLabel": "Bu adımı sesli oku",
-      "stopLabel": "Sesli okumayı durdur"
+      "stopLabel": "Sesli okumayı durdur",
+      "noVoice": "Cihazınızda bu dil için bir ses yok. Başka bir tarayıcı deneyin veya BT departmanınızdan bir ses yüklemesini isteyin."
     },
     "reading": {
       "settings": "Okuma ayarları",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Adım {{current}}/{{total}}",
-      "duration": "±{{minutes}} dk"
+      "duration": "yaklaşık {{minutes}} dk",
+      "stepApprox": "Adım {{current}}/yaklaşık {{total}}"
     },
     "session": {
       "expired": "Oturumunuz sona erdi. Devam etmek için Yeniden yükle'ye tıklayın.",
       "reload": "Yeniden yükle"
+    },
+    "identify": {
+      "title": "Kendinizi tanıtın",
+      "description": "Devam etmek için bilgilerinizi girin",
+      "poll": {
+        "title": "Kişi başı bir oy",
+        "description": "Anketin adil olması için adınıza ve e-posta adresinize ihtiyacımız var. Böylece herkes yalnızca bir kez oy verebilir."
+      },
+      "reward": {
+        "title": "Ödülünüzü alın",
+        "description": "Ödülünüzü gönderebilmemiz için adınıza ve e-posta adresinize ihtiyacımız var. Ödül kodunuz doğrudan gelen kutunuza gönderilecek."
+      },
+      "form": {
+        "title": "Neredeyse bitti!",
+        "description": "Bu formu kimin gönderdiğini bilmemiz için bilgilerinizi girin. Bilgileriniz yanıtınızla birlikte gönderilecek."
+      },
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "email": "E-posta adresi",
+      "rememberMe": "Bilgilerimi bir dahaki sefer için hatırla",
+      "submit": "Devam",
+      "error": "Bir sorun oluştu. Lütfen tekrar deneyin."
+    },
+    "verify": {
+      "title": "E-posta adresinizi doğrulayın",
+      "description": "{{email}} adresine bir doğrulama kodu gönderdik",
+      "code": "Doğrulama kodu",
+      "submit": "Doğrula",
+      "resend": "Kodu yeniden gönder",
+      "codeSent": "Doğrulama kodu gönderildi",
+      "invalidCode": "Geçersiz doğrulama kodu",
+      "codeExpired": "Doğrulama kodunun süresi doldu",
+      "tooManyAttempts": "Çok fazla hatalı kod girildi. Yeni bir kod almak için bilgilerinizi yeniden girin."
+    },
+    "closeWindowMessage": "Önceki sayfaya dönmek için bu sekmeyi kapatabilirsiniz.",
+    "magicLink": {
+      "expired": {
+        "title": "Bağlantının süresi doldu",
+        "message": "Bu davet bağlantısının süresi doldu. Sizi davet eden kişiden yeni bir bağlantı isteyin.",
+        "messageAskInviter": "Bu davet bağlantısının süresi doldu. Yeni bir bağlantı için {{name}} ile iletişime geçin.",
+        "requestButton": "Yeni bağlantı iste",
+        "requestedTitle": "İstek gönderildi",
+        "requestedMessage": "{{name}} kişisinden size yeni bir bağlantı göndermesini istedik. Bağlantıyı e-posta ile alacaksınız.",
+        "requestedMessageOrg": "{{org}} kuruluşundan size yeni bir bağlantı göndermesini istedik. Bağlantıyı e-posta ile alacaksınız.",
+        "alreadyRequested": "Son 24 saat içinde zaten yeni bir bağlantı istendi. Gönderilir gönderilmez e-posta ile alacaksınız."
+      },
+      "completed": {
+        "title": "Keşif tamamlandı",
+        "message": "Bu keşfi zaten tamamladınız. Katılımınız için teşekkürler."
+      },
+      "revoked": {
+        "title": "Davet geri çekildi",
+        "message": "Bu davet artık geçerli değil. Hâlâ erişime ihtiyacınız varsa sizi davet eden kişiyle iletişime geçin."
+      },
+      "verification": {
+        "title": "Siz olduğunuzu doğrulayın",
+        "subtitle": "Bu bağlantıyı yeni bir cihazda açıyorsunuz.",
+        "explanation": "E-posta adresinize 6 haneli bir kod gönderdik. Kodu aşağıya girin.",
+        "codeLabel": "Doğrulama kodu",
+        "submit": "Doğrula",
+        "verifying": "Kontrol ediliyor...",
+        "resend": "Yeni kod gönder",
+        "resent": "Size yeni bir kod gönderdik. E-postanızı kontrol edin.",
+        "invalid": "Bu kod doğru değil. E-postanızdaki kodu kontrol edip tekrar deneyin.",
+        "expired": "Bu kodun süresi doldu. Yeni kod gönder'e tıklayın.",
+        "lockedWait": "Çok fazla hatalı kod girildi. 10 dakika bekleyin, ardından Yeni kod gönder'e tıklayın.",
+        "sessionExpired": "Bu sayfanın süresi doldu. E-postanızdaki bağlantıyı yeniden açın.",
+        "journeyLabel": "Keşif"
+      },
+      "welcomeBack": {
+        "title": "Tekrar hoş geldiniz, {{firstName}}!",
+        "message": "Bu keşfi zaten tamamladınız.",
+        "restartButton": "Yeniden başla",
+        "reviewButton": "Önceki denemeyi görüntüle"
+      },
+      "error": "Bir şeyler ters gitti. Lütfen tekrar deneyin."
+    },
+    "resume": {
+      "message": "Daha önce buradaydınız. Kaldığınız yerden devam etmek ister misiniz?",
+      "continue": "Kaldığım yerden devam et",
+      "restart": "Baştan başla"
     }
   }
 }

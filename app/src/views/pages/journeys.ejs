@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('pages.journeys') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -54,7 +56,7 @@
       background: transparent;
       border: none;
       cursor: pointer;
-      color: #64748b;
+      color: #5b6b80;
       transition: all 0.15s;
     }
     .kebab-menu-btn:hover {
@@ -158,8 +160,9 @@
       align-items: center;
       gap: 4px;
       padding: 4px 10px;
-      background: rgba(185, 70, 70, 0.12);
-      color: #a94442;
+      /* Neutral: public is a choice, not a warning */
+      background: #eef2f7;
+      color: #334155;
       font-size: 12px;
       font-weight: 600;
       border-radius: 50px;
@@ -173,7 +176,7 @@
       background: rgba(120, 197, 3, 0.1);
     }
     .kebab-menu-item.private-item {
-      color: #6b7280;
+      color: #5b6b80;
     }
     .kebab-menu-item.private-item:hover {
       background: rgba(107, 114, 128, 0.08);
@@ -204,7 +207,7 @@
       font-size: 12px;
       font-weight: 600;
       border-radius: 20px;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.5px;
     }
     
@@ -317,7 +320,7 @@
   <%- include('../partials/help-modal') %>
   <%- include('../partials/support-modal') %>
   
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
@@ -353,15 +356,15 @@
           <% } else if (subscriptionUsage && subscriptionUsage.journeys && subscriptionUsage.journeys.isAtLimit) { %>
             <!-- Journey limit reached -->
             <div class="tier-limit-block">
-              <span class="btn-primary btn-disabled" title="<%= t('subscription.limits.limitReached') %>">
+              <button type="button" class="btn-primary btn-disabled" aria-disabled="true" data-limit-hit="journeys" title="<%= t('subscription.limits.limitReached') %>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <%= t('journeys.createJourney') %>
-              </span>
+              </button>
               <div class="tier-limit-message">
-                <span><%= t('subscription.limits.journeyLimitInfo', { limit: subscriptionUsage.journeys.limit }) %></span>
-                <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+                <span><%= t('subscription.limits.journeyLimitInfo', { limit: subscriptionUsage.journeys.limit, count: subscriptionUsage.journeys.limit }) %></span>
+                <a href="/dashboard/subscription" class="tier-upgrade-link" data-limit-hit="journeys" data-limit-source="upgrade_link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
               </div>
             </div>
           <% } else { %>
@@ -387,7 +390,7 @@
             <% } %>
               <div class="flex items-start justify-between relative">
                 <div class="flex-1 min-w-0">
-                  <h3 class="journey-card-title group-hover:text-gryffi-primary transition-colors"><%= journey.title %></h3>
+                  <h2 class="journey-card-title group-hover:text-gryffi-primary transition-colors"><%= journey.title %></h2>
                   <p class="journey-card-meta">
                     <%= journey.step_count || 0 %> <%= t('common.steps') %>
                   </p>
@@ -561,10 +564,11 @@
               
               
               <div class="flex items-center justify-between mt-4 pt-4 border-t border-zen-100">
-                <span class="text-xs text-zen-400">
-                  <%= t('common.by') %> <%= journey.created_by_name || t('common.unknown') %>
+                <span class="text-xs text-zen-500">
+                  <%# No "by Unknown" when the maker no longer exists %>
+                  <% if (journey.created_by_name) { %><%= t('common.by') %> <%= journey.created_by_name %><% } %>
                   <% if (typeof isTrash !== 'undefined' && isTrash && journey.deleted_at) { %>
-                    · <%= t('journeys.trash.deleted') %> <%= new Date(journey.deleted_at).toLocaleDateString(language) %>
+                    <%= journey.created_by_name ? '·' : '' %> <%= t('journeys.trash.deleted') %> <%= new Date(journey.deleted_at).toLocaleDateString(language) %>
                   <% } %>
                 </span>
                 <% if (typeof isTrash !== 'undefined' && isTrash && journey.deleted_at && trashRetentionDays > 0) { %>
@@ -574,14 +578,14 @@
                     const daysRemaining = Math.ceil((permanentDeleteDate - new Date()) / (24 * 60 * 60 * 1000));
                     const isUrgent = daysRemaining <= 3;
                   %>
-                  <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-400' %>">
+                  <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-500' %>">
                     <%= t('journeys.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString(language) %>
                     <% if (daysRemaining > 0) { %>
                       (<%= daysRemaining %> <%= t('subscription.days') %>)
                     <% } %>
                   </span>
                 <% } else if (typeof isTrash !== 'undefined' && isTrash && trashRetentionDays === -1) { %>
-                  <span class="text-xs text-zen-400">
+                  <span class="text-xs text-zen-500">
                     <%= t('journeys.trash.noAutoDelete') %>
                   </span>
                 <% } %>
@@ -589,6 +593,10 @@
                 <span class="text-gryffi-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                   <%= t('common.edit') %> →
                 </span>
+                <% } else if (user && (user.role === 'admin' || user.role === 'manager')) { %>
+                <button type="button" class="btn-secondary trash-restore-btn" style="padding: 6px 14px; font-size: 13px;" data-journey-id="<%= journey.id %>" data-journey-title="<%= journey.title %>">
+                  <%= t('journeys.trash.restore') %>
+                </button>
                 <% } %>
               </div>
             <% if (typeof isTrash !== 'undefined' && isTrash) { %>
@@ -636,15 +644,15 @@
           <% } else if (subscriptionUsage && subscriptionUsage.journeys && subscriptionUsage.journeys.isAtLimit) { %>
             <!-- Journey limit reached - empty state -->
             <div class="tier-limit-block tier-limit-block-centered">
-              <span class="btn-primary btn-disabled" title="<%= t('subscription.limits.limitReached') %>">
+              <button type="button" class="btn-primary btn-disabled" aria-disabled="true" data-limit-hit="journeys" title="<%= t('subscription.limits.limitReached') %>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <%= t('journeys.createJourney') %>
-              </span>
+              </button>
               <div class="tier-limit-message">
-                <span><%= t('subscription.limits.journeyLimitInfo', { limit: subscriptionUsage.journeys.limit }) %></span>
-                <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+                <span><%= t('subscription.limits.journeyLimitInfo', { limit: subscriptionUsage.journeys.limit, count: subscriptionUsage.journeys.limit }) %></span>
+                <a href="/dashboard/subscription" class="tier-upgrade-link" data-limit-hit="journeys" data-limit-source="upgrade_link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
               </div>
             </div>
           <% } else { %>
@@ -877,9 +885,20 @@
       }
       
       const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
-      
+
+      // Before publishing: show what participants could run into
+      let checkResult = 'clear';
+      if (newStatus === 'published') {
+        checkResult = await window.gryffi.publishCheck(journeyId, {
+          onGoToStep: (stepId) => {
+            window.location.href = `/dashboard/builder/${encodeURIComponent(journeyId)}?step=${encodeURIComponent(stepId)}`;
+          }
+        });
+        if (checkResult === 'cancel') return false;
+      }
+
       // Publish/unpublish/archive are not destructive actions
-      if (!await window.gryffi.modal.confirm(confirmMessage, { danger: false })) {
+      if (checkResult === 'clear' && !await window.gryffi.modal.confirm(confirmMessage, { danger: false })) {
         return false;
       }
 
@@ -1001,7 +1020,7 @@
           // Simple confirmation for journeys without impact
           const confirmTemplate = <%-safeJson(t('journeys.delete.confirm'))%>;
           const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
-          if (!await window.gryffi.modal.confirm(confirmMessage)) return false;
+          if (!await window.gryffi.modal.confirm(confirmMessage, { confirmText: <%-safeJson(t('journeys.actions.delete'))%> })) return false;
         }
         
         // Proceed with deletion
@@ -1080,10 +1099,10 @@
               ${options.rewards.map(r => `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ecf2eb; border-radius: 8px; font-size: 14px; margin-bottom: 4px;">
                   <span style="font-weight: 500; color: #374151;">${escapeHtml(r.title)}</span>
-                  <span style="color: #64748b;">${r.claimedCount} <%= t('journeys.delete.claimed') %></span>
+                  <span style="color: #5b6b80;">${r.claimedCount} <%= t('journeys.delete.claimed') %></span>
                 </div>
               `).join('')}
-              <p style="font-size: 12px; color: #64748b; margin-top: 8px;"><%= t('journeys.delete.rewardsWillBeArchivedNote') %></p>
+              <p style="font-size: 12px; color: #5b6b80; margin-top: 8px;"><%= t('journeys.delete.rewardsWillBeArchivedNote') %></p>
             </div>
           `;
         }
@@ -1097,7 +1116,7 @@
               ${options.polls.map(p => `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 14px; margin-bottom: 4px;">
                   <span style="color: #374151;">${escapeHtml(p.question || p.stepTitle)}</span>
-                  <span style="color: #64748b;">${p.responseCount} <%= t('journeys.delete.responses') %></span>
+                  <span style="color: #5b6b80;">${p.responseCount} <%= t('journeys.delete.responses') %></span>
                 </div>
               `).join('')}
               
@@ -1107,14 +1126,14 @@
                   <input type="radio" name="pollChoice" value="archive" checked style="margin-top: 3px; accent-color: var(--gryffi-primary, #0b4b34);">
                   <div>
                     <span style="font-size: 13px; font-weight: 500; color: #374151;"><%= t('journeys.delete.archivePolls') %></span>
-                    <p style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= t('journeys.delete.archivePollsDesc') %></p>
+                    <p style="font-size: 12px; color: #5b6b80; margin-top: 2px;"><%= t('journeys.delete.archivePollsDesc') %></p>
                   </div>
                 </label>
                 <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
                   <input type="radio" name="pollChoice" value="delete" style="margin-top: 3px; accent-color: var(--gryffi-primary, #0b4b34);">
                   <div>
                     <span style="font-size: 13px; font-weight: 500; color: #374151;"><%= t('journeys.delete.deletePolls') %></span>
-                    <p style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= t('journeys.delete.deletePollsDesc') %></p>
+                    <p style="font-size: 12px; color: #5b6b80; margin-top: 2px;"><%= t('journeys.delete.deletePollsDesc') %></p>
                   </div>
                 </label>
               </div>
@@ -1128,7 +1147,7 @@
         
         const actionsHtml = options.showActions
           ? `<div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-              <button id="impactModalCancel" style="padding: 8px 16px; color: #64748b; background: transparent; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+              <button id="impactModalCancel" style="padding: 8px 16px; color: #5b6b80; background: transparent; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
                 ${options.cancelText || <%-safeJson(t('common.cancel'))%>}
               </button>
               <button id="impactModalConfirm" style="padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
@@ -1208,11 +1227,9 @@
       const resourceName = resourceLabels[limitType] || limitType;
       const message = <%-safeJson(t('subscription.banner.limitReached'))%>.replace('{{resource}}', resourceName);
       
+      // Plain text: modal.confirm escapes the message
       const result = await window.gryffi.modal.confirm(
-        `<div style="text-align: center;">
-          <p style="margin: 0 0 16px; color: #4b5563;">${message}</p>
-          <p style="margin: 0; font-size: 13px; color: #6b7280;">${<%-safeJson(t('subscription.limits.wantMore'))%>}</p>
-        </div>`,
+        message + '. ' + <%-safeJson(t('subscription.limits.wantMore'))%>,
         {
           title: <%-safeJson(t('subscription.limits.limitReached'))%>,
           type: 'warning',
@@ -1228,6 +1245,11 @@
       
       return result;
     }
+
+    // A click on the blocked create button explains the limit (app.js records it)
+    document.addEventListener('gryffi:limit-hit', (e) => {
+      showLimitExceededModal(e.detail.limitType);
+    });
 
     // Copy journey
     async function renameJourney(journeyId, journeyTitle) {
@@ -1369,6 +1391,7 @@
                   <div>
                     <label for="targetLanguage" class="block text-sm font-medium text-zen-700 mb-1.5"><%= t('journeys.copyTranslate.selectLanguage') %></label>
                     <select id="targetLanguage" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#1f2937;background:white;transition:border-color 0.15s,box-shadow 0.15s;box-sizing:border-box;appearance:auto;">
+                      <option value="" disabled selected><%= t('journeys.copyTranslate.chooseLanguage') %></option>
                       ${languageOptionsHtml}
                     </select>
                   </div>
@@ -1379,7 +1402,7 @@
                       <input type="text" id="newJourneyTitle" value="${escapeHtml(title)}" style="width:100%;padding:10px 14px;padding-right:38px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#1f2937;background:white;transition:border-color 0.15s,box-shadow 0.15s;box-sizing:border-box;" placeholder="<%= t('journeys.copyTranslate.newTitle') %>">
                       <div id="titleTranslateSpinner" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border:2px solid #e5e7eb;border-top-color:var(--gryffi-primary,#0b4b34);border-radius:50%;animation:ctSpin .6s linear infinite;"></div>
                     </div>
-                    <p id="titleTranslateHint" style="display:none;margin-top:4px;font-size:12px;color:#6b7280;"><%= t('journeys.copyTranslate.autoTranslatedHint') %></p>
+                    <p id="titleTranslateHint" style="display:none;margin-top:4px;font-size:12px;color:#5b6b80;"><%= t('journeys.copyTranslate.autoTranslatedHint') %></p>
                   </div>
                 </div>
                 
@@ -1387,7 +1410,7 @@
                   <button type="button" id="copyTranslateCancel" class="flex-1 btn-secondary">
                     <%= t('common.cancel') %>
                   </button>
-                  <button type="button" id="copyTranslateConfirm" class="flex-1 btn-primary">
+                  <button type="button" id="copyTranslateConfirm" class="flex-1 btn-primary" disabled>
                     <%= t('journeys.copyTranslate.translate') %>
                   </button>
                 </div>
@@ -1487,7 +1510,13 @@
 
       titleInput.addEventListener('input', () => { userEditedTitle = true; hint.style.display = 'none'; });
 
-      document.getElementById('targetLanguage').addEventListener('change', async () => {
+      // Pending title translation: confirming waits for it
+      let titlePromise = null;
+      document.getElementById('targetLanguage').addEventListener('change', () => {
+        document.getElementById('copyTranslateConfirm').disabled = !document.getElementById('targetLanguage').value;
+        titlePromise = translateTitle();
+      });
+      const translateTitle = async () => {
         if (userEditedTitle) return;
         const targetLang = document.getElementById('targetLanguage').value;
         if (translateAbort) translateAbort.abort();
@@ -1511,11 +1540,20 @@
         } finally {
           spinner.style.display = 'none';
         }
-      });
+      };
       
       // Handle confirm/translate
       document.getElementById('copyTranslateConfirm').addEventListener('click', async () => {
         const targetLanguage = document.getElementById('targetLanguage').value;
+        if (!targetLanguage) return;
+        // Wait for the title translation, so the copy does not get the source title
+        if (titlePromise) await titlePromise;
+        // Still the source title (translation failed): add the language so
+        // the copy can be told apart in the journey list
+        const languageSelect = document.getElementById('targetLanguage');
+        if (!userEditedTitle && titleInput.value.trim() === title.trim()) {
+          titleInput.value = `${title} (${languageSelect.options[languageSelect.selectedIndex].text})`;
+        }
         const newTitle = document.getElementById('newJourneyTitle').value.trim();
         
         // Switch to progress state
@@ -1808,6 +1846,13 @@
         const data = await response.json();
 
         if (data.success) {
+          // A draft has no working link yet: say what to do before it can be shared
+          const status = document.querySelector(`.kebab-menu-dropdown[data-journey-id="${journeyId}"]`)?.dataset.journeyStatus;
+          if (status && status !== 'published') {
+            await window.gryffi.modal.alert(<%-safeJson(t('journeys.public.convertedPublishFirst'))%>, { type: 'info' });
+            window.location.reload();
+            return;
+          }
           window.gryffi.toast.success(<%-safeJson(t('journeys.public.convertedToPublic'))%>);
           
           setTimeout(() => {
@@ -1853,6 +1898,11 @@
       }
     }
 
+    // The Restore button on a card in the trash (also in the card menu)
+    document.querySelectorAll('.trash-restore-btn').forEach(btn => {
+      btn.addEventListener('click', () => restoreJourney(btn.dataset.journeyId, btn.dataset.journeyTitle));
+    });
+
     // Restore journey from trash
     async function restoreJourney(journeyId, journeyTitle) {
       // Decode HTML entities - getAttribute automatically decodes, but we need to handle numeric entities
@@ -1863,7 +1913,7 @@
       const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
       
       // Restore is a positive action
-      if (!await window.gryffi.modal.confirm(confirmMessage, { danger: false })) {
+      if (!await window.gryffi.modal.confirm(confirmMessage, { danger: false, type: 'info', confirmText: <%-safeJson(t('journeys.trash.restore'))%> })) {
         return false;
       }
 
@@ -1905,7 +1955,7 @@
       // Replace {{title}} with the decoded title
       const confirmMessage = confirmTemplate.replace(/\{\{title\}\}/g, title);
       
-      if (!await window.gryffi.modal.confirm(confirmMessage)) {
+      if (!await window.gryffi.modal.confirm(confirmMessage, { confirmText: <%-safeJson(t('journeys.trash.deletePermanent'))%> })) {
         return false;
       }
 

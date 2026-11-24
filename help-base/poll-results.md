@@ -5,7 +5,7 @@ related_features: [poll-step, analytics-overview, reports]
 
 # Poll Results
 
-Poll Results show the voting outcomes from Poll Steps in your journeys, providing insights into user preferences and opinions.
+Poll Results show the voting outcomes from Poll Steps in your journeys, showing what participants prefer and think.
 
 ![Poll results in Analytics: the Polls tab (1), a poll (2) and an answer (3)](images/poll-results/overview.en.webp)
 
@@ -34,7 +34,7 @@ Poll results display:
 
 | Metric | Description |
 |--------|-------------|
-| Total Votes | Number of users who voted |
+| Total Votes | Number of participants who voted |
 | Distribution | Percentage per option |
 | Bar Chart | Visual representation |
 

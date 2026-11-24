@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Velkommen",
+    "greeting": "Velkommen, {{firstName}}!",
     "guide": "Guide",
     "aiAssistant": "AI Assistent",
     "noGuideSelected": "Ingen guide valgt",
     "pleaseSelectGuide": "Vennligst velg en AI Guide i trinninnstillingene",
     "selectGuideForStep": "Vennligst velg en guide for dette trinnet.",
     "chat": {
+      "yourGuide": "Din guide",
       "typeMessage": "Skriv meldingen din...",
       "typeQuestion": "Skriv spørsmålet ditt...",
       "askGuide": "Spør {{name}}",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Hei! Hvordan kan jeg hjelpe deg?",
       "chatError": "Beklager, jeg kunne ikke behandle det.",
       "connectionError": "Jeg har tilkoblingsproblemer akkurat nå. Vennligst prøv igjen.",
-      "guideUnavailable": "Jeg kan ikke svare på spørsmål akkurat nå. Du kan fortsette med neste steg."
+      "guideUnavailable": "Jeg kan ikke svare på spørsmål akkurat nå. Du kan fortsette med neste steg.",
+      "sources": "Kilder",
+      "showSource": "Vis kilde {{number}}"
     },
     "content": {
       "invalidVideoUrl": "Ugyldig video-URL",
       "noContentYet": "Ingen innhold lagt til ennå",
-      "pressPlayToStart": "Trykk på spill for å begynne å se"
+      "pressPlayToStart": "Klikk på Spill av video for å begynne å se",
+      "videoLoad": "Spill av video",
+      "videoNotice": "Denne videoen ligger på YouTube. Når du klikker på Spill av video, kobler nettleseren din seg til YouTube (Google). Google får da IP-adressen din og kan lagre data på enheten din.",
+      "videoPrivacyLink": "Googles personvernerklæring"
     },
     "navigation": {
       "whenReady": "Når du er klar:",
@@ -27,12 +34,12 @@
       "leaveJourney": "Forlat ekspedisjon?",
       "leaveJourneyMessage": "Er du sikker på at du vil forlate denne ekspedisjonen? Fremgangen din er lagret.",
       "leaveConfirm": "Forlat",
-      "stayContinue": "Bli"
+      "stayContinue": "Bli",
+      "doAgain": "Vil du gjennomføre denne ekspedisjonen på nytt?"
     },
     "pacing": {
       "readyToContinue": "Du kan nå fortsette",
       "takeYourTimeMinutes": "Ta {{minutes}} minutt til å utforske",
-      "takeYourTimeMinutesPlural": "Ta {{minutes}} minutter til å utforske",
       "takeYourTimeSeconds": "Ta deg tid... {{seconds}}s",
       "keepWatching": "Fortsett å se... {{seconds}}s",
       "chatWithGuide": "Chat med guiden ({{count}}/{{total}} meldinger)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "Du har allerede sendt dette skjemaet",
         "message": "Du sendte dette skjemaet den {{date}}. Du kan sende det igjen eller fortsette uten å fylle det ut.",
-        "skipButton": "Fortsett uten å sende",
-        "submitAgain": "Send igjen"
+        "skipButton": "Fortsett uten å sende"
       },
       "fileUpload": {
         "dropzone": "Dra fil hit eller klikk for å bla",
-        "dragActive": "Slipp filen her",
         "maxSize": "Maks {{size}} MB",
         "invalidType": "Ugyldig filtype. Tillatt: {{types}}",
         "fileTooLarge": "Fil for stor. Maksimal størrelse: {{size}} MB",
         "totalTooLarge": "Total vedleggsstørrelse overskrider grensen (38 MB)",
         "removeFile": "Fjern fil",
-        "noFileSelected": "Ingen fil valgt",
-        "fileSelected": "Fil valgt: {{name}}",
         "subtypes": {
           "image": "Bilde",
           "document": "Dokument",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "Dette bildet kan ikke lastes opp. Velg et annet bilde.",
-      "imageCheckUnavailable": "Vi kunne ikke kontrollere bildet ditt akkurat nå. Prøv igjen om noen minutter."
+      "imageCheckUnavailable": "Vi kunne ikke kontrollere bildet ditt akkurat nå. Prøv igjen om noen minutter.",
+      "fieldRequired": "Fyll ut dette feltet.",
+      "invalidEmail": "Skriv inn en gyldig e-postadresse, for eksempel navn@firma.no.",
+      "fileRequired": "Velg en fil for \"{{field}}\"."
     },
     "quiz": {
+      "title": "Quiz",
       "questionOf": "Spørsmål {{current}} av {{total}}",
-      "checkAnswer": "Sjekk svar",
       "next": "Neste",
       "previous": "Forrige",
       "finish": "Send svar",
       "correct": "Riktig!",
       "incorrect": "Ikke helt riktig",
-      "tryAgain": "Prøv igjen",
       "score": "Din poengsum",
       "passed": "Quiz bestått!",
       "completed": "Quiz fullført",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Fullfør avstemningen for å fortsette",
       "alreadyVoted": "Du har allerede stemt",
       "voteRecorded": "Stemmen din er registrert",
-      "votes": "stemmer",
-      "votesCount": "{{count}} stemme",
-      "votesCountPlural": "{{count}} stemmer",
       "respondents": "{{count}} deltaker",
       "respondentsPlural": "{{count}} deltakere",
-      "yourVote": "Din stemme"
+      "chooseFirst": "Velg et svar først, og klikk deretter på \"Avgi stemme\"."
     },
     "space": {
       "dragHint": "Dra for å se deg rundt",
       "viewFloorplan": "Vis plantegning",
-      "youAreHere": "Du er her"
+      "youAreHere": "Du er her",
+      "panoramaLabel": "360°-bilde: {{title}}",
+      "panoramaKeyboardHint": "Bruk piltastene for å se deg rundt. Bruk + og - for å zoome.",
+      "zoomIn": "Zoom inn",
+      "zoomOut": "Zoom ut",
+      "panoramaLoadFailed": "360°-bildet kunne ikke lastes inn. Last inn siden på nytt for å prøve igjen."
     },
     "stepTypes": {
       "reward": "Belønning"
@@ -131,19 +138,20 @@
       "emailSent": "En kopi er sendt til din e-post",
       "alreadyClaimed": "Du har allerede fått en belønning for denne ekspedisjonen",
       "noMoreRewards": "Beklager, alle belønninger er delt ut",
+      "claimFailed": "Belønningen din kunne ikke hentes. Last inn siden på nytt og prøv igjen.",
       "previewMode": "Forhåndsvisning - Ingen ekte kode generert",
       "claimed": "Belønning mottatt",
       "soldOut": {
         "title": "For dumt!",
-        "message": "Dessverre kom du for sent til å motta en belønning. Alle belønninger er allerede delt ut.",
-        "continueJourney": "Fortsett ekspedisjonen"
+        "message": "Dessverre kom du for sent til å motta en belønning. Alle belønninger er allerede delt ut."
       }
     },
     "tts": {
       "listen": "Lytt",
       "stop": "Stopp",
       "listenLabel": "Få dette trinnet lest høyt",
-      "stopLabel": "Stopp opplesingen"
+      "stopLabel": "Stopp opplesingen",
+      "noVoice": "Enheten din har ingen stemme for dette språket. Prøv en annen nettleser, eller be IT-avdelingen om å installere en."
     },
     "reading": {
       "settings": "Leseinnstillinger",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Steg {{current}} av {{total}}",
-      "duration": "±{{minutes}} min"
+      "duration": "omtrent {{minutes}} min",
+      "stepApprox": "Steg {{current}} av omtrent {{total}}"
     },
     "session": {
       "expired": "Økten din er utløpt. Klikk på Last inn på nytt for å fortsette.",
       "reload": "Last inn på nytt"
+    },
+    "identify": {
+      "title": "Hvem er du?",
+      "description": "Fyll inn opplysningene dine for å fortsette",
+      "poll": {
+        "title": "Én stemme per person",
+        "description": "For at avstemningen skal være rettferdig, trenger vi navnet ditt og e-postadressen din. Da kan alle bare stemme én gang."
+      },
+      "reward": {
+        "title": "Hent belønningen din",
+        "description": "For å sende deg belønningen trenger vi navnet ditt og e-postadressen din. Du får belønningskoden rett i innboksen din."
+      },
+      "form": {
+        "title": "Nesten ferdig!",
+        "description": "Fyll inn opplysningene dine, så vi vet hvem som har sendt inn skjemaet. Opplysningene dine sendes med svaret ditt."
+      },
+      "firstName": "Fornavn",
+      "lastName": "Etternavn",
+      "email": "E-postadresse",
+      "rememberMe": "Husk opplysningene mine til neste gang",
+      "submit": "Fortsett",
+      "error": "Noe gikk galt. Prøv igjen."
+    },
+    "verify": {
+      "title": "Bekreft e-postadressen din",
+      "description": "Vi har sendt en bekreftelseskode til {{email}}",
+      "code": "Bekreftelseskode",
+      "submit": "Bekreft",
+      "resend": "Send koden på nytt",
+      "codeSent": "Bekreftelseskoden er sendt",
+      "invalidCode": "Ugyldig bekreftelseskode",
+      "codeExpired": "Bekreftelseskoden har utløpt",
+      "tooManyAttempts": "For mange feil koder. Fyll inn opplysningene dine på nytt for å få en ny kode."
+    },
+    "closeWindowMessage": "Du kan lukke denne fanen for å gå tilbake til forrige side.",
+    "magicLink": {
+      "expired": {
+        "title": "Lenken er utløpt",
+        "message": "Denne invitasjonslenken er utløpt. Be personen som inviterte deg, om en ny lenke.",
+        "messageAskInviter": "Denne invitasjonslenken har utløpt. Be {{name}} om en ny lenke.",
+        "requestButton": "Be om en ny lenke",
+        "requestedTitle": "Forespørsel sendt",
+        "requestedMessage": "Vi har bedt {{name}} om å sende deg en ny lenke. Du får den på e-post.",
+        "requestedMessageOrg": "Vi har bedt {{org}} om å sende deg en ny lenke. Du får den på e-post.",
+        "alreadyRequested": "Det er allerede bedt om en ny lenke de siste 24 timene. Du får den på e-post så snart den er sendt."
+      },
+      "completed": {
+        "title": "Ekspedisjon fullført",
+        "message": "Du har allerede fullført denne ekspedisjonen. Takk for at du deltok."
+      },
+      "revoked": {
+        "title": "Invitasjonen er trukket tilbake",
+        "message": "Denne invitasjonen er ikke lenger gyldig. Kontakt personen som inviterte deg, hvis du fortsatt trenger tilgang."
+      },
+      "verification": {
+        "title": "Bekreft at det er deg",
+        "subtitle": "Du åpner denne lenken på en ny enhet.",
+        "explanation": "Vi har sendt en sekssifret kode til e-postadressen din. Skriv den inn nedenfor.",
+        "codeLabel": "Bekreftelseskode",
+        "submit": "Bekreft",
+        "verifying": "Kontrollerer...",
+        "resend": "Send en ny kode",
+        "resent": "Vi har sendt deg en ny kode. Sjekk e-posten din.",
+        "invalid": "Koden er ikke riktig. Sjekk koden i e-posten din, og prøv igjen.",
+        "expired": "Koden er utløpt. Klikk på Send en ny kode.",
+        "lockedWait": "For mange feil koder. Vent 10 minutter, og klikk deretter på Send en ny kode.",
+        "sessionExpired": "Siden er utløpt. Åpne lenken i e-posten din på nytt.",
+        "journeyLabel": "Ekspedisjon"
+      },
+      "welcomeBack": {
+        "title": "Velkommen tilbake, {{firstName}}!",
+        "message": "Du har allerede fullført denne ekspedisjonen.",
+        "restartButton": "Start på nytt",
+        "reviewButton": "Se forrige forsøk"
+      },
+      "error": "Noe gikk galt. Prøv igjen."
+    },
+    "resume": {
+      "message": "Du har vært her før. Vil du fortsette der du slapp?",
+      "continue": "Fortsett der jeg var",
+      "restart": "Start på nytt"
     }
   }
 }

@@ -3,6 +3,107 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.11.0] - 2026-11-24
+
+Before you update: magic links are now stored as a hash and an encrypted
+copy, no longer as plain text. Gryffi converts the existing invitations
+when it starts and removes the plain token an hour later. Links that were
+already sent keep working, also when the update fails and `gryffi update`
+goes back to 0.10.0. Keep `OAUTH_TOKEN_KEY` in `.env`: the encrypted
+copies need it.
+
+The `gryffi` command becomes 1.2.0 with this release. To go back to an
+older version later, use `sudo gryffi update 0.10.0`: it first writes the
+tokens back, so the links in sent emails keep working there.
+
+Maker interface:
+
+- Help opens as a side panel next to the page, also with `?`. It shows
+  the help for the screen you are on and for the selected step type, with
+  example questions. "What is this?" buttons open on a click and link to
+  the full article. With an AI provider, help articles are translated
+  into the interface language. Viewers can use the help too.
+- The builder lists the step types with their names on the left. Every
+  change saves itself, so the Save button is gone, and leaving during a
+  save asks first. Hints in the step panel
+  say what a field does. An empty journey points to the step types and
+  the properties panel. A Show all steps button and labelled zoom buttons
+  were added.
+- Before a journey is published, Gryffi checks it: a missing start or end
+  step stops publishing. Steps nobody can reach, dead ends, rewards
+  without codes, missing media or guides, quiz questions without a correct
+  answer and polls with fewer than two options are shown as warnings, each
+  with a link to the step.
+- Participants have their own menu item, with import, directory sync and
+  groups. The interface says "participants" everywhere instead of "end
+  users", in all five languages.
+- The dashboard shows what needs doing, recent journeys and progress.
+- Invitations: expired invitations are marked as expired, and you can
+  send an invitation again from the list.
+- The interface meets WCAG AA contrast, every control has a name, and
+  the maker pages work with a keyboard and a screen reader.
+- Plain words, and one word per thing in English, Dutch, German, French
+  and Spanish. German addresses makers and participants with "Sie".
+- Guides answer in their own language, also English guides, and can be
+  tested from their settings page. Sources in a guide answer are small
+  numbers, with the list of sources below the answer.
+- The theme editor shows a live preview in your interface language.
+
+Player:
+
+- A participant with an expired link can ask for a new one. The maker who
+  sent the invitation, or else the admins, gets an email. One request per
+  invitation per 24 hours.
+- Rewards work in public journeys: random codes, the maximum number of
+  recipients and the position shown to the participant.
+- Public journeys with more than one poll save every vote. Before, only
+  the first vote reached the server.
+- Read aloud uses Mistral's Voxtral 3 (`voxtral-mini-tts-3-0`) by default,
+  with a native voice for 11 of the 14 journey languages. Danish, Finnish
+  and Swedish use the browser voice. The browser voice only reads with a
+  voice in the language of the journey. If you set a speech model
+  yourself on the Installation page, that model stays.
+- YouTube videos load only after Play video. Watch time and the share of
+  a video that was seen are recorded, so the video figures in Analytics
+  are no longer 0. Timed pacing on a video step starts at the first play;
+  before, Next could stay hidden.
+- Texts, form errors, magic link pages and verification emails use the
+  language of the journey. The 360 viewer, polls and file uploads work
+  with the keyboard, and screen readers hear when Next becomes available.
+- The participant code and the maker login code have six digits.
+
+Security and privacy:
+
+- Every page from the app sends `X-Robots-Tag: noindex, nofollow`, so
+  search engines do not index magic links or public journeys.
+- Signing out works only with POST. The old `GET /logout` is gone.
+- Names and titles in emails are escaped. The guide page serves Cropper.js
+  itself instead of loading it from unpkg.com.
+- The type of a form attachment is read from its content.
+- The help counts how often it is opened per screen, and keeps the
+  questions it could not answer, in your own database, without user
+  names. Unanswered questions are removed after 90 days and counts after
+  365 days. `node src/scripts/help-report.js` in the app container prints
+  a summary as plain text. Question texts are only included with `--with-questions`.
+
+Public API:
+
+- API keys are found with one indexed lookup instead of a bcrypt compare
+  per organization. Keys made before this get their lookup value the
+  first time they are used.
+- Wrong input gives 400 with what is wrong, not 500. Only 401 answers
+  count towards the limit for wrong keys, so an integration that gets
+  many 404 or 409 answers is no longer blocked.
+
+Other:
+
+- Old image links under `/media/organizations/` are rewritten in the
+  database at start. That path now answers 404.
+- The journey wizard no longer puts a placeholder YouTube video in its
+  steps, and a migration removes that video from existing steps.
+- Removed code, routes, CSS and translation keys that nothing used.
+- Dependencies: i18next 26.7.2 (security advisory GHSA-6jcc-5g8w-32mx).
+
 ## [0.10.0] - 2026-10-31
 
 - Help: an answer shows the screenshots of its help page. On a wide screen

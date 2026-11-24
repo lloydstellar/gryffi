@@ -1,0 +1,258 @@
+<%# Getting-started card on the dashboard: five steps from a first journey to a
+    first participant who finished it. Expects `gettingStarted` (services/tips.js,
+    buildGettingStarted). Only the next open step has a button, so there is one
+    clear thing to do. "Send it to yourself" uses window.gryffi.sendToSelf (app.js). %>
+<% if (typeof gettingStarted !== 'undefined' && gettingStarted) { %>
+<% const gs = gettingStarted; const gsJourney = gs.journey; const gsBase = 'dashboard.gettingStarted.'; %>
+<style>
+  .getting-started {
+    background: #ffffff;
+    border: 1px solid rgba(11, 75, 52, 0.12);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+    color: #1f2937;
+  }
+  .getting-started-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .getting-started-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #0b4b34;
+    margin: 0;
+  }
+  .getting-started-intro {
+    font-size: 14px;
+    color: #5b6b80;
+    margin: 4px 0 0 0;
+    line-height: 1.5;
+  }
+  .getting-started-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    color: #5b6b80;
+  }
+  .getting-started-hide {
+    background: none;
+    border: none;
+    padding: 6px 2px;
+    font-size: 13px;
+    color: #5b6b80;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .getting-started-hide:hover { color: #0b4b34; }
+  .getting-started-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(11, 75, 52, 0.08);
+    margin: 14px 0 6px 0;
+    overflow: hidden;
+  }
+  .getting-started-bar span {
+    display: block;
+    height: 100%;
+    background: #78c503;
+    border-radius: 3px;
+  }
+  .getting-started-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .getting-started-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-top: 1px solid #f1f5f9;
+  }
+  .getting-started-step:first-child { border-top: none; }
+  .getting-started-check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .getting-started-check svg { width: 14px; height: 14px; }
+  .getting-started-step.is-done .getting-started-check {
+    background: #0b4b34;
+    border-color: #0b4b34;
+    color: #ffffff;
+  }
+  .getting-started-step.is-next .getting-started-check { border-color: #0b4b34; }
+  .getting-started-step-title {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+  .getting-started-step.is-done .getting-started-step-title { color: #5b6b80; }
+  .getting-started-step.is-next .getting-started-step-title { font-weight: 600; color: #0b4b34; }
+  .getting-started-step-body { flex: 1; min-width: 0; }
+  .getting-started-hint {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin: 4px 0 10px 0;
+  }
+  .getting-started-note {
+    font-size: 13px;
+    color: #5b6b80;
+    line-height: 1.5;
+    margin: 6px 0 0 0;
+  }
+  .getting-started-result {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin: 10px 0 0 0;
+    background: rgba(11, 75, 52, 0.06);
+    color: #0b4b34;
+  }
+  .getting-started-result[data-kind="success"] { background: rgba(120, 197, 3, 0.14); color: #1f3d10; }
+  .getting-started-result[data-kind="error"] { background: #fef2f2; color: #991b1b; }
+  .getting-started-action:focus-visible,
+  .getting-started-hide:focus-visible {
+    outline: 2px solid #0b4b34;
+    outline-offset: 2px;
+  }
+</style>
+<section class="getting-started" id="gettingStarted" aria-labelledby="gettingStartedTitle">
+  <div class="getting-started-head">
+    <div>
+      <h2 id="gettingStartedTitle" class="getting-started-title"><%= t(gsBase + 'title') %></h2>
+      <p class="getting-started-intro"><%= t(gsBase + 'intro') %></p>
+    </div>
+    <div class="getting-started-meta">
+      <span data-getting-started-progress><%= t(gsBase + 'progress', { done: gs.doneCount, total: gs.total }) %></span>
+      <button type="button" class="getting-started-hide" data-getting-started-hide><%= t(gsBase + 'hide') %></button>
+    </div>
+  </div>
+  <div class="getting-started-bar" aria-hidden="true"><span data-getting-started-bar style="width: <%= Math.round(gs.doneCount / gs.total * 100) %>%"></span></div>
+  <ol class="getting-started-steps">
+    <% gs.steps.forEach(function(step) { const isNext = step.key === gs.nextKey; %>
+    <li class="getting-started-step<%= step.done ? ' is-done' : '' %><%= isNext ? ' is-next' : '' %>" data-step="<%= step.key %>"<%- isNext ? ' aria-current="step"' : '' %>>
+      <span class="getting-started-check" aria-hidden="true">
+        <% if (step.done) { %><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg><% } %>
+      </span>
+      <div class="getting-started-step-body">
+        <span class="getting-started-step-title"><%= t(gsBase + 'steps.' + step.key) %></span>
+        <span class="sr-only" data-step-status>(<%= step.done ? t(gsBase + 'done') : t(gsBase + 'notDone') %>)</span>
+
+        <% if (isNext && step.key === 'journey') { %>
+          <div><a href="/dashboard/journeys?create=1" class="btn-primary getting-started-action"><%= t(gsBase + 'actions.journey') %></a></div>
+        <% } else if (isNext && step.key === 'preview' && gsJourney) { %>
+          <p class="getting-started-hint"><%= t(gsBase + 'hints.preview') %></p>
+          <a href="/dashboard/preview/<%= gsJourney.id %>" class="btn-primary getting-started-action"><%= t(gsBase + 'actions.preview') %></a>
+        <% } else if (isNext && (step.key === 'publish' || step.key === 'invite') && gsJourney) { %>
+          <% if (gs.canPublish) { %>
+          <div data-send-to-self-block>
+            <button type="button" class="btn-primary getting-started-action" data-send-to-self="<%= gsJourney.id %>" data-is-draft="<%= gsJourney.isDraft ? 'true' : 'false' %>">
+              <%= t(gsBase + (step.key === 'publish' ? 'actions.publishAndSend' : 'actions.send')) %>
+            </button>
+            <p class="getting-started-note"><%= t('sendToSelf.note') %></p>
+          </div>
+          <p class="getting-started-result" data-send-to-self-result role="status" aria-live="polite" hidden></p>
+          <% } else { %>
+          <p class="getting-started-hint"><%= t('sendToSelf.memberNote') %></p>
+          <% } %>
+        <% } else if (isNext && step.key === 'complete') { %>
+          <p class="getting-started-hint"><%= t(gsBase + 'hints.complete') %></p>
+        <% } %>
+      </div>
+    </li>
+    <% }) %>
+  </ol>
+</section>
+<script>
+  (function() {
+    var card = document.getElementById('gettingStarted');
+    if (!card) return;
+    var texts = <%- safeJson({
+      sending: t('sendToSelf.sending'),
+      sent: t('sendToSelf.sent'),
+      alreadyInvited: t('sendToSelf.alreadyInvited'),
+      emailFailed: t('sendToSelf.emailFailed'),
+      failed: t('sendToSelf.errors.failed'),
+      done: t(gsBase + 'done'),
+      progress: t(gsBase + 'progress', { done: '__DONE__', total: gs.total })
+    }) %>;
+    var total = <%= gs.total %>;
+    var checkSvg = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>';
+
+    // Tick off steps right away after a successful send (the server state follows on the next visit)
+    function markDone(keys) {
+      keys.forEach(function(key) {
+        var li = card.querySelector('[data-step="' + key + '"]');
+        if (!li || li.classList.contains('is-done')) return;
+        li.classList.add('is-done');
+        li.classList.remove('is-next');
+        li.removeAttribute('aria-current');
+        li.querySelector('.getting-started-check').innerHTML = checkSvg;
+        li.querySelector('[data-step-status]').textContent = '(' + texts.done + ')';
+      });
+      var doneCount = card.querySelectorAll('.getting-started-step.is-done').length;
+      card.querySelector('[data-getting-started-progress]').textContent = texts.progress.replace('__DONE__', doneCount);
+      card.querySelector('[data-getting-started-bar]').style.width = Math.round(doneCount / total * 100) + '%';
+    }
+
+    var hideBtn = card.querySelector('[data-getting-started-hide]');
+    hideBtn.addEventListener('click', function() {
+      hideBtn.disabled = true;
+      fetch('/api/onboarding/getting-started-dismissed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      }).catch(function() {
+        // Best effort: the card is hidden now and checked again on the next visit
+      });
+      card.remove();
+      var main = document.getElementById('main-content');
+      if (main) main.focus();
+    });
+
+    var sendBtn = card.querySelector('[data-send-to-self]');
+    if (!sendBtn) return;
+    var block = card.querySelector('[data-send-to-self-block]');
+    var resultEl = card.querySelector('[data-send-to-self-result]');
+    sendBtn.addEventListener('click', async function() {
+      if (!window.gryffi || !window.gryffi.sendToSelf) return;
+      var label = sendBtn.textContent;
+      sendBtn.disabled = true;
+      sendBtn.textContent = texts.sending;
+      var result = await window.gryffi.sendToSelf(sendBtn.getAttribute('data-send-to-self'), {
+        isDraft: sendBtn.getAttribute('data-is-draft') === 'true'
+      });
+      sendBtn.textContent = label;
+      sendBtn.disabled = false;
+      if (result.cancelled) return;
+
+      var message = window.gryffi.sendToSelfMessage(result, texts);
+      resultEl.textContent = message.text;
+      resultEl.setAttribute('data-kind', message.kind);
+      resultEl.hidden = false;
+      if (result.ok && !result.emailError) {
+        block.hidden = true;
+        markDone(['publish', 'invite']);
+      } else if (result.ok || result.publishedNow) {
+        markDone(['publish']);
+      }
+    });
+  })();
+</script>
+<% } %>

@@ -3,7 +3,8 @@
  * Uses Mistral AI to translate journey content to different languages
  */
 
-import { aiFetch, getAiConfig, isAiConfigured } from './aiProvider.js';
+import { aiFetch, getAiConfig, isAiConfigured, messageText } from './aiProvider.js';
+import { removeEmDashes } from '../utils/textStyle.js';
 
 
 /**
@@ -40,8 +41,8 @@ const GRYFFI_GLOSSARY = {
     'form': 'Formulier',          'poll': 'Peiling',
     'reward': 'Beloning',         'sub-journey': 'Sub-expeditie',
     'ai guide': 'AI Gids',        'maker': 'Maker',
-    'makers': 'Makers',           'end user': 'Eindgebruiker',
-    'end users': 'Eindgebruikers','knowledge base': 'Kennisbank',
+    'makers': 'Makers',           'end user': 'Deelnemer',
+    'end users': 'Deelnemers','knowledge base': 'Kennisbank',
     'builder': 'Builder',         'analytics': 'Analyse',
     'step': 'Stap',               'steps': 'Stappen',
   },
@@ -52,8 +53,8 @@ const GRYFFI_GLOSSARY = {
     'form': 'Formular',           'poll': 'Umfrage',
     'reward': 'Belohnung',        'sub-journey': 'Sub-Expedition',
     'ai guide': 'KI-Begleiter',   'maker': 'Autor',
-    'makers': 'Autoren',          'end user': 'Endbenutzer',
-    'end users': 'Endbenutzer',   'knowledge base': 'Wissensbasis',
+    'makers': 'Autoren',          'end user': 'Teilnehmer',
+    'end users': 'Teilnehmer',    'knowledge base': 'Wissensbasis',
     'builder': 'Builder',         'analytics': 'Einblicke',
     'step': 'Schritt',            'steps': 'Schritte',
   },
@@ -64,8 +65,8 @@ const GRYFFI_GLOSSARY = {
     'form': 'Formulaire',         'poll': 'Sondage',
     'reward': 'Récompense',       'sub-journey': 'Sous-parcours',
     'ai guide': 'Guide IA',       'maker': 'Créateur',
-    'makers': 'Créateurs',        'end user': 'Utilisateur final',
-    'end users': 'Utilisateurs finaux', 'knowledge base': 'Base de connaissances',
+    'makers': 'Créateurs',        'end user': 'Participant',
+    'end users': 'Participants', 'knowledge base': 'Base de connaissances',
     'builder': 'Créateur',        'analytics': 'Analyses',
     'step': 'Étape',              'steps': 'Étapes',
   },
@@ -76,8 +77,8 @@ const GRYFFI_GLOSSARY = {
     'form': 'Formulario',         'poll': 'Encuesta',
     'reward': 'Recompensa',       'sub-journey': 'Sub-expedición',
     'ai guide': 'Guía de IA',     'maker': 'Creador',
-    'makers': 'Creadores',        'end user': 'Usuario final',
-    'end users': 'Usuarios finales', 'knowledge base': 'Base de conocimientos',
+    'makers': 'Creadores',        'end user': 'Participante',
+    'end users': 'Participantes', 'knowledge base': 'Base de conocimientos',
     'builder': 'Constructor',     'analytics': 'Análisis',
     'step': 'Paso',               'steps': 'Pasos',
   }
@@ -161,8 +162,11 @@ function protectLiterals(text) {
  * but in practice the `{{...}}` form is preserved verbatim by Mistral.
  */
 function restoreLiterals(text, tokens) {
-  if (!tokens || tokens.length === 0) return text;
   if (text === null || text === undefined || typeof text !== 'string') return text;
+  // No em dashes in Gryffi; the protected literals (links, variables) are
+  // put back afterwards, unchanged
+  text = removeEmDashes(text);
+  if (!tokens || tokens.length === 0) return text;
   return text.replace(PROTECT_TOKEN_RE, (match, idx) => {
     const i = parseInt(idx, 10);
     return Number.isInteger(i) && i >= 0 && i < tokens.length ? tokens[i] : match;
@@ -204,7 +208,7 @@ async function makeTranslationRequest(model, systemPrompt, text, timeoutMs) {
     }
     
     const data = await response.json();
-    const translated = data.choices?.[0]?.message?.content;
+    const translated = messageText(data);
     
     if (!translated) {
       console.error(`[Translation] Empty response from ${model}`);
@@ -258,7 +262,9 @@ CRITICAL RULES:
 5. Preserve placeholders like {{name}}, {variable}, or {{__GRYFFI_PROTECT_N__}} EXACTLY as they appear (do not translate, rename, or remove them)
 6. NEVER translate, localise, or modify URLs, web addresses, or email addresses; copy them verbatim
 7. If the text is already in the target language, return it unchanged
-8. Maintain the same tone and style as the original`;
+8. Maintain the same tone and style as the original
+9. Do not add emojis
+10. Follow the capitalisation rules of the target language and do not copy English Title Case: in Dutch, French, Spanish, Italian and most other languages a title starts with one capital letter, the rest lowercase except names (example: "Working Hours and Flexibility" becomes "Werktijden en flexibiliteit" in Dutch)`;
 
   // Try primary model first with 10 second timeout
   const startTime = Date.now();
@@ -349,6 +355,8 @@ CRITICAL RULES:
 5. NEVER translate, localise, or modify URLs, web addresses, or email addresses; copy them verbatim
 6. Keep the same tone and style as the original
 7. If a text is already in the target language, return it unchanged
+8. Do not add emojis
+9. Follow the capitalisation rules of the target language and do not copy English Title Case: in Dutch, French, Spanish, Italian and most other languages a title starts with one capital letter, the rest lowercase except names (example: "Working Hours and Flexibility" becomes "Werktijden en flexibiliteit" in Dutch)
 
 INPUT FORMAT:
 [1] text one
@@ -394,7 +402,7 @@ OUTPUT FORMAT (same structure):
     }
     
     const data = await response.json();
-    const translatedContent = data.choices?.[0]?.message?.content;
+    const translatedContent = messageText(data);
     
     console.log(`[Translation] Received translation response, length: ${translatedContent?.length || 0} chars`);
     
@@ -849,11 +857,3 @@ export function getSupportedLanguages() {
     name
   }));
 }
-
-export default { 
-  translateText, 
-  translateBatch, 
-  translateJourneyContent,
-  getSupportedLanguages,
-  LANGUAGE_NAMES 
-};

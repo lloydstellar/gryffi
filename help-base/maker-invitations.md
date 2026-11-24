@@ -27,7 +27,7 @@ Invite makers to:
 
 ## Sending Invitations
 
-### Step 1: Open Team Settings
+### Step 1: Open Makers
 
 Go to Makers → Invite maker
 

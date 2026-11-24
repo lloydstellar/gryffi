@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('installation.title') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/setup.css">
@@ -32,7 +34,7 @@
   <%- include('../partials/help-modal') %>
   <%- include('../partials/support-modal') %>
 
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/ai-credits-banner') %>
     <div class="page-header">
       <h1 class="page-title"><%= t('installation.title') %></h1>

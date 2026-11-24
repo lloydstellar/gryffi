@@ -5,7 +5,7 @@ related_features: [admin-role, manager-role, editor-role, viewer-role, team-mana
 
 # Maker Roles
 
-Maker roles define what team members can do within Gryffi. Each role has specific permissions for content creation, user management, and settings access.
+Maker roles define what team members can do within Gryffi. Each role has specific permissions for content creation, managing participants and makers, and settings access.
 
 ![The roles of makers (1) and the role of each maker (2)](images/maker-roles/roles-overview.en.webp)
 
@@ -19,13 +19,13 @@ Gryffi has four maker roles (1):
 | Role | Primary Purpose |
 |------|-----------------|
 | **Admin** | Full organization control |
-| **Journey Manager** | Content and user oversight |
+| **Journey Manager** | Content and participant oversight |
 | **Editor** | Content creation only |
 | **Viewer** | Read-only access |
 
 [[goto:/dashboard/team]]
 
-To change the role of a maker, pick a new role for that maker in the list of makers (2).
+To change the role of a maker, go to **Makers** in the sidebar and pick a new role for that maker in the list of makers (2). The change works right away.
 
 ### Admin
 Assign to:

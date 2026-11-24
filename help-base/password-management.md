@@ -49,7 +49,7 @@ Manage your password:
 
 ### Steps
 
-1. Go to Settings → scroll down to the Security section
+1. Go to My account → scroll down to the Security section
 2. Click "Change Password"
 3. Enter current password (1)
 4. Enter new password (2)

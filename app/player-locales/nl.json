@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Welkom",
+    "greeting": "Welkom, {{firstName}}!",
     "guide": "Gids",
     "aiAssistant": "AI Assistent",
     "noGuideSelected": "Geen gids geselecteerd",
     "pleaseSelectGuide": "Selecteer een AI Gids in de stap-instellingen",
     "selectGuideForStep": "Selecteer een gids voor deze stap.",
     "chat": {
+      "yourGuide": "Jouw gids",
       "typeMessage": "Typ je bericht...",
       "typeQuestion": "Typ je vraag...",
       "askGuide": "Vraag aan {{name}}",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Hallo! Hoe kan ik je helpen?",
       "chatError": "Sorry, ik kon dat niet verwerken.",
       "connectionError": "Ik heb momenteel problemen met de verbinding. Probeer het opnieuw.",
-      "guideUnavailable": "Ik kan nu geen vragen beantwoorden. Je kunt verder met de volgende stap."
+      "guideUnavailable": "Ik kan nu geen vragen beantwoorden. Je kunt verder met de volgende stap.",
+      "sources": "Bronnen",
+      "showSource": "Bron {{number}} bekijken"
     },
     "content": {
       "invalidVideoUrl": "Ongeldige video URL",
       "noContentYet": "Nog geen inhoud toegevoegd",
-      "pressPlayToStart": "Druk op play om te beginnen met kijken"
+      "pressPlayToStart": "Klik op Video afspelen om te beginnen met kijken",
+      "videoLoad": "Video afspelen",
+      "videoNotice": "Deze video staat op YouTube. Klik je op Video afspelen, dan maakt je browser verbinding met YouTube (Google). Google krijgt dan je IP-adres en kan gegevens op je apparaat opslaan.",
+      "videoPrivacyLink": "Privacyverklaring van Google"
     },
     "navigation": {
       "whenReady": "Als je klaar bent:",
@@ -27,12 +34,12 @@
       "leaveJourney": "Expeditie verlaten?",
       "leaveJourneyMessage": "Weet je zeker dat je deze expeditie wilt verlaten? Je voortgang is opgeslagen.",
       "leaveConfirm": "Verlaten",
-      "stayContinue": "Blijven"
+      "stayContinue": "Blijven",
+      "doAgain": "Wil je deze expeditie nog een keer doorlopen?"
     },
     "pacing": {
       "readyToContinue": "Je kunt nu doorgaan",
       "takeYourTimeMinutes": "Neem {{minutes}} minuut om te verkennen",
-      "takeYourTimeMinutesPlural": "Neem {{minutes}} minuten om te verkennen",
       "takeYourTimeSeconds": "Neem je tijd... {{seconds}}s",
       "keepWatching": "Blijf kijken... {{seconds}}s",
       "chatWithGuide": "Chat met de gids ({{count}}/{{total}} berichten)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "Je hebt dit formulier al ingestuurd",
         "message": "Je hebt dit formulier ingestuurd op {{date}}. Je kunt het opnieuw versturen of doorgaan zonder in te vullen.",
-        "skipButton": "Doorgaan zonder versturen",
-        "submitAgain": "Opnieuw versturen"
+        "skipButton": "Doorgaan zonder versturen"
       },
       "fileUpload": {
         "dropzone": "Sleep bestand hierheen of klik om te bladeren",
-        "dragActive": "Laat het bestand hier los",
         "maxSize": "Max {{size}} MB",
         "invalidType": "Ongeldig bestandstype. Toegestaan: {{types}}",
         "fileTooLarge": "Bestand te groot. Maximum grootte: {{size}} MB",
         "totalTooLarge": "Totale bijlage grootte overschrijdt limiet (38 MB)",
         "removeFile": "Bestand verwijderen",
-        "noFileSelected": "Geen bestand geselecteerd",
-        "fileSelected": "Bestand geselecteerd: {{name}}",
         "subtypes": {
           "image": "Afbeelding",
           "document": "Document",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "Deze afbeelding kan niet worden geüpload. Kies een andere afbeelding.",
-      "imageCheckUnavailable": "We konden je afbeelding nu niet controleren. Probeer het over een paar minuten opnieuw."
+      "imageCheckUnavailable": "We konden je afbeelding nu niet controleren. Probeer het over een paar minuten opnieuw.",
+      "fieldRequired": "Vul dit veld in.",
+      "invalidEmail": "Vul een geldig e-mailadres in, bijvoorbeeld naam@bedrijf.nl.",
+      "fileRequired": "Kies een bestand voor \"{{field}}\"."
     },
     "quiz": {
+      "title": "Quiz",
       "questionOf": "Vraag {{current}} van {{total}}",
-      "checkAnswer": "Controleer antwoord",
       "next": "Volgende",
       "previous": "Vorige",
       "finish": "Antwoorden insturen",
       "correct": "Correct!",
       "incorrect": "Niet helemaal goed",
-      "tryAgain": "Probeer opnieuw",
       "score": "Je score",
       "passed": "Quiz behaald!",
       "completed": "Quiz voltooid",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Voltooi de peiling om door te gaan",
       "alreadyVoted": "Je hebt al gestemd",
       "voteRecorded": "Je stem is geregistreerd",
-      "votes": "stemmen",
-      "votesCount": "{{count}} stem",
-      "votesCountPlural": "{{count}} stemmen",
       "respondents": "{{count}} deelnemer",
       "respondentsPlural": "{{count}} deelnemers",
-      "yourVote": "Jouw stem"
+      "chooseFirst": "Kies eerst een antwoord en klik dan op \"Stem versturen\"."
     },
     "space": {
       "dragHint": "Sleep om rond te kijken",
       "viewFloorplan": "Bekijk plattegrond",
-      "youAreHere": "Je bent hier"
+      "youAreHere": "Je bent hier",
+      "panoramaLabel": "360°-foto: {{title}}",
+      "panoramaKeyboardHint": "Gebruik de pijltjestoetsen om rond te kijken. Gebruik + en - om te zoomen.",
+      "zoomIn": "Inzoomen",
+      "zoomOut": "Uitzoomen",
+      "panoramaLoadFailed": "De 360°-foto kan niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen."
     },
     "stepTypes": {
       "reward": "Beloning"
@@ -131,19 +138,20 @@
       "emailSent": "Een kopie is naar je e-mail verzonden",
       "alreadyClaimed": "Je hebt al een beloning geclaimd voor deze expeditie",
       "noMoreRewards": "Sorry, alle beloningen zijn geclaimd",
+      "claimFailed": "Je beloning kon niet worden opgehaald. Laad de pagina opnieuw en probeer het nog eens.",
       "previewMode": "Preview modus - Geen echte code gegenereerd",
       "claimed": "Beloning geclaimd",
       "soldOut": {
         "title": "Wat jammer!",
-        "message": "Helaas was je te laat om een beloning te ontvangen. Alle beloningen zijn al uitgedeeld.",
-        "continueJourney": "Expeditie voortzetten"
+        "message": "Helaas was je te laat om een beloning te ontvangen. Alle beloningen zijn al uitgedeeld."
       }
     },
     "tts": {
       "listen": "Voorlezen",
       "stop": "Stop",
       "listenLabel": "Lees deze stap voor",
-      "stopLabel": "Stop met voorlezen"
+      "stopLabel": "Stop met voorlezen",
+      "noVoice": "Je apparaat heeft geen stem voor deze taal. Probeer een andere browser, of vraag je IT-afdeling om er een te installeren."
     },
     "reading": {
       "settings": "Leesinstellingen",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Stap {{current}} van {{total}}",
-      "duration": "±{{minutes}} min"
+      "duration": "ongeveer {{minutes}} min",
+      "stepApprox": "Stap {{current}} van ongeveer {{total}}"
     },
     "session": {
       "expired": "Je sessie is afgelopen. Klik op Opnieuw laden om verder te gaan.",
       "reload": "Opnieuw laden"
+    },
+    "identify": {
+      "title": "Identificeer jezelf",
+      "description": "Vul je gegevens in om door te gaan",
+      "poll": {
+        "title": "Eén stem per persoon",
+        "description": "Om de peiling eerlijk te houden, hebben we je naam en e-mailadres nodig. Zo kan iedereen maar één keer stemmen."
+      },
+      "reward": {
+        "title": "Claim je beloning",
+        "description": "Om je de beloning te kunnen sturen, hebben we je naam en e-mailadres nodig. Je ontvangt je beloningscode direct in je inbox."
+      },
+      "form": {
+        "title": "Nog even dit",
+        "description": "Vul je gegevens in zodat we weten wie dit formulier heeft ingevuld. Je informatie wordt meegestuurd met je antwoorden."
+      },
+      "firstName": "Voornaam",
+      "lastName": "Achternaam",
+      "email": "E-mailadres",
+      "rememberMe": "Onthoud mijn gegevens zodat ik ze de volgende keer niet hoef in te vullen",
+      "submit": "Doorgaan",
+      "error": "Er ging iets mis. Probeer het opnieuw."
+    },
+    "verify": {
+      "title": "Verifieer je e-mail",
+      "description": "We hebben een verificatiecode gestuurd naar {{email}}",
+      "code": "Verificatiecode",
+      "submit": "Verifiëren",
+      "resend": "Code opnieuw versturen",
+      "codeSent": "Verificatiecode verstuurd",
+      "invalidCode": "Ongeldige verificatiecode",
+      "codeExpired": "Verificatiecode verlopen",
+      "tooManyAttempts": "Te vaak een verkeerde code. Vul je gegevens opnieuw in om een nieuwe code te krijgen."
+    },
+    "closeWindowMessage": "Je kunt dit tabblad sluiten om terug te gaan naar waar je vandaan kwam.",
+    "magicLink": {
+      "expired": {
+        "title": "Link verlopen",
+        "message": "Deze uitnodigingslink is verlopen. Vraag degene die je uitnodigde om een nieuwe link.",
+        "messageAskInviter": "Deze uitnodigingslink is verlopen. Vraag {{name}} om een nieuwe link.",
+        "requestButton": "Vraag een nieuwe link",
+        "requestedTitle": "Verzoek verstuurd",
+        "requestedMessage": "We hebben {{name}} gevraagd je een nieuwe link te sturen. Je krijgt hem per e-mail.",
+        "requestedMessageOrg": "We hebben {{org}} gevraagd je een nieuwe link te sturen. Je krijgt hem per e-mail.",
+        "alreadyRequested": "Er is de afgelopen 24 uur al een nieuwe link gevraagd. Je krijgt hem per e-mail zodra hij is verstuurd."
+      },
+      "completed": {
+        "title": "Expeditie voltooid",
+        "message": "Je hebt deze expeditie al voltooid. Bedankt voor je deelname."
+      },
+      "revoked": {
+        "title": "Uitnodiging ingetrokken",
+        "message": "Deze uitnodiging is niet meer geldig. Vraag degene die je uitnodigde om toegang als je die nog nodig hebt."
+      },
+      "verification": {
+        "title": "Bevestig dat jij het bent",
+        "subtitle": "Je opent deze link op een nieuw apparaat.",
+        "explanation": "We hebben een code van 6 cijfers naar je e-mailadres gestuurd. Vul die hieronder in.",
+        "codeLabel": "Verificatiecode",
+        "submit": "Bevestigen",
+        "verifying": "Bezig met controleren...",
+        "resend": "Stuur een nieuwe code",
+        "resent": "We hebben je een nieuwe code gestuurd. Kijk in je e-mail.",
+        "invalid": "Deze code klopt niet. Controleer de code in je e-mail en probeer het opnieuw.",
+        "expired": "Deze code is verlopen. Klik op Stuur een nieuwe code.",
+        "lockedWait": "Te vaak een verkeerde code. Wacht 10 minuten en klik dan op Stuur een nieuwe code.",
+        "sessionExpired": "Deze pagina is verlopen. Open de link in je e-mail opnieuw.",
+        "journeyLabel": "Expeditie"
+      },
+      "welcomeBack": {
+        "title": "Welkom terug, {{firstName}}!",
+        "message": "Je hebt deze expeditie al voltooid.",
+        "restartButton": "Opnieuw beginnen",
+        "reviewButton": "Vorige poging bekijken"
+      },
+      "error": "Er ging iets mis. Probeer het opnieuw."
+    },
+    "resume": {
+      "message": "Je was hier al eerder. Wil je verdergaan waar je was?",
+      "continue": "Verder waar ik was",
+      "restart": "Opnieuw beginnen"
     }
   }
 }

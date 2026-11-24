@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('team.title') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -30,8 +32,8 @@
       font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #64748b;
+      text-transform: none;
+      color: #5b6b80;
       padding: 10px 12px;
       border-bottom: 1px solid #e5e7eb;
     }
@@ -73,8 +75,8 @@
     }
     .input:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .select {
       width: 100%;
@@ -114,7 +116,7 @@
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .hint {
       font-size: 12px;
-      color: #64748b;
+      color: #5b6b80;
       margin-top: 6px;
       line-height: 1.4;
     }
@@ -155,7 +157,7 @@
   <%- include('../partials/support-modal') %>
   <% const makersAtLimit = subscriptionUsage && subscriptionUsage.makers && subscriptionUsage.makers.isAtLimit; %>
 
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
@@ -207,7 +209,7 @@
         <div class="card-header">
           <h2 class="text-lg font-semibold text-zen-900"><%= t('team.invites.title') %></h2>
           <p class="text-sm text-zen-500 mt-1"><%= t('team.invites.subtitle') %></p>
-          <p class="text-xs text-zen-400 mt-2" style="display: flex; align-items: center; gap: 6px;">
+          <p class="text-xs text-zen-500 mt-2" style="display: flex; align-items: center; gap: 6px;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
@@ -220,9 +222,9 @@
             <div class="tier-upgrade-notice" style="margin-bottom: 20px;">
               <div class="tier-upgrade-notice-text">
                 <strong><%= t('subscription.limits.limitReached') %></strong><br>
-                <%= t('subscription.limits.makerLimitInfo', { limit: subscriptionUsage.makers.limit }) %>
+                <%= t('subscription.limits.makerLimitInfo', { limit: subscriptionUsage.makers.limit, count: subscriptionUsage.makers.limit }) %>
               </div>
-              <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.cta.upgradeNow') %></a>
+              <a href="/dashboard/subscription" class="tier-upgrade-link" data-limit-hit="makers" data-limit-source="upgrade_link"><%= t('subscription.cta.upgradeNow') %></a>
             </div>
           <% } %>
           <form id="inviteForm" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start <%= makersAtLimit ? 'tier-disabled-field' : '' %>">
@@ -270,7 +272,7 @@
         <div class="card-header">
           <h2 class="text-lg font-semibold text-zen-900"><%= t('team.members.title') %></h2>
           <p class="text-sm text-zen-500 mt-1"><%= t('team.members.subtitle') %></p>
-          <p class="text-xs text-zen-400 mt-2" style="display: flex; align-items: center; gap: 6px;">
+          <p class="text-xs text-zen-500 mt-2" style="display: flex; align-items: center; gap: 6px;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
@@ -313,6 +315,7 @@
         inactive: t('team.status.inactive')
       },
       members: {
+        roleFor: t('team.members.roleFor'),
         you: t('team.members.you')
       },
       actions: {
@@ -320,7 +323,8 @@
         deleteAccount: t('team.messages.deleteAccount'),
         deleteMyAccount: t('team.messages.deleteMyAccount'),
         resend: t('team.invites.actions.resend'),
-        revoke: t('team.invites.actions.revoke')
+        revoke: t('team.invites.actions.revoke'),
+        expiredOn: t('team.invites.expiredOn', { date: '{{date}}' })
       },
       messages: {
         inviteFailed: t('team.messages.inviteFailed'),
@@ -411,7 +415,7 @@
       const result = await window.gryffi.modal.confirm(
         `<div style="text-align: center;">
           <p style="margin: 0 0 16px; color: #4b5563;">${message}</p>
-          <p style="margin: 0; font-size: 13px; color: #6b7280;">${teamTranslations.subscription.limits.wantMore}</p>
+          <p style="margin: 0; font-size: 13px; color: #5b6b80;">${teamTranslations.subscription.limits.wantMore}</p>
         </div>`,
         {
           title: teamTranslations.subscription.limits.limitReached,
@@ -451,25 +455,24 @@
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${escapeHtml(fullName)}${isSelf ? ` <span class="text-xs text-zen-400">(${escapeHtml(teamTranslations.members.you)})</span>` : ''}</td>
+          <td>${escapeHtml(fullName)}${isSelf ? ` <span class="text-xs text-zen-500">(${escapeHtml(teamTranslations.members.you)})</span>` : ''}</td>
           <td class="text-zen-500">${escapeHtml(m.email)}</td>
           <td>
             ${canEditRole ? `
-              <select class="select" data-action="setRole" data-id="${m.id}" data-self="${isSelf ? '1' : '0'}" data-current-role="${escapeHtml(m.role)}" style="max-width:220px;">
+              <select class="select" data-action="setRole" data-id="${m.id}" data-self="${isSelf ? '1' : '0'}" data-current-role="${escapeHtml(m.role)}" aria-label="${escapeHtml(teamTranslations.members.roleFor.replace('{{name}}', fullName))}" style="max-width:220px;">
                 <option value="member" ${m.role === 'member' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.member.name)}</option>
                 <option value="manager" ${m.role === 'manager' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.manager.name)}</option>
                 <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.viewer.name)}</option>
                 <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>${escapeHtml(teamTranslations.roles.admin.name)}</option>
               </select>
-              <div class="hint" style="margin-top:6px;">${escapeHtml(tRoleDescription(m.role))}</div>
             ` : `<span class="badge badge-role">${escapeHtml(tRoleName(m.role))}</span>`}
           </td>
           <td>
             ${canManage ? `
-              <button class="btn btn-danger" data-action="deleteMember" data-id="${m.id}" style="padding:6px 10px;font-size:12px;background:#991b1b;color:#fff;border-color:#991b1b;">${escapeHtml(teamTranslations.actions.deleteAccount)}</button>
+              <button class="btn btn-danger" data-action="deleteMember" data-id="${m.id}" style="padding:6px 10px;font-size:12px;">${escapeHtml(teamTranslations.actions.deleteAccount)}</button>
             ` : (m.id === me.id ? `
-              <button class="btn btn-danger" data-action="deleteSelf" data-id="${m.id}" style="padding:6px 10px;font-size:12px;background:#991b1b;color:#fff;border-color:#991b1b;">${escapeHtml(teamTranslations.actions.deleteMyAccount)}</button>
-            ` : `<span class="text-xs text-zen-400">${escapeHtml(teamTranslations.actions.noAccess)}</span>`)}
+              <button class="btn btn-danger" data-action="deleteSelf" data-id="${m.id}" style="padding:6px 10px;font-size:12px;">${escapeHtml(teamTranslations.actions.deleteMyAccount)}</button>
+            ` : `<span class="text-xs text-zen-500">${escapeHtml(teamTranslations.actions.noAccess)}</span>`)}
           </td>
         `;
         membersTbody.appendChild(tr);
@@ -486,11 +489,13 @@
 
       invites.forEach(inv => {
         const expires = formatDate(inv.expires_at);
+        // An expired invite stays listed: Resend makes it valid for 7 more days
+        const expired = new Date(inv.expires_at) < new Date();
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${escapeHtml(inv.email)}</td>
           <td><span class="badge badge-role">${escapeHtml(tRoleName(inv.role))}</span></td>
-          <td class="text-zen-500">${escapeHtml(expires)}</td>
+          <td class="${expired ? 'text-amber-700' : 'text-zen-500'}">${escapeHtml(expired ? teamTranslations.actions.expiredOn.replace('{{date}}', expires) : expires)}</td>
           <td>
             <button class="btn btn-secondary" data-action="resendInvite" data-id="${inv.id}" style="padding:6px 10px;font-size:12px;">${escapeHtml(teamTranslations.actions.resend)}</button>
             <button class="btn btn-danger" data-action="revokeInvite" data-id="${inv.id}" style="padding:6px 10px;font-size:12px;">${escapeHtml(teamTranslations.actions.revoke)}</button>

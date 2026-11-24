@@ -5,16 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('analytics.title') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <!-- Chart.js for modern charts (served locally) -->
   <script src="/js/vendor/chart.umd.js"></script>
+  <script>
+    // Charts appear without animation for people who asked for less motion
+    if (window.Chart && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      Chart.defaults.animation = false;
+    }
+  </script>
   <!-- jsPDF for PDF generation (served locally) -->
   <script src="/js/vendor/jspdf.umd.min.js"></script>
   <!-- Noto Sans font for jsPDF (Unicode support for Turkish, Arabic, etc.) -->
   <script src="/fonts/noto-sans-jspdf.js"></script>
-  <!-- html2canvas for capturing charts (served locally) -->
-  <script src="/js/vendor/html2canvas.min.js"></script>
   <style>
     :root {
       --gryffi-bg: #ecf2eb;
@@ -25,6 +31,9 @@
     /* Analytics Tabs - Consistent with System Settings */
     .analytics-tabs {
       display: flex;
+      /* Longer labels (Dutch, German) wrap to a second row instead of
+         running past the edge; on phones the row scrolls (see below) */
+      flex-wrap: wrap;
       gap: 4px;
       margin-bottom: 24px;
       padding: 4px;
@@ -36,11 +45,11 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 20px;
+      padding: 12px 14px;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 500;
-      color: #6b7280;
+      color: #5b6b80;
       background: transparent;
       border: none;
       cursor: pointer;
@@ -120,7 +129,7 @@
     }
     .empty-state-improved p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       max-width: 360px;
       margin: 0 auto 20px;
       line-height: 1.5;
@@ -159,6 +168,37 @@
       padding: 24px;
     }
     
+    .poll-filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      max-width: 520px;
+    }
+    .poll-filter label {
+      flex-shrink: 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: #334155;
+    }
+    .poll-card-empty summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 4px 12px;
+      padding: 14px 18px;
+      cursor: pointer;
+      list-style-position: inside;
+    }
+    .poll-empty-question {
+      font-size: 15px;
+      font-weight: 500;
+      color: #1f2937;
+    }
+    .poll-empty-meta {
+      font-size: 13px;
+      color: #5b6b80;
+    }
     .poll-card {
       background: white;
       border-radius: 12px;
@@ -179,7 +219,7 @@
       gap: 6px;
       padding: 0;
       background: transparent;
-      color: #64748b;
+      color: #5b6b80;
       font-size: 13px;
       font-weight: 500;
       margin-bottom: 6px;
@@ -255,7 +295,7 @@
       align-items: center;
       gap: 6px;
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
     }
     
     .poll-meta-item svg {
@@ -295,7 +335,7 @@
       border-radius: 10px;
       font-size: 11px;
       font-weight: 600;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.4px;
     }
     
@@ -306,7 +346,7 @@
     
     .form-submission-badge.public {
       background: rgba(59, 130, 246, 0.1);
-      color: #2563eb;
+      color: #1d4ed8;
     }
     
     .form-submission-responses {
@@ -353,7 +393,7 @@
     
     .form-submission-file-meta {
       font-size: 12px;
-      color: #94a3b8;
+      color: #5b6b80;
     }
     
     .form-file-download-btn {
@@ -401,7 +441,7 @@
     
     .empty-state-text {
       font-size: 14px;
-      color: #64748b;
+      color: #5b6b80;
     }
     
     /* Usage Section - same style as subscription page */
@@ -447,7 +487,7 @@
     
     .usage-item-value {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
     }
     
     .usage-bar {
@@ -530,7 +570,7 @@
     
     .report-card-desc {
       font-size: 14px;
-      color: #64748b;
+      color: #5b6b80;
       margin: 0;
     }
     
@@ -550,7 +590,7 @@
       display: block;
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       margin-bottom: 8px;
     }
     
@@ -587,7 +627,7 @@
       left: 14px;
       width: 18px;
       height: 18px;
-      color: #94a3b8;
+      color: #5b6b80;
       pointer-events: none;
     }
     
@@ -609,7 +649,7 @@
     }
     
     .report-search-input::placeholder {
-      color: #94a3b8;
+      color: #5b6b80;
     }
     
     .report-search-results {
@@ -693,7 +733,7 @@
     
     .search-result-meta {
       font-size: 12px;
-      color: #94a3b8;
+      color: #5b6b80;
     }
     
     .search-result-type {
@@ -716,7 +756,7 @@
     .search-no-results {
       padding: 20px 16px;
       text-align: center;
-      color: #94a3b8;
+      color: #5b6b80;
       font-size: 14px;
     }
     
@@ -742,7 +782,7 @@
       border: none;
       padding: 4px;
       cursor: pointer;
-      color: #94a3b8;
+      color: #5b6b80;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -912,7 +952,7 @@
       background: #f1f5f9;
       border-radius: 8px;
       cursor: pointer;
-      color: #64748b;
+      color: #5b6b80;
       transition: all 0.2s ease;
     }
     
@@ -1007,8 +1047,8 @@
     .report-kpi-label {
       font-size: 12px;
       font-weight: 500;
-      color: #64748b;
-      text-transform: uppercase;
+      color: #5b6b80;
+      text-transform: none;
       letter-spacing: 0.5px;
     }
     
@@ -1020,7 +1060,7 @@
     
     .report-kpi-trend.positive { color: var(--gryffi-accent); }
     .report-kpi-trend.negative { color: #ef4444; }
-    .report-kpi-trend.neutral { color: #64748b; }
+    .report-kpi-trend.neutral { color: #5b6b80; }
     
     .report-kpi-grid-6 {
       grid-template-columns: repeat(6, 1fr);
@@ -1057,7 +1097,7 @@
     
     .report-info-table td:first-child {
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       width: 120px;
     }
     
@@ -1241,7 +1281,7 @@
       border-top: 1px solid #e5e7eb;
       text-align: center;
       font-size: 12px;
-      color: #94a3b8;
+      color: #5b6b80;
     }
     
     /* Loading state */
@@ -1251,7 +1291,7 @@
       align-items: center;
       justify-content: center;
       padding: 60px 20px;
-      color: #64748b;
+      color: #5b6b80;
     }
     
     .report-loading-spinner {
@@ -1364,7 +1404,7 @@
     }
     .kpi-label {
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
       margin-top: 4px;
     }
     .kpi-trend {
@@ -1413,8 +1453,8 @@
       padding: 12px 16px;
       font-size: 12px;
       font-weight: 600;
-      color: #6b7280;
-      text-transform: uppercase;
+      color: #5b6b80;
+      text-transform: none;
       letter-spacing: 0.05em;
       border-bottom: 1px solid #e5e7eb;
       background: #f9fafb;
@@ -1430,7 +1470,7 @@
     }
     .analytics-table .loading-cell {
       text-align: center;
-      color: #9ca3af;
+      color: #5b6b80;
       padding: 40px;
     }
     .table-responsive {
@@ -1447,7 +1487,7 @@
     .heatmap-cell.good { background: rgba(5, 150, 105, 0.15); color: #059669; }
     .heatmap-cell.warning { background: rgba(245, 158, 11, 0.15); color: #d97706; }
     .heatmap-cell.bad { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
-    .heatmap-cell.neutral { background: #f3f4f6; color: #6b7280; }
+    .heatmap-cell.neutral { background: #f3f4f6; color: #5b6b80; }
     
     /* Funnel Container */
     .funnel-container {
@@ -1510,7 +1550,7 @@
       transform: translateY(-50%);
       width: 18px;
       height: 18px;
-      color: #9ca3af;
+      color: #5b6b80;
     }
     .search-input-wrapper input {
       padding: 8px 12px 8px 40px;
@@ -1593,7 +1633,7 @@
     }
     .journey-replay-title p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       margin: 0;
     }
     .journey-replay-summary {
@@ -1615,8 +1655,8 @@
     }
     .replay-stat-label {
       font-size: 11px;
-      color: #6b7280;
-      text-transform: uppercase;
+      color: #5b6b80;
+      text-transform: none;
       letter-spacing: 0.5px;
     }
     
@@ -1723,7 +1763,7 @@
     }
     .step-title-area span {
       font-size: 12px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     
     .step-duration-bar {
@@ -1734,7 +1774,7 @@
     }
     .duration-label {
       font-size: 12px;
-      color: #6b7280;
+      color: #5b6b80;
       min-width: 45px;
       text-align: right;
     }
@@ -1776,7 +1816,7 @@
     .step-badge.poll { background: #fef3c7; color: #92400e; }
     
     .step-expand-icon {
-      color: #9ca3af;
+      color: #5b6b80;
       transition: transform 0.2s;
       flex-shrink: 0;
       width: 20px;
@@ -1804,7 +1844,7 @@
       font-size: 12px;
       font-weight: 600;
       color: #374151;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
       display: flex;
@@ -1829,7 +1869,7 @@
     }
     .detail-item-label {
       font-size: 11px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     
     .quiz-questions {
@@ -1942,7 +1982,7 @@
     .modal-close svg {
       width: 18px;
       height: 18px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .modal-close:hover {
       background: #e5e7eb;
@@ -1966,7 +2006,7 @@
       font-weight: 500;
       opacity: 0.9;
       margin: 0 0 16px 0;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.05em;
     }
     .benchmark-grid {
@@ -2023,7 +2063,7 @@
     .vs-label {
       font-size: 14px;
       font-weight: 600;
-      color: #9ca3af;
+      color: #5b6b80;
     }
     
     /* User Detail */
@@ -2053,7 +2093,7 @@
     }
     .user-info p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       margin: 0;
     }
     
@@ -2092,7 +2132,7 @@
     .timeline-item.quiz::before { background: #a855f7; }
     .timeline-date {
       font-size: 12px;
-      color: #9ca3af;
+      color: #5b6b80;
       margin-bottom: 4px;
     }
     .timeline-content {
@@ -2108,10 +2148,10 @@
       font-size: 12px;
       font-weight: 500;
     }
-    .badge-success { background: rgba(5, 150, 105, 0.1); color: #059669; }
-    .badge-warning { background: rgba(245, 158, 11, 0.1); color: #d97706; }
-    .badge-danger { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
-    .badge-info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .badge-success { background: rgba(5, 150, 105, 0.1); color: #047857; }
+    .badge-warning { background: rgba(245, 158, 11, 0.1); color: #b45309; }
+    .badge-danger { background: rgba(220, 38, 38, 0.1); color: #b91c1c; }
+    .badge-info { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
     
     /* Responsive */
     @media (max-width: 1024px) {
@@ -2149,14 +2189,25 @@
       }
     }
   </style>
+  <script>
+    // Polls: show one journey at a time
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('pollJourneyFilter')?.addEventListener('change', (e) => {
+        const value = e.target.value;
+        document.querySelectorAll('#tab-polls [data-poll-journey]').forEach(card => {
+          card.hidden = !!value && card.getAttribute('data-poll-journey') !== value;
+        });
+      });
+    });
+  </script>
   <script src="/js/app.js"></script>
 </head>
-<body class="bg-zen-100">
+<body class="bg-gryffi-bg">
   <%- include('../partials/sidebar') %>
   <%- include('../partials/help-modal') %>
   <%- include('../partials/support-modal') %>
   
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
@@ -2231,7 +2282,7 @@
           <div class="analytics-section-header">
             <h2><%= t('analytics.overview.journeyPerformance') %></h2>
             <div class="date-range-selector">
-              <select id="overviewDateRange">
+              <select id="overviewDateRange" aria-label="<%= t('analytics.dateRange.label') %>">
                 <option value="7"><%= t('analytics.dateRange.last7days') %></option>
                 <option value="30" selected><%= t('analytics.dateRange.last30days') %></option>
                 <option value="90"><%= t('analytics.dateRange.last90days') %></option>
@@ -2255,7 +2306,7 @@
               </div>
               <div class="kpi-content">
                 <span class="kpi-value" id="kpiCompletionRate">-</span>
-                <span class="kpi-label"><%= t('analytics.kpi.completionRate') %></span>
+                <span class="kpi-label"><%= t('analytics.kpi.completionRate') %> <span class="tip"><button type="button" class="tip-btn" data-tip="<%= t('analytics.tips.completionRate.text') %>" data-tip-key="completionRate" data-tip-article="analytics-overview" aria-label="<%= t('builder.tips.whatIs', { label: t('analytics.tips.completionRate.label') }) %>" aria-expanded="false">?</button></span></span>
               </div>
             </div>
             <div class="kpi-card">
@@ -2264,7 +2315,7 @@
               </div>
               <div class="kpi-content">
                 <span class="kpi-value" id="kpiAvgDuration">-</span>
-                <span class="kpi-label"><%= t('analytics.kpi.avgDuration') %></span>
+                <span class="kpi-label"><%= t('analytics.kpi.avgDuration') %> <span class="tip"><button type="button" class="tip-btn" data-tip="<%= t('analytics.tips.avgDuration.text') %>" data-tip-key="avgDuration" data-tip-article="analytics-overview" aria-label="<%= t('builder.tips.whatIs', { label: t('analytics.tips.avgDuration.label') }) %>" aria-expanded="false">?</button></span></span>
               </div>
             </div>
             <div class="kpi-card">
@@ -2273,7 +2324,7 @@
               </div>
               <div class="kpi-content">
                 <span class="kpi-value" id="kpiActiveUsers">-</span>
-                <span class="kpi-label"><%= t('analytics.kpi.activeUsers') %></span>
+                <span class="kpi-label"><%= t('analytics.kpi.activeUsers') %> <span class="tip"><button type="button" class="tip-btn" data-tip="<%= t('analytics.tips.activeUsers.text') %>" data-tip-key="activeUsers" data-tip-article="analytics-overview" aria-label="<%= t('builder.tips.whatIs', { label: t('analytics.tips.activeUsers.label') }) %>" aria-expanded="false">?</button></span></span>
               </div>
             </div>
           </div>
@@ -2314,7 +2365,7 @@
           <div class="usage-header">
             <div>
               <h2 style="font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 4px 0;"><%= t('subscription.usageCard.title') %></h2>
-              <p style="font-size: 14px; color: #64748b; margin: 0;">
+              <p style="font-size: 14px; color: #5b6b80; margin: 0;">
                 <%= t('subscription.currentPlan') %>: <strong><%= usageData.tier.displayName %></strong>
               </p>
             </div>
@@ -2363,7 +2414,7 @@
         <div class="analytics-section-header">
           <h2><%= t('analytics.journeys.title') %></h2>
           <div class="analytics-filters">
-            <select id="journeySelector">
+            <select id="journeySelector" aria-label="<%= t('analytics.filters.journey') %>">
               <option value=""><%= t('analytics.journeys.selectJourney') %></option>
               <% if (journeys && journeys.length > 0) { %>
                 <% journeys.forEach(j => { %>
@@ -2371,7 +2422,7 @@
                 <% }); %>
               <% } %>
             </select>
-            <select id="journeyDateRange">
+            <select id="journeyDateRange" aria-label="<%= t('analytics.dateRange.label') %>">
               <option value="7"><%= t('analytics.dateRange.last7days') %></option>
               <option value="30" selected><%= t('analytics.dateRange.last30days') %></option>
               <option value="90"><%= t('analytics.dateRange.last90days') %></option>
@@ -2470,7 +2521,7 @@
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               <input type="text" id="userSearch" placeholder="<%= t('analytics.users.searchPlaceholder') %>">
             </div>
-            <select id="userGroupFilter">
+            <select id="userGroupFilter" aria-label="<%= t('analytics.filters.group') %>">
               <option value=""><%= t('analytics.users.allGroups') %></option>
             </select>
           </div>
@@ -2540,7 +2591,7 @@
         <div class="analytics-section-header">
           <h2><%= t('analytics.groups.title') %></h2>
           <div class="analytics-filters">
-            <select id="groupsDateRange">
+            <select id="groupsDateRange" aria-label="<%= t('analytics.dateRange.label') %>">
               <option value="7"><%= t('analytics.dateRange.last7days') %></option>
               <option value="30" selected><%= t('analytics.dateRange.last30days') %></option>
               <option value="90"><%= t('analytics.dateRange.last90days') %></option>
@@ -2641,12 +2692,43 @@
                 </a>
               </div>
             <% } else { %>
+              <%
+                // One journey at a time: the one with the latest vote first. Polls without votes are folded.
+                const pollJourneys = [...new Set(polls.map(p => p.journey_title))];
+                const latestPoll = polls.filter(p => p.last_vote).sort((a, b) => new Date(b.last_vote) - new Date(a.last_vote))[0];
+                const defaultPollJourney = pollJourneys.length > 1 && latestPoll ? latestPoll.journey_title : '';
+              %>
+              <% if (pollJourneys.length > 1) { %>
+                <div class="poll-filter">
+                  <label for="pollJourneyFilter"><%= t('analytics.polls.showFor') %></label>
+                  <select id="pollJourneyFilter" class="report-select">
+                    <option value=""><%= t('analytics.polls.allJourneys') %></option>
+                    <% pollJourneys.forEach(title => { %>
+                      <option value="<%= title %>" <%= title === defaultPollJourney ? 'selected' : '' %>><%= title %></option>
+                    <% }) %>
+                  </select>
+                </div>
+              <% } %>
               <% polls.forEach(poll => { %>
                 <% 
                   const options = poll.basic_props?.options || [];
                   const totalVotes = parseInt(poll.total_votes) || 0;
+                  const pollHidden = defaultPollJourney && poll.journey_title !== defaultPollJourney;
                 %>
-                <div class="poll-card">
+                <% if (totalVotes === 0) { %>
+                <details class="poll-card poll-card-empty" data-poll-journey="<%= poll.journey_title %>"<%= pollHidden ? ' hidden' : '' %>>
+                  <summary>
+                    <span class="poll-empty-question"><%= poll.basic_props?.question || poll.step_title %></span>
+                    <span class="poll-empty-meta"><%= poll.journey_title %> · <%= t('analytics.polls.noVotesYet') %></span>
+                  </summary>
+                  <div class="poll-body">
+                    <% options.forEach(opt => { %>
+                      <div class="poll-option"><span class="poll-option-text"><%= opt.text %></span><span class="poll-option-count">0</span></div>
+                    <% }); %>
+                  </div>
+                </details>
+                <% return; } %>
+                <div class="poll-card" data-poll-journey="<%= poll.journey_title %>"<%= pollHidden ? ' hidden' : '' %>>
                   <div class="poll-header">
                     <span class="poll-journey-badge">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2696,16 +2778,16 @@
               <div class="archived-polls-section" style="margin-top: 32px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                   <div style="display: flex; align-items: center; gap: 12px;">
-                    <svg style="width: 20px; height: 20px; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg style="width: 20px; height: 20px; color: #5b6b80;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                     </svg>
                     <div>
-                      <h3 style="font-size: 16px; font-weight: 600; color: #64748b;"><%= t('analytics.polls.archived') %></h3>
-                      <p style="font-size: 12px; color: #94a3b8;"><%= t('analytics.polls.archivedDescription') %></p>
+                      <h3 style="font-size: 16px; font-weight: 600; color: #5b6b80;"><%= t('analytics.polls.archived') %></h3>
+                      <p style="font-size: 12px; color: #5b6b80;"><%= t('analytics.polls.archivedDescription') %></p>
                     </div>
                   </div>
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #64748b; cursor: pointer;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5b6b80; cursor: pointer;">
                       <input type="checkbox" id="selectAllArchivedPolls" style="accent-color: var(--gryffi-primary);">
                       <%= t('analytics.polls.selectAll') %>
                     </label>
@@ -2739,13 +2821,13 @@
                                 <%= t('analytics.polls.restorable') %>
                               </span>
                             <% } else { %>
-                              <span style="font-size: 10px; padding: 2px 8px; background: #e2e8f0; color: #64748b; border-radius: 4px;"><%= t('analytics.polls.permanent') %></span>
+                              <span style="font-size: 10px; padding: 2px 8px; background: #e2e8f0; color: #5b6b80; border-radius: 4px;"><%= t('analytics.polls.permanent') %></span>
                             <% } %>
-                            <span style="font-size: 11px; color: #94a3b8;"><%= displayJourneyTitle %></span>
+                            <span style="font-size: 11px; color: #5b6b80;"><%= displayJourneyTitle %></span>
                           </div>
                           <h4 style="font-size: 14px; font-weight: 500; color: #475569;"><%= poll.basic_props && poll.basic_props.question ? poll.basic_props.question : 'Poll' %></h4>
                           <% if (poll.archived_at) { %>
-                            <p style="font-size: 11px; color: #94a3b8; margin-top: 2px;">
+                            <p style="font-size: 11px; color: #5b6b80; margin-top: 2px;">
                               <%= t('analytics.polls.archivedOn') %> <%= new Date(poll.archived_at).toLocaleDateString(language) %>
                               <% if (isRestorable) { %>
                                 <span style="color: #166534;">• <%= t('analytics.polls.willRestoreWith') %></span>
@@ -2754,8 +2836,8 @@
                           <% } %>
                         </div>
                         <div style="text-align: right;">
-                          <p style="font-size: 18px; font-weight: 700; color: #64748b;"><%= archivedTotalVotes %></p>
-                          <p style="font-size: 11px; color: #94a3b8;"><%= t('analytics.polls.totalResponses') %></p>
+                          <p style="font-size: 18px; font-weight: 700; color: #5b6b80;"><%= archivedTotalVotes %></p>
+                          <p style="font-size: 11px; color: #5b6b80;"><%= t('analytics.polls.totalResponses') %></p>
                         </div>
                       </div>
                     </div>
@@ -2770,16 +2852,16 @@
                         <div style="margin-bottom: 12px;">
                           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <span style="font-size: 13px; color: #475569;"><%= optText %></span>
-                            <span style="font-size: 13px; color: #64748b; font-weight: 500;"><%= voteCount %> (<%= percentage %>%)</span>
+                            <span style="font-size: 13px; color: #5b6b80; font-weight: 500;"><%= voteCount %> (<%= percentage %>%)</span>
                           </div>
                           <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                            <div style="height: 100%; width: <%= percentage %>%; background: #94a3b8; border-radius: 4px; transition: width 0.3s;"></div>
+                            <div style="height: 100%; width: <%= percentage %>%; background: #5b6b80; border-radius: 4px; transition: width 0.3s;"></div>
                           </div>
                         </div>
                       <% }); %>
                       
                       <% if (poll.last_vote) { %>
-                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; display: flex; align-items: center; gap: 6px; color: #94a3b8; font-size: 12px;">
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; display: flex; align-items: center; gap: 6px; color: #5b6b80; font-size: 12px;">
                           <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                           </svg>
@@ -2827,42 +2909,42 @@
                     </span>
                     <h3 class="poll-question" style="color: var(--gryffi-primary);"><%= reward.title || reward.step_title %></h3>
                     <% if (reward.description) { %>
-                      <p style="color: #64748b; font-size: 14px; margin-top: 4px;"><%= reward.description %></p>
+                      <p style="color: #5b6b80; font-size: 14px; margin-top: 4px;"><%= reward.description %></p>
                     <% } %>
                   </div>
                   <div class="reward-body" style="padding: 20px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 16px;">
                       <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
                         <p style="font-size: 24px; font-weight: 700; color: var(--gryffi-primary);"><%= reward.claimed_count %></p>
-                        <p style="font-size: 12px; color: #64748b;"><%= t('analytics.rewards.claimed') %></p>
+                        <p style="font-size: 12px; color: #5b6b80;"><%= t('analytics.rewards.claimed') %></p>
                       </div>
                       <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
-                        <p style="font-size: 24px; font-weight: 700; color: #64748b;">
+                        <p style="font-size: 24px; font-weight: 700; color: #5b6b80;">
                           <% if (reward.max_recipients) { %>
-                            <%= reward.max_recipients - reward.claimed_count %>
+                            <%= Math.max(0, reward.max_recipients - reward.claimed_count) %>
                           <% } else if (reward.is_random_codes) { %>
                             ∞
                           <% } else { %>
-                            <%= reward.total_codes - reward.claimed_count %>
+                            <%= Math.max(0, reward.total_codes - reward.claimed_count) %>
                           <% } %>
                         </p>
-                        <p style="font-size: 12px; color: #64748b;"><%= t('analytics.rewards.remaining') %></p>
+                        <p style="font-size: 12px; color: #5b6b80;"><%= t('analytics.rewards.remaining') %></p>
                       </div>
                       <% if (reward.valid_until) { %>
                         <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
-                          <p style="font-size: 12px; color: #64748b; margin-bottom: 4px;"><%= t('analytics.rewards.validUntil') %></p>
-                          <p style="font-size: 14px; font-weight: 600; color: #64748b;"><%= new Date(reward.valid_until).toLocaleDateString(language) %></p>
+                          <p style="font-size: 12px; color: #5b6b80; margin-bottom: 4px;"><%= t('analytics.rewards.validUntil') %></p>
+                          <p style="font-size: 14px; font-weight: 600; color: #5b6b80;"><%= new Date(reward.valid_until).toLocaleDateString(language) %></p>
                         </div>
                       <% } %>
                     </div>
                     
                     <% if (reward.redemption_location) { %>
-                      <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">
+                      <p style="font-size: 13px; color: #5b6b80; margin-bottom: 8px;">
                         <strong><%= t('analytics.rewards.redeemAt') %>:</strong> <%= reward.redemption_location %>
                       </p>
                     <% } %>
                     <% if (reward.terms_conditions) { %>
-                      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 16px;">
+                      <p style="font-size: 12px; color: #5b6b80; margin-bottom: 16px;">
                         <strong><%= t('analytics.rewards.terms') %>:</strong> <%= reward.terms_conditions %>
                       </p>
                     <% } %>
@@ -2890,12 +2972,12 @@
             <% if (archivedRewards && archivedRewards.length > 0) { %>
               <div class="archived-rewards-section" style="margin-top: 32px;">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
-                  <svg style="width: 20px; height: 20px; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg style="width: 20px; height: 20px; color: #5b6b80;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                   </svg>
                   <div>
-                    <h3 style="font-size: 16px; font-weight: 600; color: #64748b;"><%= t('analytics.rewards.archived') %></h3>
-                    <p style="font-size: 12px; color: #94a3b8;"><%= t('analytics.rewards.archivedDescription') %></p>
+                    <h3 style="font-size: 16px; font-weight: 600; color: #5b6b80;"><%= t('analytics.rewards.archived') %></h3>
+                    <p style="font-size: 12px; color: #5b6b80;"><%= t('analytics.rewards.archivedDescription') %></p>
                   </div>
                 </div>
                 
@@ -2912,18 +2994,18 @@
                             <%= t('analytics.rewards.restorable') %>
                           </span>
                         <% } else { %>
-                          <span class="poll-journey-badge" style="background: #e2e8f0; color: #64748b; font-size: 10px;">
+                          <span class="poll-journey-badge" style="background: #e2e8f0; color: #5b6b80; font-size: 10px;">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 10px; height: 10px;">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                             </svg>
                             <%= t('analytics.rewards.permanent') %>
                           </span>
                         <% } %>
-                        <span style="font-size: 11px; color: #94a3b8;"><%= reward.journey_title %></span>
+                        <span style="font-size: 11px; color: #5b6b80;"><%= reward.journey_title %></span>
                       </div>
-                      <h3 style="font-size: 15px; font-weight: 600; color: #64748b;"><%= reward.title || reward.step_title %></h3>
+                      <h3 style="font-size: 15px; font-weight: 600; color: #5b6b80;"><%= reward.title || reward.step_title %></h3>
                       <% if (reward.archived_at) { %>
-                        <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+                        <p style="font-size: 11px; color: #5b6b80; margin-top: 4px;">
                           <%= t('analytics.rewards.archivedOn') %> <%= new Date(reward.archived_at).toLocaleDateString(language) %>
                           <% if (rewardIsRestorable) { %>
                             <span style="color: #166534;">• <%= t('analytics.rewards.willRestoreWith') %></span>
@@ -2934,25 +3016,25 @@
                     <div class="reward-body" style="padding: 16px;">
                       <div style="display: flex; gap: 24px; margin-bottom: 12px;">
                         <div>
-                          <p style="font-size: 20px; font-weight: 700; color: #64748b;"><%= reward.claimed_count %></p>
-                          <p style="font-size: 11px; color: #94a3b8;"><%= t('analytics.rewards.totalClaimed') %></p>
+                          <p style="font-size: 20px; font-weight: 700; color: #5b6b80;"><%= reward.claimed_count %></p>
+                          <p style="font-size: 11px; color: #5b6b80;"><%= t('analytics.rewards.totalClaimed') %></p>
                         </div>
                         <% if (reward.valid_until) { %>
                           <div>
-                            <p style="font-size: 11px; color: #94a3b8;"><%= t('analytics.rewards.wasValidUntil') %></p>
-                            <p style="font-size: 13px; color: #64748b;"><%= new Date(reward.valid_until).toLocaleDateString(language) %></p>
+                            <p style="font-size: 11px; color: #5b6b80;"><%= t('analytics.rewards.wasValidUntil') %></p>
+                            <p style="font-size: 13px; color: #5b6b80;"><%= new Date(reward.valid_until).toLocaleDateString(language) %></p>
                           </div>
                         <% } %>
                       </div>
                       
                       <div style="display: flex; gap: 8px;">
-                        <button class="btn-view-codes" data-reward-id="<%= reward.id %>" style="padding: 6px 12px; background: #e2e8f0; color: #64748b; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <button class="btn-view-codes" data-reward-id="<%= reward.id %>" style="padding: 6px 12px; background: #e2e8f0; color: #5b6b80; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                           <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                           </svg>
                           <%= t('analytics.rewards.viewCodes') %>
                         </button>
-                        <button class="btn-download-codes" data-reward-id="<%= reward.id %>" data-reward-title="<%= reward.title || '' %>" style="padding: 6px 12px; background: white; color: #64748b; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <button class="btn-download-codes" data-reward-id="<%= reward.id %>" data-reward-title="<%= reward.title || '' %>" style="padding: 6px 12px; background: white; color: #5b6b80; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                           <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                           </svg>
@@ -2979,13 +3061,13 @@
                 <p class="text-sm text-zen-500 mt-1"><%= t('analytics.forms.subtitle') %></p>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <select id="formsJourneyFilter" class="replay-select" style="display: none; min-width: 180px;">
+                <select id="formsJourneyFilter" aria-label="<%= t('analytics.filters.journey') %>" class="replay-select" style="display: none; min-width: 180px;">
                   <option value=""><%= t('analytics.forms.allJourneys') %></option>
                 </select>
-                <select id="formsSubmitterFilter" class="replay-select" style="display: none; min-width: 180px;">
+                <select id="formsSubmitterFilter" aria-label="<%= t('analytics.filters.submitter') %>" class="replay-select" style="display: none; min-width: 180px;">
                   <option value=""><%= t('analytics.forms.allSubmitters') %></option>
                 </select>
-                <select id="formsSortOrder" class="replay-select" style="display: none; min-width: 170px;">
+                <select id="formsSortOrder" aria-label="<%= t('analytics.filters.sortOrder') %>" class="replay-select" style="display: none; min-width: 170px;">
                   <option value="date_desc"><%= t('analytics.forms.sortNewest') %></option>
                   <option value="date_asc"><%= t('analytics.forms.sortOldest') %></option>
                   <option value="submitter"><%= t('analytics.forms.sortBySubmitter') %></option>
@@ -2995,10 +3077,10 @@
             </div>
           </div>
           <div class="card-body">
-            <div id="formSubmissionsLoading" style="text-align: center; padding: 40px; color: #94a3b8;">
+            <div id="formSubmissionsLoading" style="text-align: center; padding: 40px; color: #5b6b80;">
               <%= t('common.loading') %>
             </div>
-            <div id="formSubmissionsNoResults" style="display: none; text-align: center; padding: 40px; color: #94a3b8;">
+            <div id="formSubmissionsNoResults" style="display: none; text-align: center; padding: 40px; color: #5b6b80;">
               <%= t('analytics.forms.noFilterResults') %>
             </div>
             <div id="formSubmissionsEmpty" class="empty-state-improved" style="display: none;">
@@ -3038,7 +3120,7 @@
             </div>
             <div class="report-card-body">
               <div class="report-select-group">
-                <label class="report-select-label"><%= t('analytics.reports.selectJourney') %></label>
+                <label class="report-select-label" for="journeyReportSelect"><%= t('analytics.reports.selectJourney') %></label>
                 <select id="journeyReportSelect" class="report-select">
                   <option value=""><%= t('analytics.reports.chooseJourney') %></option>
                 </select>
@@ -3074,7 +3156,7 @@
             </div>
             <div class="report-card-body">
               <div class="report-select-group">
-                <label class="report-select-label"><%= t('analytics.reports.selectPeriod') %></label>
+                <label class="report-select-label" for="periodReportSelect"><%= t('analytics.reports.selectPeriod') %></label>
                 <select id="periodReportSelect" class="report-select">
                   <option value="7"><%= t('analytics.reports.periods.week') %></option>
                   <option value="30" selected><%= t('analytics.reports.periods.month') %></option>
@@ -3161,7 +3243,7 @@
             </div>
             <div class="report-card-body">
               <div class="report-select-group">
-                <label class="report-select-label"><%= t('analytics.reports.selectPeriod') %></label>
+                <label class="report-select-label" for="engagementReportSelect"><%= t('analytics.reports.selectPeriod') %></label>
                 <select id="engagementReportSelect" class="report-select">
                   <option value="7"><%= t('analytics.reports.periods.week') %></option>
                   <option value="30" selected><%= t('analytics.reports.periods.month') %></option>
@@ -3226,12 +3308,12 @@
   </main>
   
   <!-- Reward Codes Modal -->
-  <div id="rewardCodesModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div id="rewardCodesModal" data-dialog-manual role="dialog" aria-modal="true" aria-labelledby="rewardCodesModalTitle" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
     <div style="background: white; border-radius: 16px; max-width: 700px; width: 90%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
       <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
         <h3 id="rewardCodesModalTitle" style="font-size: 18px; font-weight: 600; color: #0f172a;"><%= t('analytics.rewards.codesTitle') %></h3>
-        <button id="closeRewardCodesModal" style="background: none; border: none; cursor: pointer; padding: 4px;">
-          <svg style="width: 24px; height: 24px; color: #64748b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="button" id="closeRewardCodesModal" aria-label="<%= t('common.close') %>" style="background: none; border: none; cursor: pointer; padding: 4px;">
+          <svg style="width: 24px; height: 24px; color: #5b6b80;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
@@ -3316,7 +3398,75 @@
       week: <%-safeJson(t("analytics.reports.periods.week"))%>,
       month: <%-safeJson(t("analytics.reports.periods.month"))%>,
       quarter: <%-safeJson(t("analytics.reports.periods.quarter"))%>,
-      year: <%-safeJson(t("analytics.reports.periods.year"))%>
+      year: <%-safeJson(t("analytics.reports.periods.year"))%>,
+      // Labels the PDF reports and engagement tables read directly
+      activeUsers: <%-safeJson(t("analytics.kpi.activeUsers"))%>,
+      email: <%-safeJson(t("team.members.table.email"))%>,
+      journeys: <%-safeJson(t("analytics.tabs.journeys"))%>,
+      score: <%-safeJson(t("analytics.replay.score"))%>,
+      totalTime: <%-safeJson(t("analytics.replay.totalTime"))%>,
+      aiChats: <%-safeJson(t("analytics.replay.chats"))%>,
+      inProgress: <%-safeJson(t("analytics.reports.inProgress"))%>,
+      createdAt: <%-safeJson(t("analytics.reports.createdAt"))%>,
+      videoViews: <%-safeJson(t("analytics.reports.videoViews"))%>,
+      avgChatDuration: <%-safeJson(t("analytics.reports.avgChatDuration"))%>,
+      avgQuizScore: <%-safeJson(t("analytics.reports.avgQuizScore"))%>,
+      bestScore: <%-safeJson(t("analytics.reports.bestScore"))%>,
+      quizAttempts: <%-safeJson(t("analytics.reports.quizAttempts"))%>,
+      topAiGuideSteps: <%-safeJson(t("analytics.reports.topAiGuideSteps"))%>,
+      topQuizzes: <%-safeJson(t("analytics.reports.topQuizzes"))%>,
+      topVideos: <%-safeJson(t("analytics.reports.topVideos"))%>,
+      videoCompletion: <%-safeJson(t("analytics.reports.videoCompletion"))%>,
+      videoEngagement: <%-safeJson(t("analytics.reports.videoEngagement"))%>,
+      videosWatched: <%-safeJson(t("analytics.reports.videosWatched"))%>,
+      reports: <%- safeJson({
+        aiChats: t('analytics.replay.chats'),
+        aiGuideStatistics: t('analytics.reports.aiGuideStatistics'),
+        aiGuideUsage: t('analytics.reports.aiGuideUsage'),
+        allAttempts: t('analytics.reports.allAttempts'),
+        attempts: t('analytics.reports.attempts'),
+        avgChatDuration: t('analytics.reports.avgChatDuration'),
+        avgDuration: t('analytics.reports.avgDuration'),
+        avgPerSession: t('analytics.reports.avgPerSession'),
+        avgQuizScore: t('analytics.reports.avgQuizScore'),
+        avgWatched: t('analytics.reports.avgWatched'),
+        bestScore: t('analytics.reports.bestScore'),
+        completionRate: t('analytics.reports.labels.completionRate'),
+        engagementMetrics: t('analytics.reports.engagementMetrics'),
+        engagementReport: t('analytics.reports.engagement.title'),
+        exportError: t('analytics.reports.exportError'),
+        firstSeen: t('analytics.reports.firstSeen'),
+        groupInfo: t('analytics.reports.groupInfo'),
+        groupPerformance: t('analytics.reports.groupPerformance'),
+        groupProgress: t('analytics.reports.groupProgress'),
+        inPeriod: t('analytics.reports.inPeriod'),
+        journeyActivity: t('analytics.reports.journeyActivity'),
+        messages: t('analytics.reports.messages'),
+        passRate: t('analytics.reports.passRate'),
+        perSession: t('analytics.reports.perSession'),
+        quizAttempts: t('analytics.reports.quizAttempts'),
+        quizPerformance: t('analytics.reports.quizPerformance'),
+        quizStatistics: t('analytics.reports.quizStatistics'),
+        scoreDistribution: t('analytics.reports.scoreDistribution'),
+        sessions: t('analytics.reports.sessions'),
+        topAiGuideSteps: t('analytics.reports.topAiGuideSteps'),
+        topPerformers: t('analytics.reports.topPerformers'),
+        topQuizzes: t('analytics.reports.topQuizzes'),
+        topVideos: t('analytics.reports.topVideos'),
+        totalAttempts: t('analytics.reports.totalAttempts'),
+        totalMessages: t('analytics.reports.totalMessages'),
+        totalSessions: t('analytics.reports.totalSessions'),
+        totalTime: t('analytics.replay.totalTime'),
+        totalViews: t('analytics.reports.totalViews'),
+        totalWatchTime: t('analytics.reports.totalWatchTime'),
+        uniqueUsers: t('analytics.reports.uniqueUsers'),
+        userInfo: t('analytics.reports.userInfo'),
+        userProgress: t('analytics.reports.userProgress.title'),
+        videoCompletion: t('analytics.reports.videoCompletion'),
+        videoEngagement: t('analytics.reports.videoEngagement'),
+        videoStatistics: t('analytics.reports.videoStatistics'),
+        videosWatched: t('analytics.reports.videosWatched')
+      }) %>
     };
     
     const language = '<%= language %>';
@@ -3837,7 +3987,7 @@
               <div class="user-avatar" style="width: 32px; height: 32px; font-size: 12px;">${(u.name || u.email || '?')[0].toUpperCase()}</div>
               <div>
                 <div style="font-weight: 500;">${escapeHtml(u.name || '-')}</div>
-                <div style="font-size: 12px; color: #6b7280;">${escapeHtml(u.email || '-')}</div>
+                <div style="font-size: 12px; color: #5b6b80;">${escapeHtml(u.email || '-')}</div>
               </div>
             </div>
           </td>
@@ -3938,7 +4088,7 @@
               <div class="timeline-content" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                   <strong>${escapeHtml(ja.journey_title)}</strong><br>
-                  <span style="font-size: 12px; color: #6b7280;">
+                  <span style="font-size: 12px; color: #5b6b80;">
                     ${ja.steps_completed || 0} <%= t("analytics.users.stepsCompleted") %>
                     ${ja.completions > 0 ? ' • <span class="badge badge-success"><%= t("analytics.users.completed") %></span>' : ''}
                   </span>
@@ -4143,7 +4293,7 @@
       if (step.quiz) {
         html += `
           <div class="detail-section">
-            <div class="detail-section-title">❓ <%= t("analytics.replay.quizResults") %></div>
+            <div class="detail-section-title"><%= t("analytics.replay.quizResults") %></div>
             <div class="detail-grid">
               <div class="detail-item">
                 <div class="detail-item-value">${step.quiz.correct_count}/${step.quiz.total_questions}</div>
@@ -4179,7 +4329,7 @@
       if (step.ai_chat && step.ai_chat.total_messages > 0) {
         html += `
           <div class="detail-section">
-            <div class="detail-section-title">🤖 <%= t("analytics.replay.aiGuide") %></div>
+            <div class="detail-section-title"><%= t("analytics.replay.aiGuide") %></div>
             <div class="detail-grid">
               <div class="detail-item">
                 <div class="detail-item-value">${step.ai_chat.total_messages}</div>
@@ -4198,7 +4348,7 @@
       if (step.video) {
         html += `
           <div class="detail-section">
-            <div class="detail-section-title">🎬 <%= t("analytics.replay.videoEngagement") %></div>
+            <div class="detail-section-title"><%= t("analytics.replay.videoEngagement") %></div>
             <div class="detail-grid">
               <div class="detail-item">
                 <div class="detail-item-value">${step.video.watch_percentage || 0}%</div>
@@ -4221,7 +4371,7 @@
       if (step.form) {
         html += `
           <div class="detail-section">
-            <div class="detail-section-title">📝 <%= t("analytics.replay.formSubmission") %></div>
+            <div class="detail-section-title"><%= t("analytics.replay.formSubmission") %></div>
             <div class="detail-grid">
               <div class="detail-item">
                 <div class="detail-item-value">${step.form.fields_filled}/${step.form.total_fields}</div>
@@ -4232,7 +4382,7 @@
                 <div class="detail-item-label"><%= t("analytics.replay.fillTime") %></div>
               </div>
               <div class="detail-item">
-                <div class="detail-item-value" style="color: ${step.form.submitted ? '#10b981' : '#6b7280'}">${step.form.submitted ? <%-safeJson(t("analytics.replay.submitted"))%> : <%-safeJson(t("analytics.replay.notSubmitted"))%>}</div>
+                <div class="detail-item-value" style="color: ${step.form.submitted ? '#10b981' : '#5b6b80'}">${step.form.submitted ? <%-safeJson(t("analytics.replay.submitted"))%> : <%-safeJson(t("analytics.replay.notSubmitted"))%>}</div>
                 <div class="detail-item-label"><%= t("analytics.replay.status") %></div>
               </div>
             </div>
@@ -4244,7 +4394,7 @@
       if (step.poll && step.poll.voted) {
         html += `
           <div class="detail-section">
-            <div class="detail-section-title">📊 <%= t("analytics.replay.pollVote") %></div>
+            <div class="detail-section-title"><%= t("analytics.replay.pollVote") %></div>
             <div class="detail-grid">
               <div class="detail-item">
                 <div class="detail-item-value">✓</div>
@@ -4255,7 +4405,7 @@
         `;
       }
       
-      return html || '<p style="padding: 12px; color: #6b7280; font-size: 13px;"><%= t("analytics.replay.noAdditionalData") %></p>';
+      return html || '<p style="padding: 12px; color: #5b6b80; font-size: 13px;"><%= t("analytics.replay.noAdditionalData") %></p>';
     }
     
     function toggleStepDetails(index) {
@@ -4431,7 +4581,7 @@
       let html = `
         <div style="margin-bottom: 20px;">
           <h4 style="font-size: 16px; font-weight: 600; margin: 0 0 4px;">${escapeHtml(group.name)}</h4>
-          <p style="color: #6b7280; font-size: 14px; margin: 0;">${group.total_users} <%= t("analytics.groups.members") %></p>
+          <p style="color: #5b6b80; font-size: 14px; margin: 0;">${group.total_users} <%= t("analytics.groups.members") %></p>
         </div>
       `;
       
@@ -4457,21 +4607,21 @@
       if (analytics.quiz_stats) {
         html += `
           <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-            <h5 style="font-size: 13px; font-weight: 600; margin: 0 0 12px; text-transform: uppercase; color: #6b7280;">
+            <h5 style="font-size: 13px; font-weight: 600; margin: 0 0 12px; text-transform: none; color: #5b6b80;">
               <%= t("analytics.groups.quizStats") %>
             </h5>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
               <div>
                 <div style="font-size: 20px; font-weight: 600; color: #0f172a;">${analytics.quiz_stats.avg_score ? Math.round(analytics.quiz_stats.avg_score) + '%' : '-'}</div>
-                <div style="font-size: 12px; color: #6b7280;"><%= t("analytics.groups.avgScore") %></div>
+                <div style="font-size: 12px; color: #5b6b80;"><%= t("analytics.groups.avgScore") %></div>
               </div>
               <div>
                 <div style="font-size: 20px; font-weight: 600; color: #0f172a;">${analytics.quiz_stats.pass_rate ? Math.round(analytics.quiz_stats.pass_rate) + '%' : '-'}</div>
-                <div style="font-size: 12px; color: #6b7280;"><%= t("analytics.groups.passRate") %></div>
+                <div style="font-size: 12px; color: #5b6b80;"><%= t("analytics.groups.passRate") %></div>
               </div>
               <div>
                 <div style="font-size: 20px; font-weight: 600; color: #0f172a;">${analytics.quiz_stats.total_attempts || 0}</div>
-                <div style="font-size: 12px; color: #6b7280;"><%= t("analytics.groups.totalAttempts") %></div>
+                <div style="font-size: 12px; color: #5b6b80;"><%= t("analytics.groups.totalAttempts") %></div>
               </div>
             </div>
           </div>
@@ -4480,7 +4630,7 @@
       
       // Leaderboard
       if (analytics.user_leaderboard && analytics.user_leaderboard.length > 0) {
-        html += `<h5 style="font-size: 13px; font-weight: 600; margin: 0 0 12px; text-transform: uppercase; color: #6b7280;"><%= t("analytics.groups.topPerformers") %></h5>`;
+        html += `<h5 style="font-size: 13px; font-weight: 600; margin: 0 0 12px; text-transform: none; color: #5b6b80;"><%= t("analytics.groups.topPerformers") %></h5>`;
         html += '<table class="analytics-table" style="font-size: 13px;">';
         html += '<thead><tr><th>#</th><th><%= t("analytics.table.user") %></th><th><%= t("analytics.table.completed") %></th><th><%= t("analytics.table.lastActivity") %></th></tr></thead>';
         html += '<tbody>';
@@ -4669,15 +4819,15 @@
       const responseRows = Object.entries(responses).map(([label, value]) => `
         <tr>
           <td>${escapeHtml(label)}</td>
-          <td>${value ? escapeHtml(displayValue(value)) : '<em style="color: #9ca3af;"><%= t("analytics.forms.notAnswered") %></em>'}</td>
+          <td>${value ? escapeHtml(displayValue(value)) : '<em style="color: #5b6b80;"><%= t("analytics.forms.notAnswered") %></em>'}</td>
         </tr>
       `).join('');
       
       const files = s.files || [];
       const filesHtml = files.length > 0 ? `
         <div style="padding: 4px 12px 12px 12px;">
-          <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin: 8px 0 2px 0;">
-            📎 <%= t("analytics.forms.uploadedFiles") %>
+          <div style="font-size: 12px; font-weight: 600; color: #5b6b80; text-transform: none; letter-spacing: 0.4px; margin: 8px 0 2px 0;">
+            <%= t("analytics.forms.uploadedFiles") %>
           </div>
           ${files.map(f => `
             <div class="form-submission-file">
@@ -4703,8 +4853,8 @@
         ? '<span class="form-submission-badge public"><%= t("analytics.forms.public") %></span>'
         : '<span class="form-submission-badge private"><%= t("analytics.forms.private") %></span>';
       const emailStatus = s.email_sent
-        ? '<span style="color: #16a34a;">✓ <%= t("analytics.forms.emailSent") %></span>'
-        : '<span style="color: #d97706;">⚠ <%= t("analytics.forms.emailNotSent") %></span>';
+        ? '<span style="color: #15803d;">✓ <%= t("analytics.forms.emailSent") %></span>'
+        : '<span style="color: #d97706;"><%= t("analytics.forms.emailNotSent") %></span>';
       
       return `
         <div class="form-submission-card">
@@ -5017,7 +5167,9 @@
         
         if (selectedIds.length === 0) return;
         
-        const confirmMsg = <%-safeJson(t("analytics.polls.deleteConfirm"))%>.replace('{{count}}', selectedIds.length);
+        const confirmMsg = (selectedIds.length === 1
+          ? <%-safeJson(t("analytics.polls.deleteConfirm_one"))%>
+          : <%-safeJson(t("analytics.polls.deleteConfirm_other"))%>).replace('{{count}}', selectedIds.length);
         if (!(await window.gryffi.modal.confirm(confirmMsg))) return;
         
         try {
@@ -6131,7 +6283,7 @@
         // Top Quizzes
         if (data.quiz?.topQuizzes && data.quiz.topQuizzes.length > 0) {
           html += `
-            <h4 style="font-size: 14px; font-weight: 500; color: #64748b; margin: 20px 0 12px 0;">${translations.topQuizzes || 'Most Attempted Quizzes'}</h4>
+            <h4 style="font-size: 14px; font-weight: 500; color: #5b6b80; margin: 20px 0 12px 0;">${translations.topQuizzes || 'Most Attempted Quizzes'}</h4>
             <div class="report-bar-chart">
           `;
           data.quiz.topQuizzes.slice(0, 5).forEach(q => {
@@ -6181,7 +6333,7 @@
         // Top Videos
         if (data.video?.topVideos && data.video.topVideos.length > 0) {
           html += `
-            <h4 style="font-size: 14px; font-weight: 500; color: #64748b; margin: 20px 0 12px 0;">${translations.topVideos || 'Most Watched Videos'}</h4>
+            <h4 style="font-size: 14px; font-weight: 500; color: #5b6b80; margin: 20px 0 12px 0;">${translations.topVideos || 'Most Watched Videos'}</h4>
             <div class="report-bar-chart">
           `;
           data.video.topVideos.slice(0, 5).forEach(v => {
@@ -6231,7 +6383,7 @@
         // Top Steps
         if (data.chat?.topSteps && data.chat.topSteps.length > 0) {
           html += `
-            <h4 style="font-size: 14px; font-weight: 500; color: #64748b; margin: 20px 0 12px 0;">${translations.topAiGuideSteps || 'Most Active AI Guide Steps'}</h4>
+            <h4 style="font-size: 14px; font-weight: 500; color: #5b6b80; margin: 20px 0 12px 0;">${translations.topAiGuideSteps || 'Most Active AI Guide Steps'}</h4>
             <div class="report-bar-chart">
           `;
           data.chat.topSteps.slice(0, 5).forEach(s => {
@@ -7216,7 +7368,7 @@
       // Participants
       if (report.participants && report.participants.length > 0) {
         pdf.addSectionTitle(translations.participants);
-        const headers = [translations.name, 'Email', translations.status, translations.completedAt];
+        const headers = [translations.name, translations.email, translations.status, translations.completedAt];
         const colWidths = [40, 70, 30, 40];
         const rows = report.participants.slice(0, 15).map(p => {
           const name = `${p.first_name || ''} ${p.last_name || ''}`.trim() || '-';
@@ -7357,7 +7509,7 @@
       
       // User info section
       pdf.addSectionTitle(translations.reports?.userInfo || 'User Information');
-      pdf.addParagraph(`Email: ${user.email}`);
+      pdf.addParagraph(`${translations.email}: ${user.email}`);
       if (user.groups && user.groups.length > 0) {
         pdf.addParagraph(`${translations.group || 'Group'}: ${user.groups.map(g => g.name).join(', ')}`);
       }
@@ -7662,16 +7814,21 @@
       });
     });
     
-    // Close modal
-    document.getElementById('closeRewardCodesModal')?.addEventListener('click', () => {
-      document.getElementById('rewardCodesModal').style.display = 'none';
-    });
-    
-    // Close modal on backdrop click
+    // Close the codes modal: button, backdrop or Escape; focus goes back to the button that opened it
+    let rewardCodesOpener = null;
+    function closeRewardCodesModal() {
+      const modal = document.getElementById('rewardCodesModal');
+      if (!modal || modal.style.display === 'none') return;
+      modal.style.display = 'none';
+      rewardCodesOpener?.focus();
+      rewardCodesOpener = null;
+    }
+    document.getElementById('closeRewardCodesModal')?.addEventListener('click', closeRewardCodesModal);
     document.getElementById('rewardCodesModal')?.addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        e.currentTarget.style.display = 'none';
-      }
+      if (e.target === e.currentTarget) closeRewardCodesModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeRewardCodesModal();
     });
     
     async function loadRewardCodes(rewardId) {
@@ -7692,9 +7849,9 @@
         
         let html = `
           <div style="margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-            ${data.reward.redemptionLocation ? `<p style="margin: 0 0 4px;"><strong>${rewardTranslations.redeemAt}:</strong> ${data.reward.redemptionLocation}</p>` : ''}
+            ${data.reward.redemptionLocation ? `<p style="margin: 0 0 4px;"><strong>${rewardTranslations.redeemAt}:</strong> ${escapeHtml(data.reward.redemptionLocation)}</p>` : ''}
             ${data.reward.validUntil ? `<p style="margin: 0 0 4px;"><strong>${rewardTranslations.validUntil}:</strong> ${new Date(data.reward.validUntil).toLocaleDateString(language)}</p>` : ''}
-            ${data.reward.termsConditions ? `<p style="margin: 0; font-size: 12px; color: #64748b;"><strong>${rewardTranslations.terms}:</strong> ${data.reward.termsConditions}</p>` : ''}
+            ${data.reward.termsConditions ? `<p style="margin: 0; font-size: 12px; color: #5b6b80;"><strong>${rewardTranslations.terms}:</strong> ${escapeHtml(data.reward.termsConditions)}</p>` : ''}
           </div>
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
@@ -7720,9 +7877,9 @@
                 <span style="${statusStyle}">${code.isClaimed ? rewardTranslations.claimed : rewardTranslations.notClaimedYet}</span>
               </td>
               <td style="padding: 12px; color: #374151;">
-                ${code.claimer ? `${escapeHtml(code.claimer.name)}<br><span style="font-size: 12px; color: #64748b;">${escapeHtml(code.claimer.email)}</span>` : '-'}
+                ${code.claimer ? `${escapeHtml(code.claimer.name)}<br><span style="font-size: 12px; color: #5b6b80;">${escapeHtml(code.claimer.email)}</span>` : '-'}
               </td>
-              <td style="padding: 12px; color: #64748b; font-size: 13px;">
+              <td style="padding: 12px; color: #5b6b80; font-size: 13px;">
                 ${code.claimedAt ? new Date(code.claimedAt).toLocaleString(language) : '-'}
               </td>
             </tr>
@@ -7731,7 +7888,9 @@
         
         html += '</tbody></table>';
         content.innerHTML = html;
+        rewardCodesOpener = document.activeElement;
         modal.style.display = 'flex';
+        document.getElementById('closeRewardCodesModal')?.focus();
         
       } catch (err) {
         console.error('Error loading reward codes:', err);

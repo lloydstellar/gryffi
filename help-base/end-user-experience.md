@@ -3,19 +3,19 @@ feature_id: end-user-experience
 related_features: [journey-builder, invitations-overview, public-journeys]
 ---
 
-# End User Experience
+# Participant Experience
 
-The End User Experience describes how participants interact with journeys, from receiving invitations to completing content.
+The Participant Experience describes how participants interact with journeys, from receiving invitations to completing content.
 
-![A quiz step as end users see it: where they are (1), Listen (2) and an answered question (3)](images/end-user-experience/quiz.en.webp)
+![A quiz step as participants see it: where they are (1), Listen (2) and an answered question (3)](images/end-user-experience/quiz.en.webp)
 
-1. Where the end user is in the journey, for example Step 4 of 8.
+1. Where the participant is in the journey, for example Step 4 of 8. When the rest of the route depends on choices, it says Step 4 of about 8.
 2. Listen: Gryffi reads the step aloud. Aa next to it changes the font.
-3. An answered question. With feedback on, the end user sees right away that the answer is correct.
+3. An answered question. With feedback on, the participant sees right away that the answer is correct.
 
 ## Overview
 
-End users experience:
+Participants experience:
 
 - Invitation and access
 - Journey navigation
@@ -27,14 +27,14 @@ End users experience:
 
 ### Via Invitation
 
-1. User receives email invitation
+1. The participant receives an email invitation
 2. Clicks "Start Journey" link
 3. Journey begins
 
 ### Via public journey Link
 
-1. User starts a journey from a website or intranet through the public journey URL (magic link)
-2. Authenticates if required if the end users enters a poll step, form step or reward step
+1. The participant starts a journey from a website or intranet through the public journey URL (magic link)
+2. Signs in if required when the participant enters a poll step, form step or reward step
 
 ### Mobile Experience
 
@@ -46,22 +46,22 @@ Optimized for mobile:
 
 ### Step Types
 
-Users interact with:
+Participants interact with:
 - **Space**: View locations image or 360 image, see where you are on a map
 - **Guide**: Chat with AI assistant
 - **Content**: Read/watch content
-- **Challenge**: Answer quiz questions (3)
+- **Quiz**: Answer quiz questions (3)
 - **Form**: Fill out forms
 - **Poll**: Vote on questions
 - **Reward**: Receive rewards
 
-## User Controls
+## Controls for participants
 
-In each step, the end user sees where they are in the journey (1), for example Step 4 of 8. **Listen** (2) reads the step aloud, and **Aa** next to it changes the font.
+In each step, the participant sees where they are in the journey (1), for example Step 4 of 8. **Listen** (2) reads the step aloud, and **Aa** next to it changes the font.
 
 ### When Complete
 
-Users see:
+Participants see:
 - Completion message
 - Rewards (if configured)
 

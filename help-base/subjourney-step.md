@@ -15,7 +15,7 @@ The Sub-Journey Step allows you to embed an entire published journey within anot
 
 ## Adding a Sub-Journey Step
 
-In the Journey Builder toolbar, click the **Sub** button to add a Sub-Journey Step (1) to your canvas. The button shows "Sub" as a short label, but hovering over it displays the full name "Sub-Journey".
+In the column of step types on the left side of the builder, click **Sub-Journey** to add a Sub-Journey Step (1) to your canvas.
 
 ## Overview
 
@@ -28,7 +28,7 @@ Sub-Journey Steps enable you to:
 
 ## Properties
 
-### Basic Settings
+### What they see
 
 | Property | Description |
 |----------|-------------|
@@ -47,18 +47,18 @@ The selected journey (3) is shown with its number of steps. It must stay publish
 
 ## How It Works
 
-1. End user reaches the Sub-Journey Step
+1. Participant reaches the Sub-Journey Step
 2. They seamlessly enter the selected sub-journey
 3. The interface language switches if the sub-journey has different language settings
-4. User completes all steps in the sub-journey
+4. The participant completes all steps in the sub-journey
 5. Upon completion, they automatically return to the parent journey
 6. Navigation continues to the next step after the Sub-Journey Step
 
-**Note**: End users experience this as one continuous journey - they don't see any transition screens or notices about entering/exiting sub-journeys.
+**Note**: Participants experience this as one continuous journey - they don't see any transition screens or notices about entering/exiting sub-journeys.
 
 ## Progress Tracking
 
-The progress bar shows combined progress across both the parent journey and any active sub-journey. This gives end users an accurate sense of their overall progress.
+The progress bar shows combined progress across both the parent journey and any active sub-journey. This gives participants an accurate sense of their overall progress.
 
 ## Restrictions
 
@@ -80,12 +80,12 @@ When a journey is used as a sub-journey in another journey, it becomes protected
 
 | Action | Allowed? |
 |--------|----------|
-| **Unpublish** | No - must remove from parent journey first |
+| **Take offline** | No - must remove from parent journey first |
 | **Move to Trash** | No - must remove from parent journey first |
 | **Make Private** | No - must remove from parent journey first |
 | **Edit Content** | Yes - changes reflect immediately |
 
-This protection ensures end users don't encounter broken journeys.
+This protection ensures participants don't encounter broken journeys.
 
 ## Best Practices
 
@@ -99,7 +99,7 @@ This protection ensures end users don't encounter broken journeys.
 ### Design Tips
 
 - Keep sub-journeys focused on a single topic
-- Consider the combined length - don't overwhelm users
+- Consider the combined length - don't overwhelm participants
 - Test the full flow including all sub-journeys
 - Document which journeys use which sub-journeys
 

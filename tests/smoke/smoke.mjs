@@ -122,7 +122,7 @@ async function run() {
   step('create a journey in the builder');
   await maker.goto(`${base}/dashboard/journeys/new`);
   await maker.fill('input[name="title"]', 'Smoke test journey');
-  await Promise.all([maker.waitForURL(/\/dashboard\/builder\//), maker.click('form button[type="submit"]')]);
+  await Promise.all([maker.waitForURL(/\/dashboard\/builder\//), maker.click('form[action="/dashboard/journeys"] button[type="submit"]')]);
   const journeyId = maker.url().split('/').pop().split(/[?#]/)[0];
   await maker.waitForLoadState('networkidle');
   await maker.screenshot({ path: `${SHOTS}/2-builder.png` });

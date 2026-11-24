@@ -32,7 +32,7 @@ When you copy and translate a journey:
 4. Select **Copy to another language**
 5. In the modal:
    - Select the **target language** (1) from the dropdown
-   - Optionally change the **new journey name** (2)
+   - Optionally change the **Title of the translated copy** (2)
 6. Click **Create translated copy** (3)
 7. Wait for the translation to complete (progress bar will show status)
 
@@ -42,21 +42,21 @@ The following content is automatically translated using AI:
 
 | Content Type | Translated |
 |--------------|:----------:|
-| Journey title | ✅ |
-| Journey description | ✅ |
-| Step titles | ✅ |
-| Space descriptions | ✅ |
-| Content body text | ✅ |
-| Quiz questions & answers | ✅ |
-| Quiz pass/fail messages | ✅ |
-| Form field labels | ✅ |
-| Form confirmation message | ✅ |
-| Poll questions | ✅ |
-| Poll options | ✅ |
-| Reward titles & descriptions | ✅ |
-| Path labels | ✅ |
-| Resource descriptions | ✅ |
-| AI Guide opening sentence | ✅ |
+| Journey title | Yes |
+| Journey description | Yes |
+| Step titles | Yes |
+| Space descriptions | Yes |
+| Content body text | Yes |
+| Quiz questions & answers | Yes |
+| Quiz pass/fail messages | Yes |
+| Form field labels | Yes |
+| Form confirmation message | Yes |
+| Poll questions | Yes |
+| Poll options | Yes |
+| Reward titles & descriptions | Yes |
+| Button texts | Yes |
+| Resource descriptions | Yes |
+| AI Guide opening sentence | Yes |
 
 ## What's NOT Translated
 
@@ -111,7 +111,7 @@ If you need to adjust the AI Guide's translated opening sentence:
 2. Click on empty canvas space to open Journey Settings
 3. Find "AI Guide language" section
 4. Edit the "Opening sentence override" textarea
-5. Save the journey
+5. The builder saves your change by itself
 
 ## Tips
 

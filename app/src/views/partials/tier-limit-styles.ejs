@@ -23,6 +23,11 @@
     position: relative;
   }
   
+  /* A blocked create button that explains the limit when clicked */
+  .btn-disabled[data-limit-hit] {
+    pointer-events: auto;
+  }
+
   .btn-disabled::after {
     content: '';
     position: absolute;
@@ -38,7 +43,7 @@
     align-items: flex-end;
     gap: 4px;
     font-size: 12px;
-    color: #64748b;
+    color: #5b6b80;
     text-align: right;
   }
   
@@ -163,7 +168,7 @@
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: #64748b;
+    color: #5b6b80;
   }
   
   .tier-usage-bar {

@@ -15,18 +15,36 @@
 # The installation lives in /opt/gryffi, or in GRYFFI_HOME.
 set -euo pipefail
 
-GRYFFI_CLI_VERSION="1.1.0"
+GRYFFI_CLI_VERSION="1.2.0"
 GRYFFI_HOME="${GRYFFI_HOME:-/opt/gryffi}"
 GRYFFI_REPO="${GRYFFI_REPO:-lloydstellar/gryffi}"
 RELEASES_URL="${GRYFFI_RELEASES_URL:-https://github.com/$GRYFFI_REPO/releases}"
 # Seconds Gryffi may take to start after an update or restore
 START_TIMEOUT="${GRYFFI_START_TIMEOUT:-300}"
+# From this version on, magic links are stored as a hash and an encrypted copy.
+# Older versions find them by the plain token only.
+TOKEN_HASH_VERSION="0.11.0"
 
 CLEANUP=()
 trap 'rm -rf "${CLEANUP[@]}"' EXIT
 
 die() { echo "gryffi: $*" >&2; exit 1; }
 info() { echo "$*"; }
+
+# True when version $1 is older than version $2
+version_lt() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -1)" = "$1" ]; }
+
+# Before going back to a version older than TOKEN_HASH_VERSION: write the
+# magic-link tokens back in plain text, or the links in sent emails stop
+# working. Runs in the app of the current compose.yml, or in a one-off
+# container of its image when the app does not run.
+restore_plain_tokens() {
+  info "Writing the magic-link tokens back for version $1..."
+  compose exec -T app node src/db/restore-invitation-tokens.js 2>/dev/null && return 0
+  compose run --rm --no-deps -T --entrypoint node app src/db/restore-invitation-tokens.js && return 0
+  echo "Could not write the magic-link tokens back." >&2
+  return 1
+}
 
 [ -f "$GRYFFI_HOME/compose.yml" ] || die "no installation in $GRYFFI_HOME (set GRYFFI_HOME if it is elsewhere)"
 [ -f "$GRYFFI_HOME/.env" ] || die "$GRYFFI_HOME/.env is missing"
@@ -209,6 +227,10 @@ cmd_update() {
     || die "could not download compose.yml of version $target"
 
   cmd_backup
+  if version_lt "$target" "$TOKEN_HASH_VERSION" && ! version_lt "$current" "$TOKEN_HASH_VERSION"; then
+    restore_plain_tokens "$target" \
+      || die "nothing changed; Gryffi $current still runs. The backup is in $GRYFFI_HOME/backups"
+  fi
   # Images of the running version, removed once the new one runs. Not
   # earlier: a rollback needs them.
   local old_images
@@ -280,6 +302,10 @@ rollback() {
   echo "The update failed. Last log lines of the new version:" >&2
   compose logs --no-log-prefix --tail 30 app >&2 || true
   echo "Going back to $previous..." >&2
+  if version_lt "$previous" "$TOKEN_HASH_VERSION" && ! version_lt "$(env_value GRYFFI_VERSION)" "$TOKEN_HASH_VERSION"; then
+    restore_plain_tokens "$previous" \
+      || echo "Links in emails sent before the update may not work in $previous. Restore the backup made before the update if they are needed." >&2
+  fi
   mv "$GRYFFI_HOME/compose.yml.previous" "$GRYFFI_HOME/compose.yml"
   set_env_value GRYFFI_VERSION "$previous"
   compose up -d --remove-orphans || true

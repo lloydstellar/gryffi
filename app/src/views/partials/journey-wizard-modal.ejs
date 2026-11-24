@@ -249,6 +249,7 @@
                     <input type="text" id="jwGuideName" class="jw-input" placeholder="<%= t('journeys.wizard.steps.guide.namePlaceholder') %>">
                     <p class="jw-hint" data-jw-needs-upload-tag hidden><%= t('journeys.wizard.steps.guide.kbDisabledHint') %></p>
                   </div>
+                  <p class="jw-hint" id="jwGuideBlockedHint" role="status" hidden><%= t('journeys.wizard.steps.guide.blockedHint') %></p>
                 </div>
               <% } %>
 
@@ -371,16 +372,19 @@
           </div>
           <h3 class="jw-question"><%= t('journeys.wizard.success.title') %></h3>
           <p class="jw-explanation"><%= t('journeys.wizard.success.description') %></p>
-          <div class="jw-whatnext">
-            <p class="jw-whatnext-title"><%= t('journeys.wizard.success.whatNowTitle') %></p>
-            <ul>
-              <li><%= t('journeys.wizard.success.bullet1') %></li>
-              <li><%= t('journeys.wizard.success.bullet2') %></li>
-              <li><%= t('journeys.wizard.success.bullet3') %></li>
-              <li><%= t('journeys.wizard.success.bullet4') %></li>
-            </ul>
+          <% const jwCanSendToSelf = typeof user !== 'undefined' && user && (user.role === 'admin' || user.role === 'manager'); %>
+          <div class="jw-success-actions">
+            <a href="#" id="jwPreview" class="jw-btn jw-btn-primary jw-btn-full"><%= t('journeys.wizard.success.previewButton') %></a>
+            <p class="jw-success-hint"><%= t('journeys.wizard.success.previewHint') %></p>
+            <% if (jwCanSendToSelf) { %>
+            <div id="jwSendToSelfBlock">
+              <button type="button" id="jwSendToSelf" class="jw-btn jw-btn-ghost jw-btn-full"><%= t('sendToSelf.button') %></button>
+              <p class="jw-success-hint"><%= t('sendToSelf.note') %></p>
+            </div>
+            <% } %>
+            <p id="jwSendToSelfResult" class="jw-send-result" role="status" aria-live="polite" hidden></p>
+            <a href="#" id="jwOpenBuilder" class="jw-success-link"><%= t('journeys.wizard.success.editFirst') %> →</a>
           </div>
-          <a href="#" id="jwOpenBuilder" class="jw-btn jw-btn-primary jw-btn-full"><%= t('journeys.wizard.success.openBuilder') %></a>
         </div>
       </section>
 
@@ -1071,6 +1075,41 @@
   }
   .jw-disclaimer svg { flex-shrink: 0; margin-top: 2px; opacity: 0.8; }
 
+  .jw-success-actions {
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .jw-success-hint {
+    font-size: 13px;
+    color: #5b6b80;
+    margin: 6px 0 16px 0;
+    line-height: 1.5;
+  }
+  .jw-send-result {
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin: 0 0 16px 0;
+    background: rgba(11, 75, 52, 0.06);
+    color: #0b4b34;
+  }
+  .jw-send-result[data-kind="success"] { background: rgba(120, 197, 3, 0.14); color: #1f3d10; }
+  .jw-send-result[data-kind="error"] { background: #fef2f2; color: #991b1b; }
+  .jw-success-link {
+    display: inline-block;
+    font-size: 14px;
+    color: var(--theme-primary, #0b4b34);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    border-radius: 4px;
+  }
+  .jw-success-link:focus-visible,
+  .jw-success-actions .jw-btn:focus-visible {
+    outline: 2px solid #0b4b34;
+    outline-offset: 2px;
+  }
   .jw-progress-state, .jw-success-state, .jw-error-state {
     text-align: center;
     padding: 24px 8px 8px 8px;
@@ -1212,6 +1251,13 @@
 <script>
   // i18n + initial config for the wizard. Rendered server-side.
   window.GryffiWizardI18n = {
+    sendToSelf: <%- safeJson({
+      sending: t('sendToSelf.sending'),
+      sent: t('sendToSelf.sent'),
+      alreadyInvited: t('sendToSelf.alreadyInvited'),
+      emailFailed: t('sendToSelf.emailFailed'),
+      failed: t('sendToSelf.errors.failed')
+    }) %>,
     stepCounter: <%- safeJson(t('journeys.wizard.modal.stepCounter')) %>,
     closeConfirm: <%- safeJson(t('journeys.wizard.modal.closeConfirm')) %>,
     nextButton: <%- safeJson(t('journeys.wizard.modal.nextButton')) %>,

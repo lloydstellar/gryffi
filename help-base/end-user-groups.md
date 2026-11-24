@@ -3,43 +3,43 @@ feature_id: end-user-groups
 related_features: [end-user-management, invitations-overview]
 ---
 
-# End User Groups
+# Participant Groups
 
-End User Groups allow you to organize your end users into logical collections for easier management and targeted invitations
+Participant Groups allow you to organize your participants into logical collections for easier management and targeted invitations
 
-![Groups in System Settings: Create Group (1), a group (2) and Manage members (3)](images/end-user-groups/overview.en.webp)
+![Groups on the Participants page: Create Group (1), a group (2) and Manage members (3)](images/end-user-groups/overview.en.webp)
 
 1. Create Group: give the group a name and a description.
 2. A group with its description and source.
-3. Manage members: add end users to the group or remove them.
+3. Manage members: add participants to the group or remove them.
 
 ## Overview
 
 Groups help you:
 
-- Organize users by department, location, or role
+- Organize participants by department, location, or role
 - Send journey invitations to entire groups
 
-[[goto:/dashboard/system-settings#users]]
+[[goto:/dashboard/participants#users]]
 
 ## Creating Groups
 
 ### Manual Creation
 
-1. Navigate to System Settings → Users → Groups
+1. Go to Participants → Groups
 2. Click "Create Group" (1)
 3. Enter group details:
    - **Group Name**: Descriptive group name
    - **Description**: Purpose of the group
 4. Click "Save"
 
-## Adding Users to Groups
+## Adding Participants to Groups
 
 ### Individual Assignment
 
 1. Go to a group (2)
 2. Click the "Manage members" icon (3)
-3. Select end users to add
+3. Select participants to add
 4. Click on "Add Members"
 5. Click "Close"
 
@@ -84,11 +84,11 @@ Send invitations to entire groups:
 
 When deleting a group:
 - Members are NOT deleted
-- Users lose group association
+- Participants lose group association
 
 
 ## Related Features
 
-- [[goto:/dashboard/system-settings#users]] - Manage groups
+- [[goto:/dashboard/participants#users]] - Manage groups
 - [[goto:/dashboard/invitations]] - Send group invitations
 - See: end-user-management, invitations-overview

@@ -5,7 +5,7 @@ related_features: [login, two-factor-authentication, password-reset, magic-links
 
 # Authentication
 
-Authentication secures access to Gryffi by verifying user identity through passwords and two-factor authentication.
+Authentication secures access to Gryffi by checking who you are through passwords and two-factor authentication.
 
 ## Overview
 
@@ -31,7 +31,7 @@ Standard login:
 ### Setup
 
 Enable 2FA in account settings:
-1. Go to Settings → Security
+1. Go to My account → Security
 2. Click "Enable 2FA"
 3. Now every time you login you get email verification
 
@@ -64,11 +64,11 @@ Login with 2FA:
 
 ## Session Management
 
-## For End Users
+## For Participants
 
-### End User Authentication
+### Participant Authentication
 
-End users can authenticate via:
+Participants can authenticate via:
 - Magic links
 
 ### Public Journey Access
@@ -79,7 +79,7 @@ Public journeys may not require authentication:
 
 ## For Administrators
 
-### User Management
+### Managing Makers
 
 | Action | Description |
 |--------|-------------|
@@ -102,7 +102,7 @@ Public journeys may not require authentication:
 
 ## Best Practices
 
-### For Users
+### For Makers
 
 - Use strong, unique passwords
 - Enable two-factor authentication

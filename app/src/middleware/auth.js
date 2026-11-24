@@ -21,13 +21,19 @@ export const refreshSessionUser = async (req, res, next) => {
 
   try {
     const result = await query(
-      'SELECT role, is_active, organization_id FROM users WHERE id = $1',
+      'SELECT role, is_active, organization_id, password_changed_at FROM users WHERE id = $1',
       [sessionUser.id]
     );
     const row = result.rows[0];
 
-    if (!row || row.is_active === false || row.organization_id !== req.session.organization?.id) {
-      // Account removed, deactivated or moved: continue as a guest
+    // A password reset or change ends every session that logged in before it.
+    // Sessions from before authenticatedAt existed count as older.
+    const passwordChangedAfterLogin = row?.password_changed_at
+      && new Date(row.password_changed_at).getTime() > (req.session.authenticatedAt || 0);
+
+    if (!row || row.is_active === false || row.organization_id !== req.session.organization?.id
+      || passwordChangedAfterLogin) {
+      // Account removed, deactivated or moved, or the password changed: continue as a guest
       return req.session.regenerate((err) => {
         if (err) console.error('[Auth] Failed to reset session for removed user:', err);
         next();

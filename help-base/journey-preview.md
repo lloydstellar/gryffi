@@ -5,12 +5,12 @@ related_features: [journey-builder, journey-publishing, journey-settings, langua
 
 # Journey Preview
 
-Journey Preview allows you to experience your journey exactly as end users will see it before publishing.
+Journey Preview allows you to experience your journey exactly as participants will see it before publishing.
 
 ![The preview of a journey: the progress bar (1), the path buttons (2) and close (3)](images/journey-preview/preview.en.webp)
 
 1. The progress bar shows how far you are in the journey.
-2. The path buttons take you to the next step, as they would for an end user.
+2. The buttons take you to the next step, as they would for a participant.
 3. Close the preview and go back to the builder.
 
 ## Overview
@@ -21,7 +21,7 @@ Preview enables:
 - Verifying content display
 - Checking step behavior
 - Testing on different devices
-- Validating user experience
+- Checking what participants experience
 
 ## Starting Preview
 
@@ -39,7 +39,7 @@ You can also start a preview from the Journey page. Click on the three dots and 
 
 ### Navigation
 
-- Navigate through steps with the path buttons (2)
+- Navigate through steps with the buttons (2)
 - Access all paths
 - See how far you are in the progress bar (1)
 - Click close (3) to leave the preview and go back to the builder
@@ -82,7 +82,7 @@ See: journey-settings, language-settings
 
 When you submit a Form Step in preview, the notification email is sent to the configured recipient so you can verify it. Preview submissions are not stored in the Analytics Forms tab. See: form-step, form-submissions
 
-## User Perspective
+## Participant Perspective
 
 Consider:
 - Is flow clear?
@@ -97,11 +97,11 @@ Consider:
 - Check browser console
 - Clear browser cache
 - Try different browser
-- Verify journey saved
+- Check that the builder shows "All changes saved"
 
 ### Content Missing
 
-- Save journey first
+- Wait until the builder shows "All changes saved"
 - Refresh preview
 - Check step configuration
 

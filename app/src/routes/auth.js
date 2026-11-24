@@ -11,42 +11,29 @@ import { encryptToken } from '../services/oauthTokens.js';
 import i18next from 'i18next';
 import { query, getClient } from '../db/index.js';
 import { guestOnly } from '../middleware/auth.js';
-import { sendEmail, sendVerificationCodeEmail, sendAutomationEmail, sendJourneyEmail } from '../services/email.js';
+import { sendEmail, sendVerificationCodeEmail, sendAutomationEmail, sendJourneyEmail, sendNewLinkRequestEmail } from '../services/email.js';
 import { claimAutomationSend, releaseAutomationSend, closeAutomationRun } from '../services/automationSends.js';
 import { chatWithGuide } from '../services/mistral.js';
 import { parseCitations, getCitationSources } from '../services/knowledge.js';
 import { getAnalysisDescription } from '../services/imageAnalysis.js';
 import { getOrganizationTier, trackAiCredits, hasAiCreditsLeft } from '../services/subscription.js';
 import { magicLinkLimiter, playerAiLimiter, playerTtsLimiter, trackInvalidToken, isInvalidTokenBlocked, getClientIp } from '../middleware/rateLimit.js';
-import { getPlayerLocale } from '../services/playerLocales.js';
+import { getPlayerLocale, getPlayerT } from '../services/playerLocales.js';
+import { annotateNestedLengths } from '../services/journeyLength.js';
+import { hashInvitationToken } from '../services/invitationTokens.js';
 import { verifyOAuthState } from '../lib/oauthState.js';
 import { handleTtsRequest, getTtsCacheDir } from '../services/tts.js';
 import {
   processAttachments, checkAttachmentImages, storeSubmissionFiles, resolveStoragePath,
-  buildFormSubmissionEmailBody, buildFormSubmissionSubject
+  buildFormSubmissionEmailBody, buildFormSubmissionSubject, escapeHtml
 } from '../services/formSubmissions.js';
 import path from 'path';
 import fs from 'fs';
+import { regenerateSession, startMakerSession } from '../services/makerSession.js';
+import { LOGIN_CODE_LENGTH, generateLoginCode } from '../utils/loginCode.js';
+import { syncRewardFromStep, claimRewardCode, rewardAvailability } from '../services/rewards.js';
 
 const router = Router();
-
-/**
- * Regenerate session after privilege change to prevent session fixation.
- * Copies specified keys from the old session to the new one.
- */
-function regenerateSession(req, dataToSet) {
-  return new Promise((resolve, reject) => {
-    const oldSession = req.session;
-    oldSession.regenerate((err) => {
-      if (err) return reject(err);
-      Object.assign(req.session, dataToSet);
-      req.session.save((saveErr) => {
-        if (saveErr) return reject(saveErr);
-        resolve();
-      });
-    });
-  });
-}
 
 /**
  * Give the session a new ID and keep what is in it. For a session that gains
@@ -217,9 +204,6 @@ async function resetFailedAttempts(userId) {
 }
 
 /**
- * Generate a 4-digit verification code
- */
-/**
  * Whether a guide is used in a journey: as guide step, as step assistant or as
  * journey guide, nested journeys included. End users may only chat with these
  * guides, not with every guide (and knowledge base) of the organization.
@@ -389,20 +373,38 @@ function hashRememberToken(token) {
 // later device). A list, so journeys in different tabs keep working.
 const MAX_REMEMBERED_EXPEDITIONS = 20;
 
+// The session keeps the hash of each token, not the token itself; sessions
+// from before kept the token and still count
 function rememberExpeditionToken(req, token) {
-  const tokens = (req.session.verifiedExpeditionTokens || []).filter(t => t !== token);
-  tokens.push(token);
+  const hash = hashInvitationToken(token);
+  const tokens = (req.session.verifiedExpeditionTokens || []).filter(t => t !== hash && t !== token);
+  tokens.push(hash);
   req.session.verifiedExpeditionTokens = tokens.slice(-MAX_REMEMBERED_EXPEDITIONS);
 }
 
 function hasExpeditionSession(req, token) {
-  return (req.session?.verifiedExpeditionTokens || []).includes(token)
-    || req.session?.expedition?.token === token;
+  const hash = hashInvitationToken(token);
+  const tokens = req.session?.verifiedExpeditionTokens || [];
+  const expedition = req.session?.expedition;
+  return tokens.includes(hash) || tokens.includes(token)
+    || expedition?.tokenHash === hash || expedition?.token === token;
 }
 
 // Device verification for magic links (third and later devices)
 const DEVICE_CODE_TTL_MS = 10 * 60 * 1000;
 const DEVICE_CODE_MAX_ATTEMPTS = 5;
+
+/**
+ * Language a journey uses for its end users: the language override of the
+ * journey, otherwise the organization language.
+ * @param {object|string} journeySettings - journeys.settings
+ * @param {string} orgLanguage
+ * @returns {string}
+ */
+function journeyLanguageOf(journeySettings, orgLanguage) {
+  const settings = typeof journeySettings === 'string' ? JSON.parse(journeySettings) : (journeySettings || {});
+  return settings.language_override && settings.language_code ? settings.language_code : (orgLanguage || 'en');
+}
 
 /**
  * Get the device verification code for a magic-link session.
@@ -419,11 +421,14 @@ async function issueDeviceVerificationCode(sessionId) {
     [sessionId]
   );
   const row = current.rows[0];
-  if (row?.verification_code && row.verification_expires_at && new Date(row.verification_expires_at) > new Date()) {
+  // A code of another length dates from before the switch to six digits; the
+  // page would not accept it, so it gets a new one.
+  if (row?.verification_code?.length === LOGIN_CODE_LENGTH &&
+      row.verification_expires_at && new Date(row.verification_expires_at) > new Date()) {
     const locked = (row.verification_attempts || 0) >= DEVICE_CODE_MAX_ATTEMPTS;
     return { code: locked ? null : row.verification_code, isNew: false };
   }
-  const code = crypto.randomInt(1000, 10000).toString();
+  const code = generateLoginCode();
   await query(
     `UPDATE invitation_sessions
      SET verification_code = $1, verification_expires_at = $2, verification_attempts = 0
@@ -431,10 +436,6 @@ async function issueDeviceVerificationCode(sessionId) {
     [code, new Date(Date.now() + DEVICE_CODE_TTL_MS), sessionId]
   );
   return { code, isNew: true };
-}
-
-function generateVerificationCode() {
-  return crypto.randomInt(1000, 10000).toString();
 }
 
 /**
@@ -450,14 +451,14 @@ async function storeVerificationCode(userId, code) {
 }
 
 /**
- * Check if organization is on Pro+ tier (professional, enterprise, custom)
+ * Check if organization is on Pro+ tier (professional, enterprise, custom, partner)
  */
 async function isProTier(orgId) {
   try {
     const tierData = await getOrganizationTier(orgId);
     // tierData has structure { tier: { name: 'professional', ... }, ... }
     const tierName = tierData?.tier?.name;
-    return tierName && ['professional', 'enterprise', 'custom'].includes(tierName);
+    return tierName && ['professional', 'enterprise', 'custom', 'partner'].includes(tierName);
   } catch (err) {
     console.error('[Auth] Failed to check tier:', err);
     return false;
@@ -519,6 +520,7 @@ async function sendLoginVerificationEmail(user, code, reason, req) {
   }
   
   await sendEmail({
+    transactional: true,
     to: user.email,
     subject: tEmail('auth.loginVerification.emailSubject'),
     templateType: 'journey_custom',
@@ -605,7 +607,7 @@ router.post('/login', guestOnly, async (req, res) => {
     const result = await query(`
       SELECT 
         u.id, u.email, u.password_hash, u.first_name, u.last_name, u.role, u.avatar_url, u.is_active,
-        u.two_factor_enabled, u.failed_login_attempts, u.lockout_until,
+        u.two_factor_enabled, u.failed_login_attempts, u.lockout_until, u.last_login_at,
         o.id as org_id, o.name as org_name, o.slug as org_slug, o.logo_url as org_logo, o.settings as org_settings
       FROM users u
       JOIN organizations o ON u.organization_id = o.id
@@ -660,7 +662,7 @@ router.post('/login', guestOnly, async (req, res) => {
     
     if (verification.required) {
       // Generate and send verification code
-      const code = generateVerificationCode();
+      const code = generateLoginCode();
       await storeVerificationCode(user.id, code);
       await sendLoginVerificationEmail(user, code, verification.reason, req);
       
@@ -733,42 +735,7 @@ router.post('/login', guestOnly, async (req, res) => {
       }
     }
     
-    // Regenerate session to prevent session fixation
-    const sessionData = {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        role: user.role,
-        avatarUrl: user.avatar_url,
-        fullName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
-      },
-      organization: {
-        id: user.org_id,
-        name: user.org_name,
-        slug: user.org_slug,
-        logoUrl: user.org_logo,
-        settings: user.org_settings || {}
-      }
-    };
-
-    // Apply org default language for new sessions (user can still override later)
-    try {
-      const orgSettings = user.org_settings || {};
-      const mode = orgSettings.default_language_mode || 'fixed';
-      const lang = orgSettings.default_language;
-      const hasI18nCookie = String(req.headers.cookie || '').includes('i18next=');
-      if (!hasI18nCookie && mode === 'fixed' && ['en', 'nl', 'de', 'fr', 'es'].includes(lang)) {
-        sessionData.language = lang;
-      }
-    } catch (_e) {}
-
-    await regenerateSession(req, sessionData);
-    // Mark this request's session so the dashboard can fire a single
-    // "login-complete" analytics event (Gryffi Cloud). No personal data, only the auth method.
-    req.session.justLoggedIn = { method: 'password' };
-    await new Promise((resolve) => req.session.save(() => resolve()));
+    await startMakerSession(req, user, { firstLogin: !user.last_login_at, method: 'password' });
     res.redirect('/dashboard');
     
   } catch (err) {
@@ -780,20 +747,10 @@ router.post('/login', guestOnly, async (req, res) => {
 
 /**
  * POST /logout - Logout user
+ * Only POST: with SameSite=lax a GET from another site would carry the
+ * session cookie, so any link or image could sign a maker out.
  */
 router.post('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-    }
-    res.redirect('/login');
-  });
-});
-
-/**
- * GET /logout - Logout user (convenience)
- */
-router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error('Logout error:', err);
@@ -825,7 +782,8 @@ router.get('/login/verify', guestOnly, (req, res) => {
   res.render('pages/login-verify', {
     title: req.t('auth.loginVerification.title'),
     email: req.session.pendingLogin.email,
-    reason: req.session.pendingLogin.reason
+    reason: req.session.pendingLogin.reason,
+    codeLength: LOGIN_CODE_LENGTH
   });
 });
 
@@ -853,7 +811,7 @@ router.post('/login/verify', guestOnly, async (req, res) => {
     const result = await query(`
       SELECT 
         u.id, u.email, u.first_name, u.last_name, u.role, u.avatar_url,
-        u.login_verification_code, u.login_verification_expires,
+        u.login_verification_code, u.login_verification_expires, u.last_login_at,
         o.id as org_id, o.name as org_name, o.slug as org_slug, o.logo_url as org_logo, o.settings as org_settings
       FROM users u
       JOIN organizations o ON u.organization_id = o.id
@@ -901,41 +859,7 @@ router.post('/login/verify', guestOnly, async (req, res) => {
       WHERE id = $2
     `, [currentIP, user.id]);
     
-    // Regenerate session to prevent session fixation
-    const sessionData = {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        role: user.role,
-        avatarUrl: user.avatar_url,
-        fullName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
-      },
-      organization: {
-        id: user.org_id,
-        name: user.org_name,
-        slug: user.org_slug,
-        logoUrl: user.org_logo,
-        settings: user.org_settings || {}
-      }
-    };
-
-    // Apply org default language
-    try {
-      const orgSettings = user.org_settings || {};
-      const mode = orgSettings.default_language_mode || 'fixed';
-      const lang = orgSettings.default_language;
-      const hasI18nCookie = String(req.headers.cookie || '').includes('i18next=');
-      if (!hasI18nCookie && mode === 'fixed' && SUPPORTED_LANGUAGES.includes(lang)) {
-        sessionData.language = lang;
-      }
-    } catch (_e) {}
-
-    await regenerateSession(req, sessionData);
-    // Mark session for a single login-complete event on the dashboard
-    req.session.justLoggedIn = { method: 'password-2fa' };
-    await new Promise((resolve) => req.session.save(() => resolve()));
+    await startMakerSession(req, user, { firstLogin: !user.last_login_at, method: 'password-2fa' });
 
     console.log(`[Auth] Login verification successful for ${user.email}`);
     
@@ -982,7 +906,7 @@ router.post('/login/verify/resend', guestOnly, async (req, res) => {
     const user = result.rows[0];
     
     // Generate new code
-    const code = generateVerificationCode();
+    const code = generateLoginCode();
     await storeVerificationCode(user.id, code);
     await sendLoginVerificationEmail(user, code, pendingLogin.reason, req);
     
@@ -1084,11 +1008,13 @@ router.post('/forgot-password', guestOnly, async (req, res) => {
       const body = req.t('emails.passwordReset.body', { lng: emailLng, userName, companyName: user.org_name || 'Gryffi' });
 
       await sendEmail({
+        transactional: true,
         to: user.email,
         subject,
         templateType: 'journey_custom',
         variables: {
-          company_name: user.org_name || 'Gryffi',
+          // Gryffi sends this mail, not the organization ("Sent via Gryffi")
+          company_name: 'Gryffi',
           user_first_name: user.first_name || '',
           custom_link: resetLink,
           custom_link_text: req.t('emails.passwordReset.cta', { lng: emailLng })
@@ -1195,7 +1121,8 @@ router.post('/reset-password', guestOnly, async (req, res) => {
     // Update password and clear reset token
     await query(`
       UPDATE users 
-      SET password_hash = $1, password_reset_token = NULL, password_reset_expires = NULL 
+      SET password_hash = $1, password_reset_token = NULL, password_reset_expires = NULL,
+          password_changed_at = NOW()
       WHERE id = $2
     `, [passwordHash, user.id]);
     
@@ -1415,6 +1342,8 @@ router.post('/invite', guestOnly, async (req, res) => {
 
     // Regenerate session to prevent session fixation
     const sessionData = {
+      // Compared with users.password_changed_at by refreshSessionUser
+      authenticatedAt: Date.now(),
       user: {
         id: userId,
         email: invite.email,
@@ -1422,7 +1351,8 @@ router.post('/invite', guestOnly, async (req, res) => {
         lastName: lastName || '',
         role: invite.role,
         avatarUrl: null,
-        fullName: [firstName, lastName].filter(Boolean).join(' ') || invite.email
+        fullName: [firstName, lastName].filter(Boolean).join(' ') || invite.email,
+        firstLogin: true
       },
       organization: {
         id: invite.org_id,
@@ -1513,12 +1443,14 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
         o.id as org_id,
         o.name as org_name,
         o.logo_url as org_logo,
-        COALESCE(o.settings->>'default_language', 'en') as org_language
+        COALESCE(o.settings->>'default_language', 'en') as org_language,
+        NULLIF(TRIM(CONCAT(ub.first_name, ' ', ub.last_name)), '') as inviter_name
       FROM invitations i
       JOIN end_users eu ON i.end_user_id = eu.id
       JOIN journeys j ON i.journey_id = j.id
       JOIN organizations o ON i.organization_id = o.id
-      WHERE i.token = $1
+      LEFT JOIN users ub ON ub.id = i.created_by AND ub.is_active = true AND ub.is_visible IS NOT FALSE
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (result.rows.length === 0) {
@@ -1550,21 +1482,24 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
       ? journeySettings.guide_language_code 
       : journeyLanguage;
     
-    const t = i18next.getFixedT(journeyLanguage);
+    // Pages for the end user come from the player translations (14 languages)
+    const pt = getPlayerT(journeyLanguage);
     
     // Check status
     if (invitation.status === 'revoked') {
       return res.render('pages/expedition-error', {
-        title: t('invitations.magicLink.revoked.title'),
-        message: t('invitations.magicLink.revoked.message'),
+        language: journeyLanguage,
+        title: pt('magicLink.revoked.title'),
+        message: pt('magicLink.revoked.message'),
         errorType: 'revoked'
       });
     }
     
     if (invitation.status === 'completed') {
       return res.render('pages/expedition-error', {
-        title: t('invitations.magicLink.completed.title'),
-        message: t('invitations.magicLink.completed.message'),
+        language: journeyLanguage,
+        title: pt('magicLink.completed.title'),
+        message: pt('magicLink.completed.message'),
         errorType: 'completed'
       });
     }
@@ -1576,9 +1511,15 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
         "UPDATE invitations SET status = 'expired' WHERE id = $1",
         [invitation.id]
       );
+      // Say which invitation it was and, when known, whom to ask
       return res.render('pages/expedition-error', {
-        title: t('invitations.magicLink.expired.title'),
-        message: t('invitations.magicLink.expired.message'),
+        language: journeyLanguage,
+        title: pt('magicLink.expired.title'),
+        message: invitation.inviter_name
+          ? pt('magicLink.expired.messageAskInviter', { name: invitation.inviter_name })
+          : pt('magicLink.expired.message'),
+        context: [invitation.org_name, invitation.journey_title].filter(Boolean).join(' · '),
+        requestNewLink: { url: `/e/${token}/request-new-link`, label: pt('magicLink.expired.requestButton') },
         errorType: 'expired'
       });
     }
@@ -1586,8 +1527,9 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
     // Check max completions
     if (invitation.max_completions && invitation.completions_count >= invitation.max_completions) {
       return res.render('pages/expedition-error', {
-        title: t('invitations.magicLink.completed.title'),
-        message: t('invitations.magicLink.completed.message'),
+        language: journeyLanguage,
+        title: pt('magicLink.completed.title'),
+        message: pt('magicLink.completed.message'),
         errorType: 'max_completions'
       });
     }
@@ -1687,7 +1629,7 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
             firstName: invitation.end_user_first_name,
             journeyTitle: invitation.journey_title,
             verificationCode: verificationCode,
-            language: invitation.org_language || 'en',
+            language: journeyLanguage,
             orgId: invitation.org_id // For custom theme support
           });
         } catch (emailErr) {
@@ -1696,11 +1638,12 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
       }
       
       return res.render('pages/expedition-verify', {
-        title: req.t('invitations.magicLink.verification.title'),
+        title: pt('magicLink.verification.title'),
+        language: journeyLanguage,
+        pt,
         token,
-        firstName: invitation.end_user_first_name,
         journeyTitle: invitation.journey_title,
-        error: null
+        codeLength: LOGIN_CODE_LENGTH
       });
     }
     
@@ -1715,7 +1658,7 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
       sessionId,
       endUserId: invitation.end_user_id,
       journeyId: invitation.journey_id,
-      token,
+      tokenHash: hashInvitationToken(token),
       firstName: invitation.end_user_first_name,
       lastName: invitation.end_user_last_name,
       email: invitation.end_user_email
@@ -1727,6 +1670,8 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
       `SELECT * FROM steps WHERE journey_id = $1 ORDER BY created_at`,
       [invitation.journey_id]
     );
+    // Sub-journey lengths, so "Step X of about Y" is right from the start
+    await annotateNestedLengths(stepsResult.rows);
     
     const pathsResult = await query(
       `SELECT * FROM paths WHERE journey_id = $1 ORDER BY sort_order`,
@@ -1796,10 +1741,11 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
         title: invitation.journey_title,
         language: journeyLanguage,
         token: token,
-        welcomeTitle: t('invitations.magicLink.welcomeBack.title', { firstName: invitation.end_user_first_name }),
-        welcomeMessage: t('invitations.magicLink.welcomeBack.message'),
-        restartButton: t('invitations.magicLink.welcomeBack.restartButton'),
-        reviewButton: t('invitations.magicLink.welcomeBack.reviewButton')
+        welcomeTitle: pt('magicLink.welcomeBack.title', { firstName: invitation.end_user_first_name }),
+        welcomeMessage: pt('magicLink.welcomeBack.message'),
+        restartButton: pt('magicLink.welcomeBack.restartButton'),
+        reviewButton: pt('magicLink.welcomeBack.reviewButton'),
+        errorMessage: pt('magicLink.error')
       });
     }
     
@@ -1826,6 +1772,7 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
       guide_language_override: settings.guide_language_override || false,
       guide_language_code: settings.guide_language_code || null,
       guide_opening_override: settings.guide_opening_override || '',
+      guide_role_translations: settings.guide_role_translations || {},
       guide_id: invitation.guide_id || null
     };
     
@@ -1921,10 +1868,11 @@ router.get('/e/:token', magicLinkLimiter, async (req, res) => {
  * Magic-link API calls need a browser session that opened this link (and,
  * on a third or later device, passed the verification code). Without this
  * the bare token in a forwarded link would give full API access and skip the
- * device check. Only the page itself and the verification steps are open.
+ * device check. Only the page itself, the verification steps and the
+ * request for a new link (only for an expired link, see below) are open.
  */
 router.use('/e/:token', (req, res, next) => {
-  if (req.path === '/' || req.path === '/verify' || req.path === '/resend') return next();
+  if (['/', '/verify', '/resend', '/request-new-link'].includes(req.path)) return next();
   if (hasExpeditionSession(req, req.params.token)) return next();
   return res.status(401).json({
     success: false,
@@ -1940,66 +1888,53 @@ router.post('/e/:token/verify', async (req, res) => {
   const { token } = req.params;
   const { code } = req.body;
   
-  console.log(`[Verify] Token: ${token?.substring(0, 10)}..., Has fingerprint: ${!!req.session.deviceFingerprint}`);
-  
-  if (!token || !code) {
-    return res.status(400).json({ success: false, error: 'Missing code' });
-  }
-  
   try {
-    const deviceFingerprint = req.session.deviceFingerprint;
-    
-    if (!deviceFingerprint) {
-      console.log(`[Verify] No fingerprint in session! Session data:`, JSON.stringify(req.session));
-      return res.status(400).json({ success: false, error: 'Session expired' });
-    }
-    
-    // Find invitation and session
+    // LEFT JOIN: without a device session the invitation still gives the language
     const result = await query(`
       SELECT 
         i.id as invitation_id,
+        j.settings as journey_settings,
+        COALESCE(o.settings->>'default_language', 'en') as org_language,
         s.id as session_id,
         s.verification_code,
         s.verification_expires_at,
         s.verification_attempts
       FROM invitations i
-      JOIN invitation_sessions s ON s.invitation_id = i.id
-      WHERE i.token = $1 AND s.device_fingerprint = $2
-    `, [token, deviceFingerprint]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Session not found' });
-    }
+      JOIN journeys j ON i.journey_id = j.id
+      JOIN organizations o ON i.organization_id = o.id
+      LEFT JOIN invitation_sessions s ON s.invitation_id = i.id AND s.device_fingerprint = $2
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
+    `, [token, req.session.deviceFingerprint || null]);
     
     const session = result.rows[0];
+    const pt = getPlayerT(session ? journeyLanguageOf(session.journey_settings, session.org_language) : 'en');
+    const fail = (status, errorCode, key) => res.status(status).json({ success: false, code: errorCode, error: pt(key) });
+    
+    if (!session || !session.session_id) {
+      return fail(400, 'SESSION_EXPIRED', 'magicLink.verification.sessionExpired');
+    }
+    if (!code) {
+      return fail(400, 'INVALID_CODE', 'magicLink.verification.invalid');
+    }
     
     // Check attempts
     if (session.verification_attempts >= DEVICE_CODE_MAX_ATTEMPTS) {
-      return res.status(429).json({ 
-        success: false, 
-        error: req.t('invitations.magicLink.verification.lockedWait') 
-      });
+      return fail(429, 'TOO_MANY_ATTEMPTS', 'magicLink.verification.lockedWait');
     }
     
     // Check expiration
-    if (new Date(session.verification_expires_at) < new Date()) {
-      return res.status(400).json({ 
-        success: false, 
-        error: req.t('invitations.magicLink.verification.expired') 
-      });
+    if (!session.verification_expires_at || new Date(session.verification_expires_at) < new Date()) {
+      return fail(400, 'CODE_EXPIRED', 'magicLink.verification.expired');
     }
     
     // Check code
-    if (code !== session.verification_code) {
+    if (String(code) !== session.verification_code) {
       // Increment attempts
       await query(
         `UPDATE invitation_sessions SET verification_attempts = verification_attempts + 1 WHERE id = $1`,
         [session.session_id]
       );
-      return res.status(400).json({ 
-        success: false, 
-        error: req.t('invitations.magicLink.verification.invalid') 
-      });
+      return fail(400, 'INVALID_CODE', 'magicLink.verification.invalid');
     }
     
     // Verify session
@@ -2010,30 +1945,135 @@ router.post('/e/:token/verify', async (req, res) => {
       [session.session_id]
     );
     
-    console.log(`[Verify] SUCCESS for session ${session.session_id}, fingerprint: ${deviceFingerprint?.substring(0, 10)}...`);
+    console.log(`[Verify] Device verified for session ${session.session_id}`);
     
     res.json({ success: true, redirect: `/e/${token}` });
     
   } catch (err) {
     console.error('Verification error:', err);
-    res.status(500).json({ success: false, error: 'Verification failed' });
+    // The page shows its own message in the journey language
+    res.status(500).json({ success: false, code: 'SERVER_ERROR' });
   }
 });
 
 /**
  * POST /e/:token/resend - Resend verification code
  */
+/**
+ * POST /e/:token/request-new-link - The end user of an expired invitation
+ * asks for a new link. The maker who sent the invitation (or else the admins
+ * of the organization) gets an email; the end user gets nothing by email
+ * until a maker sends a new invitation. Once per invitation per 24 hours.
+ * Open without a player session: an expired link never gets one.
+ */
+router.post('/e/:token/request-new-link', magicLinkLimiter, async (req, res) => {
+  const { token } = req.params;
+  try {
+    if (isInvalidTokenBlocked(req) || !token || token.length > 128) {
+      return res.status(404).render('pages/expedition-error', {
+        title: req.t('invitations.magicLink.expired.title'),
+        message: req.t('invitations.magicLink.expired.message'),
+        errorType: 'invalid'
+      });
+    }
+
+    const result = await query(`
+      SELECT i.id, i.status, i.expires_at, i.organization_id, i.created_by,
+             eu.first_name, eu.last_name, eu.email,
+             j.title as journey_title, j.settings as journey_settings,
+             o.name as org_name,
+             COALESCE(o.settings->>'default_language', 'en') as org_language,
+             ub.email as inviter_email,
+             NULLIF(TRIM(CONCAT(ub.first_name, ' ', ub.last_name)), '') as inviter_name
+      FROM invitations i
+      JOIN end_users eu ON i.end_user_id = eu.id
+      JOIN journeys j ON i.journey_id = j.id
+      JOIN organizations o ON i.organization_id = o.id
+      LEFT JOIN users ub ON ub.id = i.created_by AND ub.organization_id = i.organization_id
+        AND ub.is_active = true AND ub.is_visible IS NOT FALSE
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
+    `, [token]);
+    const invitation = result.rows[0];
+    if (!invitation) {
+      trackInvalidToken(req);
+      return res.status(404).render('pages/expedition-error', {
+        title: req.t('invitations.magicLink.expired.title'),
+        message: req.t('invitations.magicLink.expired.message'),
+        errorType: 'invalid'
+      });
+    }
+
+    // Only for an expired link; a valid one simply opens the journey
+    const expired = invitation.status === 'expired' || new Date(invitation.expires_at) < new Date();
+    if (!expired) return res.redirect(`/e/${encodeURIComponent(token)}`);
+
+    const language = journeyLanguageOf(invitation.journey_settings, invitation.org_language);
+    const pt = getPlayerT(language);
+    const context = [invitation.org_name, invitation.journey_title].filter(Boolean).join(' · ');
+
+    // One request per day: claim the slot before sending anything
+    const claimed = await query(`
+      UPDATE invitations SET new_link_requested_at = NOW()
+      WHERE id = $1 AND (new_link_requested_at IS NULL OR new_link_requested_at < NOW() - INTERVAL '24 hours')
+      RETURNING id
+    `, [invitation.id]);
+    if (claimed.rows.length === 0) {
+      return res.render('pages/expedition-error', {
+        language,
+        title: pt('magicLink.expired.requestedTitle'),
+        message: pt('magicLink.expired.alreadyRequested'),
+        context,
+        errorType: 'requested'
+      });
+    }
+
+    // The maker who sent the invitation, or else every active admin
+    let recipients = invitation.inviter_email ? [invitation.inviter_email] : [];
+    if (recipients.length === 0) {
+      const admins = await query(
+        `SELECT email FROM users WHERE organization_id = $1 AND role = 'admin' AND is_active = true`,
+        [invitation.organization_id]
+      );
+      recipients = admins.rows.map(r => r.email);
+    }
+    const endUserName = `${invitation.first_name || ''} ${invitation.last_name || ''}`.trim() || invitation.email;
+    for (const to of recipients) {
+      try {
+        await sendNewLinkRequestEmail({
+          to,
+          endUserName,
+          endUserEmail: invitation.email,
+          journeyTitle: invitation.journey_title,
+          language: invitation.org_language
+        });
+      } catch (mailErr) {
+        console.error('[Magic Link] New link request email failed:', mailErr);
+      }
+    }
+
+    return res.render('pages/expedition-error', {
+      language,
+      title: pt('magicLink.expired.requestedTitle'),
+      message: invitation.inviter_name
+        ? pt('magicLink.expired.requestedMessage', { name: invitation.inviter_name })
+        : pt('magicLink.expired.requestedMessageOrg', { org: invitation.org_name }),
+      context,
+      errorType: 'requested'
+    });
+  } catch (err) {
+    console.error('[Magic Link] New link request error:', err);
+    return res.status(500).render('pages/expedition-error', {
+      title: req.t('pages.error'),
+      message: req.t('errors.failedToLoad'),
+      errorType: 'invalid'
+    });
+  }
+});
+
 router.post('/e/:token/resend', async (req, res) => {
   const { token } = req.params;
   
   try {
-    const deviceFingerprint = req.session.deviceFingerprint;
-    
-    if (!deviceFingerprint) {
-      return res.status(400).json({ success: false, error: 'Session expired' });
-    }
-    
-    // Find invitation and session
     const result = await query(`
       SELECT 
         i.id as invitation_id,
@@ -2042,20 +2082,23 @@ router.post('/e/:token/resend', async (req, res) => {
         eu.email,
         eu.first_name,
         j.title as journey_title,
+        j.settings as journey_settings,
         COALESCE(o.settings->>'default_language', 'en') as org_language
       FROM invitations i
-      JOIN invitation_sessions s ON s.invitation_id = i.id
       JOIN end_users eu ON i.end_user_id = eu.id
       JOIN journeys j ON i.journey_id = j.id
       JOIN organizations o ON i.organization_id = o.id
-      WHERE i.token = $1 AND s.device_fingerprint = $2
-    `, [token, deviceFingerprint]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Session not found' });
-    }
+      LEFT JOIN invitation_sessions s ON s.invitation_id = i.id AND s.device_fingerprint = $2
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
+    `, [token, req.session.deviceFingerprint || null]);
     
     const data = result.rows[0];
+    const language = data ? journeyLanguageOf(data.journey_settings, data.org_language) : 'en';
+    const pt = getPlayerT(language);
+    
+    if (!data || !data.session_id) {
+      return res.status(400).json({ success: false, code: 'SESSION_EXPIRED', error: pt('magicLink.verification.sessionExpired') });
+    }
     
     // Re-send the current code (or a new one once it expired). Never reset
     // the guess counter while a code is still valid.
@@ -2063,7 +2106,8 @@ router.post('/e/:token/resend', async (req, res) => {
     if (!verificationCode) {
       return res.status(429).json({
         success: false,
-        error: req.t('invitations.magicLink.verification.lockedWait')
+        code: 'TOO_MANY_ATTEMPTS',
+        error: pt('magicLink.verification.lockedWait')
       });
     }
     
@@ -2073,15 +2117,16 @@ router.post('/e/:token/resend', async (req, res) => {
       firstName: data.first_name,
       journeyTitle: data.journey_title,
       verificationCode: verificationCode,
-      language: data.org_language || 'en',
+      language,
       orgId: data.org_id // For custom theme support
     });
     
-    res.json({ success: true });
+    res.json({ success: true, message: pt('magicLink.verification.resent') });
     
   } catch (err) {
     console.error('Resend verification error:', err);
-    res.status(500).json({ success: false, error: 'Failed to resend code' });
+    // The page shows its own message in the journey language
+    res.status(500).json({ success: false, code: 'SERVER_ERROR' });
   }
 });
 
@@ -2102,7 +2147,7 @@ router.post('/e/:token/progress', async (req, res) => {
       `SELECT i.id, i.status, eup.id as progress_id
        FROM invitations i
        LEFT JOIN end_user_progress eup ON eup.invitation_id = i.id
-       WHERE i.token = $1 AND i.status IN ('pending', 'active')`,
+       WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex') AND i.status IN ('pending', 'active')`,
       [token]
     );
     
@@ -2141,7 +2186,7 @@ router.post('/e/:token/tts', playerTtsLimiter, async (req, res) => {
   try {
     const result = await query(
       `SELECT i.id FROM invitations i
-       WHERE i.token = $1 AND i.status IN ('pending', 'active')`,
+       WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex') AND i.status IN ('pending', 'active')`,
       [token]
     );
     
@@ -2197,7 +2242,7 @@ router.post('/e/:token/enter-nested', async (req, res) => {
         eup.nested_context
       FROM invitations i
       LEFT JOIN end_user_progress eup ON eup.invitation_id = i.id
-      WHERE i.token = $1 AND i.status IN ('pending', 'active')
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex') AND i.status IN ('pending', 'active')
     `, [token]);
     
     if (result.rows.length === 0) {
@@ -2343,7 +2388,7 @@ router.post('/e/:token/exit-nested', async (req, res) => {
         eup.nested_context
       FROM invitations i
       LEFT JOIN end_user_progress eup ON eup.invitation_id = i.id
-      WHERE i.token = $1 AND i.status IN ('pending', 'active')
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex') AND i.status IN ('pending', 'active')
     `, [token]);
     
     if (result.rows.length === 0) {
@@ -2379,6 +2424,7 @@ router.post('/e/:token/exit-nested', async (req, res) => {
       `SELECT * FROM steps WHERE journey_id = $1 ORDER BY position_y, position_x`,
       [parentContext.parent_journey_id]
     );
+    await annotateNestedLengths(stepsResult.rows);
     
     const pathsResult = await query(
       `SELECT * FROM paths WHERE journey_id = $1 ORDER BY sort_order`,
@@ -2489,7 +2535,7 @@ router.post('/e/:token/complete', async (req, res) => {
     const result = await query(
       `SELECT i.id, i.status, i.completions_count, i.max_completions
        FROM invitations i
-       WHERE i.token = $1 AND i.status IN ('pending', 'active')`,
+       WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex') AND i.status IN ('pending', 'active')`,
       [token]
     );
     
@@ -2560,7 +2606,7 @@ router.post('/e/:token/restart', async (req, res) => {
       FROM invitations i
       JOIN journeys j ON i.journey_id = j.id
       LEFT JOIN end_user_progress eup ON eup.invitation_id = i.id
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
       -- Revoked or expired invitations can never be reactivated by a restart
       AND i.status IN ('pending', 'active', 'completed')
       AND (i.expires_at IS NULL OR i.expires_at > NOW())
@@ -2625,82 +2671,6 @@ router.post('/e/:token/restart', async (req, res) => {
 });
 
 /**
- * POST /e/:token/restart-and-continue - Restart journey and redirect to start
- * Used from the welcome-back screen to restart and continue in one step
- */
-router.post('/e/:token/restart-and-continue', async (req, res) => {
-  const { token } = req.params;
-  
-  try {
-    // Verify token and get invitation with journey info
-    const result = await query(`
-      SELECT 
-        i.id as invitation_id,
-        i.status,
-        i.journey_id,
-        i.max_completions,
-        i.completions_count,
-        i.organization_id
-      FROM invitations i
-      WHERE i.token = $1
-      -- Revoked or expired invitations can never be reactivated by a restart
-      AND i.status IN ('pending', 'active', 'completed')
-      AND (i.expires_at IS NULL OR i.expires_at > NOW())
-    `, [token]);
-    
-    if (result.rows.length === 0) {
-      return res.redirect(`/e/${token}`);
-    }
-    
-    const invitation = result.rows[0];
-    
-    // Check if more completions are allowed
-    if (invitation.max_completions !== null && invitation.completions_count >= invitation.max_completions) {
-      return res.redirect(`/e/${token}`);
-    }
-    
-    // Find the start step of the journey
-    const startStepResult = await query(
-      `SELECT id FROM steps WHERE journey_id = $1 AND is_start = true LIMIT 1`,
-      [invitation.journey_id]
-    );
-    
-    const startStepId = startStepResult.rows[0]?.id || null;
-    
-    // Before the reset below clears completed_at
-    await closeAutomationRun(invitation.invitation_id);
-    
-    // Reset progress
-    await query(`
-      UPDATE end_user_progress 
-      SET current_step_id = $1,
-          visited_steps = '{}',
-          answers = '{}',
-          completed_at = NULL,
-          nested_context = NULL
-      WHERE invitation_id = $2
-    `, [startStepId, invitation.invitation_id]);
-    
-    // Update invitation status back to active
-    await query(`
-      UPDATE invitations 
-      SET status = 'active',
-          completed_at = NULL
-      WHERE id = $1
-    `, [invitation.invitation_id]);
-    
-    console.log(`[Restart] Journey restarted (via welcome-back) for invitation ${invitation.invitation_id}`);
-    
-    // Redirect to the expedition
-    res.redirect(`/e/${token}`);
-    
-  } catch (err) {
-    console.error('Restart and continue error:', err);
-    res.redirect(`/e/${token}`);
-  }
-});
-
-/**
  * POST /e/:token/chat/guide - Chat with guide in player mode
  * This endpoint allows end-users (via magic link) to chat with AI guides
  * Security: Token is validated before allowing chat
@@ -2717,7 +2687,7 @@ router.post('/e/:token/chat/guide', playerAiLimiter, async (req, res) => {
         j.id as journey_id
       FROM invitations i
       JOIN journeys j ON i.journey_id = j.id
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -2862,7 +2832,7 @@ router.post('/e/:token/guide/opening', playerAiLimiter, async (req, res) => {
         j.id as journey_id, j.title as journey_title
       FROM invitations i
       JOIN journeys j ON i.journey_id = j.id
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -2978,7 +2948,7 @@ router.post('/e/:token/automations/trigger', async (req, res) => {
       JOIN end_users eu ON i.end_user_id = eu.id
       JOIN journeys j ON i.journey_id = j.id
       JOIN organizations o ON i.organization_id = o.id
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3161,7 +3131,7 @@ router.post('/e/:token/analytics/event', async (req, res) => {
     const invResult = await query(`
       SELECT i.id, i.organization_id, i.journey_id, i.end_user_id, i.status
       FROM invitations i
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3265,7 +3235,7 @@ router.post('/e/:token/analytics/quiz-attempt', async (req, res) => {
     const invResult = await query(`
       SELECT i.id, i.organization_id, i.journey_id, i.end_user_id
       FROM invitations i
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3323,7 +3293,7 @@ router.post('/e/:token/analytics/quiz-attempt', async (req, res) => {
 router.post('/e/:token/quiz/check', async (req, res) => {
   try {
     const inv = await query(
-      `SELECT journey_id FROM invitations WHERE token = $1 AND status IN ('pending', 'active', 'completed')`,
+      `SELECT journey_id FROM invitations WHERE token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex') AND status IN ('pending', 'active', 'completed')`,
       [req.params.token]
     );
     if (inv.rows.length === 0) {
@@ -3363,7 +3333,6 @@ router.post('/e/:token/analytics/video-session', async (req, res) => {
   const { token } = req.params;
   const { 
     step_id,
-    journey_id,
     video_url,
     video_duration_sec,
     watch_time_sec,
@@ -3379,7 +3348,7 @@ router.post('/e/:token/analytics/video-session', async (req, res) => {
     const invResult = await query(`
       SELECT i.id, i.organization_id, i.journey_id, i.end_user_id
       FROM invitations i
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3387,6 +3356,22 @@ router.post('/e/:token/analytics/video-session', async (req, res) => {
     }
     
     const invitation = invResult.rows[0];
+
+    // The step must be a video step of this organization (the journey itself
+    // or a nested one), and the numbers stay within sane bounds
+    const stepResult = await query(`
+      SELECT s.id FROM steps s
+      JOIN journeys j ON j.id = s.journey_id
+      WHERE s.id = $1 AND j.organization_id = $2
+    `, [step_id, invitation.organization_id]);
+    if (stepResult.rows.length === 0) {
+      return res.status(400).json({ success: false, error: 'Unknown step' });
+    }
+    // The session counts for the journey the participant was invited to,
+    // also when the video sits in a nested journey
+    const journeyId = invitation.journey_id;
+    const seconds = (value) => Math.min(Math.max(Math.round(Number(value) || 0), 0), 86400);
+    const count = (value) => Math.min(Math.max(Math.round(Number(value) || 0), 0), 10000);
     
     await query(`
       INSERT INTO video_watch_sessions (
@@ -3397,19 +3382,19 @@ router.post('/e/:token/analytics/video-session', async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
     `, [
       invitation.organization_id,
-      journey_id || invitation.journey_id,
+      journeyId,
       step_id,
       invitation.id,
       invitation.end_user_id,
-      session_id,
-      video_url,
-      video_duration_sec,
-      watch_time_sec || 0,
-      max_position_sec || 0,
-      watch_percentage || 0,
-      completed || false,
-      pause_count || 0,
-      seek_count || 0
+      typeof session_id === 'string' ? session_id.slice(0, 100) : null,
+      typeof video_url === 'string' ? video_url.slice(0, 500) : null,
+      seconds(video_duration_sec),
+      seconds(watch_time_sec),
+      seconds(max_position_sec),
+      Math.min(count(watch_percentage), 100),
+      completed === true,
+      count(pause_count),
+      count(seek_count)
     ]);
     
     res.json({ success: true });
@@ -3440,7 +3425,7 @@ router.post('/e/:token/analytics/form-completion', async (req, res) => {
     const invResult = await query(`
       SELECT i.id, i.organization_id, i.journey_id, i.end_user_id
       FROM invitations i
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3502,7 +3487,7 @@ router.post('/e/:token/analytics/guide-chat', async (req, res) => {
     const invResult = await query(`
       SELECT i.id, i.organization_id, i.journey_id, i.end_user_id
       FROM invitations i
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3603,7 +3588,7 @@ router.get('/e/:token/forms/submission-status/:stepId', async (req, res) => {
     const invResult = await query(`
       SELECT i.id, i.end_user_id, i.journey_id, i.status, i.expires_at
       FROM invitations i
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3676,7 +3661,7 @@ router.post('/e/:token/forms/submit', async (req, res) => {
       JOIN end_users eu ON i.end_user_id = eu.id
       JOIN journeys j ON i.journey_id = j.id
       JOIN organizations o ON i.organization_id = o.id
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -3725,9 +3710,11 @@ router.post('/e/:token/forms/submit', async (req, res) => {
     // Validate and decode uploaded files (Base64 data URLs)
     let files;
     try {
-      files = processAttachments(attachments);
+      files = await processAttachments(attachments, stepBasicProps.fields);
     } catch (attachErr) {
-      return res.status(400).json({ success: false, error: attachErr.message });
+      return res.status(400).json({
+        success: false, error: attachErr.message, code: attachErr.code, field_label: attachErr.fieldLabel
+      });
     }
 
     // Images are checked for NSFW content before anything is stored
@@ -4019,7 +4006,7 @@ router.post('/e/:token/rewards/claim', async (req, res) => {
       JOIN end_users eu ON i.end_user_id = eu.id
       JOIN journeys j ON i.journey_id = j.id
       JOIN organizations o ON i.organization_id = o.id
-      WHERE i.token = $1
+      WHERE i.token_hash = encode(sha256(convert_to($1, 'UTF8')), 'hex')
     `, [token]);
     
     if (invResult.rows.length === 0) {
@@ -4068,97 +4055,21 @@ router.post('/e/:token/rewards/claim', async (req, res) => {
       ? JSON.parse(step.basic_props) 
       : step.basic_props;
     
-    // Check if reward exists for this step, create if not
-    const rewardResult = await query(`
-      SELECT id, max_recipients, is_random_codes
-      FROM rewards
-      WHERE step_id = $1
-    `, [step_id]);
-    
-    let rewardId;
-    if (rewardResult.rows.length === 0) {
-      // Create reward record from step basic_props
-      const createRewardResult = await query(`
-        INSERT INTO rewards (
-          step_id, journey_id, organization_id, title, description,
-          redemption_location, terms_conditions, valid_until,
-          is_random_codes, max_recipients, code_prefix
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING id, max_recipients, is_random_codes
-      `, [
-        step_id,
-        journeyId,
-        orgId,
-        basicProps.title || 'Reward',
-        basicProps.description || '',
-        basicProps.redemption_location || '',
-        basicProps.terms_conditions || '',
-        basicProps.valid_until || null,
-        basicProps.is_random_codes !== false,
-        basicProps.max_recipients || null,
-        basicProps.code_prefix || ''
-      ]);
-      rewardId = createRewardResult.rows[0].id;
-      rewardResult.rows[0] = createRewardResult.rows[0];
-    } else {
-      rewardId = rewardResult.rows[0].id;
-      
-      // Update reward record with latest step basic_props
-      await query(`
-        UPDATE rewards SET
-          title = $2,
-          description = $3,
-          redemption_location = $4,
-          terms_conditions = $5,
-          valid_until = $6,
-          is_random_codes = $7,
-          max_recipients = $8,
-          code_prefix = $9,
-          updated_at = NOW()
-        WHERE id = $1
-      `, [
-        rewardId,
-        basicProps.title || 'Reward',
-        basicProps.description || '',
-        basicProps.redemption_location || '',
-        basicProps.terms_conditions || '',
-        basicProps.valid_until || null,
-        basicProps.is_random_codes !== false,
-        basicProps.max_recipients || null,
-        basicProps.code_prefix || ''
-      ]);
-      
-      // Update the local object with the potentially changed values
-      rewardResult.rows[0].is_random_codes = basicProps.is_random_codes !== false;
-      rewardResult.rows[0].max_recipients = basicProps.max_recipients || null;
-    }
-    
-    // For manual codes: always sync the codes from basic_props to reward_codes table
-    // This ensures any new codes are added (existing claimed codes won't be affected)
-    if (basicProps.is_random_codes === false && basicProps.manual_codes) {
-      const codes = basicProps.manual_codes.split(/[,\n]/).filter(c => c.trim());
-      for (const code of codes) {
-        await query(`
-          INSERT INTO reward_codes (reward_id, organization_id, code)
-          VALUES ($1, $2, $3)
-          ON CONFLICT (reward_id, code) DO NOTHING
-        `, [rewardId, orgId, code.trim()]);
-      }
-    }
-    
-    const reward = rewardResult.rows[0];
-    
     // Claim in one transaction, serialized per journey: concurrent requests
     // must not give one user two codes, one code to two users, or exceed
     // max_recipients.
     let code;
     let claimPosition;
+    let rewardId;
     let existingClaim = null;
     let noMoreRewards = false;
     const client = await getClient();
     try {
       await client.query('BEGIN');
       await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`reward-claim:${journeyId}`]);
+
+      const reward = await syncRewardFromStep(client, { stepId: step_id, journeyId, orgId, basicProps });
+      rewardId = reward.id;
 
       const existingClaimResult = await client.query(`
         SELECT rc.code, rc.claim_position
@@ -4170,49 +4081,12 @@ router.post('/e/:token/rewards/claim', async (req, res) => {
       if (existingClaimResult.rows.length > 0) {
         existingClaim = existingClaimResult.rows[0];
       } else {
-        const claimedCountResult = await client.query(
-          'SELECT COUNT(*) as count FROM reward_codes WHERE reward_id = $1 AND is_claimed = true',
-          [rewardId]
-        );
-        const claimedCount = parseInt(claimedCountResult.rows[0].count);
-        claimPosition = claimedCount + 1;
-
-        if (reward.max_recipients && claimedCount >= reward.max_recipients) {
-          noMoreRewards = true;
-        } else if (reward.is_random_codes) {
-          // Generate random code
-          const prefix = basicProps.code_prefix || '';
-          code = prefix + crypto.randomBytes(6).toString('hex').toUpperCase().slice(0, 8);
-          await client.query(`
-            INSERT INTO reward_codes (
-              reward_id, organization_id, code, is_claimed, 
-              claimed_by_end_user_id, claimed_by_invitation_id, claimed_at, claim_position
-            ) VALUES ($1, $2, $3, true, $4, $5, NOW(), $6)
-          `, [rewardId, orgId, code, endUserId, invitation.id, claimPosition]);
+        const claim = await claimRewardCode(client, reward, { endUserId, invitationId: invitation.id });
+        if (claim) {
+          code = claim.code;
+          claimPosition = claim.position;
         } else {
-          // Next unclaimed manual code
-          const nextCodeResult = await client.query(`
-            SELECT id, code FROM reward_codes 
-            WHERE reward_id = $1 AND is_claimed = false
-            ORDER BY created_at ASC
-            LIMIT 1
-            FOR UPDATE
-          `, [rewardId]);
-
-          if (nextCodeResult.rows.length === 0) {
-            noMoreRewards = true;
-          } else {
-            code = nextCodeResult.rows[0].code;
-            await client.query(`
-              UPDATE reward_codes SET 
-                is_claimed = true,
-                claimed_by_end_user_id = $1,
-                claimed_by_invitation_id = $2,
-                claimed_at = NOW(),
-                claim_position = $3
-              WHERE id = $4
-            `, [endUserId, invitation.id, claimPosition, nextCodeResult.rows[0].id]);
-          }
+          noMoreRewards = true;
         }
       }
       await client.query('COMMIT');
@@ -4259,20 +4133,20 @@ router.post('/e/:token/rewards/claim', async (req, res) => {
       const emailBody = `
         <div style="text-align: center; padding: 20px;">
           <h1 style="color: {{primaryColor}};">${t.congratulations}</h1>
-          <p style="font-size: 16px; color: #666;">${t.youReceivedReward} "<strong>${journeyTitle}</strong>"</p>
+          <p style="font-size: 16px; color: #666;">${t.youReceivedReward} "<strong>${escapeHtml(journeyTitle)}</strong>"</p>
           
           <div style="background: white; border: 2px solid {{primaryColor}}; border-radius: 16px; padding: 24px; margin: 24px 0; display: inline-block; min-width: 280px;">
-            <h2 style="color: {{primaryColor}}; margin-bottom: 8px;">${basicProps.title || 'Reward'}</h2>
-            ${basicProps.description ? `<p style="color: #64748b; margin-bottom: 16px;">${basicProps.description}</p>` : ''}
+            <h2 style="color: {{primaryColor}}; margin-bottom: 8px;">${escapeHtml(basicProps.title || 'Reward')}</h2>
+            ${basicProps.description ? `<p style="color: #64748b; margin-bottom: 16px;">${escapeHtml(basicProps.description)}</p>` : ''}
             
             <div style="background: {{bgColor}}; border-radius: 8px; padding: 16px; margin: 16px 0;">
               <p style="font-size: 12px; color: {{primaryColor}}; margin-bottom: 4px;">${t.yourCode}</p>
-              <p style="font-size: 28px; font-family: monospace; font-weight: bold; color: {{primaryColor}}; letter-spacing: 2px; margin: 0;">${code}</p>
+              <p style="font-size: 28px; font-family: monospace; font-weight: bold; color: {{primaryColor}}; letter-spacing: 2px; margin: 0;">${escapeHtml(code)}</p>
             </div>
             
             ${basicProps.redemption_location ? `
               <p style="color: #64748b; margin: 8px 0;">
-                <strong style="color: {{primaryColor}};">${t.redeemAt}:</strong> ${basicProps.redemption_location}
+                <strong style="color: {{primaryColor}};">${t.redeemAt}:</strong> ${escapeHtml(basicProps.redemption_location)}
               </p>
             ` : ''}
             
@@ -4285,7 +4159,7 @@ router.post('/e/:token/rewards/claim', async (req, res) => {
             ${basicProps.terms_conditions ? `
               <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
                 <p style="font-size: 12px; color: {{primaryColor}}; font-weight: bold; margin-bottom: 4px;">${t.terms}</p>
-                <p style="font-size: 12px; color: #64748b;">${basicProps.terms_conditions}</p>
+                <p style="font-size: 12px; color: #64748b;">${escapeHtml(basicProps.terms_conditions)}</p>
               </div>
             ` : ''}
           </div>
@@ -4366,12 +4240,12 @@ router.get('/api/auth/callback/google', async (req, res) => {
   // Handle OAuth errors from Google
   if (error) {
     console.error('[Google OAuth] Error from Google:', error);
-    return res.redirect('/dashboard/system-settings?google_error=' + encodeURIComponent(error));
+    return res.redirect('/dashboard/participants?google_error=' + encodeURIComponent(error));
   }
   
   if (!code || !state) {
     console.error('[Google OAuth] Missing code or state');
-    return res.redirect('/dashboard/system-settings?google_error=missing_params');
+    return res.redirect('/dashboard/participants?google_error=missing_params');
   }
   
   try {
@@ -4381,7 +4255,7 @@ router.get('/api/auth/callback/google', async (req, res) => {
     const stateData = verifyOAuthState(state);
     if (!stateData || !stateData.orgId) {
       console.error('[Google OAuth] Invalid or expired state');
-      return res.redirect('/dashboard/system-settings?google_error=invalid_state');
+      return res.redirect('/dashboard/participants?google_error=invalid_state');
     }
 
     const { orgId } = stateData;
@@ -4389,18 +4263,18 @@ router.get('/api/auth/callback/google', async (req, res) => {
     // Defense in depth: when the initiating session is present, bind to it.
     if (req.session?.googleOAuthState && req.session.googleOAuthState !== state) {
       console.error('[Google OAuth] State does not match session');
-      return res.redirect('/dashboard/system-settings?google_error=invalid_state');
+      return res.redirect('/dashboard/participants?google_error=invalid_state');
     }
     if (req.session?.organization?.id && req.session.organization.id !== orgId) {
       console.error('[Google OAuth] State orgId does not match session organization');
-      return res.redirect('/dashboard/system-settings?google_error=invalid_state');
+      return res.redirect('/dashboard/participants?google_error=invalid_state');
     }
     
     // Verify organization exists in database
     const orgResult = await query('SELECT id, name FROM organizations WHERE id = $1', [orgId]);
     if (orgResult.rows.length === 0) {
       console.error('[Google OAuth] Organization not found:', orgId);
-      return res.redirect('/dashboard/system-settings?google_error=org_not_found');
+      return res.redirect('/dashboard/participants?google_error=org_not_found');
     }
     console.log('[Google OAuth] Organization verified:', orgResult.rows[0].name);
     
@@ -4442,12 +4316,12 @@ router.get('/api/auth/callback/google', async (req, res) => {
     if (req.session) delete req.session.googleOAuthState;
     
     // Redirect back to system settings with success
-    res.redirect('/dashboard/system-settings?google_connected=true');
+    res.redirect('/dashboard/participants?google_connected=true');
     
   } catch (err) {
     console.error('[Google OAuth] Callback error:', err.message);
     console.error('[Google OAuth] Full error:', err);
-    res.redirect('/dashboard/system-settings?google_error=' + encodeURIComponent(err.message));
+    res.redirect('/dashboard/participants?google_error=' + encodeURIComponent(err.message));
   }
 });
 
@@ -4481,18 +4355,18 @@ router.get('/api/auth/callback/microsoft', async (req, res) => {
   // Handle OAuth errors from Microsoft
   if (error) {
     console.error('[Microsoft OAuth] Error from Microsoft:', error, '-', error_description);
-    return res.redirect('/dashboard/system-settings?microsoft_error=' + encodeURIComponent(error_description || error));
+    return res.redirect('/dashboard/participants?microsoft_error=' + encodeURIComponent(error_description || error));
   }
   
   // Check if admin consent was granted
   if (admin_consent !== 'True' && admin_consent !== 'true') {
     console.error('[Microsoft OAuth] Admin consent not granted');
-    return res.redirect('/dashboard/system-settings?microsoft_error=consent_denied');
+    return res.redirect('/dashboard/participants?microsoft_error=consent_denied');
   }
   
   if (!tenant || !state) {
     console.error('[Microsoft OAuth] Missing tenant or state');
-    return res.redirect('/dashboard/system-settings?microsoft_error=missing_params');
+    return res.redirect('/dashboard/participants?microsoft_error=missing_params');
   }
   
   try {
@@ -4502,7 +4376,7 @@ router.get('/api/auth/callback/microsoft', async (req, res) => {
     const stateData = verifyOAuthState(state);
     if (!stateData || !stateData.orgId) {
       console.error('[Microsoft OAuth] Invalid or expired state');
-      return res.redirect('/dashboard/system-settings?microsoft_error=invalid_state');
+      return res.redirect('/dashboard/participants?microsoft_error=invalid_state');
     }
 
     const { orgId } = stateData;
@@ -4510,11 +4384,11 @@ router.get('/api/auth/callback/microsoft', async (req, res) => {
     // Defense in depth: when the initiating session is present, bind to it.
     if (req.session?.microsoftOAuthState && req.session.microsoftOAuthState !== state) {
       console.error('[Microsoft OAuth] State does not match session');
-      return res.redirect('/dashboard/system-settings?microsoft_error=invalid_state');
+      return res.redirect('/dashboard/participants?microsoft_error=invalid_state');
     }
     if (req.session?.organization?.id && req.session.organization.id !== orgId) {
       console.error('[Microsoft OAuth] State orgId does not match session organization');
-      return res.redirect('/dashboard/system-settings?microsoft_error=invalid_state');
+      return res.redirect('/dashboard/participants?microsoft_error=invalid_state');
     }
 
     // The admin-consent redirect is not signed by Microsoft, so `tenant` comes
@@ -4524,7 +4398,7 @@ router.get('/api/auth/callback/microsoft', async (req, res) => {
     // customer's directory into their own organization.
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenant)) {
       console.error('[Microsoft OAuth] Invalid tenant id format');
-      return res.redirect('/dashboard/system-settings?microsoft_error=missing_params');
+      return res.redirect('/dashboard/participants?microsoft_error=missing_params');
     }
     const tenantInUse = await query(
       'SELECT 1 FROM organizations WHERE microsoft_tenant_id = $1 AND id <> $2 LIMIT 1',
@@ -4532,14 +4406,14 @@ router.get('/api/auth/callback/microsoft', async (req, res) => {
     );
     if (tenantInUse.rows.length > 0) {
       console.warn(`[Microsoft OAuth] Refused: tenant ${tenant} is already linked to another organization (requested by org ${orgId})`);
-      return res.redirect('/dashboard/system-settings?microsoft_error=tenant_in_use');
+      return res.redirect('/dashboard/participants?microsoft_error=tenant_in_use');
     }
     
     // Verify organization exists in database
     const orgResult = await query('SELECT id, name FROM organizations WHERE id = $1', [orgId]);
     if (orgResult.rows.length === 0) {
       console.error('[Microsoft OAuth] Organization not found:', orgId);
-      return res.redirect('/dashboard/system-settings?microsoft_error=org_not_found');
+      return res.redirect('/dashboard/participants?microsoft_error=org_not_found');
     }
     console.log('[Microsoft OAuth] Organization verified:', orgResult.rows[0].name);
     
@@ -4596,12 +4470,12 @@ router.get('/api/auth/callback/microsoft', async (req, res) => {
     if (req.session) delete req.session.microsoftOAuthState;
     
     // Redirect back to system settings with success
-    res.redirect('/dashboard/system-settings?microsoft_connected=true');
+    res.redirect('/dashboard/participants?microsoft_connected=true');
     
   } catch (err) {
     console.error('[Microsoft OAuth] Callback error:', err.message);
     console.error('[Microsoft OAuth] Full error:', err);
-    res.redirect('/dashboard/system-settings?microsoft_error=' + encodeURIComponent(err.message));
+    res.redirect('/dashboard/participants?microsoft_error=' + encodeURIComponent(err.message));
   }
 });
 
@@ -4727,6 +4601,7 @@ router.get('/p/:token', async (req, res) => {
     const stepsResult = await query(`
       SELECT * FROM steps WHERE journey_id = $1 ORDER BY created_at
     `, [journey.id]);
+    await annotateNestedLengths(stepsResult.rows);
     
     // Get paths
     const pathsResult = await query(`
@@ -4763,6 +4638,7 @@ router.get('/p/:token', async (req, res) => {
     journey.guide_language_override = settings.guide_language_override || false;
     journey.guide_language_code = settings.guide_language_code || null;
     journey.guide_opening_override = settings.guide_opening_override || '';
+    journey.guide_role_translations = settings.guide_role_translations || {};
     
     console.log('[PublicJourney] Language settings - override:', journey.language_override, 
       'code:', journey.language_code, 'guideLanguage:', guideLanguage, 'guideOpeningOverride:', journey.guide_opening_override ? 'set' : 'empty');
@@ -4946,7 +4822,7 @@ router.post('/p/:token/auto-login', async (req, res) => {
  */
 router.post('/p/:token/identify', async (req, res) => {
   const { token } = req.params;
-  const { email, firstName, lastName, stepType, stepId } = req.body;
+  const { email, firstName, lastName } = req.body;
   
   if (!email || !firstName || !lastName) {
     return res.status(400).json({ 
@@ -4958,7 +4834,7 @@ router.post('/p/:token/identify', async (req, res) => {
   try {
     // Validate token and get journey
     const journeyResult = await query(`
-      SELECT id, organization_id FROM journeys 
+      SELECT id, organization_id, title, settings FROM journeys 
       WHERE public_token = $1 AND is_public = true AND deleted_at IS NULL
     `, [token]);
     
@@ -4976,79 +4852,52 @@ router.post('/p/:token/identify', async (req, res) => {
     
     const emailLower = email.toLowerCase().trim();
     
-    // Check if this email already exists for this journey
+    // Check if this email already exists for this journey. Whether it does,
+    // and whether that participant already voted or claimed, is only told
+    // after the code from the email (by the poll and reward routes): the
+    // answer here is the same for every address.
     const existingParticipant = await query(`
       SELECT id, email_verified FROM public_participants 
       WHERE journey_id = $1 AND email = $2 AND id != $3
     `, [journey.id, emailLower, participantId]);
     
-    if (existingParticipant.rows.length > 0) {
-      // Check if they already participated (for polls/rewards)
-      if (stepType === 'poll') {
-        const existingVote = await query(`
-          SELECT id, selected_option FROM public_poll_responses 
-          WHERE participant_id = $1 AND step_id = $2
-        `, [existingParticipant.rows[0].id, stepId]);
-        
-        if (existingVote.rows.length > 0) {
-          // Get poll results to return
-          const resultsQuery = await query(`
-            SELECT selected_option, COUNT(*) as count
-            FROM public_poll_responses
-            WHERE step_id = $1 AND journey_id = $2
-            GROUP BY selected_option
-          `, [stepId, journey.id]);
-          
-          const results = {};
-          let totalVotes = 0;
-          resultsQuery.rows.forEach(row => {
-            results[row.selected_option] = parseInt(row.count);
-            totalVotes += parseInt(row.count);
-          });
-          
-          return res.json({ 
-            success: true, 
-            alreadyVoted: true,
-            userVote: existingVote.rows[0].selected_option,
-            results,
-            totalVotes,
-            message: req.t('builder.poll.alreadyVoted')
-          });
-        }
-      }
-      
-      if (stepType === 'reward') {
-        const existingClaim = await query(`
-          SELECT id FROM public_reward_claims 
-          WHERE participant_id = $1 AND step_id = $2
-        `, [existingParticipant.rows[0].id, stepId]);
-        
-        if (existingClaim.rows.length > 0) {
-          return res.status(400).json({ 
-            success: false, 
-            error: req.t('journeys.public.identify.alreadyClaimed'),
-            code: 'ALREADY_CLAIMED'
-          });
-        }
-      }
-    }
-    
     // Generate verification code
     const verificationCode = crypto.randomInt(100000, 1000000).toString(); // 6-digit code
     const codeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     
-    // Update participant with email and verification code
-    await query(`
-      UPDATE public_participants 
-      SET email = $1, 
-          first_name = $2, 
-          last_name = $3, 
-          email_verification_code = $4,
-          email_verification_expires = $5,
-          email_verified = false,
-          updated_at = NOW()
-      WHERE id = $6
-    `, [emailLower, firstName.trim(), lastName.trim(), verificationCode, codeExpires, participantId]);
+    if (existingParticipant.rows.length > 0) {
+      // A returning participant in a new browser: the email belongs to an
+      // earlier participant of this journey. The code goes to that
+      // participant; only after the code is right does this session become
+      // them (see /verify). Until then nothing else of theirs changes, so
+      // typing someone else's address cannot alter or lock their record.
+      await query(`
+        UPDATE public_participants 
+        SET email_verification_code = $1,
+            email_verification_expires = $2,
+            updated_at = NOW()
+        WHERE id = $3
+      `, [verificationCode, codeExpires, existingParticipant.rows[0].id]);
+      req.session.publicPendingParticipant = {
+        id: existingParticipant.rows[0].id,
+        firstName: firstName.trim(),
+        lastName: lastName.trim()
+      };
+    } else {
+      delete req.session.publicPendingParticipant;
+      // Update participant with email and verification code
+      await query(`
+        UPDATE public_participants 
+        SET email = $1, 
+            first_name = $2, 
+            last_name = $3, 
+            email_verification_code = $4,
+            email_verification_expires = $5,
+            email_verified = false,
+            updated_at = NOW()
+        WHERE id = $6
+      `, [emailLower, firstName.trim(), lastName.trim(), verificationCode, codeExpires, participantId]);
+    }
     
     // Send verification email
     try {
@@ -5058,13 +4907,16 @@ router.post('/p/:token/identify', async (req, res) => {
       `, [journey.organization_id]);
       
       const orgLanguage = orgResult.rows[0]?.language || 'en';
+      // Same language as the dialog the participant just filled in
+      const settings = journey.settings || {};
+      const emailLanguage = settings.language_override && settings.language_code ? settings.language_code : orgLanguage;
       
       await sendVerificationCodeEmail({
         to: emailLower,
         firstName: firstName.trim(),
         journeyTitle: journey.title,
         verificationCode: verificationCode,
-        language: orgLanguage,
+        language: emailLanguage,
         orgId: journey.organization_id
       });
     } catch (emailErr) {
@@ -5096,16 +4948,18 @@ router.post('/p/:token/verify', async (req, res) => {
   }
   
   try {
-    const participantId = req.session.publicParticipantId;
+    // A returning participant verifies the record their email belongs to
+    const pending = req.session.publicPendingParticipant;
+    const participantId = pending?.id || req.session.publicParticipantId;
     
-    if (!participantId) {
+    if (!participantId || !req.session.publicJourneyId) {
       return res.status(400).json({ success: false, error: 'Invalid session' });
     }
     
     // Get participant
     const participant = await query(`
-      SELECT * FROM public_participants WHERE id = $1
-    `, [participantId]);
+      SELECT * FROM public_participants WHERE id = $1 AND journey_id = $2
+    `, [participantId, req.session.publicJourneyId]);
     
     if (participant.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Participant not found' });
@@ -5141,26 +4995,40 @@ router.post('/p/:token/verify', async (req, res) => {
       });
     }
     
-    // Mark as verified and issue a "remember me" token for auto-login
+    // Mark as verified and issue a "remember me" token for auto-login. A
+    // returning participant also gets the name they just entered.
     const rememberToken = crypto.randomBytes(32).toString('base64url');
-    await query(`
+    const updated = await query(`
       UPDATE public_participants 
       SET email_verified = true, 
           email_verification_code = NULL,
           remember_token_hash = $2,
+          first_name = COALESCE($3, first_name),
+          last_name = COALESCE($4, last_name),
           updated_at = NOW()
       WHERE id = $1
-    `, [participantId, hashRememberToken(rememberToken)]);
+      RETURNING email, first_name, last_name
+    `, [participantId, hashRememberToken(rememberToken), pending?.firstName || null, pending?.lastName || null]);
     req.session.publicVerifyAttempts = 0;
     
+    if (pending) {
+      // This browser now continues as the earlier participant, under a new
+      // session ID (as with auto-login)
+      delete req.session.publicPendingParticipant;
+      await rotateSessionId(req);
+      req.session.publicParticipantId = participantId;
+      req.session.publicSessionId = req.session.id;
+    }
+    
+    const row = updated.rows[0] || p;
     res.json({ 
       success: true, 
       message: 'Email verified',
       rememberToken,
       participant: {
-        email: p.email,
-        firstName: p.first_name,
-        lastName: p.last_name,
+        email: row.email,
+        firstName: row.first_name,
+        lastName: row.last_name,
         isVerified: true
       }
     });
@@ -5212,7 +5080,16 @@ router.post('/p/:token/poll/:stepId', async (req, res) => {
       const results = {};
       let totalVotes = 0;
       resultsQuery.rows.forEach(row => {
-        results[row.selected_option] = parseInt(row.count);
+        // Options are { id, text } objects (older polls: plain strings).
+        // Key by id, so the player can match them; an object key would
+        // become "[object Object]" and every option showed 0 votes.
+        let opt = row.selected_option;
+        // Stored as text: an option object arrives as its JSON string
+        if (typeof opt === 'string' && opt.startsWith('{')) {
+          try { opt = JSON.parse(opt); } catch { /* plain text option */ }
+        }
+        const key = opt && typeof opt === 'object' ? (opt.id && opt.id !== 'undefined' ? opt.id : opt.text) : opt;
+        results[key] = (results[key] || 0) + parseInt(row.count);
         totalVotes += parseInt(row.count);
       });
       
@@ -5399,9 +5276,11 @@ router.post('/p/:token/forms/submit', async (req, res) => {
     // Validate and decode uploaded files before saving anything
     let files;
     try {
-      files = processAttachments(attachments);
+      files = await processAttachments(attachments, basicProps.fields);
     } catch (attachErr) {
-      return res.status(400).json({ success: false, error: attachErr.message });
+      return res.status(400).json({
+        success: false, error: attachErr.message, code: attachErr.code, field_label: attachErr.fieldLabel
+      });
     }
 
     // Images are checked for NSFW content before anything is stored
@@ -5592,51 +5471,17 @@ router.get('/p/:token/rewards/availability/:stepId', async (req, res) => {
     }
     
     const journeyId = journeyResult.rows[0].id;
-    
-    // Get reward info for this step
-    const rewardResult = await query(`
-      SELECT r.id, r.max_recipients, r.is_random_codes
-      FROM rewards r
-      WHERE r.step_id = $1 AND r.journey_id = $2
+    const stepResult = await query(`
+      SELECT basic_props FROM steps
+      WHERE id::text = $1 AND journey_id = $2 AND type = 'reward'
     `, [stepId, journeyId]);
-    
-    if (rewardResult.rows.length === 0) {
-      return res.json({ success: true, available: true }); // No reward configured, allow through
+    if (stepResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Reward not found' });
     }
-    
-    const reward = rewardResult.rows[0];
-    
-    // Check how many codes are available
-    const availableCodesResult = await query(`
-      SELECT COUNT(*) as count FROM reward_codes 
-      WHERE reward_id = $1 AND is_claimed = false
-    `, [reward.id]);
-    
-    const availableCodes = parseInt(availableCodesResult.rows[0].count);
-    
-    // If using random codes, check against max_recipients
-    if (reward.is_random_codes) {
-      if (reward.max_recipients) {
-        const claimedCount = await query(`
-          SELECT COUNT(*) as count FROM public_reward_claims WHERE reward_id = $1
-        `, [reward.id]);
-        const claimed = parseInt(claimedCount.rows[0].count);
-        return res.json({ 
-          success: true, 
-          available: claimed < reward.max_recipients,
-          soldOut: claimed >= reward.max_recipients
-        });
-      }
-      return res.json({ success: true, available: true, soldOut: false });
-    }
-    
-    // For manual codes, check if any are left
-    return res.json({ 
-      success: true, 
-      available: availableCodes > 0,
-      soldOut: availableCodes === 0
-    });
-    
+
+    const { available, soldOut } = await rewardAvailability({ query }, { stepId, basicProps: stepResult.rows[0].basic_props || {} });
+    return res.json({ success: true, available, soldOut });
+
   } catch (err) {
     console.error('Reward availability check error:', err);
     res.status(500).json({ success: false, error: 'Failed to check availability' });
@@ -5777,29 +5622,32 @@ router.post('/p/:token/rewards/claim', async (req, res) => {
     
     const p = participant.rows[0];
     
-    // Reward info (outside the transaction: read only)
-    const rewardResult = await query(`
-      SELECT r.*, s.basic_props as step_props
-      FROM rewards r
-      JOIN steps s ON r.step_id = s.id
-      WHERE r.step_id = $1 AND r.journey_id = $2
-    `, [step_id, p.journey_id]);
-    
-    if (rewardResult.rows.length === 0) {
+    // The reward step of this journey
+    const stepResult = await query(`
+      SELECT s.basic_props FROM steps s
+      WHERE s.id::text = $1 AND s.journey_id = $2 AND s.type = 'reward'
+    `, [String(step_id || ''), p.journey_id]);
+
+    if (stepResult.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Reward not found' });
     }
-    
-    const reward = rewardResult.rows[0];
-    const stepProps = reward.step_props || {};
-    
+
+    const stepProps = stepResult.rows[0].basic_props || {};
+
     // Claim in one transaction, serialized per journey, so concurrent requests
-    // cannot claim twice for the same person or hand out one code twice.
+    // cannot claim twice for the same person, hand out one code twice or go
+    // past max_recipients.
     let code = null;
+    let claimPosition = null;
     let claimError = null;
     const client = await getClient();
     try {
       await client.query('BEGIN');
       await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`reward-claim:${p.journey_id}`]);
+
+      const reward = await syncRewardFromStep(client, {
+        stepId: step_id, journeyId: p.journey_id, orgId: p.organization_id, basicProps: stepProps
+      });
 
       // Already claimed by this participant, or by the same email address?
       const existingClaim = await client.query(`
@@ -5812,39 +5660,14 @@ router.post('/p/:token/rewards/claim', async (req, res) => {
       if (existingClaim.rows.length > 0) {
         claimError = { status: 400, body: { success: false, error: req.t('journeys.public.identify.alreadyClaimed'), code: 'ALREADY_CLAIMED' } };
       } else {
-        const codeResult = await client.query(`
-          SELECT * FROM reward_codes 
-          WHERE reward_id = $1 AND is_claimed = false
-          ORDER BY ${reward.is_random_codes ? 'RANDOM()' : 'created_at'}
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
-        `, [reward.id]);
-
-        if (codeResult.rows.length === 0) {
-          let limitReached = false;
-          if (reward.max_recipients) {
-            const claimCount = await client.query(
-              'SELECT COUNT(*) as count FROM public_reward_claims WHERE reward_id = $1',
-              [reward.id]
-            );
-            limitReached = parseInt(claimCount.rows[0].count) >= reward.max_recipients;
-          }
-          claimError = { status: 400, body: { success: false, error: limitReached ? 'Reward limit reached' : 'No codes available', code: 'NO_MORE_REWARDS' } };
+        const claim = await claimRewardCode(client, reward, { publicParticipantId: participantId });
+        if (!claim) {
+          claimError = { status: 400, body: { success: false, error: 'No codes available', code: 'NO_MORE_REWARDS' } };
         } else {
-          code = codeResult.rows[0].code;
-
-          // Mark code as claimed (including public participant reference)
+          code = claim.code;
+          claimPosition = claim.position;
           await client.query(`
-            UPDATE reward_codes 
-            SET is_claimed = true,
-                claimed_at = NOW(),
-                claimed_by_public_participant_id = $2
-            WHERE id = $1
-          `, [codeResult.rows[0].id, participantId]);
-
-          // Record the claim
-          await client.query(`
-            INSERT INTO public_reward_claims 
+            INSERT INTO public_reward_claims
               (participant_id, journey_id, step_id, reward_id, code)
             VALUES ($1, $2, $3, $4, $5)
           `, [participantId, p.journey_id, step_id, reward.id, code]);
@@ -5886,10 +5709,10 @@ router.post('/p/:token/rewards/claim', async (req, res) => {
           <h2 style="color: {{primaryColor}}; margin-bottom: 16px;">${t.congratulations}</h2>
           <p style="color: #666; margin-bottom: 24px;">${t.yourCode}</p>
           <div style="background: {{bgColor}}; border: 2px dashed {{primaryColor}}; border-radius: 12px; padding: 20px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; color: {{primaryColor}}; letter-spacing: 2px;">${code}</span>
+            <span style="font-size: 28px; font-weight: bold; color: {{primaryColor}}; letter-spacing: 2px;">${escapeHtml(code)}</span>
           </div>
-          ${reward.redemption_location ? `<p style="color: #666; font-size: 14px;">${t.redeemAt}: ${reward.redemption_location}</p>` : ''}
-          ${reward.terms_conditions ? `<p style="color: #999; font-size: 12px; margin-top: 16px;">${reward.terms_conditions}</p>` : ''}
+          ${stepProps.redemption_location ? `<p style="color: #666; font-size: 14px;">${t.redeemAt}: ${escapeHtml(stepProps.redemption_location)}</p>` : ''}
+          ${stepProps.terms_conditions ? `<p style="color: #999; font-size: 12px; margin-top: 16px;">${escapeHtml(stepProps.terms_conditions)}</p>` : ''}
         </div>
       `;
       
@@ -5915,60 +5738,19 @@ router.post('/p/:token/rewards/claim', async (req, res) => {
       console.error('[Public Reward] Failed to send email:', emailErr);
     }
     
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       code,
+      position: claimPosition,
       reward: {
         title: stepProps.title,
-        description: reward.description
+        description: stepProps.description
       }
     });
     
   } catch (err) {
     console.error('Public reward claim error:', err);
     res.status(500).json({ success: false, error: 'Failed to claim reward' });
-  }
-});
-
-/**
- * POST /p/:token/progress - Update progress for public participant
- */
-router.post('/p/:token/progress', async (req, res) => {
-  const { token: _token } = req.params;
-  const { stepId, action } = req.body;
-  
-  try {
-    const participantId = req.session.publicParticipantId;
-    
-    if (!participantId) {
-      return res.status(400).json({ success: false, error: 'Invalid session' });
-    }
-    
-    if (action === 'visit' && stepId) {
-      await query(`
-        UPDATE public_participants 
-        SET current_step_id = $1,
-            visited_steps = CASE 
-              WHEN NOT ($2 = ANY(visited_steps)) 
-              THEN array_append(visited_steps, $2)
-              ELSE visited_steps
-            END,
-            updated_at = NOW()
-        WHERE id = $3
-      `, [stepId, stepId, participantId]);
-    } else if (action === 'complete') {
-      await query(`
-        UPDATE public_participants 
-        SET completed_at = NOW(), updated_at = NOW()
-        WHERE id = $1
-      `, [participantId]);
-    }
-    
-    res.json({ success: true });
-    
-  } catch (err) {
-    console.error('Public progress error:', err);
-    res.status(500).json({ success: false, error: 'Failed to update progress' });
   }
 });
 

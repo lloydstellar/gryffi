@@ -88,6 +88,13 @@ app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 // Script-safe JSON for inline <script> blocks: <%- safeJson(value) %>
 app.locals.safeJson = safeJson;
+// The sidebar logos go inline in the page: a separate image appears a frame
+// after the rest of the page, so the logo would blink on every menu click.
+const inlineLogo = (file) => `data:image/png;base64,${fs.readFileSync(path.join(__dirname, '..', 'public', 'images', 'logos', file)).toString('base64')}`;
+app.locals.sidebarLogos = {
+  full: inlineLogo('Logo---transparant-lightgreen-cropped.png'),
+  icon: inlineLogo('Logo---illustrationonly-transparant-lightgreen-cropped.png')
+};
 app.set('views', path.join(__dirname, 'views'));
 
 // Gryffi Cloud: signup, billing, platform admin, payment webhook and website
@@ -105,13 +112,16 @@ app.use((req, res, next) => {
   // CSP directives shared between internal and external
   const baseDirectives = {
     defaultSrc: ["'self'"],
-    styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
     fontSrc: ["'self'"],
     imgSrc: ["'self'", "data:", "blob:", "https://images.pexels.com", "https://i.ytimg.com", "https://img.youtube.com", "https://api.dicebear.com"],
-    scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", "https://unpkg.com", ...cloudCsp.script],
+    scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", ...cloudCsp.script],
     frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://youtube-nocookie.com", ...cloudCsp.frame],
     connectSrc: ["'self'", ...cloudCsp.connect],
     objectSrc: ["'self'"],
+    // Listen (TTS): the player primes audio with a silent data: WAV inside the
+    // click, so mobile browsers allow playing the fetched audio afterwards
+    mediaSrc: ["'self'", "data:", "blob:"],
   };
 
   // For internal IPs: disable upgrade-insecure-requests so HTTP works between
@@ -138,6 +148,15 @@ app.use((req, res, next) => {
 
 // Compression
 app.use(compression());
+
+// Nothing the app serves belongs in a search engine: magic-link pages (/e/),
+// public journeys (/p/), uploads, login and the maker app. The public website
+// is served by nginx and is not affected. A header instead of a robots.txt rule,
+// so crawlers that find such a link still see that they must not index it.
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
 
 // Request ID and logging
 import crypto from 'crypto';
@@ -182,7 +201,16 @@ if (!process.env.SESSION_SECRET) {
 // context: they need none of it, and the org context would otherwise hold a
 // database connection for every asset of a logged-in maker. /media stays on
 // the access-controlled route further down.
-const publicAssets = express.static(path.join(__dirname, '..', 'public'));
+// Fonts and logos keep their file names and hardly ever change: the browser
+// may reuse them for a week, so a new page does not wait for them and the
+// text and logo do not flicker. CSS and JS are still checked on every load.
+const publicAssets = express.static(path.join(__dirname, '..', 'public'), {
+  setHeaders: (res, filePath) => {
+    if (/[\\/](fonts|images[\\/]logos)[\\/]/.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    }
+  }
+});
 app.use((req, res, next) => (/^\/(css|js|images|fonts)\//.test(req.path) ? publicAssets(req, res, next) : next()));
 
 app.use(session({
@@ -241,6 +269,8 @@ app.use((req, res, next) => {
   res.locals.t = req.t;
   res.locals.locale = req.language; // For builder.ejs
   res.locals.language = req.language;
+  // Pages may set language/locale to a journey's language; the maker's own stays here
+  res.locals.interfaceLanguage = req.language;
   res.locals.edition = getEdition();
   res.locals.isCommunity = isCommunity();
   res.locals.communitySupportUrl = COMMUNITY_SUPPORT_URL;
@@ -296,6 +326,7 @@ app.use(async (req, res, next) => {
       res.locals.t = req.t;
       res.locals.locale = req.language;
       res.locals.language = req.language;
+      res.locals.interfaceLanguage = req.language;
     }
   } catch (_e) {
     // Best-effort only
@@ -304,8 +335,7 @@ app.use(async (req, res, next) => {
 });
 
 // Helper function to serve organization media files with access control
-// Supports both new (/uploads/) and legacy (/media/) URL patterns
-async function serveOrgMedia(req, res, isLegacyPath = false) {
+async function serveOrgMedia(req, res) {
   try {
     const orgId = req.params.orgId;
     const rest = req.params[0] || '';
@@ -352,50 +382,14 @@ async function serveOrgMedia(req, res, isLegacyPath = false) {
       return res.status(403).send('Forbidden');
     }
 
-    // Determine base directory based on path type
-    // New path: /uploads/organizations/{orgId}/media/ or /uploads/organizations/{orgId}/pexels/
-    // Legacy path: /media/organizations/{orgId}/uploads/ or /media/organizations/{orgId}/pexels/
-    let baseDir, resolved;
-    
-    if (isLegacyPath) {
-      // Legacy URL: try new location first (data/uploads), then old location (app/public/media)
-      // Map legacy paths to new structure: uploads/ -> media/, pexels/ stays pexels/
-      let newRest = rest;
-      if (rest.startsWith('uploads/')) {
-        newRest = rest.replace('uploads/', 'media/');
-      }
-      
-      const newBaseDir = path.join(__dirname, '..', 'uploads', 'organizations', orgId);
-      const newResolvedBase = path.resolve(newBaseDir);
-      const newRequestedPath = path.join(newBaseDir, newRest);
-      const newResolved = path.resolve(newRequestedPath);
-      
-      // Check new location first
-      if (newResolved.startsWith(newResolvedBase) && fs.existsSync(newResolved) && fs.statSync(newResolved).isFile()) {
-        baseDir = newBaseDir;
-        resolved = newResolved;
-      } else {
-        // Fall back to old location
-        baseDir = path.join(__dirname, '..', 'public', 'media', 'organizations', orgId);
-        const resolvedBase = path.resolve(baseDir);
-        const requestedPath = path.join(baseDir, rest);
-        resolved = path.resolve(requestedPath);
-        
-        if (!resolved.startsWith(resolvedBase)) {
-          return res.status(400).send('Bad Request');
-        }
-      }
-    } else {
-      // New URL structure: files are in data/uploads/organizations/{orgId}/
-      baseDir = path.join(__dirname, '..', 'uploads', 'organizations', orgId);
-      const resolvedBase = path.resolve(baseDir);
-      const requestedPath = path.join(baseDir, rest);
-      resolved = path.resolve(requestedPath);
+    // Files are in data/uploads/organizations/{orgId}/
+    const baseDir = path.join(__dirname, '..', 'uploads', 'organizations', orgId);
+    const resolvedBase = path.resolve(baseDir);
+    const resolved = path.resolve(path.join(baseDir, rest));
 
-      // Prevent path traversal
-      if (!resolved.startsWith(resolvedBase)) {
-        return res.status(400).send('Bad Request');
-      }
+    // Prevent path traversal
+    if (!resolved.startsWith(resolvedBase)) {
+      return res.status(400).send('Bad Request');
     }
 
     if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
@@ -424,14 +418,7 @@ async function serveOrgMedia(req, res, isLegacyPath = false) {
 // This serves files from data/uploads/organizations/{orgId}/ (via Docker volume mount)
 // Note: this must be registered BEFORE the static middleware.
 app.get('/uploads/organizations/:orgId/*', async (req, res) => {
-  return serveOrgMedia(req, res, false);
-});
-
-// Legacy URL structure: /media/organizations/:orgId/*
-// For backward compatibility with existing database URLs
-// First tries new location, falls back to old location
-app.get('/media/organizations/:orgId/*', async (req, res) => {
-  return serveOrgMedia(req, res, true);
+  return serveOrgMedia(req, res);
 });
 
 // Static files (CSS/JS/images)
@@ -501,12 +488,15 @@ app.get('/health', async (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
+  const t = typeof req.t === 'function' ? req.t : null;
   res.status(404).render('pages/error', {
-    title: 'Page Not Found',
-    message: 'The page you are looking for does not exist.',
+    title: t ? t('errors.pageNotFound') : 'Page Not Found',
+    message: t ? t('errors.pageNotFoundMessage') : 'The page you are looking for does not exist.',
     code: 404,
     user: req.session?.user,
-    organization: req.session?.organization
+    organization: req.session?.organization,
+    // Visitors of the public website get a way back to the homepage in their language
+    homeUrl: isCloud() && (req.path.startsWith('/nl/') || req.language === 'nl') ? '/nl/' : '/'
   });
 });
 
@@ -525,11 +515,22 @@ app.use((err, req, res, next) => {
 });
 
 app.use((err, req, res, _next) => {
-  logger.error({ err, reqId: req.id, path: req.path }, 'Server error');
-  res.status(500).render('pages/error', {
-    title: 'Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred.',
-    code: 500,
+  // A request body that is not valid JSON, or too large (express.json): the
+  // client's mistake, not a server error. API callers get JSON back.
+  const badBody = err?.type === 'entity.parse.failed' || err?.type === 'entity.too.large';
+  const status = badBody ? (err.status || 400) : 500;
+  if (!badBody) logger.error({ err, reqId: req.id, path: req.path }, 'Server error');
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(status).json({
+      success: false,
+      error: badBody ? 'Invalid request body' : 'Server error',
+      message: badBody ? 'The request body must be valid JSON' : 'An unexpected error occurred.'
+    });
+  }
+  res.status(status).render('pages/error', {
+    title: badBody ? 'Bad Request' : 'Server Error',
+    message: badBody ? 'The request could not be read.' : (process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred.'),
+    code: status,
     user: req.session?.user,
     organization: req.session?.organization
   });

@@ -15,14 +15,6 @@ import { sendAiCreditsEmail } from './email.js';
 import { getSetting } from './settings.js';
 import { isCommunity } from '../edition.js';
 
-// Tier constants
-export const TIERS = {
-  FREE: 'free',
-  PROFESSIONAL: 'professional',
-  ENTERPRISE: 'enterprise',
-  CUSTOM: 'custom'
-};
-
 // Resource types for limit checking
 export const RESOURCE_TYPES = {
   JOURNEYS: 'journeys',
@@ -54,23 +46,6 @@ export function invalidateOrgTierCache(organizationId) {
     // Clear all org caches
     orgTierCache.clear();
   }
-}
-
-/**
- * Get cache statistics (for debugging/monitoring)
- */
-export function getCacheStats() {
-  return {
-    tierCache: {
-      cached: tierCache !== null,
-      age: tierCache ? Date.now() - tierCacheTime : null,
-      ttl: CACHE_TTL
-    },
-    orgTierCache: {
-      size: orgTierCache.size,
-      ttl: ORG_TIER_CACHE_TTL
-    }
-  };
 }
 
 /**
@@ -295,11 +270,50 @@ export async function getOrganizationUsageWithLimits(organizationId) {
   };
 }
 
+const LIMIT_HIT_TYPES = new Set(Object.values(RESOURCE_TYPES));
+const LIMIT_HIT_SOURCE = /^[a-z_]{1,30}$/;
+
 /**
- * Check if organization can create/add a resource
- * Returns { allowed: boolean, reason?: string, limit?: number, current?: number }
+ * Record that a plan limit stopped an organization (a usage_events row of type
+ * 'limit_hit'), so we can see who runs into the paywall. At most one row per
+ * organization, limit and source per hour. Never throws: a failed write must
+ * not change the response the maker gets.
+ * @param {string} organizationId
+ * @param {string} resourceType - one of RESOURCE_TYPES
+ * @param {Object} [details]
+ * @param {string} [details.source] - where it happened, e.g. 'create', 'copy', 'button'
+ * @param {string|null} [details.userId]
+ * @param {number|null} [details.current]
+ * @param {number|null} [details.limit]
+ * @param {string|null} [details.tier]
  */
-export async function checkLimit(organizationId, resourceType, increment = 1) {
+export async function recordLimitHit(organizationId, resourceType, { source = 'create', userId = null, current = null, limit = null, tier = null } = {}) {
+  if (!organizationId || !LIMIT_HIT_TYPES.has(resourceType) || !LIMIT_HIT_SOURCE.test(source)) return;
+  try {
+    await query(`
+      INSERT INTO usage_events (organization_id, user_id, event_type, resource_type, metadata)
+      SELECT $1::uuid, $2::uuid, 'limit_hit', $3::varchar, $4::jsonb
+      WHERE NOT EXISTS (
+        SELECT 1 FROM usage_events
+        WHERE organization_id = $1::uuid AND event_type = 'limit_hit' AND resource_type = $3::varchar
+          AND metadata->>'source' = $5::text AND created_at > NOW() - INTERVAL '1 hour'
+      )
+    `, [organizationId, userId, resourceType, JSON.stringify({ source, current, limit, tier }), source]);
+  } catch (err) {
+    console.error('[Subscription] Failed to record limit hit:', err.message);
+  }
+}
+
+/**
+ * Check if organization can create/add a resource. A refusal is recorded with
+ * recordLimitHit, so only call this where the action is really blocked.
+ * Returns { allowed: boolean, reason?: string, limit?: number, current?: number }
+ * @param {string} organizationId
+ * @param {string} resourceType - one of RESOURCE_TYPES
+ * @param {number} [increment]
+ * @param {string} [source] - passed to recordLimitHit
+ */
+export async function checkLimit(organizationId, resourceType, increment = 1, source = 'create') {
   const usageData = await getOrganizationUsageWithLimits(organizationId);
   
   if (!usageData) {
@@ -328,6 +342,9 @@ export async function checkLimit(organizationId, resourceType, increment = 1) {
   const wouldExceed = (resource.used + increment) > resource.limit;
   
   if (wouldExceed) {
+    await recordLimitHit(organizationId, resourceType, {
+      source, current: resource.used, limit: resource.limit, tier: usageData.tier.name
+    });
     return {
       allowed: false,
       reason: 'limit_exceeded',
@@ -363,7 +380,8 @@ export async function hasAiCreditsLeft(organizationId, audience = 'maker') {
   const credits = usageData?.usage.aiCredits;
   if (!credits) return false;
   if (credits.isUnlimited) return true;
-  const limit = audience === 'player' ? credits.limit * AI_PLAYER_GRACE : credits.limit;
+  // Rounded down: 25000 * 1.1 is 27500.000000000004 in floating point
+  const limit = audience === 'player' ? Math.floor(credits.limit * AI_PLAYER_GRACE) : credits.limit;
   return Number(credits.used) < limit;
 }
 
@@ -397,6 +415,14 @@ async function notifyAiCreditThresholds(organizationId) {
     query(`SELECT email FROM users WHERE organization_id = $1 AND role = 'admin' AND is_active = true`, [organizationId])
   ]);
   const org = orgResult.rows[0];
+  // A paid plan the organization can pick itself with more questions than now
+  const upgradeResult = await query(`
+    SELECT EXISTS (
+      SELECT 1 FROM subscription_tiers
+      WHERE is_active = true AND price_monthly > 0
+        AND (max_ai_credits_monthly = -1 OR max_ai_credits_monthly > $1)
+    ) AS can_upgrade
+  `, [credits.limit]);
   for (const admin of adminsResult.rows) {
     await sendAiCreditsEmail({
       to: admin.email,
@@ -405,6 +431,7 @@ async function notifyAiCreditThresholds(organizationId) {
       limit: credits.limit,
       extraQuestions: Math.floor(credits.limit * AI_PLAYER_GRACE) - credits.limit,
       resetDate: usageData.billingPeriod.end,
+      canUpgrade: upgradeResult.rows[0]?.can_upgrade !== false,
       language: org?.language || 'en'
     });
   }
@@ -512,115 +539,6 @@ export async function ensureBillingPeriod(organizationId) {
   `, [organizationId, periodStart, periodEnd]);
   
   return result.rows[0].id;
-}
-
-/**
- * Record a limit notification (to prevent spam)
- */
-export async function recordLimitNotification(organizationId, limitType, currentValue, limitValue) {
-  // Check if we already notified in this period
-  const existing = await query(`
-    SELECT id FROM limit_notifications
-    WHERE organization_id = $1
-    AND limit_type = $2
-    AND notified_at > NOW() - INTERVAL '24 hours'
-  `, [organizationId, limitType]);
-  
-  if (existing.rows.length > 0) {
-    return null; // Already notified recently
-  }
-  
-  const result = await query(`
-    INSERT INTO limit_notifications (organization_id, limit_type, current_value, limit_value)
-    VALUES ($1, $2, $3, $4)
-    RETURNING *
-  `, [organizationId, limitType, currentValue, limitValue]);
-  
-  return result.rows[0];
-}
-
-/**
- * Get pending limit notifications for an organization
- */
-export async function getPendingNotifications(organizationId) {
-  const result = await query(`
-    SELECT * FROM limit_notifications
-    WHERE organization_id = $1
-    AND acknowledged_at IS NULL
-    ORDER BY notified_at DESC
-  `, [organizationId]);
-  
-  return result.rows;
-}
-
-/**
- * Acknowledge a limit notification
- */
-export async function acknowledgeNotification(notificationId, userId) {
-  await query(`
-    UPDATE limit_notifications
-    SET acknowledged_at = NOW(), acknowledged_by = $2
-    WHERE id = $1
-  `, [notificationId, userId]);
-}
-
-/**
- * Upgrade organization to a new tier
- * Called after a successful payment; creemData holds the billing references.
- */
-export async function upgradeTier(organizationId, newTierName, creemData = null) {
-  const tier = await getTier(newTierName);
-  
-  if (!tier) {
-    throw new Error(`Tier '${newTierName}' not found`);
-  }
-  
-  await query(`
-    UPDATE organizations
-    SET subscription_tier_id = $2,
-        subscription_status = 'active',
-        creem_customer_id = $3,
-        creem_subscription_id = $4,
-        updated_at = NOW()
-    WHERE id = $1
-  `, [
-    organizationId, 
-    tier.id, 
-    creemData?.customerId || null,
-    creemData?.subscriptionId || null
-  ]);
-  
-  // Invalidate the organization tier cache since tier changed
-  invalidateOrgTierCache(organizationId);
-  
-  // Log the upgrade event
-  await logUsageEvent(organizationId, 'tier_upgrade', 'subscription', null, null, {
-    newTier: newTierName,
-    tierId: tier.id
-  });
-  
-  return tier;
-}
-
-/**
- * Get usage statistics for a time period (for analytics)
- */
-export async function getUsageStats(organizationId, startDate, endDate) {
-  const result = await query(`
-    SELECT 
-      event_type,
-      COUNT(*) as count,
-      SUM(ai_credits_used) as total_ai_credits,
-      DATE_TRUNC('day', created_at) as date
-    FROM usage_events
-    WHERE organization_id = $1
-    AND created_at >= $2
-    AND created_at < $3
-    GROUP BY event_type, DATE_TRUNC('day', created_at)
-    ORDER BY date DESC
-  `, [organizationId, startDate, endDate]);
-  
-  return result.rows;
 }
 
 /**

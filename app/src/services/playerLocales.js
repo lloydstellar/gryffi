@@ -49,6 +49,23 @@ export function getPlayerLocale(lang) {
 }
 
 /**
+ * Translate function for server-rendered pages that end users see, such as
+ * the pages of a magic link. Keys are relative to player.*, {{name}} is
+ * filled in, a missing key falls back to English.
+ * @param {string} lang - Player language code
+ * @returns {(key: string, vars?: object) => string}
+ */
+export function getPlayerT(lang) {
+  const lookup = (locale, key) => key.split('.').reduce((node, part) => node?.[part], locale?.player);
+  const locale = getPlayerLocale(lang);
+  return (key, vars = {}) => {
+    const text = lookup(locale, key) ?? lookup(getPlayerLocale('en'), key) ?? key;
+    return String(text).replace(/\{\{(\w+)\}\}/g, (match, name) =>
+      Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name] ?? '') : match);
+  };
+}
+
+/**
  * Preload all player locales into cache
  */
 export function preloadPlayerLocales() {
@@ -60,13 +77,6 @@ export function preloadPlayerLocales() {
     }
   }
   console.log(`Preloaded ${localeCache.size} player locales`);
-}
-
-/**
- * Clear the locale cache (useful for development/testing)
- */
-export function clearPlayerLocaleCache() {
-  localeCache.clear();
 }
 
 export { SUPPORTED_PLAYER_LANGUAGES };

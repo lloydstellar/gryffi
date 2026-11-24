@@ -15,7 +15,7 @@ Admins can:
 - Manage all makers
 - Configure organization settings
 - Access all analytics and reports
-- Configure integrations like end user syncs and Gryffi API
+- Configure integrations like participant syncs and Gryffi API
 
 ## Permissions
 
@@ -23,43 +23,43 @@ Admins can:
 
 | Permission | Admin |
 |------------|:-----:|
-| Create journeys | ✅ |
-| Edit any journey | ✅ |
-| Delete any journey | ✅ |
-| Publish journeys | ✅ |
-| Create AI guides | ✅ |
-| Edit any guide | ✅ |
-| Delete any guide | ✅ |
+| Create journeys | Yes |
+| Edit any journey | Yes |
+| Delete any journey | Yes |
+| Publish journeys | Yes |
+| Create AI guides | Yes |
+| Edit any guide | Yes |
+| Delete any guide | Yes |
 
-### User Management
+### Managing Makers and Participants
 
 | Permission | Admin |
 |------------|:-----:|
-| Invite team members | ✅ |
-| Remove team members | ✅ |
-| Change member roles | ✅ |
-| Manage end users | ✅ |
-| Manage groups | ✅ |
-| Send invitations | ✅ |
+| Invite team members | Yes |
+| Remove team members | Yes |
+| Change member roles | Yes |
+| Manage participants | Yes |
+| Manage groups | Yes |
+| Send invitations | Yes |
 
 ### Settings & Configuration
 
 | Permission | Admin |
 |------------|:-----:|
-| Organization settings | ✅ |
-| API keys | ✅ |
-| Integrations | ✅ |
-| Custom themes | ✅ |
-| Email templates | ✅ |
+| Organization settings | Yes |
+| API keys | Yes |
+| Integrations | Yes |
+| Custom themes | Yes |
+| Email templates | Yes |
 
 ### Analytics & Reports
 
 | Permission | Admin |
 |------------|:-----:|
-| View all analytics | ✅ |
-| Export PDF raports | ✅ |
-| View audit logs | ✅ |
-| Access all reports | ✅ |
+| View all analytics | Yes |
+| Export PDF raports | Yes |
+| View audit logs | Yes |
+| Access all reports | Yes |
 
 ## When to Assign Admin Role
 
@@ -86,10 +86,10 @@ Assign Admin role to:
 
 | Capability | Admin | Manager | Editor | Viewer |
 |------------|:-----:|:-------:|:------:|:------:|
-| Full settings access | ✅ | ❌ | ❌ | ❌ |
-| Makers management | ✅ | Limited | ❌ | ❌ |
-| Create content | ✅ | ✅ | ✅ | ❌ |
-| View analytics | ✅ | ✅ | Own | Limited |
+| Full settings access | Yes | No | No | No |
+| Makers management | Yes | Limited | No | No |
+| Create content | Yes | Yes | Yes | No |
+| View analytics | Yes | Yes | Own | Limited |
 
 ## Related Features
 

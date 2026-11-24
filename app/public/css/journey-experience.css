@@ -36,12 +36,6 @@
    JOURNEY CONTAINER & CARD
    ============================================ */
 
-.journey-experience-container {
-  background: var(--theme-background, #ecf2eb);
-  min-height: 100vh;
-  padding: 40px 20px;
-}
-
 .journey-card {
   max-width: 560px;
   margin: 0 auto;
@@ -58,54 +52,8 @@
 }
 
 /* ============================================
-   STEP HEADER (Space steps)
-   ============================================ */
-
-.journey-step-header {
-  padding: 28px;
-  background: linear-gradient(135deg, var(--theme-header-background, #0b4b34) 0%, color-mix(in srgb, var(--theme-header-background, #0b4b34) 85%, white) 100%);
-  color: var(--theme-button-text, white);
-}
-
-.journey-step-header h2 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.journey-step-header .entry-message {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 14px;
-  font-style: italic;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ============================================
    STEP CONTENT
    ============================================ */
-
-.journey-step-content {
-  padding: 28px;
-}
-
-.journey-step-content p {
-  font-size: 15px;
-  color: #334155;
-  line-height: 1.7;
-  margin: 0 0 16px 0;
-}
-
-.journey-step-content p:last-child {
-  margin-bottom: 0;
-}
-
-.journey-step-content img:not(.guide-avatar) {
-  width: 100%;
-  border-radius: 12px;
-  margin-top: 16px;
-}
 
 /* Step type badge */
 .journey-step-badge {
@@ -129,23 +77,9 @@
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.journey-step-description {
-  font-size: 15px;
-  color: #64748b;
-  line-height: 1.6;
-  margin: 0 0 24px 0;
-}
-
 /* ============================================
    PATH OPTIONS (Journey paths/choices)
    ============================================ */
-
-.journey-options {
-  padding: 0 28px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 
 .journey-option {
   display: flex;
@@ -166,283 +100,9 @@
   box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
 }
 
-.journey-option-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.journey-option:hover .journey-option-icon {
-  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
-}
-
-.journey-option-icon svg {
-  width: 20px;
-  height: 20px;
-  color: #64748b;
-  transition: all 0.2s ease;
-}
-
-.journey-option:hover .journey-option-icon svg {
-  color: white;
-}
-
-.journey-option-text {
-  flex: 1;
-  font-size: 15px;
-  font-weight: 500;
-  color: #334155;
-}
-
-.journey-option-arrow {
-  width: 20px;
-  height: 20px;
-  color: #94a3b8;
-  transition: all 0.2s ease;
-}
-
-.journey-option:hover .journey-option-arrow {
-  color: var(--theme-accent, #78c503);
-  transform: translateX(3px);
-}
-
-/* ============================================
-   QUIZ / CHALLENGE
-   ============================================ */
-
-.journey-quiz-question {
-  font-size: 18px;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0 0 20px 0;
-  line-height: 1.4;
-}
-
-.journey-quiz-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.journey-quiz-option {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  text-align: left;
-  padding: 16px 18px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.journey-quiz-option:hover {
-  background: color-mix(in srgb, var(--theme-accent, #78c503) 8%, white);
-  border-color: var(--theme-accent, #78c503);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
-  transform: translateY(-1px);
-}
-
-.journey-quiz-option .option-letter {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 15px;
-  color: #475569;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.journey-quiz-option:hover .option-letter {
-  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
-  color: var(--theme-button-text, white);
-}
-
-.journey-quiz-option .option-text {
-  flex: 1;
-  margin-left: 14px;
-  font-size: 15px;
-  color: #334155;
-  line-height: 1.4;
-}
-
-.journey-quiz-option .option-indicator {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-left: 12px;
-  transition: all 0.2s ease;
-}
-
-.journey-quiz-option .option-indicator svg {
-  width: 14px;
-  height: 14px;
-  color: #94a3b8;
-  transition: all 0.2s ease;
-}
-
-.journey-quiz-option:hover .option-indicator {
-  background: var(--theme-accent, #78c503);
-}
-
-.journey-quiz-option:hover .option-indicator svg {
-  color: var(--theme-button-text, white);
-}
-
-/* Selected state */
-.journey-quiz-option.selected {
-  background: color-mix(in srgb, var(--theme-accent, #78c503) 10%, white);
-  border-color: var(--theme-accent, #78c503);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
-}
-
-.journey-quiz-option.selected .option-letter {
-  background: linear-gradient(135deg, var(--theme-accent, #78c503) 0%, color-mix(in srgb, var(--theme-accent, #78c503) 80%, black) 100%);
-  color: var(--theme-button-text, white);
-}
-
-/* Correct feedback */
-.journey-quiz-option.correct {
-  background: #f0fdf4;
-  border-color: #22c55e;
-  pointer-events: none;
-}
-
-.journey-quiz-option.correct .option-letter {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  color: white;
-}
-
-.journey-quiz-option.correct .option-indicator {
-  background: #22c55e;
-}
-
-.journey-quiz-option.correct .option-indicator svg {
-  color: white;
-}
-
-/* Incorrect feedback */
-.journey-quiz-option.incorrect {
-  background: #fef2f2;
-  border-color: #ef4444;
-  pointer-events: none;
-}
-
-.journey-quiz-option.incorrect .option-letter {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-}
-
-.journey-quiz-feedback {
-  padding: 16px;
-  border-radius: 12px;
-  margin-top: 20px;
-  font-size: 15px;
-  font-weight: 500;
-  text-align: center;
-}
-
-.journey-quiz-feedback.correct {
-  background: rgba(34, 197, 94, 0.1);
-  color: #15803d;
-}
-
-.journey-quiz-feedback.incorrect {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-}
-
-/* ============================================
-   FORM FIELDS
-   ============================================ */
-
-.journey-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.journey-form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.journey-form-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-}
-
-.journey-form-label .required {
-  color: #ef4444;
-  margin-left: 2px;
-}
-
-.journey-form-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  font-size: 15px;
-  transition: all 0.15s ease;
-  background: white;
-}
-
-.journey-form-input:focus {
-  outline: none;
-  border-color: var(--theme-accent, #78c503);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent, #78c503) 10%, transparent);
-}
-
-.journey-form-textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.journey-form-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 20px;
-  padding-right: 44px;
-}
-
 /* ============================================
    GUIDE CHAT
    ============================================ */
-
-.journey-guide-container {
-  border-top: 1px solid #f3f4f6;
-  margin-top: 24px;
-  padding-top: 24px;
-}
-
-.journey-guide-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
 
 .journey-guide-avatar {
   width: 48px;
@@ -474,145 +134,9 @@
   border-radius: 50%;
 }
 
-.journey-guide-name {
-  font-weight: 600;
-  font-size: 16px;
-  color: #0f172a;
-}
-
-.journey-guide-role {
-  font-size: 13px;
-  color: #64748b;
-}
-
-.journey-chat-messages {
-  max-height: 400px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.journey-chat-message {
-  display: flex;
-  gap: 12px;
-}
-
-.journey-chat-message.user {
-  flex-direction: row-reverse;
-}
-
-.journey-chat-message .message-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: #64748b;
-  flex-shrink: 0;
-}
-
-.journey-chat-message.assistant .message-avatar {
-  background: linear-gradient(135deg, var(--theme-accent, #78c503), color-mix(in srgb, var(--theme-accent, #78c503) 80%, black));
-  color: var(--theme-button-text, white);
-}
-
-.journey-chat-message .message-bubble {
-  max-width: 80%;
-  padding: 12px 16px;
-  border-radius: var(--theme-border-radius, 16px);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.journey-chat-message.user .message-bubble {
-  background: var(--theme-chat-bubble-user, #0b4b34);
-  color: var(--theme-button-text, white);
-  border-bottom-right-radius: 4px;
-}
-
-.journey-chat-message.assistant .message-bubble {
-  background: var(--theme-chat-bubble-guide, #f3f4f6);
-  color: var(--theme-text-primary, #374151);
-  border-bottom-left-radius: 4px;
-}
-
-.journey-chat-input-wrapper {
-  display: flex;
-  gap: 12px;
-}
-
-.journey-chat-input {
-  flex: 1;
-  padding: 14px 18px;
-  border: 1px solid var(--theme-card-border, #e5e7eb);
-  border-radius: 12px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.journey-chat-input:focus {
-  border-color: var(--theme-accent, #78c503);
-}
-
-.journey-chat-send-btn {
-  padding: 14px 20px;
-  background: var(--theme-primary, #0b4b34);
-  color: var(--theme-button-text, white);
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.journey-chat-send-btn:hover {
-  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black);
-}
-
-.journey-chat-send-btn:disabled {
-  background: #d1d5db;
-  cursor: not-allowed;
-}
-
-/* ============================================
-   VIDEO CONTAINER
-   ============================================ */
-
-.journey-video-container {
-  position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #000;
-}
-
-.journey-video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
 /* ============================================
    NAVIGATION
    ============================================ */
-
-.journey-navigation {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid #f3f4f6;
-}
 
 .journey-nav-btn {
   display: inline-flex;
@@ -638,17 +162,6 @@
   box-shadow: 0 4px 12px rgba(11, 75, 52, 0.2);
 }
 
-.journey-nav-btn-secondary {
-  background: white;
-  border: 1px solid #d1d5db;
-  color: #374151;
-}
-
-.journey-nav-btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
 .journey-nav-btn:disabled,
 .journey-nav-btn.disabled {
   background: #e5e7eb;
@@ -660,190 +173,11 @@
 }
 
 /* ============================================
-   COMPLETION SCREEN
-   ============================================ */
-
-.journey-completion {
-  text-align: center;
-  padding: 56px 32px;
-}
-
-.journey-completion-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 24px;
-  background: color-mix(in srgb, var(--theme-accent, #78c503) 15%, transparent);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.journey-completion-icon svg {
-  width: 40px;
-  height: 40px;
-  color: var(--theme-accent, #78c503);
-}
-
-.journey-completion-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--theme-primary, #0b4b34);
-  margin: 0 0 12px 0;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.journey-completion-message {
-  font-size: 16px;
-  color: #64748b;
-  line-height: 1.6;
-  margin: 0;
-  max-width: 360px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* ============================================
-   WELCOME SCREEN
-   ============================================ */
-
-.journey-welcome {
-  text-align: center;
-  padding: 56px 32px;
-}
-
-.journey-welcome-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 28px;
-  background: linear-gradient(135deg, rgba(11, 75, 52, 0.08), rgba(120, 197, 3, 0.12));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.journey-welcome-icon svg {
-  width: 40px;
-  height: 40px;
-  stroke: var(--theme-primary, #0b4b34);
-}
-
-.journey-welcome-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--theme-primary, #0b4b34);
-  margin: 0 0 12px 0;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.journey-welcome-subtitle {
-  font-size: 17px;
-  color: #64748b;
-  margin: 0 0 36px 0;
-  line-height: 1.6;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.journey-start-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 36px;
-  background: var(--theme-primary, #0b4b34);
-  color: var(--theme-button-text, white);
-  border: none;
-  border-radius: 12px;
-  font-size: 17px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.journey-start-btn:hover {
-  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, black);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--theme-primary, #0b4b34) 25%, transparent);
-}
-
-.journey-start-btn svg {
-  transition: transform 0.2s ease;
-}
-
-.journey-start-btn:hover svg {
-  transform: translateX(4px);
-}
-
-/* ============================================
    LOADING STATE
    ============================================ */
 
-.journey-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px;
-}
-
-.journey-loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--theme-card-border, #e5e7eb);
-  border-top-color: var(--theme-primary, #0b4b34);
-  border-radius: 50%;
-  animation: journeySpinner 0.8s linear infinite;
-}
-
 @keyframes journeySpinner {
   to { transform: rotate(360deg); }
-}
-
-/* ============================================
-   MARKDOWN CONTENT
-   ============================================ */
-
-.journey-markdown h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 24px 0 12px 0;
-  color: #0f172a;
-}
-
-.journey-markdown h2 {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 20px 0 10px 0;
-  color: #0f172a;
-}
-
-.journey-markdown h3 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 16px 0 8px 0;
-  color: #0f172a;
-}
-
-.journey-markdown p {
-  margin: 0 0 12px 0;
-}
-
-.journey-markdown ul, .journey-markdown ol {
-  margin: 0 0 12px 0;
-  padding-left: 24px;
-}
-
-.journey-markdown li {
-  margin-bottom: 6px;
-}
-
-.journey-markdown strong {
-  font-weight: 600;
-}
-
-.journey-markdown em {
-  font-style: italic;
 }
 
 /* ============================================
@@ -1112,28 +446,9 @@
    ============================================ */
 
 @media (max-width: 640px) {
-  .journey-experience-container {
-    padding: 20px 16px;
-  }
   
   .journey-card {
     border-radius: 12px;
-  }
-  
-  .journey-step-header,
-  .journey-step-content,
-  .journey-options {
-    padding: 20px;
-  }
-  
-  .journey-welcome,
-  .journey-completion {
-    padding: 40px 20px;
-  }
-  
-  .journey-welcome-title,
-  .journey-completion-title {
-    font-size: 26px;
   }
   
   .journey-step-title {
@@ -1359,31 +674,25 @@
   }
   
   /* Headers and Spaces */
-  .journey-space-header,
   .preview-space-header {
     padding: 20px;
   }
-  .journey-space-header h2,
   .preview-space-header h2 {
     font-size: 18px;
   }
   
   /* Content areas */
-  .journey-content,
-  .journey-step-content,
   .preview-content {
     padding: 20px;
   }
   
   /* Options and Paths */
-  .journey-options,
   .preview-options {
     padding: 0 20px 20px;
   }
   
   .journey-option,
-  .journey-path-choice,
-  .preview-option {
+.preview-option {
     padding: 14px 16px;
     gap: 12px;
   }
@@ -1399,37 +708,25 @@
   }
   
   /* Quiz Options - Larger touch targets */
-  .journey-quiz-option,
   .quiz-wizard-option {
     padding: 14px 16px;
     min-height: 52px;
   }
   
   /* Navigation */
-  .journey-navigation,
   .preview-nav-buttons {
     padding: 0 20px 20px;
     gap: 10px;
   }
   
   .journey-nav-btn,
-  .journey-nav-btn-primary,
-  .journey-nav-btn-secondary {
+.journey-nav-btn-primary {
     width: 100%;
     padding: 14px 20px;
     font-size: 15px;
   }
   
   /* Guide Container */
-  .journey-guide-container {
-    padding-top: 20px;
-    margin-top: 20px;
-  }
-  
-  .journey-guide-header {
-    gap: 10px;
-    margin-bottom: 16px;
-  }
   
   .journey-guide-avatar {
     width: 40px;
@@ -1452,119 +749,29 @@
     border-radius: 50%;
   }
   
-  .journey-guide-name {
-    font-size: 15px;
-  }
-  
-  .journey-guide-role {
-    font-size: 12px;
-  }
-  
   /* Chat */
-  .journey-chat-messages,
   .chat-messages {
     max-height: 250px;
     min-height: 150px;
   }
   
-  .journey-chat-message,
   .chat-message {
     max-width: 90%;
     font-size: 14px;
     padding: 10px 14px;
   }
   
-  .journey-chat-input-container {
-    gap: 8px;
-  }
-  
-  .journey-chat-input,
   .chat-input {
     padding: 12px 14px;
     font-size: 16px; /* Prevent iOS zoom */
   }
   
-  .journey-chat-send-btn,
   .chat-send {
     width: 44px;
     height: 44px;
   }
   
-  /* Form Fields */
-  .journey-form-field {
-    margin-bottom: 16px;
-  }
-  
-  .journey-form-label {
-    font-size: 13px;
-    margin-bottom: 6px;
-  }
-  
-  .journey-form-input,
-  .journey-form-textarea,
-  .journey-form-select {
-    padding: 12px 14px;
-    font-size: 16px; /* Prevent iOS zoom */
-  }
-  
-  /* Video Container */
-  .journey-video-container {
-    border-radius: 10px;
-  }
-  
-  /* Completion Screen */
-  .journey-completion-screen {
-    padding: 40px 20px;
-  }
-  
-  .journey-completion-icon {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .journey-completion-icon svg {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .journey-completion-title {
-    font-size: 22px;
-  }
-  
-  .journey-completion-message {
-    font-size: 14px;
-  }
-  
-  /* Welcome Screen */
-  .journey-welcome-screen {
-    padding: 40px 20px;
-  }
-  
-  .journey-welcome-icon {
-    width: 56px;
-    height: 56px;
-  }
-  
-  .journey-welcome-title {
-    font-size: 22px;
-  }
-  
-  .journey-welcome-subtitle {
-    font-size: 14px;
-  }
-  
-  .journey-start-btn {
-    padding: 14px 28px;
-    font-size: 15px;
-  }
-  
-  /* Progress Bar */
-  .journey-progress-bar-container {
-    margin-bottom: 16px;
-  }
-  
   /* Step Type Badge */
-  .journey-step-type-badge,
   .journey-step-badge {
     padding: 6px 10px;
     font-size: 12px;
@@ -1580,10 +787,6 @@
     font-size: 18px;
     margin-bottom: 10px;
   }
-  
-  .journey-step-description {
-    font-size: 14px;
-  }
 }
 
 /* Extra small screens (iPhone SE, etc) */
@@ -1593,23 +796,18 @@
     margin: 12px;
   }
   
-  .journey-space-header,
   .preview-space-header,
-  .journey-content,
-  .preview-content {
+.preview-content {
     padding: 16px;
   }
   
-  .journey-options,
-  .preview-options,
-  .journey-navigation {
+  .preview-options {
     padding: 0 16px 16px;
   }
   
   .journey-option,
-  .journey-quiz-option,
-  .preview-option,
-  .quiz-wizard-option {
+.preview-option,
+.quiz-wizard-option {
     padding: 12px 14px;
   }
   
@@ -1648,6 +846,24 @@
   overflow: hidden;
 }
 
+/* The container clips overflow, so the focus ring sits inside the edge */
+.panorama-viewer:focus-visible {
+  outline: 3px solid var(--theme-primary, #0b4b34);
+  outline-offset: -3px;
+  border-radius: 12px;
+}
+
+.panorama-control-btn:focus-visible {
+  outline: 3px solid var(--theme-primary, #0b4b34);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panorama-hint svg {
+    animation: none;
+  }
+}
+
 /* Canvas wrapper */
 .panorama-canvas-wrapper {
   width: 100%;
@@ -1682,6 +898,7 @@
 }
 
 .panorama-hint svg {
+  flex-shrink: 0;
   animation: panoramaSwipe 2s ease-in-out infinite;
 }
 
@@ -1844,13 +1061,6 @@
     padding: 10px 16px;
     font-size: 13px;
   }
-  
-  .panorama-compass {
-    width: 32px;
-    height: 32px;
-    bottom: 8px;
-    right: 8px;
-  }
 }
 
 /* ============================================
@@ -1899,40 +1109,6 @@
 
 .floorplan-pill-text {
   white-space: nowrap;
-}
-
-/* Legacy FAB support (for backwards compatibility) */
-.floorplan-fab {
-  position: absolute;
-  bottom: -56px;
-  right: 16px;
-  width: 48px;
-  height: 48px;
-  background: var(--theme-primary, #0b4b34);
-  border: none;
-  border-radius: 50%;
-  color: var(--theme-button-text, white);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary, #0b4b34) 30%, transparent);
-  transition: all 0.2s ease;
-  z-index: 10;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.floorplan-fab:hover {
-  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, white);
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary, #0b4b34) 40%, transparent);
-}
-
-.floorplan-fab:active {
-  transform: scale(0.95);
-  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, white);
 }
 
 /* Floorplan Marker Container (in builder) */
@@ -2233,14 +1409,6 @@
   }
   
   /* Legacy FAB - keep for backwards compatibility */
-  .floorplan-fab {
-    position: fixed;
-    width: 52px;
-    height: 52px;
-    bottom: 20px;
-    right: 20px;
-    z-index: 100;
-  }
   
   .floorplan-overlay {
     padding: 10px;
@@ -2455,7 +1623,8 @@
   font-size: 12.5px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  color: color-mix(in srgb, var(--theme-primary, #0b4b34) 55%, transparent);
+  /* 80%: still quieter than the title, but readable (WCAG AA 4.5:1) */
+  color: color-mix(in srgb, var(--theme-primary, #0b4b34) 80%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2476,7 +1645,7 @@
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 18%, transparent);
   background: transparent;
-  color: color-mix(in srgb, var(--theme-primary, #0b4b34) 72%, transparent);
+  color: color-mix(in srgb, var(--theme-primary, #0b4b34) 85%, transparent);
   font-size: 13px;
   font-weight: 500;
   font-family: inherit;
@@ -2744,4 +1913,150 @@ body.journey-dyslexic-font .preview-content {
   .journey-reading-btn {
     padding: 8px 12px;
   }
+}
+
+/* Video step: nothing loads from YouTube until the participant clicks
+   Play video. The notice keeps the 16:10 shape of the video, and may grow
+   taller when the text needs the room on a small screen. */
+.video-consent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 10;
+  border-radius: 0.5rem;
+  background: #1a211a;
+  color: #e2e8e1;
+}
+
+.video-consent-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 30rem;
+  padding: 24px;
+  text-align: center;
+}
+
+.video-consent-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1a211a;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.video-consent-button:hover {
+  background: #f0f4ef;
+}
+
+.video-consent-button:focus-visible {
+  outline: 3px solid var(--theme-accent, #78c503);
+  outline-offset: 3px;
+}
+
+.video-consent-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Two classes, so the paragraph rule of .preview-content does not win */
+.video-consent .video-consent-notice {
+  margin: 0;
+  color: #e2e8e1;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.video-consent .video-consent-notice a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.video-consent-notice a:focus-visible {
+  outline: 2px solid var(--theme-accent, #78c503);
+  outline-offset: 2px;
+}
+
+.video-consent.video-consent-loaded {
+  display: block;
+  overflow: hidden;
+  background: #000000;
+}
+
+/* The step heading receives focus after each step change (focusStepHeading in
+   builder.js) so keyboard and screen reader users continue from there. It is
+   not a control, so it gets no focus ring. */
+.step-focus-target:focus {
+  outline: none;
+}
+
+/* Returning visitor of a public journey: continue or start again
+   (offerPublicResume in builder.js). Quiet, inline, no pop-up. */
+.journey-resume-banner {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--theme-primary, #0b4b34) 7%, white);
+  border: 1px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 18%, transparent);
+}
+
+.journey-resume-text {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.journey-resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.journey-resume-continue,
+.journey-resume-restart {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.journey-resume-continue {
+  border: none;
+  background: var(--theme-primary, #0b4b34);
+  color: white;
+}
+
+.journey-resume-restart {
+  border: 1px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 30%, transparent);
+  background: white;
+  color: var(--theme-primary, #0b4b34);
+}
+
+.journey-resume-continue:focus-visible,
+.journey-resume-restart:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 70%, transparent);
+  outline-offset: 2px;
+}
+
+/* Listen could not start (no voice for this language on this device) */
+.journey-tts-note {
+  flex-basis: 100%;
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #6b4e16;
 }

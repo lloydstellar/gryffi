@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Bine ați venit",
+    "greeting": "Bun venit, {{firstName}}!",
     "guide": "Ghid",
     "aiAssistant": "Asistent AI",
     "noGuideSelected": "Niciun ghid selectat",
     "pleaseSelectGuide": "Selectați un Ghid AI în setările pasului",
     "selectGuideForStep": "Selectați un ghid pentru acest pas.",
     "chat": {
+      "yourGuide": "Ghidul dumneavoastră",
       "typeMessage": "Scrieți mesajul...",
       "typeQuestion": "Scrieți întrebarea...",
       "askGuide": "Întrebați pe {{name}}",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Bună! Cum vă pot ajuta?",
       "chatError": "Îmi pare rău, nu am putut procesa cererea.",
       "connectionError": "Am probleme de conexiune. Încercați din nou.",
-      "guideUnavailable": "Momentan nu pot răspunde la întrebări. Puteți continua cu pasul următor."
+      "guideUnavailable": "Momentan nu pot răspunde la întrebări. Puteți continua cu pasul următor.",
+      "sources": "Surse",
+      "showSource": "Afișează sursa {{number}}"
     },
     "content": {
       "invalidVideoUrl": "URL video invalid",
       "noContentYet": "Niciun conținut adăugat încă",
-      "pressPlayToStart": "Apăsați play pentru a începe vizionarea"
+      "pressPlayToStart": "Faceți clic pe Redați videoclipul pentru a începe vizionarea",
+      "videoLoad": "Redați videoclipul",
+      "videoNotice": "Acest videoclip este pe YouTube. Dacă faceți clic pe Redați videoclipul, browserul dvs. se conectează la YouTube (Google). Google primește atunci adresa dvs. IP și poate stoca date pe dispozitivul dvs.",
+      "videoPrivacyLink": "Politica de confidențialitate Google"
     },
     "navigation": {
       "whenReady": "Când sunteți gata:",
@@ -27,12 +34,12 @@
       "leaveJourney": "Părăsiți expediția?",
       "leaveJourneyMessage": "Sunteți sigur că doriți să părăsiți această expediție? Progresul dvs. a fost salvat.",
       "leaveConfirm": "Părăsește",
-      "stayContinue": "Rămâne"
+      "stayContinue": "Rămâne",
+      "doAgain": "Doriți să parcurgeți din nou această expediție?"
     },
     "pacing": {
       "readyToContinue": "Puteți continua acum",
       "takeYourTimeMinutes": "Luați-vă {{minutes}} minut să explorați",
-      "takeYourTimeMinutesPlural": "Luați-vă {{minutes}} minute să explorați",
       "takeYourTimeSeconds": "Luați-vă timp... {{seconds}}s",
       "keepWatching": "Continuați să vizionați... {{seconds}}s",
       "chatWithGuide": "Discutați cu ghidul ({{count}}/{{total}} mesaje)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "Ați trimis deja acest formular",
         "message": "Ați trimis acest formular pe {{date}}. Puteți să-l trimiteți din nou sau să continuați fără a-l completa.",
-        "skipButton": "Continuă fără a trimite",
-        "submitAgain": "Trimite din nou"
+        "skipButton": "Continuă fără a trimite"
       },
       "fileUpload": {
         "dropzone": "Trageți fișierul aici sau faceți clic pentru a căuta",
-        "dragActive": "Eliberați fișierul aici",
         "maxSize": "Max {{size}} MB",
         "invalidType": "Tip de fișier invalid. Permise: {{types}}",
         "fileTooLarge": "Fișier prea mare. Dimensiune maximă: {{size}} MB",
         "totalTooLarge": "Dimensiunea totală a atașamentelor depășește limita (38 MB)",
         "removeFile": "Eliminați fișierul",
-        "noFileSelected": "Niciun fișier selectat",
-        "fileSelected": "Fișier selectat: {{name}}",
         "subtypes": {
           "image": "Imagine",
           "document": "Document",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "Această imagine nu poate fi încărcată. Alegeți o altă imagine.",
-      "imageCheckUnavailable": "Nu am putut verifica imaginea dvs. acum. Încercați din nou peste câteva minute."
+      "imageCheckUnavailable": "Nu am putut verifica imaginea dvs. acum. Încercați din nou peste câteva minute.",
+      "fieldRequired": "Completați acest câmp.",
+      "invalidEmail": "Introduceți o adresă de e-mail validă, de exemplu nume@firma.ro.",
+      "fileRequired": "Alegeți un fișier pentru „{{field}}”."
     },
     "quiz": {
+      "title": "Test",
       "questionOf": "Întrebarea {{current}} din {{total}}",
-      "checkAnswer": "Verifică răspunsul",
       "next": "Următorul",
       "previous": "Anterior",
       "finish": "Trimite răspunsurile",
       "correct": "Corect!",
       "incorrect": "Nu chiar",
-      "tryAgain": "Încearcă din nou",
       "score": "Scorul tău",
       "passed": "Quiz trecut!",
       "completed": "Test finalizat",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Finalizează sondajul pentru a continua",
       "alreadyVoted": "Ai votat deja",
       "voteRecorded": "Votul tău a fost înregistrat",
-      "votes": "voturi",
-      "votesCount": "{{count}} vot",
-      "votesCountPlural": "{{count}} voturi",
       "respondents": "{{count}} participant",
       "respondentsPlural": "{{count}} participanți",
-      "yourVote": "Votul tău"
+      "chooseFirst": "Alegeți mai întâi un răspuns, apoi apăsați „Votează”."
     },
     "space": {
       "dragHint": "Trageți pentru a privi în jur",
       "viewFloorplan": "Vezi planul etajului",
-      "youAreHere": "Ești aici"
+      "youAreHere": "Ești aici",
+      "panoramaLabel": "Fotografie 360°: {{title}}",
+      "panoramaKeyboardHint": "Folosiți tastele săgeți pentru a privi în jur. Folosiți + și - pentru zoom.",
+      "zoomIn": "Mărire",
+      "zoomOut": "Micșorare",
+      "panoramaLoadFailed": "Fotografia 360° nu a putut fi încărcată. Reîncărcați pagina pentru a încerca din nou."
     },
     "stepTypes": {
       "reward": "Recompensă"
@@ -131,19 +138,20 @@
       "emailSent": "O copie a fost trimisă pe email",
       "alreadyClaimed": "Ai primit deja o recompensă pentru această expediție",
       "noMoreRewards": "Ne pare rău, toate recompensele au fost revendicate",
+      "claimFailed": "Recompensa ta nu a putut fi primită. Reîncarcă pagina și încearcă din nou.",
       "previewMode": "Mod previzualizare - Niciun cod real generat",
       "claimed": "Recompensă primită",
       "soldOut": {
         "title": "Ce păcat!",
-        "message": "Din păcate, ai ajuns prea târziu pentru a primi o recompensă. Toate recompensele au fost deja distribuite.",
-        "continueJourney": "Continuă expediția"
+        "message": "Din păcate, ai ajuns prea târziu pentru a primi o recompensă. Toate recompensele au fost deja distribuite."
       }
     },
     "tts": {
       "listen": "Ascultă",
       "stop": "Oprește",
       "listenLabel": "Citește acest pas cu voce tare",
-      "stopLabel": "Oprește citirea"
+      "stopLabel": "Oprește citirea",
+      "noVoice": "Dispozitivul tău nu are o voce pentru această limbă. Încearcă alt browser sau roagă departamentul IT să instaleze una."
     },
     "reading": {
       "settings": "Setări de citire",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Pasul {{current}} din {{total}}",
-      "duration": "±{{minutes}} min"
+      "duration": "aproximativ {{minutes}} min",
+      "stepApprox": "Pasul {{current}} din aproximativ {{total}}"
     },
     "session": {
       "expired": "Sesiunea dvs. a expirat. Faceți clic pe Reîncărcare pentru a continua.",
       "reload": "Reîncărcare"
+    },
+    "identify": {
+      "title": "Identificați-vă",
+      "description": "Introduceți datele dumneavoastră pentru a continua",
+      "poll": {
+        "title": "Un vot de persoană",
+        "description": "Pentru ca sondajul să fie corect, avem nevoie de numele și adresa dumneavoastră de e-mail. Astfel, fiecare persoană poate vota o singură dată."
+      },
+      "reward": {
+        "title": "Revendicați recompensa",
+        "description": "Pentru a vă trimite recompensa, avem nevoie de numele și adresa dumneavoastră de e-mail. Codul recompensei va ajunge direct în căsuța dumneavoastră de e-mail."
+      },
+      "form": {
+        "title": "Aproape gata!",
+        "description": "Introduceți datele dumneavoastră ca să știm cine a trimis acest formular. Datele vor fi incluse în răspunsul dumneavoastră."
+      },
+      "firstName": "Prenume",
+      "lastName": "Nume",
+      "email": "Adresă de e-mail",
+      "rememberMe": "Memorează datele mele pentru data viitoare",
+      "submit": "Continuați",
+      "error": "Ceva nu a funcționat. Încercați din nou."
+    },
+    "verify": {
+      "title": "Confirmați adresa de e-mail",
+      "description": "Am trimis un cod de verificare la {{email}}",
+      "code": "Cod de verificare",
+      "submit": "Verificați",
+      "resend": "Retrimiteți codul",
+      "codeSent": "Codul de verificare a fost trimis",
+      "invalidCode": "Cod de verificare invalid",
+      "codeExpired": "Codul de verificare a expirat",
+      "tooManyAttempts": "Prea multe coduri greșite. Introduceți din nou datele dumneavoastră pentru a primi un cod nou."
+    },
+    "closeWindowMessage": "Puteți închide această filă pentru a reveni la pagina anterioară.",
+    "magicLink": {
+      "expired": {
+        "title": "Link expirat",
+        "message": "Acest link de invitație a expirat. Cereți un link nou persoanei care v-a invitat.",
+        "messageAskInviter": "Acest link de invitație a expirat. Cereți un link nou de la {{name}}.",
+        "requestButton": "Cereți un link nou",
+        "requestedTitle": "Cerere trimisă",
+        "requestedMessage": "I-am cerut lui {{name}} să vă trimită un link nou. Îl veți primi prin e-mail.",
+        "requestedMessageOrg": "Am cerut organizației {{org}} să vă trimită un link nou. Îl veți primi prin e-mail.",
+        "alreadyRequested": "Un link nou a fost deja cerut în ultimele 24 de ore. Îl veți primi prin e-mail imediat ce este trimis."
+      },
+      "completed": {
+        "title": "Expediție finalizată",
+        "message": "Ați finalizat deja această expediție. Vă mulțumim pentru participare."
+      },
+      "revoked": {
+        "title": "Invitație retrasă",
+        "message": "Această invitație nu mai este valabilă. Dacă aveți în continuare nevoie de acces, contactați persoana care v-a invitat."
+      },
+      "verification": {
+        "title": "Confirmați că sunteți dumneavoastră",
+        "subtitle": "Deschideți acest link pe un dispozitiv nou.",
+        "explanation": "Am trimis un cod din 6 cifre la adresa dvs. de e-mail. Introduceți-l mai jos.",
+        "codeLabel": "Cod de verificare",
+        "submit": "Confirmați",
+        "verifying": "Se verifică...",
+        "resend": "Trimiteți un cod nou",
+        "resent": "V-am trimis un cod nou. Verificați-vă e-mailul.",
+        "invalid": "Acest cod nu este corect. Verificați codul din e-mail și încercați din nou.",
+        "expired": "Acest cod a expirat. Faceți clic pe Trimiteți un cod nou.",
+        "lockedWait": "Prea multe coduri greșite. Așteptați 10 minute, apoi faceți clic pe Trimiteți un cod nou.",
+        "sessionExpired": "Această pagină a expirat. Deschideți din nou linkul din e-mail.",
+        "journeyLabel": "Expediție"
+      },
+      "welcomeBack": {
+        "title": "Bine ați revenit, {{firstName}}!",
+        "message": "Ați finalizat deja această expediție.",
+        "restartButton": "Începeți din nou",
+        "reviewButton": "Vedeți încercarea anterioară"
+      },
+      "error": "A apărut o eroare. Încercați din nou."
+    },
+    "resume": {
+      "message": "Ai mai fost aici. Vrei să continui de unde ai rămas?",
+      "continue": "Continuă de unde am rămas",
+      "restart": "Începe din nou"
     }
   }
 }

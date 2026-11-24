@@ -10,7 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { query } from '../db/index.js';
-import { aiFetch, getAiConfig, isAiConfigured } from './aiProvider.js';
+import { aiFetch, getAiConfig, isAiConfigured, messageText } from './aiProvider.js';
 import { getSetting } from './settings.js';
 import { checkImageFile } from './nsfwDetection.js';
 
@@ -173,30 +173,19 @@ function isUrlSafeToFetch(urlString) {
   }
 }
 
-// Roots that local media URLs may resolve to (maker input must never escape them)
+// Root that local media URLs may resolve to (maker input must never escape it)
 const UPLOADS_ROOT = path.resolve(__dirname, '../../uploads');
-const PUBLIC_MEDIA_ROOT = path.resolve(__dirname, '../../public/media');
 
 /**
- * Map a local media URL (/uploads/... or /media/...) to a file path inside the
- * uploads or public media directory. Returns null for anything else,
- * including "../" tricks that would point outside those directories.
+ * Map a local media URL (/uploads/...) to a file path inside the uploads
+ * directory. Returns null for anything else, including "../" tricks that
+ * would point outside that directory.
  */
 function resolveLocalMediaPath(url) {
-  if (typeof url !== 'string') return null;
-  let root;
-  let relative;
-  if (url.startsWith('/uploads/')) {
-    root = UPLOADS_ROOT;
-    relative = url.slice('/uploads/'.length);
-  } else if (url.startsWith('/media/')) {
-    root = PUBLIC_MEDIA_ROOT;
-    relative = url.slice('/media/'.length);
-  } else {
-    return null;
-  }
-  const resolved = path.resolve(root, decodeURIComponent(relative.split('?')[0]));
-  return resolved.startsWith(root + path.sep) ? resolved : null;
+  if (typeof url !== 'string' || !url.startsWith('/uploads/')) return null;
+  const relative = url.slice('/uploads/'.length);
+  const resolved = path.resolve(UPLOADS_ROOT, decodeURIComponent(relative.split('?')[0]));
+  return resolved.startsWith(UPLOADS_ROOT + path.sep) ? resolved : null;
 }
 
 const EXTERNAL_IMAGE_TIMEOUT_MS = 15000;
@@ -271,8 +260,7 @@ async function imageUrlToBase64(imageUrl) {
     let mimeType = 'image/jpeg';
     
     // Handle local media URLs - read directly from filesystem
-    // Supports both old (/media/) and new (/uploads/) URL structures
-    const isLocalMedia = imageUrl.startsWith('/media/') || imageUrl.startsWith('/uploads/');
+    const isLocalMedia = imageUrl.startsWith('/uploads/');
     
     if (isLocalMedia) {
       const fs = await import('fs');
@@ -335,8 +323,7 @@ async function imageUrlToBase64(imageUrl) {
  */
 async function isPanoramaImage(imageUrl) {
   try {
-    // Support both old (/media/) and new (/uploads/) URL structures
-    const isLocalMedia = imageUrl.startsWith('/media/') || imageUrl.startsWith('/uploads/');
+    const isLocalMedia = imageUrl.startsWith('/uploads/');
     if (!isLocalMedia) {
       return false;
     }
@@ -459,7 +446,7 @@ Keep the description concise but comprehensive (2-4 sentences). Write in English
   }
   
   const data = await response.json();
-  const description = data.choices?.[0]?.message?.content;
+  const description = messageText(data);
   
   if (!description) {
     throw new Error('No description returned from Mistral');
@@ -603,45 +590,6 @@ async function analyzeYouTubeVideo(videoUrl) {
     videoChannel: metadata.channel,
     model: (await getAiConfig()).visionModel
   };
-}
-
-/**
- * Get or create media analysis for a URL
- * Uses caching to avoid re-analyzing the same image
- */
-export async function getOrCreateAnalysis(url, _mediaType = 'image') {
-  if (!url) return null;
-  
-  const urlHash = hashUrl(url);
-  
-  // Check if analysis already exists
-  const existing = await query(
-    'SELECT * FROM media_analyses WHERE url_hash = $1',
-    [urlHash]
-  );
-  
-  if (existing.rows.length > 0) {
-    const analysis = existing.rows[0];
-    
-    // Return if completed
-    if (analysis.status === 'completed') {
-      console.log('[ImageAnalysis] Using cached analysis for:', url.substring(0, 50));
-      return analysis;
-    }
-    
-    // If still processing, return null (will be available later)
-    if (analysis.status === 'processing') {
-      console.log('[ImageAnalysis] Analysis in progress for:', url.substring(0, 50));
-      return null;
-    }
-    
-    // If failed previously, try again
-    if (analysis.status === 'failed') {
-      console.log('[ImageAnalysis] Retrying failed analysis for:', url.substring(0, 50));
-    }
-  }
-  
-  return null;
 }
 
 /**
@@ -799,8 +747,8 @@ export function detectMediaType(url) {
     return 'image';
   }
   
-  // Local uploads are typically images (both old and new URL structure)
-  if (url.startsWith('/media/') || url.startsWith('/uploads/')) {
+  // Local uploads are typically images
+  if (url.startsWith('/uploads/')) {
     return 'image';
   }
   
@@ -834,31 +782,3 @@ export async function getAnalysisDescription(url) {
   
   return analysis.description;
 }
-
-/**
- * Analyze multiple URLs at once (for batch processing)
- */
-export async function analyzeMultipleUrls(urls) {
-  const results = {};
-  
-  for (const url of urls) {
-    if (!url) continue;
-    
-    const mediaType = detectMediaType(url);
-    await queueAnalysis(url, mediaType);
-    
-    // Small delay to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  
-  return results;
-}
-
-export default {
-  getOrCreateAnalysis,
-  queueAnalysis,
-  detectMediaType,
-  getAnalysisDescription,
-  analyzeMultipleUrls,
-  extractYouTubeVideoId
-};

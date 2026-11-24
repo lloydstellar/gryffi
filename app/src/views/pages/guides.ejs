@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('pages.guides') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -38,7 +40,7 @@
       background: transparent;
       border: none;
       cursor: pointer;
-      color: #64748b;
+      color: #5b6b80;
       transition: all 0.15s;
     }
     .kebab-menu-btn:hover {
@@ -143,7 +145,6 @@
       font-size: 11px;
       font-weight: 500;
       border-radius: 9999px;
-      text-transform: capitalize;
     }
     .personality-friendly { background: #dcfce7; color: #166534; }
     .personality-professional { background: #dbeafe; color: #1e40af; }
@@ -171,7 +172,7 @@
     }
     .journey-usage-badge.not-used {
       background: #f3f4f6;
-      color: #9ca3af;
+      color: #5b6b80;
     }
     .journey-usage-tooltip {
       position: absolute;
@@ -307,12 +308,12 @@
     .form-group select:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .form-hint {
       font-size: 12px;
-      color: #6b7280;
+      color: #5b6b80;
       margin-top: 4px;
     }
     .btn-secondary {
@@ -332,7 +333,7 @@
     }
     .stat-number {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .stat-number span {
       font-weight: 600;
@@ -346,7 +347,7 @@
   <%- include('../partials/help-modal') %>
   <%- include('../partials/support-modal') %>
   
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
@@ -382,15 +383,15 @@
           <% } else if (subscriptionUsage && subscriptionUsage.guides && subscriptionUsage.guides.isAtLimit) { %>
             <!-- Guide limit reached -->
             <div class="tier-limit-block">
-              <button class="btn-primary btn-disabled" disabled title="<%= t('subscription.limits.limitReached') %>">
+              <button type="button" class="btn-primary btn-disabled" aria-disabled="true" data-limit-hit="guides" title="<%= t('subscription.limits.limitReached') %>">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <%= t('guides.createGuide') %>
               </button>
               <div class="tier-limit-message">
-                <span><%= t('subscription.limits.guideLimitInfo', { limit: subscriptionUsage.guides.limit }) %></span>
-                <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+                <span><%= t('subscription.limits.guideLimitInfo', { limit: subscriptionUsage.guides.limit, count: subscriptionUsage.guides.limit }) %></span>
+                <a href="/dashboard/subscription" class="tier-upgrade-link" data-limit-hit="guides" data-limit-source="upgrade_link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
               </div>
             </div>
           <% } else { %>
@@ -406,6 +407,13 @@
     </div>
 
     <% if (guides && guides.length > 0) { %>
+      <% if ((typeof isTrash === 'undefined' || !isTrash) && guides.some(g => !(g.journeys_using || []).length)) { %>
+        <%# A guide only reaches participants through an AI guide step; say so once, not per card %>
+        <p class="text-sm text-zen-600 mb-4 flex items-start gap-2">
+          <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 11v5m0-8h.01"/></svg>
+          <span><%= t('guides.notUsedHint') %></span>
+        </p>
+      <% } %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <% guides.forEach(guide => { %>
           <div class="guide-card group relative" style="<%= (typeof isTrash !== 'undefined' && isTrash) ? 'cursor: default;' : '' %>">
@@ -426,9 +434,9 @@
                 <% } %>
               </div>
               <div class="flex-1 min-w-0">
-                <h3 class="text-lg font-semibold text-zen-900 group-hover:text-gryffi-primary transition-colors truncate">
+                <h2 class="text-lg font-semibold text-zen-900 group-hover:text-gryffi-primary transition-colors truncate">
                   <%= guide.name %>
-                </h3>
+                </h2>
                 <% if (guide.role) { %>
                   <p class="text-sm text-zen-500 truncate"><%= guide.role %></p>
                 <% } %>
@@ -437,7 +445,7 @@
             
             <div class="mt-4 flex items-center gap-2 flex-wrap">
               <span class="personality-badge personality-<%= guide.personality || 'friendly' %>">
-                <%= guide.personality || 'friendly' %>
+                <%= t('guides.personalities.' + (guide.personality || 'friendly'), { defaultValue: guide.personality || 'friendly' }) %>
               </span>
               <% if (!guide.is_active) { %>
                 <span class="personality-badge" style="background: #fee2e2; color: #991b1b;"><%= t('guides.inactive') %></span>
@@ -478,7 +486,7 @@
             
             <div class="mt-4 pt-4 border-t border-zen-100 flex items-center justify-between">
               <% if (typeof isTrash !== 'undefined' && isTrash && guide.deleted_at) { %>
-                <span class="text-xs text-zen-400">
+                <span class="text-xs text-zen-500">
                   <%= t('guides.trash.deleted') %> <%= new Date(guide.deleted_at).toLocaleDateString(language) %>
                 </span>
                 <% if (trashRetentionDays > 0) { %>
@@ -488,14 +496,14 @@
                     const daysRemaining = Math.ceil((permanentDeleteDate - new Date()) / (24 * 60 * 60 * 1000));
                     const isUrgent = daysRemaining <= 3;
                   %>
-                  <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-400' %>">
+                  <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-500' %>">
                     <%= t('guides.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString(language) %>
                     <% if (daysRemaining > 0) { %>
                       (<%= daysRemaining %> <%= t('subscription.days') %>)
                     <% } %>
                   </span>
                 <% } else if (trashRetentionDays === -1) { %>
-                  <span class="text-xs text-zen-400">
+                  <span class="text-xs text-zen-500">
                     <%= t('guides.trash.noAutoDelete') %>
                   </span>
                 <% } %>
@@ -605,15 +613,15 @@
         <% } else if (subscriptionUsage && subscriptionUsage.guides && subscriptionUsage.guides.isAtLimit) { %>
           <!-- Guide limit reached - empty state -->
           <div class="tier-limit-block tier-limit-block-centered">
-            <button class="btn-primary btn-disabled" disabled title="<%= t('subscription.limits.limitReached') %>">
+            <button type="button" class="btn-primary btn-disabled" aria-disabled="true" data-limit-hit="guides" title="<%= t('subscription.limits.limitReached') %>">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
               <%= t('guides.createGuide') %>
             </button>
             <div class="tier-limit-message">
-              <span><%= t('subscription.limits.guideLimitInfo', { limit: subscriptionUsage.guides.limit }) %></span>
-              <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
+              <span><%= t('subscription.limits.guideLimitInfo', { limit: subscriptionUsage.guides.limit, count: subscriptionUsage.guides.limit }) %></span>
+              <a href="/dashboard/subscription" class="tier-upgrade-link" data-limit-hit="guides" data-limit-source="upgrade_link"><%= t('subscription.limits.wantMore') %> <%= t('subscription.cta.upgradeNow') %> →</a>
             </div>
           </div>
         <% } else { %>
@@ -711,7 +719,7 @@
       const ai_instructions = document.getElementById('guideInstructions').value.trim();
       
       if (!name) {
-        await window.gryffi.modal.alert(<%-safeJson(t("guides.createNew.name"))%> + ' is required', { type: 'error' });
+        await window.gryffi.modal.alert(<%- safeJson(t('guides.createNew.nameRequired')) %>, { type: 'error' });
         return;
       }
       
@@ -775,11 +783,9 @@
       const resourceName = resourceLabels[limitType] || limitType;
       const message = <%-safeJson(t('subscription.banner.limitReached'))%>.replace('{{resource}}', resourceName);
       
+      // Plain text: modal.confirm escapes the message
       const result = await window.gryffi.modal.confirm(
-        `<div style="text-align: center;">
-          <p style="margin: 0 0 16px; color: #4b5563;">${message}</p>
-          <p style="margin: 0; font-size: 13px; color: #6b7280;">${<%-safeJson(t('subscription.limits.wantMore'))%>}</p>
-        </div>`,
+        message + '. ' + <%-safeJson(t('subscription.limits.wantMore'))%>,
         {
           title: <%-safeJson(t('subscription.limits.limitReached'))%>,
           type: 'warning',
@@ -795,6 +801,11 @@
       
       return result;
     }
+
+    // A click on the blocked create button explains the limit (app.js records it)
+    document.addEventListener('gryffi:limit-hit', (e) => {
+      showLimitExceededModal(e.detail.limitType);
+    });
 
     // Copy guide
     async function copyGuide(guideId, guideName) {

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= t('settings.title') %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -38,7 +40,7 @@
     }
     .settings-row-label p {
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .language-select {
       position: relative;
@@ -61,8 +63,8 @@
     }
     .language-select-btn:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .language-select-btn .flag {
       font-size: 20px;
@@ -147,7 +149,7 @@
       background: #f9fafb;
       border-radius: 8px;
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .settings-note svg {
       width: 16px;
@@ -180,8 +182,8 @@
     }
     .settings-input:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .settings-actions {
       display: flex;
@@ -286,7 +288,7 @@
   <%- include('../partials/help-modal') %>
   <%- include('../partials/support-modal') %>
   
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
@@ -312,13 +314,6 @@
             
             <div class="language-select" id="languageSelect">
               <button type="button" class="language-select-btn" id="languageSelectBtn">
-                <span class="flag">
-                  <% if (language === 'en') { %>🇬🇧<% } %>
-                  <% if (language === 'nl') { %>🇳🇱<% } %>
-                  <% if (language === 'de') { %>🇩🇪<% } %>
-                  <% if (language === 'fr') { %>🇫🇷<% } %>
-                  <% if (language === 'es') { %>🇪🇸<% } %>
-                </span>
                 <span class="name"><%= languageNames[language] %></span>
                 <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -328,13 +323,6 @@
               <div class="language-dropdown">
                 <% languages.forEach(lang => { %>
                   <div class="language-option <%= language === lang ? 'selected' : '' %>" data-lang="<%= lang %>">
-                    <span class="flag">
-                      <% if (lang === 'en') { %>🇬🇧<% } %>
-                      <% if (lang === 'nl') { %>🇳🇱<% } %>
-                      <% if (lang === 'de') { %>🇩🇪<% } %>
-                      <% if (lang === 'fr') { %>🇫🇷<% } %>
-                      <% if (lang === 'es') { %>🇪🇸<% } %>
-                    </span>
                     <span class="name"><%= languageNames[lang] %></span>
                     <% if (language === lang) { %>
                       <svg class="check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -423,14 +411,14 @@
           <!-- Two-Factor Authentication -->
           <div class="settings-row mt-6" style="padding-top: 24px; border-top: 1px solid rgba(11, 75, 52, 0.1);">
             <div class="settings-row-label">
-              <h3><%= t('settings.security.twoFactorTitle') %></h3>
+              <h3 id="twoFactorTitle"><%= t('settings.security.twoFactorTitle') %></h3>
               <p><%= t('settings.security.twoFactorDescription') %></p>
             </div>
           </div>
           
           <div class="mt-3" style="display: flex; align-items: center; gap: 16px;">
             <label class="toggle-switch">
-              <input type="checkbox" id="twoFactorToggle" <%= twoFactorEnabled ? 'checked' : '' %>>
+              <input type="checkbox" id="twoFactorToggle" aria-labelledby="twoFactorTitle" <%= twoFactorEnabled ? 'checked' : '' %>>
               <span class="toggle-slider"></span>
             </label>
             <span class="toggle-label" id="twoFactorLabel">
@@ -456,14 +444,14 @@
         <div class="settings-section-body">
           <div class="settings-row">
             <div class="settings-row-label">
-              <h3><%= t('settings.emailPreferences.marketingTitle') %></h3>
+              <h3 id="marketingTitle"><%= t('settings.emailPreferences.marketingTitle') %></h3>
               <p><%= t('settings.emailPreferences.marketingDescription') %></p>
             </div>
           </div>
           
           <div class="mt-3" style="display: flex; align-items: center; gap: 16px;">
             <label class="toggle-switch">
-              <input type="checkbox" id="marketingConsentToggle" <%= marketingConsent ? 'checked' : '' %>>
+              <input type="checkbox" id="marketingConsentToggle" aria-labelledby="marketingTitle" <%= marketingConsent ? 'checked' : '' %>>
               <span class="toggle-slider"></span>
             </label>
             <span class="toggle-label" id="marketingConsentLabel">
@@ -473,14 +461,14 @@
 
           <div class="settings-row mt-6">
             <div class="settings-row-label">
-              <h3><%= t('settings.emailPreferences.lifecycleTitle') %></h3>
+              <h3 id="lifecycleTitle"><%= t('settings.emailPreferences.lifecycleTitle') %></h3>
               <p><%= t('settings.emailPreferences.lifecycleDescription') %></p>
             </div>
           </div>
 
           <div class="mt-3" style="display: flex; align-items: center; gap: 16px;">
             <label class="toggle-switch">
-              <input type="checkbox" id="lifecycleEmailsToggle" <%= lifecycleEmailsEnabled ? 'checked' : '' %>>
+              <input type="checkbox" id="lifecycleEmailsToggle" aria-labelledby="lifecycleTitle" <%= lifecycleEmailsEnabled ? 'checked' : '' %>>
               <span class="toggle-slider"></span>
             </label>
             <span class="toggle-label" id="lifecycleEmailsLabel">
@@ -595,7 +583,7 @@
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok || !data.success) {
-            window.gryffi.toast.success(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+            window.gryffi.toast.error(data.message || <%-safeJson(t("errors.failedToUpdate"))%>);
             return;
           }
           window.gryffi.toast.success(data.message || <%-safeJson(t("settings.messages.profileSaved"))%>);
@@ -606,7 +594,7 @@
             userNameEl.textContent = fullName;
           }
         } catch (err) {
-          window.gryffi.toast.success(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+          window.gryffi.toast.error(<%-safeJson(t("errors.failedToUpdate"))%>);
         } finally {
           saveProfileBtn.disabled = false;
         }
@@ -621,15 +609,15 @@
         const confirmPassword = document.getElementById('confirmPassword')?.value || '';
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-          window.gryffi.toast.success(<%-safeJson(t("settings.messages.fillAllFields"))%>, true);
+          window.gryffi.toast.error(<%-safeJson(t("settings.messages.fillAllFields"))%>);
           return;
         }
         if (newPassword.length < 8) {
-          window.gryffi.toast.success(<%-safeJson(t("settings.messages.passwordTooShort"))%>, true);
+          window.gryffi.toast.error(<%-safeJson(t("settings.messages.passwordTooShort"))%>);
           return;
         }
         if (newPassword !== confirmPassword) {
-          window.gryffi.toast.success(<%-safeJson(t("settings.messages.passwordsDoNotMatch"))%>, true);
+          window.gryffi.toast.error(<%-safeJson(t("settings.messages.passwordsDoNotMatch"))%>);
           return;
         }
 
@@ -642,7 +630,7 @@
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok || !data.success) {
-            window.gryffi.toast.success(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+            window.gryffi.toast.error(data.message || <%-safeJson(t("errors.failedToUpdate"))%>);
             return;
           }
           window.gryffi.toast.success(data.message || <%-safeJson(t("settings.messages.passwordUpdated"))%>);
@@ -651,7 +639,7 @@
           document.getElementById('newPassword').value = '';
           document.getElementById('confirmPassword').value = '';
         } catch (err) {
-          window.gryffi.toast.success(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+          window.gryffi.toast.error(<%-safeJson(t("errors.failedToUpdate"))%>);
         } finally {
           savePasswordBtn.disabled = false;
         }
@@ -684,7 +672,7 @@
           if (!res.ok || !data.success) {
             twoFactorToggle.checked = !enabled;
             updateTwoFactorLabel(!enabled);
-            window.gryffi?.toast?.success?.(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+            window.gryffi?.toast?.error?.(data.message || <%-safeJson(t("errors.failedToUpdate"))%>);
             return;
           }
           
@@ -692,7 +680,7 @@
         } catch (err) {
           twoFactorToggle.checked = !enabled;
           updateTwoFactorLabel(!enabled);
-          window.gryffi?.toast?.success?.(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+          window.gryffi?.toast?.error?.(<%-safeJson(t("errors.failedToUpdate"))%>);
         } finally {
           twoFactorToggle.disabled = false;
         }
@@ -735,7 +723,7 @@
             if (!res.ok || !data.success) {
               toggle.checked = !enabled;
               updateLabel(!enabled);
-              window.gryffi?.toast?.success?.(data.message || <%-safeJson(t("errors.failedToUpdate"))%>, true);
+              window.gryffi?.toast?.error?.(data.message || <%-safeJson(t("errors.failedToUpdate"))%>);
               return;
             }
 
@@ -743,7 +731,7 @@
           } catch (err) {
             toggle.checked = !enabled;
             updateLabel(!enabled);
-            window.gryffi?.toast?.success?.(<%-safeJson(t("errors.failedToUpdate"))%>, true);
+            window.gryffi?.toast?.error?.(<%-safeJson(t("errors.failedToUpdate"))%>);
           } finally {
             toggle.disabled = false;
           }

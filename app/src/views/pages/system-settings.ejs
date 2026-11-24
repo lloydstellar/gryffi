@@ -1,10 +1,17 @@
-<!DOCTYPE html>
+<%
+  // The same page serves two menu items: Participants (adding, importing and
+  // grouping the people who follow journeys) and System settings (the rest)
+  const isParticipantsPage = locals.section === 'participants';
+  const pageTitle = isParticipantsPage ? t('participants.title') : t('systemSettings.title');
+%><!DOCTYPE html>
 <html lang="<%= language %>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= t('systemSettings.title') %> | Gryffi</title>
+  <title><%= pageTitle %> | Gryffi</title>
   <link rel="icon" href="/images/logos/Logo---illustration-only-cropped-transparant.png" type="image/png">
+  <link rel="preload" href="/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/outfit/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -32,7 +39,7 @@
     }
     .warning-banner-content p {
       font-size: 14px;
-      color: #a16207;
+      color: #854d0e;
       line-height: 1.5;
     }
     
@@ -94,13 +101,13 @@
       justify-content: center;
       background: #f3f4f6;
       border-radius: 10px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .import-option.active .import-option-icon {
       background: rgba(120, 197, 3, 0.15);
       color: #0b4b34;
     }
-    .import-option h4 {
+    .import-option h3 {
       font-size: 14px;
       font-weight: 600;
       color: #111827;
@@ -108,18 +115,18 @@
     }
     .import-option p {
       font-size: 12px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .import-option .coming-soon {
       display: inline-block;
       margin-top: 8px;
       font-size: 10px;
       font-weight: 600;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.05em;
       padding: 3px 8px;
       background: #e5e7eb;
-      color: #6b7280;
+      color: #5b6b80;
       border-radius: 4px;
     }
     
@@ -156,7 +163,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .import-dropzone h4 {
       font-size: 16px;
@@ -166,7 +173,7 @@
     }
     .import-dropzone p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       margin-bottom: 4px;
     }
     .import-dropzone .formats {
@@ -243,7 +250,7 @@
       color: #d97706;
     }
     .import-preview-stats .stat.info {
-      color: #6b7280;
+      color: #5b6b80;
     }
     .import-preview-body {
       padding: 16px 20px;
@@ -254,9 +261,9 @@
     .import-preview-sample h5 {
       font-size: 12px;
       font-weight: 600;
-      color: #6b7280;
+      color: #5b6b80;
       margin-bottom: 8px;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.05em;
     }
     .import-preview-sample ul {
@@ -355,8 +362,8 @@
     }
     .form-group input:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .form-group input::placeholder {
       color: #9ca3af;
@@ -372,8 +379,8 @@
     }
     .form-group select:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     
     .btn {
@@ -411,7 +418,7 @@
     .btn-icon {
       padding: 8px;
       background: transparent;
-      color: #6b7280;
+      color: #5b6b80;
       border: none;
     }
     .btn-icon:hover {
@@ -433,7 +440,7 @@
     }
     .users-count {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .users-count strong {
       color: #111827;
@@ -453,8 +460,8 @@
     }
     .search-box input:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .search-box svg {
       position: absolute;
@@ -476,8 +483,8 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: #6b7280;
+      text-transform: none;
+      color: #5b6b80;
       padding: 12px 16px;
       background: #f9fafb;
       border-bottom: 1px solid #e5e7eb;
@@ -502,7 +509,7 @@
       font-weight: 500;
     }
     .users-table .user-email {
-      color: #6b7280;
+      color: #5b6b80;
       font-size: 13px;
     }
     .source-badge {
@@ -513,7 +520,7 @@
       border-radius: 999px;
       font-size: 11px;
       font-weight: 600;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.03em;
     }
     .source-badge.manual {
@@ -572,14 +579,14 @@
     }
     .pagination .page-info {
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
       padding: 0 12px;
     }
     
     .empty-state {
       text-align: center;
       padding: 48px 24px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .empty-state svg {
       width: 48px;
@@ -656,7 +663,7 @@
     }
     .modal-close:hover {
       background: #f3f4f6;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .modal-body {
       padding: 24px;
@@ -717,8 +724,8 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: #6b7280;
+      text-transform: none;
+      color: #5b6b80;
       padding: 12px 16px;
       background: #f9fafb;
       border-bottom: 1px solid #e5e7eb;
@@ -743,7 +750,7 @@
       font-weight: 500;
     }
     .groups-table .group-description {
-      color: #6b7280;
+      color: #5b6b80;
       font-size: 13px;
       max-width: 300px;
       white-space: nowrap;
@@ -758,7 +765,7 @@
       border-radius: 999px;
       font-size: 10px;
       font-weight: 600;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.03em;
       margin-left: 8px;
     }
@@ -816,12 +823,12 @@
     }
     .member-select-email {
       font-size: 12px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .member-select-empty {
       padding: 24px;
       text-align: center;
-      color: #6b7280;
+      color: #5b6b80;
       font-size: 14px;
     }
     
@@ -866,11 +873,11 @@
     }
     .member-email {
       font-size: 12px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .btn-remove-member {
       padding: 6px;
-      color: #6b7280;
+      color: #5b6b80;
       background: transparent;
       border: none;
       border-radius: 6px;
@@ -884,7 +891,7 @@
     .members-empty {
       padding: 24px;
       text-align: center;
-      color: #6b7280;
+      color: #5b6b80;
       font-size: 14px;
     }
     
@@ -958,7 +965,7 @@
       background: transparent;
       border: none;
       cursor: pointer;
-      color: #6b7280;
+      color: #5b6b80;
       transition: all 0.15s;
       padding: 0;
     }
@@ -991,7 +998,7 @@
     }
     .edit-user-add-group select:focus {
       outline: none;
-      border-color: #78c503;
+      border-color: #0b4b34;
     }
     
     /* Google Workspace Integration Styles */
@@ -1026,7 +1033,7 @@
     }
     .google-connect-box p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       margin-bottom: 20px;
       max-width: 400px;
       margin-left: auto;
@@ -1140,7 +1147,7 @@
     }
     .setup-step-content p {
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
       line-height: 1.5;
       margin: 0;
     }
@@ -1164,8 +1171,8 @@
       font-family: inherit;
       font-size: 11px;
       font-weight: 600;
-      color: #6b7280;
-      text-transform: uppercase;
+      color: #5b6b80;
+      text-transform: none;
       letter-spacing: 0.5px;
       flex-shrink: 0;
     }
@@ -1206,7 +1213,7 @@
     }
     .setup-important-note p {
       font-size: 13px;
-      color: #a16207;
+      color: #854d0e;
       margin: 0;
       line-height: 1.5;
     }
@@ -1328,7 +1335,7 @@
     }
     .microsoft-connect-box p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       margin-bottom: 20px;
       max-width: 400px;
       margin-left: auto;
@@ -1482,7 +1489,7 @@
     }
     .microsoft-sync-option-content p {
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
       margin: 0;
     }
     .microsoft-groups-select {
@@ -1546,7 +1553,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #6b7280;
+      color: #5b6b80;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
     .api-generate-box h4 {
@@ -1557,7 +1564,7 @@
     }
     .api-generate-box p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       margin-bottom: 20px;
       max-width: 400px;
       margin-left: auto;
@@ -1647,7 +1654,7 @@
     }
     .api-status-info p {
       font-size: 14px;
-      color: #6b7280;
+      color: #5b6b80;
       margin: 0;
     }
     .api-key-meta {
@@ -1667,8 +1674,8 @@
     .api-key-meta-item .label {
       font-size: 12px;
       font-weight: 500;
-      color: #6b7280;
-      text-transform: uppercase;
+      color: #5b6b80;
+      text-transform: none;
       letter-spacing: 0.05em;
     }
     .api-key-meta-item .value {
@@ -1712,7 +1719,7 @@
       border-radius: 4px;
       font-size: 11px;
       font-weight: 700;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.03em;
     }
     .api-method.get {
@@ -1734,7 +1741,7 @@
     }
     .api-endpoint-desc {
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
       margin: 0;
     }
     .api-auth-info {
@@ -1751,7 +1758,7 @@
     }
     .api-auth-info p {
       font-size: 13px;
-      color: #a16207;
+      color: #854d0e;
       margin: 0 0 12px;
     }
     .api-code-block {
@@ -1975,7 +1982,7 @@
       border-radius: 8px;
       font-size: 14px;
       font-weight: 500;
-      color: #6b7280;
+      color: #5b6b80;
       background: transparent;
       border: none;
       cursor: pointer;
@@ -2146,7 +2153,7 @@
       font-weight: 600;
       color: #374151;
       margin-bottom: 12px;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.5px;
     }
     .theme-color-grid {
@@ -2158,10 +2165,11 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      min-width: 0;
     }
     .theme-color-item label {
       font-size: 12px;
-      color: #6b7280;
+      color: #5b6b80;
     }
     .theme-color-picker {
       display: flex;
@@ -2182,6 +2190,8 @@
     }
     .theme-color-picker input[type="text"] {
       flex: 1;
+      min-width: 0; /* a text input is ~20 characters wide by default and overflowed the column */
+      width: 100%;
       border: none;
       background: transparent;
       font-size: 12px;
@@ -2263,7 +2273,7 @@
       background: white;
       border-radius: 8px;
       font-size: 13px;
-      color: #6b7280;
+      color: #5b6b80;
       cursor: pointer;
       transition: all 0.15s;
     }
@@ -2434,28 +2444,24 @@
   <% const syncLocked = subscriptionTier && !subscriptionTier.features?.syncEnabled; %>
   <% const endUsersAtLimit = subscriptionUsage && subscriptionUsage.endUsers && subscriptionUsage.endUsers.isAtLimit; %>
   
-  <main class="main-content">
+  <main class="main-content" id="main-content" tabindex="-1">
     <%- include('../partials/free-tier-banner') %>
     <%- include('../partials/ai-credits-banner') %>
     
     <div class="page-header">
-      <h1 class="page-title"><%= t('systemSettings.title') %></h1>
-      <p class="page-subtitle"><%= t('systemSettings.subtitle') %></p>
+      <h1 class="page-title"><%= pageTitle %></h1>
+      <p class="page-subtitle"><%= isParticipantsPage ? t('participants.subtitle') : t('systemSettings.subtitle') %></p>
     </div>
     
     <!-- Settings Tabs Navigation -->
+    <% const isThemesEnabled = !!subscriptionTier?.features?.customBranding; %>
+    <% if (!isParticipantsPage) { %>
     <div class="settings-tabs">
       <button type="button" class="settings-tab active" data-tab="general">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
         </svg>
         <%= t('systemSettings.tabs.general') %>
-      </button>
-      <button type="button" class="settings-tab" data-tab="users">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-        </svg>
-        <%= t('systemSettings.tabs.users') %>
       </button>
       <% if (user && user.role === 'admin') { %>
       <button type="button" class="settings-tab" data-tab="api">
@@ -2465,7 +2471,6 @@
         <%= t('systemSettings.tabs.api') %>
       </button>
       <% } %>
-      <% const isThemesEnabled = !!subscriptionTier?.features?.customBranding; %>
       <% if (isThemesEnabled) { %>
       <button type="button" class="settings-tab" data-tab="themes">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2475,9 +2480,10 @@
       </button>
       <% } %>
     </div>
+    <% } %>
     
     <!-- Tab Panel: General -->
-    <div class="settings-tab-panel active" id="tab-general">
+    <div class="settings-tab-panel<%= isParticipantsPage ? '' : ' active' %>" id="tab-general">
     
     <!-- Organization Settings Section -->
     <% const orgSettings = (organization && organization.settings && typeof organization.settings === 'object') ? organization.settings : {}; %>
@@ -2499,22 +2505,19 @@
           </div>
 
           <div class="form-group mt-4">
-            <label for="orgLangMode"><%= t('settings.organization.language.label') %></label>
-            <select id="orgLangMode" style="max-width: 420px; padding-right:32px;">
+            <!-- One choice: a language for everyone, or each maker's own browser language.
+                 The two hidden fields keep what the save handler sends. -->
+            <label for="orgLangChoice"><%= t('settings.organization.language.label') %></label>
+            <select id="orgLangChoice" style="max-width: 420px; padding-right:32px;" aria-describedby="orgLangHint">
+              <% ['en', 'nl', 'de', 'fr', 'es'].forEach(code => { %>
+                <option value="<%= code %>" <%= orgLangMode === 'fixed' && orgLang === code ? 'selected' : '' %>><%= t('languages.' + code) %></option>
+              <% }) %>
               <option value="auto" <%= orgLangMode === 'auto' ? 'selected' : '' %>><%= t('settings.organization.language.modeAuto') %></option>
-              <option value="fixed" <%= orgLangMode === 'fixed' ? 'selected' : '' %>><%= t('settings.organization.language.modeFixed') %></option>
             </select>
-            <p class="text-xs text-zen-500 mt-1"><%= t('settings.organization.language.modeHint') %></p>
-            <div id="orgLangFixedWrap" class="mt-3" style="max-width: 420px; <%= orgLangMode === 'fixed' ? '' : 'display:none;' %>">
-              <select id="orgLang" style="padding-right:32px;">
-                <option value="en" <%= orgLang === 'en' ? 'selected' : '' %>><%= t('languages.en') %></option>
-                <option value="nl" <%= orgLang === 'nl' ? 'selected' : '' %>><%= t('languages.nl') %></option>
-                <option value="de" <%= orgLang === 'de' ? 'selected' : '' %>><%= t('languages.de') %></option>
-                <option value="fr" <%= orgLang === 'fr' ? 'selected' : '' %>><%= t('languages.fr') %></option>
-                <option value="es" <%= orgLang === 'es' ? 'selected' : '' %>><%= t('languages.es') %></option>
-              </select>
-              <p class="text-xs text-zen-500 mt-1"><%= t('settings.organization.language.fixedHint') %></p>
-            </div>
+            <input type="hidden" id="orgLangMode" value="<%= orgLangMode %>">
+            <input type="hidden" id="orgLang" value="<%= orgLang %>">
+            <div id="orgLangFixedWrap" hidden></div>
+            <p class="text-xs text-zen-500 mt-1" id="orgLangHint"><%= t('settings.organization.language.modeHint') %></p>
             <p class="text-xs text-zen-500 mt-2"><%= t('settings.organization.language.emailHint') %></p>
           </div>
 
@@ -2587,7 +2590,7 @@
       <div class="card-header" style="border-bottom: 1px solid #e57373;">
         <div>
           <h2 style="color: #c62828;"><%= t('systemSettings.dangerZone.title') %></h2>
-          <p class="text-sm mt-1" style="color: #c62828; opacity: 0.8;"><%= t('systemSettings.dangerZone.description') %></p>
+          <p class="text-sm mt-1" style="color: #b71c1c;"><%= t('systemSettings.dangerZone.description') %></p>
         </div>
       </div>
       <div class="card-body">
@@ -2602,27 +2605,13 @@
     </div><!-- End Tab Panel: General -->
     
     <!-- Tab Panel: Users -->
-    <div class="settings-tab-panel" id="tab-users">
-    
-    <!-- Warning Banner -->
-    <div class="warning-banner">
-      <svg class="warning-banner-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-      </svg>
-      <div class="warning-banner-content">
-        <h3><%= t('systemSettings.warning.title') %></h3>
-        <p><%= t('systemSettings.warning.description') %></p>
-      </div>
-    </div>
-    
+    <div class="settings-tab-panel<%= isParticipantsPage ? ' active' : '' %>" id="tab-users"<% if (!isParticipantsPage) { %> hidden<% } %>>
     <!-- End Users Section -->
     <div class="card" id="endUsersCard">
       <div class="card-header">
-        <h2><%= t('systemSettings.endUsers.title') %></h2>
+        <h2><%= t('participants.cardTitle') %></h2>
       </div>
       <div class="card-body">
-        <p class="text-zen-600 text-sm mb-6"><%= t('systemSettings.endUsers.description') %></p>
-        
         <!-- Import Options -->
         <div class="import-options">
           <div class="import-option active" data-method="manual">
@@ -2631,7 +2620,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
             </div>
-            <h4><%= t('systemSettings.endUsers.methods.manual.title') %></h4>
+            <h3><%= t('systemSettings.endUsers.methods.manual.title') %></h3>
             <p><%= t('systemSettings.endUsers.methods.manual.description') %></p>
           </div>
           
@@ -2641,7 +2630,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
             </div>
-            <h4><%= t('systemSettings.endUsers.methods.csv.title') %></h4>
+            <h3><%= t('systemSettings.endUsers.methods.csv.title') %></h3>
             <p><%= t('systemSettings.endUsers.methods.csv.description') %></p>
           </div>
           
@@ -2658,7 +2647,7 @@
                 <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"/>
               </svg>
             </div>
-            <h4><%= t('systemSettings.endUsers.methods.microsoft.title') %></h4>
+            <h3><%= t('systemSettings.endUsers.methods.microsoft.title') %></h3>
             <p><%= t('systemSettings.endUsers.methods.microsoft.description') %></p>
             <% if (syncLocked) { %>
               <span class="tier-lock-inline">
@@ -2686,7 +2675,7 @@
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
             </div>
-            <h4><%= t('systemSettings.endUsers.methods.google.title') %></h4>
+            <h3><%= t('systemSettings.endUsers.methods.google.title') %></h3>
             <p><%= t('systemSettings.endUsers.methods.google.description') %></p>
             <% if (syncLocked) { %>
               <span class="tier-lock-inline">
@@ -2713,7 +2702,7 @@
           <h3><%= t('systemSettings.endUsers.addManually') %></h3>
           <% if (subscriptionUsage && subscriptionUsage.endUsers) { %>
             <div class="tier-usage-inline" style="margin-bottom: 16px;">
-              <span><%= subscriptionUsage.endUsers.used %> / <%= subscriptionUsage.endUsers.isUnlimited ? '∞' : subscriptionUsage.endUsers.limit %> <%= t('subscription.features.endUsers').toLowerCase() %></span>
+              <span><%= subscriptionUsage.endUsers.used %> / <%= subscriptionUsage.endUsers.isUnlimited ? '∞' : subscriptionUsage.endUsers.limit %> <%= t('systemSettings.endUsers.usageLabel') %></span>
               <% if (!subscriptionUsage.endUsers.isUnlimited) { %>
                 <div class="tier-usage-bar">
                   <div class="tier-usage-bar-fill <%= subscriptionUsage.endUsers.percentage >= 90 ? 'danger' : (subscriptionUsage.endUsers.percentage >= 70 ? 'warning' : '') %>" style="width: <%= subscriptionUsage.endUsers.percentage %>%"></div>
@@ -2725,7 +2714,7 @@
             <div class="tier-upgrade-notice" style="margin-bottom: 16px;">
               <div class="tier-upgrade-notice-text">
                 <strong><%= t('subscription.limits.limitReached') %></strong><br>
-                <%= t('subscription.limits.endUserLimitInfo', { limit: subscriptionUsage.endUsers.limit }) %>
+                <%= t('subscription.limits.endUserLimitInfo', { limit: subscriptionUsage.endUsers.limit, count: subscriptionUsage.endUsers.limit }) %>
               </div>
               <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.cta.upgradeNow') %></a>
             </div>
@@ -2764,7 +2753,7 @@
             <div class="tier-upgrade-notice" style="margin-bottom: 16px;">
               <div class="tier-upgrade-notice-text">
                 <strong><%= t('subscription.limits.limitReached') %></strong><br>
-                <%= t('subscription.limits.endUserLimitInfo', { limit: subscriptionUsage.endUsers.limit }) %>
+                <%= t('subscription.limits.endUserLimitInfo', { limit: subscriptionUsage.endUsers.limit, count: subscriptionUsage.endUsers.limit }) %>
               </div>
               <a href="/dashboard/subscription" class="tier-upgrade-link"><%= t('subscription.cta.upgradeNow') %></a>
             </div>
@@ -2798,7 +2787,7 @@
               </svg>
             </div>
             <h4><%= endUsersAtLimit ? t('subscription.limits.limitReached') : t('systemSettings.import.dropzone.title') %></h4>
-            <p><%= endUsersAtLimit ? t('subscription.limits.endUserLimitInfo', { limit: subscriptionUsage.endUsers.limit }) : t('systemSettings.import.dropzone.subtitle') %></p>
+            <p><%= endUsersAtLimit ? t('subscription.limits.endUserLimitInfo', { limit: subscriptionUsage.endUsers.limit, count: subscriptionUsage.endUsers.limit }) : t('systemSettings.import.dropzone.subtitle') %></p>
             <% if (!endUsersAtLimit) { %>
               <p class="formats"><%= t('systemSettings.import.dropzone.formats') %></p>
             <% } %>
@@ -2832,6 +2821,18 @@
                   </svg>
                   <span></span>
                 </div>
+                <div class="stat warning" id="previewLimitWarning" style="display: none;" role="status">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  <span></span>
+                </div>
+                <div class="stat warning" id="previewSkippedCount" style="display: none;">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  <span></span>
+                </div>
                 <div class="stat info" id="previewHeaderSkipped" style="display: none;">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -2844,6 +2845,11 @@
               <div class="import-preview-sample" id="sampleUsersSection">
                 <h5><%= t('systemSettings.import.preview.samplePreview') %></h5>
                 <ul id="sampleUsersList"></ul>
+              </div>
+              <div class="import-preview-sample" id="skippedRowsSection" style="display: none;">
+                <!-- A full sentence: not in capitals like the short headings -->
+                <h5 style="text-transform: none; letter-spacing: normal;"><%= t('systemSettings.import.preview.skippedRows') %></h5>
+                <ul id="skippedRowsList"></ul>
               </div>
               <div class="import-preview-sample" id="duplicateEmailsSection" style="display: none;">
                 <h5><%= t('systemSettings.import.preview.duplicateEmails') %></h5>
@@ -2886,7 +2892,7 @@
                   </svg>
                   <div style="flex: 1;">
                     <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: #92400e;"><%= t('systemSettings.google.orphanedUsersTitle') %></h4>
-                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #a16207;" id="googleOrphanedUsersText"></p>
+                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #854d0e;" id="googleOrphanedUsersText"></p>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                       <button type="button" class="btn btn-secondary" id="googleViewOrphanedUsersBtn" style="font-size: 13px; padding: 6px 12px;">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2914,7 +2920,7 @@
                   </svg>
                   <div style="flex: 1;">
                     <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: #92400e;"><%= t('systemSettings.google.orphanedGroupsTitle') %></h4>
-                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #a16207;" id="googleOrphanedGroupsText"></p>
+                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #854d0e;" id="googleOrphanedGroupsText"></p>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                       <button type="button" class="btn btn-secondary" id="googleDeleteOrphanedGroupsBtn" style="font-size: 13px; padding: 6px 12px; color: #dc2626; border-color: #fecaca;">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2967,7 +2973,7 @@
                   </svg>
                 </button>
                 <div class="setup-guide-content" id="setupGuideContent">
-                  <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;"><%= t('systemSettings.google.setupGuide.subtitle') %></p>
+                  <p style="font-size: 14px; color: #5b6b80; margin-bottom: 20px;"><%= t('systemSettings.google.setupGuide.subtitle') %></p>
                   
                   <div class="setup-step">
                     <div class="setup-step-number">1</div>
@@ -3076,7 +3082,7 @@
                     <input type="radio" name="googleSyncMode" value="all" id="googleSyncModeAll" checked style="width: 16px; height: 16px;">
                     <label for="googleSyncModeAll" style="cursor: pointer; margin-left: 8px;">
                       <h6 style="font-size: 14px; font-weight: 500; color: #111827; margin: 0;"><%= t('systemSettings.google.syncModeAll') %></h6>
-                      <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;"><%= t('systemSettings.google.syncModeAllDesc') %></p>
+                      <p style="font-size: 13px; color: #5b6b80; margin: 4px 0 0 0;"><%= t('systemSettings.google.syncModeAllDesc') %></p>
                     </label>
                   </div>
                   
@@ -3084,14 +3090,14 @@
                     <input type="radio" name="googleSyncMode" value="groups" id="googleSyncModeGroups" style="width: 16px; height: 16px;">
                     <label for="googleSyncModeGroups" style="cursor: pointer; margin-left: 8px;">
                       <h6 style="font-size: 14px; font-weight: 500; color: #111827; margin: 0;"><%= t('systemSettings.google.syncModeGroups') %></h6>
-                      <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;"><%= t('systemSettings.google.syncModeGroupsDesc') %></p>
+                      <p style="font-size: 13px; color: #5b6b80; margin: 4px 0 0 0;"><%= t('systemSettings.google.syncModeGroupsDesc') %></p>
                     </label>
                   </div>
                   
                   <!-- Group Selection (shown when syncMode = groups) -->
                   <div id="googleGroupsSelection" style="display: none; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px;">
                     <div class="google-groups-select" id="googleGroupsList" style="max-height: 300px; overflow-y: auto;">
-                      <p style="text-align: center; color: #64748b; padding: 20px;"><%= t('common.loading') %></p>
+                      <p style="text-align: center; color: #5b6b80; padding: 20px;"><%= t('common.loading') %></p>
                     </div>
                   </div>
                   
@@ -3101,13 +3107,13 @@
                       <input type="checkbox" id="googleSyncGroups" checked style="width: 16px; height: 16px;">
                       <%= t('systemSettings.google.syncGroupsOption') %>
                     </label>
-                    <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 24px;"><%= t('systemSettings.google.syncGroupsDesc') %></p>
+                    <p style="font-size: 12px; color: #5b6b80; margin: 4px 0 0 24px;"><%= t('systemSettings.google.syncGroupsDesc') %></p>
                     
                     <!-- Groups to sync selection (shown when syncGroups is checked) -->
                     <div id="googleGroupsToSyncSection" style="margin-top: 12px; padding: 12px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
                       <p style="font-size: 13px; font-weight: 500; color: #374151; margin: 0 0 8px 0;"><%= t('systemSettings.google.selectGroupsToSync') %></p>
                       <div id="googleGroupsToSyncList" style="max-height: 200px; overflow-y: auto;">
-                        <p style="text-align: center; color: #64748b; padding: 12px; font-size: 13px;"><%= t('common.loading') %></p>
+                        <p style="text-align: center; color: #5b6b80; padding: 12px; font-size: 13px;"><%= t('common.loading') %></p>
                       </div>
                       
                       <!-- Import group members as users option -->
@@ -3116,7 +3122,7 @@
                           <input type="checkbox" id="googleImportGroupMembers" style="width: 16px; height: 16px; margin-top: 2px;">
                           <div>
                             <span style="font-size: 13px; color: #374151;"><%= t('systemSettings.google.importGroupMembersOption') %></span>
-                            <p style="font-size: 12px; color: #6b7280; margin: 2px 0 0 0;"><%= t('systemSettings.google.importGroupMembersDesc') %></p>
+                            <p style="font-size: 12px; color: #5b6b80; margin: 2px 0 0 0;"><%= t('systemSettings.google.importGroupMembersDesc') %></p>
                           </div>
                         </label>
                       </div>
@@ -3186,7 +3192,7 @@
                   </svg>
                   <div style="flex: 1;">
                     <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: #92400e;"><%= t('systemSettings.microsoft.orphanedUsersTitle') %></h4>
-                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #a16207;" id="microsoftOrphanedUsersText"></p>
+                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #854d0e;" id="microsoftOrphanedUsersText"></p>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                       <button type="button" class="btn btn-secondary" id="microsoftViewOrphanedUsersBtn" style="font-size: 13px; padding: 6px 12px;">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3214,7 +3220,7 @@
                   </svg>
                   <div style="flex: 1;">
                     <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: #92400e;"><%= t('systemSettings.microsoft.orphanedGroupsTitle') %></h4>
-                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #a16207;" id="microsoftOrphanedGroupsText"></p>
+                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #854d0e;" id="microsoftOrphanedGroupsText"></p>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                       <button type="button" class="btn btn-secondary" id="microsoftDeleteOrphanedGroupsBtn" style="font-size: 13px; padding: 6px 12px; color: #dc2626; border-color: #fecaca;">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3353,7 +3359,7 @@
                   <!-- Group Selection (shown when groups mode is selected) -->
                   <div id="microsoftGroupsSelection" style="display: none;">
                     <div class="microsoft-groups-select" id="microsoftGroupsList">
-                      <p style="text-align: center; color: #64748b; padding: 20px;"><%= t('common.loading') %></p>
+                      <p style="text-align: center; color: #5b6b80; padding: 20px;"><%= t('common.loading') %></p>
                     </div>
                   </div>
                   
@@ -3362,13 +3368,13 @@
                       <input type="checkbox" id="microsoftSyncGroups" checked style="width: 16px; height: 16px;">
                       <%= t('systemSettings.microsoft.syncGroupsOption') %>
                     </label>
-                    <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 24px;"><%= t('systemSettings.microsoft.syncGroupsDesc') %></p>
+                    <p style="font-size: 12px; color: #5b6b80; margin: 4px 0 0 24px;"><%= t('systemSettings.microsoft.syncGroupsDesc') %></p>
                     
                     <!-- Groups to sync selection (shown when syncGroups is checked) -->
                     <div id="microsoftGroupsToSyncSection" style="margin-top: 12px; padding: 12px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
                       <p style="font-size: 13px; font-weight: 500; color: #374151; margin: 0 0 8px 0;"><%= t('systemSettings.microsoft.selectGroupsToSync') %></p>
                       <div id="microsoftGroupsToSyncList" style="max-height: 200px; overflow-y: auto;">
-                        <p style="text-align: center; color: #64748b; padding: 12px; font-size: 13px;"><%= t('common.loading') %></p>
+                        <p style="text-align: center; color: #5b6b80; padding: 12px; font-size: 13px;"><%= t('common.loading') %></p>
                       </div>
                       
                       <!-- Import group members as users option -->
@@ -3377,7 +3383,7 @@
                           <input type="checkbox" id="microsoftImportGroupMembers" style="width: 16px; height: 16px; margin-top: 2px;">
                           <div>
                             <span style="font-size: 13px; color: #374151;"><%= t('systemSettings.microsoft.importGroupMembersOption') %></span>
-                            <p style="font-size: 12px; color: #6b7280; margin: 2px 0 0 0;"><%= t('systemSettings.microsoft.importGroupMembersDesc') %></p>
+                            <p style="font-size: 12px; color: #5b6b80; margin: 2px 0 0 0;"><%= t('systemSettings.microsoft.importGroupMembersDesc') %></p>
                           </div>
                         </label>
                       </div>
@@ -3575,6 +3581,7 @@
           </button>
         </div>
         <div class="modal-body">
+          <p class="font-semibold text-zen-900 mb-2" id="deleteGroupName"></p>
           <p><%= t('systemSettings.groups.confirmDelete.message') %></p>
           <input type="hidden" id="deleteGroupId">
         </div>
@@ -4154,7 +4161,7 @@
               </div>
               <input type="file" id="themeLogoInput" accept="image/png" style="display: none;">
             </div>
-            <p class="text-xs text-zen-400 mt-2"><%= t('systemSettings.themes.editor.logoHint') %></p>
+            <p class="text-xs text-zen-500 mt-2"><%= t('systemSettings.themes.editor.logoHint') %></p>
             
             <!-- Logo Preview on Different Backgrounds -->
             <div class="theme-logo-preview-section" id="themeLogoPreviewSection" style="display: none; margin-top: 16px;">
@@ -4168,10 +4175,10 @@
                 <!-- Dark background preview -->
                 <div style="padding: 16px; border-radius: 8px; background: #1e293b; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                   <img id="themeLogoPreviewDark" alt="Logo on dark background" style="max-width: 120px; max-height: 48px; object-fit: contain;">
-                  <span class="text-xs text-zen-400"><%= t('systemSettings.themes.editor.darkBackground') %></span>
+                  <span class="text-xs text-zen-500"><%= t('systemSettings.themes.editor.darkBackground') %></span>
                 </div>
               </div>
-              <p class="text-xs text-zen-400 mt-2"><%= t('systemSettings.themes.editor.logoAutoConvert') %></p>
+              <p class="text-xs text-zen-500 mt-2"><%= t('systemSettings.themes.editor.logoAutoConvert') %></p>
             </div>
           </div>
           
@@ -4217,8 +4224,8 @@
               <div class="theme-color-item">
                 <label><%= t('systemSettings.themes.editor.textSecondary') %></label>
                 <div class="theme-color-picker">
-                  <input type="color" id="tokenTextSecondary" value="#6b7280">
-                  <input type="text" id="tokenTextSecondaryHex" value="#6b7280" maxlength="7">
+                  <input type="color" id="tokenTextSecondary" value="#5b6b80">
+                  <input type="text" id="tokenTextSecondaryHex" value="#5b6b80" maxlength="7">
                 </div>
               </div>
             </div>
@@ -4366,7 +4373,7 @@
             </div>
             <div class="edit-user-add-group">
               <select id="editUserAddGroupSelect">
-                <option value="">— <%= t('systemSettings.groups.addToGroup') %> —</option>
+                <option value=""><%= t('systemSettings.groups.addToGroup') %></option>
               </select>
               <button type="button" class="btn btn-sm btn-secondary" id="editUserAddGroupBtn">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4436,10 +4443,31 @@
     // ============================================
     // TAB NAVIGATION
     // ============================================
+
+    // Participants page (only the users panel) or System settings (the tabs)
+    const IS_PARTICIPANTS_PAGE = <%- safeJson(isParticipantsPage) %>;
     
+    function isUsersHash() {
+      return ['users', 'endUsersCard', 'groupsCard'].includes(window.location.hash.slice(1).split('/')[0]);
+    }
+
     function initTabs() {
       const tabs = document.querySelectorAll('.settings-tab');
       const panels = document.querySelectorAll('.settings-tab-panel');
+
+      // Old links to the users tab and the directory sync callbacks belong on
+      // the Participants page
+      if (!IS_PARTICIPANTS_PAGE) {
+        const params = new URLSearchParams(window.location.search);
+        const isSyncCallback = ['google_connected', 'google_error', 'microsoft_connected', 'microsoft_error'].some(k => params.has(k));
+        if (isSyncCallback || isUsersHash()) {
+          window.location.replace('/dashboard/participants' + window.location.search + window.location.hash);
+          return;
+        }
+        window.addEventListener('hashchange', () => {
+          if (isUsersHash()) window.location.replace('/dashboard/participants' + window.location.hash);
+        });
+      }
       
       // Handle tab clicks
       tabs.forEach(tab => {
@@ -4536,8 +4564,12 @@
         targetImportMethod = localStorage.getItem('gryffi_import_method');
       }
       
+      // The users panel has its own page now
+      if (IS_PARTICIPANTS_PAGE) targetTab = 'users';
+      else if (targetTab === 'users') targetTab = 'general';
+
       // Switch to target tab
-      if (document.querySelector(`[data-tab="${targetTab}"]`)) {
+      if (targetTab === 'users' || document.querySelector(`[data-tab="${targetTab}"]`)) {
         switchToTab(targetTab);
         
         // If users tab, also switch to saved import method
@@ -4617,12 +4649,19 @@
       source: <%-safeJson(t("systemSettings.endUsers.fields.source"))%>,
       actions: <%-safeJson(t("systemSettings.endUsers.fields.actions"))%>,
       import: {
-        newUsers: <%-safeJson(t("systemSettings.import.preview.newUsers"))%>,
-        duplicates: <%-safeJson(t("systemSettings.import.preview.duplicates"))%>,
+        overLimit: <%-safeJson(t("systemSettings.import.preview.overLimit"))%>,
+        newUsers_one: <%-safeJson(t("systemSettings.import.preview.newUsers_one"))%>,
+        newUsers_other: <%-safeJson(t("systemSettings.import.preview.newUsers_other"))%>,
+        duplicates_one: <%-safeJson(t("systemSettings.import.preview.duplicates_one"))%>,
+        duplicates_other: <%-safeJson(t("systemSettings.import.preview.duplicates_other"))%>,
         skippedHeader: <%-safeJson(t("systemSettings.import.preview.skippedHeader"))%>,
-        confirmMessage: <%-safeJson(t("systemSettings.import.confirm.message"))%>,
-        success: <%-safeJson(t("systemSettings.import.success"))%>,
-        errorTitle: <%-safeJson(t("errors.failedToLoad"))%>,
+        confirmMessage_one: <%-safeJson(t("systemSettings.import.confirm.message_one"))%>,
+        confirmMessage_other: <%-safeJson(t("systemSettings.import.confirm.message_other"))%>,
+        success_one: <%-safeJson(t("systemSettings.import.success_one"))%>,
+        success_other: <%-safeJson(t("systemSettings.import.success_other"))%>,
+        errorTitle: <%-safeJson(t("systemSettings.import.errors.title"))%>,
+        skipped_one: <%-safeJson(t("systemSettings.import.preview.skipped_one"))%>,
+        skipped_other: <%-safeJson(t("systemSettings.import.preview.skipped_other"))%>,
         noFile: <%-safeJson(t("systemSettings.import.errors.noFile"))%>,
         invalidFileType: <%-safeJson(t("systemSettings.import.errors.invalidFileType"))%>,
         fileTooLarge: <%-safeJson(t("systemSettings.import.errors.fileTooLarge"))%>,
@@ -4663,6 +4702,7 @@
         manageMembers: <%-safeJson(t("systemSettings.groups.manageMembers"))%>,
         createGroup: <%-safeJson(t("systemSettings.groups.createGroup"))%>,
         editGroup: <%-safeJson(t("systemSettings.groups.editGroup"))%>,
+        members: <%-safeJson(t("systemSettings.groups.members"))%>,
         memberCount_one: <%-safeJson(t("systemSettings.groups.memberCount_one"))%>,
         memberCount_other: <%-safeJson(t("systemSettings.groups.memberCount_other"))%>,
         membersAdded_one: <%-safeJson(t("systemSettings.groups.membersAdded_one"))%>,
@@ -4714,7 +4754,7 @@
       const result = await window.gryffi.modal.confirm(
         `<div style="text-align: center;">
           <p style="margin: 0 0 16px; color: #4b5563;">${message}</p>
-          <p style="margin: 0; font-size: 13px; color: #6b7280;"><%-t('subscription.limits.wantMore')%></p>
+          <p style="margin: 0; font-size: 13px; color: #5b6b80;"><%-t('subscription.limits.wantMore')%></p>
         </div>`,
         {
           title: <%-safeJson(t('subscription.limits.limitReached'))%>,
@@ -4815,7 +4855,7 @@
                   <div class="user-groups-badges">
                     ${(user.groups && user.groups.length > 0) 
                       ? user.groups.map(g => `<span class="user-group-badge">${escapeHtml(g.name)}</span>`).join('')
-                      : '<span class="text-zen-400">—</span>'}
+                      : ''}
                   </div>
                 </td>
                 <td>
@@ -4997,7 +5037,7 @@
         const userGroupIds = editUserGroups.map(g => g.id);
         const availableGroups = allGroups.filter(g => !userGroupIds.includes(g.id));
         
-        addGroupSelect.innerHTML = '<option value="">— ' + T.groups.addToGroup + ' —</option>';
+        addGroupSelect.innerHTML = '<option value="">' + T.groups.addToGroup + '</option>';
         availableGroups.forEach(group => {
           const option = document.createElement('option');
           option.value = group.id;
@@ -5350,14 +5390,25 @@
       
       // Update stats
       document.querySelector('#previewNewCount span').textContent = 
-        T.import.newUsers.replace('{{count}}', preview.newUsers);
+        plural(T.import.newUsers_one, T.import.newUsers_other, preview.newUsers);
       
       if (preview.duplicates > 0) {
         document.getElementById('previewDuplicateCount').style.display = 'flex';
         document.querySelector('#previewDuplicateCount span').textContent = 
-          T.import.duplicates.replace('{{count}}', preview.duplicates);
+          plural(T.import.duplicates_one, T.import.duplicates_other, preview.duplicates);
       } else {
         document.getElementById('previewDuplicateCount').style.display = 'none';
+      }
+      
+      // More new users than the plan has room for
+      const limitWarning = document.getElementById('previewLimitWarning');
+      if (preview.limitRemaining !== null && preview.limitRemaining !== undefined) {
+        limitWarning.style.display = 'flex';
+        limitWarning.querySelector('span').textContent = T.import.overLimit
+          .replace(/\{\{remaining\}\}/g, preview.limitRemaining)
+          .replace(/\{\{total\}\}/g, preview.newUsers);
+      } else {
+        limitWarning.style.display = 'none';
       }
       
       if (preview.skippedHeader) {
@@ -5372,12 +5423,25 @@
       if (preview.sampleUsers && preview.sampleUsers.length > 0) {
         document.getElementById('sampleUsersSection').style.display = 'block';
         sampleUsersList.innerHTML = preview.sampleUsers.map(u => 
-          `<li>${escapeHtml(u.first_name)} ${escapeHtml(u.last_name)} — ${escapeHtml(u.email)}</li>`
+          `<li>${escapeHtml(u.first_name)} ${escapeHtml(u.last_name)} (${escapeHtml(u.email)})</li>`
         ).join('');
       } else {
         document.getElementById('sampleUsersSection').style.display = 'none';
       }
       
+      // Rows with a problem: skipped, the rest is imported
+      if (preview.skippedCount > 0) {
+        document.getElementById('previewSkippedCount').style.display = 'flex';
+        document.querySelector('#previewSkippedCount span').textContent =
+          plural(T.import.skipped_one, T.import.skipped_other, preview.skippedCount);
+        document.getElementById('skippedRowsSection').style.display = 'block';
+        document.getElementById('skippedRowsList').innerHTML =
+          (preview.skippedRows || []).map(r => `<li>${escapeHtml(r.message)}</li>`).join('');
+      } else {
+        document.getElementById('previewSkippedCount').style.display = 'none';
+        document.getElementById('skippedRowsSection').style.display = 'none';
+      }
+
       // Duplicate emails
       if (preview.duplicateEmails && preview.duplicateEmails.length > 0) {
         document.getElementById('duplicateEmailsSection').style.display = 'block';
@@ -5403,7 +5467,7 @@
       if (validatedImportUsers.length === 0) return;
       
       document.getElementById('importConfirmMessage').textContent = 
-        T.import.confirmMessage.replace('{{count}}', validatedImportUsers.length);
+        plural(T.import.confirmMessage_one, T.import.confirmMessage_other, validatedImportUsers.length);
       importConfirmModal.classList.add('active');
     });
     
@@ -5434,7 +5498,7 @@
         closeImportConfirmModal();
         
         if (data.success) {
-          toastSuccess(T.import.success.replace('{{count}}', data.imported));
+          toastSuccess(plural(T.import.success_one, T.import.success_other, data.imported));
           resetImportState();
           loadUsers();
         } else if (data.code === 'LIMIT_EXCEEDED') {
@@ -5657,8 +5721,8 @@
       if (!googleGroupsList && !googleGroupsToSyncList) return;
       
       try {
-        if (googleGroupsList) googleGroupsList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;"><%= t("common.loading") %></p>';
-        if (googleGroupsToSyncList) googleGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 12px; font-size: 13px;"><%= t("common.loading") %></p>';
+        if (googleGroupsList) googleGroupsList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 20px;"><%= t("common.loading") %></p>';
+        if (googleGroupsToSyncList) googleGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 12px; font-size: 13px;"><%= t("common.loading") %></p>';
         
         const response = await fetch('/api/google/groups');
         const data = await response.json();
@@ -5685,7 +5749,7 @@
       if (!googleGroupsList) return;
       
       if (googleAvailableGroups.length === 0) {
-        googleGroupsList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;"><%= t("systemSettings.google.noGroupsFound") %></p>';
+        googleGroupsList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 20px;"><%= t("systemSettings.google.noGroupsFound") %></p>';
         return;
       }
       
@@ -5697,7 +5761,7 @@
             <input type="checkbox" class="google-group-checkbox" data-group-id="${group.id}" ${isChecked ? 'checked' : ''} style="width: 16px; height: 16px;">
             <div style="flex: 1; min-width: 0;">
               <div style="font-size: 14px; font-weight: 500; color: #111827;">${escapeHtml(group.name)}</div>
-              <div style="font-size: 12px; color: #6b7280;">${escapeHtml(group.email)} · ${group.memberCount} <%= t("systemSettings.google.membersLabel") %></div>
+              <div style="font-size: 12px; color: #5b6b80;">${escapeHtml(group.email)} · ${group.memberCount} <%= t("systemSettings.google.membersLabel") %></div>
             </div>
           </label>
         `;
@@ -5725,7 +5789,7 @@
       if (!googleGroupsToSyncList) return;
       
       if (googleAvailableGroups.length === 0) {
-        googleGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 12px; font-size: 13px;"><%= t("systemSettings.google.noGroupsFound") %></p>';
+        googleGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 12px; font-size: 13px;"><%= t("systemSettings.google.noGroupsFound") %></p>';
         return;
       }
       
@@ -5737,7 +5801,7 @@
             <input type="checkbox" class="google-group-to-sync-checkbox" data-group-id="${group.id}" ${isChecked ? 'checked' : ''} style="width: 14px; height: 14px;">
             <div style="flex: 1; min-width: 0;">
               <div style="font-size: 13px; font-weight: 500; color: #111827;">${escapeHtml(group.name)}</div>
-              <div style="font-size: 11px; color: #6b7280;">${group.memberCount} <%= t("systemSettings.google.membersLabel") %></div>
+              <div style="font-size: 11px; color: #5b6b80;">${group.memberCount} <%= t("systemSettings.google.membersLabel") %></div>
             </div>
           </label>
         `;
@@ -6119,8 +6183,8 @@
     // Load available Microsoft groups
     async function loadMicrosoftGroups() {
       try {
-        if (microsoftGroupsList) microsoftGroupsList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;"><%= t("common.loading") %></p>';
-        if (microsoftGroupsToSyncList) microsoftGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 12px; font-size: 13px;"><%= t("common.loading") %></p>';
+        if (microsoftGroupsList) microsoftGroupsList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 20px;"><%= t("common.loading") %></p>';
+        if (microsoftGroupsToSyncList) microsoftGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 12px; font-size: 13px;"><%= t("common.loading") %></p>';
         
         const response = await fetch('/api/microsoft/groups');
         const data = await response.json();
@@ -6147,7 +6211,7 @@
       if (!microsoftGroupsList) return;
       
       if (microsoftAvailableGroups.length === 0) {
-        microsoftGroupsList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;"><%= t("systemSettings.microsoft.noGroupsFound") %></p>';
+        microsoftGroupsList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 20px;"><%= t("systemSettings.microsoft.noGroupsFound") %></p>';
         return;
       }
       
@@ -6159,7 +6223,7 @@
             <input type="checkbox" id="msgroup_${group.id}" value="${group.id}" ${isSelected ? 'checked' : ''}>
             <label for="msgroup_${group.id}">
               <strong>${escapeHtml(group.name)}</strong>
-              ${group.description ? `<br><small style="color: #64748b;">${escapeHtml(group.description)}</small>` : ''}
+              ${group.description ? `<br><small style="color: #5b6b80;">${escapeHtml(group.description)}</small>` : ''}
             </label>
           </div>
         `;
@@ -6187,7 +6251,7 @@
       if (!microsoftGroupsToSyncList) return;
       
       if (microsoftAvailableGroups.length === 0) {
-        microsoftGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 12px; font-size: 13px;"><%= t("systemSettings.microsoft.noGroupsFound") %></p>';
+        microsoftGroupsToSyncList.innerHTML = '<p style="text-align: center; color: #5b6b80; padding: 12px; font-size: 13px;"><%= t("systemSettings.microsoft.noGroupsFound") %></p>';
         return;
       }
       
@@ -6199,7 +6263,7 @@
             <input type="checkbox" class="microsoft-group-to-sync-checkbox" data-group-id="${group.id}" ${isChecked ? 'checked' : ''} style="width: 14px; height: 14px;">
             <div style="flex: 1; min-width: 0;">
               <div style="font-size: 13px; font-weight: 500; color: #111827;">${escapeHtml(group.name)}</div>
-              ${group.description ? `<div style="font-size: 11px; color: #6b7280;">${escapeHtml(group.description)}</div>` : ''}
+              ${group.description ? `<div style="font-size: 11px; color: #5b6b80;">${escapeHtml(group.description)}</div>` : ''}
             </div>
           </label>
         `;
@@ -6311,7 +6375,7 @@
         const data = await response.json();
         
         if (data.success) {
-          toastSuccess(data.message || <%-safeJson(t("systemSettings.microsoft.syncSuccess"))%>);
+          toastSuccess(data.message || plural(T.microsoft.syncSuccess_one, T.microsoft.syncSuccess_other, data.synced || 0));
           loadMicrosoftStatus(); // Refresh status
           loadUsers(); // Refresh user list
         } else {
@@ -6459,6 +6523,13 @@
       }
       
       orgNameInput.addEventListener('input', updateOrgSaveEnabled);
+      // The visible language list fills the two hidden fields
+      document.getElementById('orgLangChoice')?.addEventListener('change', (e) => {
+        const value = e.target.value;
+        if (orgLangMode) orgLangMode.value = value === 'auto' ? 'auto' : 'fixed';
+        if (orgLang && value !== 'auto') orgLang.value = value;
+        updateOrgSaveEnabled();
+      });
       orgLangMode?.addEventListener('change', updateOrgLangUi);
       orgLang?.addEventListener('change', updateOrgSaveEnabled);
       orgCountry?.addEventListener('change', updateOrgSaveEnabled);
@@ -6506,8 +6577,8 @@
       });
     }
     
-    // Initial load
-    loadUsers();
+    // Initial load (the users panel is only shown on the Participants page)
+    if (IS_PARTICIPANTS_PAGE) loadUsers();
     
     // ==========================================
     // Data Export (Admin only)
@@ -6571,7 +6642,7 @@
         const orgName = <%- safeJson(organization.name) %>;
         const dangerZoneT = {
           confirmTitle: <%-safeJson(t("systemSettings.dangerZone.confirmTitle"))%>,
-          confirmStep1: <%-safeJson(t("systemSettings.dangerZone.confirmStep1"))%>.replace('{{orgName}}', orgName),
+          confirmStep1: <%-safeJson(t("systemSettings.dangerZone.confirmStep1"))%>.replace('{{orgName}}', escapeHtml(orgName)),
           confirmStep1Detail: <%-safeJson(t("systemSettings.dangerZone.confirmStep1Detail"))%>,
           confirmStep2: <%-safeJson(t("systemSettings.dangerZone.confirmStep2"))%>,
           confirmPlaceholder: <%-safeJson(t("systemSettings.dangerZone.confirmPlaceholder"))%>,
@@ -6586,7 +6657,7 @@
         const step1 = await window.gryffi.modal.confirm(
           `<div style="text-align: left;">
             <p style="margin: 0 0 12px; color: #4b5563;">${dangerZoneT.confirmStep1}</p>
-            <p style="margin: 0; font-size: 13px; color: #6b7280;">${dangerZoneT.confirmStep1Detail}</p>
+            <p style="margin: 0; font-size: 13px; color: #5b6b80;">${dangerZoneT.confirmStep1Detail}</p>
           </div>`,
           {
             title: dangerZoneT.confirmTitle,
@@ -6608,15 +6679,12 @@
             placeholder: dangerZoneT.confirmPlaceholder,
             okText: dangerZoneT.buttonText,
             html: true,
-            danger: true
+            danger: true,
+            // A typo keeps the dialog open with a message
+            validate: () => (document.getElementById('gryffiModalInput')?.value.trim() === orgName ? null : dangerZoneT.confirmMismatch)
           }
         );
-        if (!typedName || typedName.trim() !== orgName) {
-          if (typedName !== null && typedName !== undefined) {
-            window.gryffi.toast.error(dangerZoneT.confirmMismatch);
-          }
-          return;
-        }
+        if (!typedName || typedName.trim() !== orgName) return;
 
         // Execute deletion
         deleteOrgBtn.disabled = true;
@@ -6833,11 +6901,11 @@
     });
     
     // Load API key status on page load
-    loadApiKeyStatus();
+    if (!IS_PARTICIPANTS_PAGE) loadApiKeyStatus();
     <% } %>
     
     // Deep links are now handled by initTabs() which switches to the correct tab
-    // Old hash names like #endUsersCard and #groupsCard are mapped to the users tab
+    // Old hash names like #endUsersCard and #groupsCard lead to the Participants page
     
     // ============================================
     // GROUPS FUNCTIONALITY
@@ -6904,6 +6972,7 @@
             <tr>
               <th>${T.groups.name}</th>
               <th>${T.groups.descriptionLabel}</th>
+              <th>${T.groups.members}</th>
               <th>${T.source}</th>
               <th style="text-align: right;">${T.actions}</th>
             </tr>
@@ -6915,8 +6984,9 @@
                   <span class="group-name">${escapeHtml(group.name)}</span>
                 </td>
                 <td>
-                  <span class="group-description">${group.description ? escapeHtml(group.description) : '<span class="text-zen-400">—</span>'}</span>
+                  <span class="group-description">${group.description ? escapeHtml(group.description) : ''}</span>
                 </td>
+                <td>${escapeHtml(memberCountLabel(group.member_count))}</td>
                 <td>
                   <span class="source-badge ${group.source}">${T.groups.sources[group.source] || group.source}</span>
                 </td>
@@ -6974,14 +7044,24 @@
       });
     }
     
+    function memberCountLabel(count) {
+      const n = Number(count) || 0;
+      return (n === 1 ? T.groups.memberCount_one : T.groups.memberCount_other).replace('{{count}}', n);
+    }
+
+    // The element that opened a group dialog gets the focus back on close
+    let groupDialogOpener = null;
+
     // Open create group modal
     function openCreateGroupModal() {
+      groupDialogOpener = document.activeElement;
       groupModalTitle.textContent = T.groups.createGroup;
       document.getElementById('groupId').value = '';
       document.getElementById('groupName').value = '';
       document.getElementById('groupDescription').value = '';
       groupModal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
+      document.getElementById('groupName').focus();
     }
     
     // Open edit group modal
@@ -6989,18 +7069,21 @@
       const group = groups.find(g => g.id === groupId);
       if (!group) return;
       
+      groupDialogOpener = document.activeElement;
       groupModalTitle.textContent = T.groups.editGroup;
       document.getElementById('groupId').value = group.id;
       document.getElementById('groupName').value = group.name;
       document.getElementById('groupDescription').value = group.description || '';
       groupModal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
+      document.getElementById('groupName').focus();
     }
     
     // Close group modal
     function closeGroupModalFunc() {
       groupModal.style.display = 'none';
       document.body.style.overflow = '';
+      if (groupDialogOpener?.isConnected) groupDialogOpener.focus();
     }
     
     // Save group
@@ -7029,6 +7112,7 @@
           window.gryffi?.toast?.success(data.message);
           closeGroupModalFunc();
           loadGroups();
+          if (groupId) loadUsers(); // the end user table shows group names
         } else {
           window.gryffi?.toast?.error(data.message);
         }
@@ -7040,15 +7124,23 @@
     
     // Open delete group modal
     function openDeleteGroupModal(groupId) {
+      const group = groups.find(g => g.id === groupId);
+      groupDialogOpener = document.activeElement;
       document.getElementById('deleteGroupId').value = groupId;
+      document.getElementById('deleteGroupName').textContent = group
+        ? `${group.name} (${memberCountLabel(group.member_count)})`
+        : '';
       deleteGroupModal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
+      document.getElementById('cancelDeleteGroupBtn').focus();
     }
     
     // Close delete group modal
     function closeDeleteGroupModalFunc() {
       deleteGroupModal.style.display = 'none';
       document.body.style.overflow = '';
+      // After a delete the row (and its button) is gone: go to Create Group
+      (groupDialogOpener?.isConnected ? groupDialogOpener : document.getElementById('createGroupBtn'))?.focus();
     }
     
     // Confirm delete group
@@ -7062,8 +7154,10 @@
         
         if (data.success) {
           window.gryffi?.toast?.success(data.message);
+          groupDialogOpener = null; // its row is about to disappear
           closeDeleteGroupModalFunc();
           loadGroups();
+          loadUsers(); // the end user table shows group names
         } else {
           window.gryffi?.toast?.error(data.message);
         }
@@ -7377,15 +7471,19 @@
         active: <%-safeJson(t("systemSettings.themes.activeTheme"))%>,
         saved: <%-safeJson(t("systemSettings.themes.editor.saved"))%>,
         saveError: <%-safeJson(t("systemSettings.themes.editor.saveError"))%>,
-        deleted: <%-safeJson(t("systemSettings.themes.editor.deleted"))%>
+        deleted: <%-safeJson(t("systemSettings.themes.editor.deleted"))%>,
+        activeBadge: <%-safeJson(t("systemSettings.themes.activeBadge"))%>
       };
+      // Sample texts in the live preview, in the maker's language
+      const previewT = <%-safeJson(t("systemSettings.themes.preview", { returnObjects: true }))%>;
+      const emailT = <%-safeJson(t("emailTemplate", { returnObjects: true }))%>;
+      const previewCompany = <%-safeJson(organization ? organization.name : '')%> || 'Gryffi';
+      const previewJourney = 'Onboarding 2026';
       
       // Load themes
       async function loadThemes() {
-        console.log('[Themes] Loading themes...');
         try {
           const response = await fetch('/api/themes');
-          console.log('[Themes] API response status:', response.status);
           const data = await response.json();
           if (data.success) {
             themes = data.themes;
@@ -7403,8 +7501,6 @@
       
       // Render preset themes
       function renderPresets() {
-        console.log('[Themes] Rendering presets:', presets.length, 'presets found');
-        console.log('[Themes] presetGrid element:', presetGrid);
         presetGrid.innerHTML = presets.map(preset => {
           const tokens = preset.tokens;
           const isActive = !activeThemeId && preset.key === 'gryffi_default';
@@ -7450,7 +7546,7 @@
             <div class="custom-theme-card ${isActive ? 'active' : ''}" data-theme-id="${theme.id}">
               <div class="custom-theme-header">
                 <span class="custom-theme-name">${escapeHtml(theme.name)}</span>
-                ${isActive ? '<span class="custom-theme-badge">Active</span>' : ''}
+                ${isActive ? `<span class="custom-theme-badge">${escapeHtml(themesT.activeBadge)}</span>` : ''}
               </div>
               <div class="custom-theme-colors">
                 <div class="preset-theme-color" style="background: ${tokens.primary}"></div>
@@ -7641,20 +7737,20 @@
               </div>
             ` : ''}
             <div style="background: ${t.headerBackground}; color: ${t.buttonText}; padding: 12px 16px; border-radius: ${t.borderRadius}px ${t.borderRadius}px 0 0; font-weight: 600;">
-              ${previewType === 'space' ? 'Conference Room A' : previewType === 'guide' ? 'AI Assistant' : 'Welcome'}
+              ${escapeHtml(previewType === 'space' ? previewT.spaceTitle : previewType === 'guide' ? previewT.guideTitle : previewT.contentTitle)}
             </div>
             <div style="background: ${t.cardBackground}; border: 1px solid ${t.cardBorder}; border-top: none; padding: 20px; border-radius: 0 0 ${t.borderRadius}px ${t.borderRadius}px; box-shadow: ${shadow};">
         `;
         
         if (previewType === 'space') {
           previewHtml += `
-              <p style="color: ${t.textPrimary}; margin-bottom: 16px;">This is a sample space description showing how text appears in your theme.</p>
+              <p style="color: ${t.textPrimary}; margin-bottom: 16px;">${escapeHtml(previewT.spaceText)}</p>
               <div style="background: ${t.background}; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: ${t.textSecondary};">
-                [Space Image]
+                ${escapeHtml(previewT.spaceImage)}
               </div>
               <div style="margin-top: 16px;">
-                <button style="background: ${t.primary}; color: ${t.buttonText}; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
-                  Continue to next step →
+                <button type="button" style="background: ${t.primary}; color: ${t.buttonText}; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                  ${escapeHtml(previewT.next)}
                 </button>
               </div>
           `;
@@ -7663,32 +7759,32 @@
               <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: flex-end;">
                   <div style="background: ${t.chatBubbleUser}; color: ${t.buttonText}; padding: 10px 14px; border-radius: 16px 16px 4px 16px; max-width: 80%;">
-                    How do I get started?
+                    ${escapeHtml(previewT.guideQuestion)}
                   </div>
                 </div>
                 <div style="display: flex; justify-content: flex-start;">
                   <div style="background: ${t.chatBubbleGuide}; color: ${t.textPrimary}; padding: 10px 14px; border-radius: 16px 16px 16px 4px; max-width: 80%;">
-                    Welcome! I'm here to help you navigate through this journey. What would you like to know?
+                    ${escapeHtml(previewT.guideAnswer)}
                   </div>
                 </div>
               </div>
               <div style="margin-top: 16px; display: flex; gap: 8px;">
-                <input type="text" placeholder="Type a message..." style="flex: 1; padding: 10px 14px; border: 1px solid ${t.cardBorder}; border-radius: 8px; background: ${t.cardBackground}; color: ${t.textPrimary};">
-                <button style="background: ${t.accent}; color: ${t.buttonText}; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer;">Send</button>
+                <input type="text" placeholder="${escapeHtml(previewT.messagePlaceholder)}" aria-label="${escapeHtml(previewT.messagePlaceholder)}" style="flex: 1; padding: 10px 14px; border: 1px solid ${t.cardBorder}; border-radius: 8px; background: ${t.cardBackground}; color: ${t.textPrimary};">
+                <button type="button" style="background: ${t.accent}; color: ${t.buttonText}; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer;">${escapeHtml(previewT.send)}</button>
               </div>
           `;
         } else if (previewType === 'content') {
           previewHtml += `
-              <h3 style="color: ${t.textPrimary}; font-size: 18px; margin-bottom: 12px;">Welcome to Your Journey</h3>
-              <p style="color: ${t.textSecondary}; margin-bottom: 16px;">This content shows how information is displayed using your custom theme colors.</p>
+              <h3 style="color: ${t.textPrimary}; font-size: 18px; margin-bottom: 12px;">${escapeHtml(previewT.contentHeading)}</h3>
+              <p style="color: ${t.textSecondary}; margin-bottom: 16px;">${escapeHtml(previewT.contentText)}</p>
               <div style="background: ${t.background}; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
                 <div style="height: 8px; background: ${t.cardBorder}; border-radius: 4px; overflow: hidden;">
                   <div style="width: 60%; height: 100%; background: ${t.progressBar};"></div>
                 </div>
-                <p style="color: ${t.textSecondary}; font-size: 12px; margin-top: 8px;">Progress: 60%</p>
+                <p style="color: ${t.textSecondary}; font-size: 12px; margin-top: 8px;">${escapeHtml(previewT.progress.replace('{{percent}}', '60'))}</p>
               </div>
-              <button style="background: ${t.primary}; color: ${t.buttonText}; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
-                Continue
+              <button type="button" style="background: ${t.primary}; color: ${t.buttonText}; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
+                ${escapeHtml(previewT.next)}
               </button>
           `;
         } else if (previewType === 'email') {
@@ -7710,21 +7806,21 @@
                 <div style="padding: 24px 20px;">
                   <!-- Greeting -->
                   <p style="margin: 0 0 16px 0; color: ${t.primary}; font-size: 14px; font-weight: 600;">
-                    Hello Sarah,
+                    ${escapeHtml(emailT.greeting)} ${escapeHtml(previewT.emailName)},
                   </p>
-                  
+
                   <!-- Body -->
                   <p style="margin: 0 0 12px 0; color: #334155; font-size: 13px; line-height: 1.6;">
-                    You've been invited to participate in "<strong>Onboarding 2026</strong>" at Acme Corp.
+                    ${escapeHtml(previewT.emailIntro).replace('{{journey}}', `<strong>${escapeHtml(previewJourney)}</strong>`).replace('{{company}}', escapeHtml(previewCompany))}
                   </p>
                   <p style="margin: 0 0 20px 0; color: #334155; font-size: 13px; line-height: 1.6;">
-                    Click the button below to start your journey.
+                    ${escapeHtml(previewT.emailInstructions)}
                   </p>
-                  
+
                   <!-- CTA Button -->
                   <div style="text-align: center; margin: 20px 0;">
-                    <button style="display: inline-block; background: ${t.primary}; color: ${t.buttonText}; padding: 10px 24px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
-                      Start Journey
+                    <button type="button" style="display: inline-block; background: ${t.primary}; color: ${t.buttonText}; padding: 10px 24px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                      ${escapeHtml(previewT.emailButton)}
                     </button>
                   </div>
                 </div>
@@ -7736,19 +7832,19 @@
                 
                 <!-- Footer -->
                 <div style="padding: 16px 20px;">
-                  <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; text-align: center;">
-                    Part of your journey: <strong>Onboarding 2026</strong>
+                  <p style="margin: 0 0 4px 0; color: #5b6b80; font-size: 11px; text-align: center;">
+                    ${escapeHtml(emailT.partOfJourney)}: <strong>${escapeHtml(previewJourney)}</strong>
                   </p>
-                  <p style="margin: 0; color: #94a3b8; font-size: 10px; text-align: center;">
-                    Sent via Acme Corp
+                  <p style="margin: 0; color: #5b6b80; font-size: 10px; text-align: center;">
+                    ${escapeHtml(emailT.sentVia)} ${escapeHtml(previewCompany)}
                   </p>
                 </div>
               </div>
               
               <!-- Powered by -->
               <div style="text-align: center; margin-top: 16px;">
-                <p style="margin: 0; color: #64748b; font-size: 10px;">
-                  Powered by <span style="color: ${t.primary}; font-weight: 500;">Gryffi</span> · Interactive Journey Builder
+                <p style="margin: 0; color: #5b6b80; font-size: 10px;">
+                  ${escapeHtml(emailT.poweredBy)} <span style="color: ${t.primary}; font-weight: 500;">Gryffi</span> · ${escapeHtml(emailT.interactiveJourneyBuilder)}
                 </p>
               </div>
             </div>
@@ -7836,12 +7932,8 @@
       }
       
       // Event listeners
-      console.log('[Themes] Setting up event listeners...');
-      console.log('[Themes] createBtn:', createBtn);
-      console.log('[Themes] modal:', modal);
       
       createBtn?.addEventListener('click', () => {
-        console.log('[Themes] Create button clicked!');
         openEditor();
       });
       closeBtn?.addEventListener('click', closeEditor);
@@ -7988,7 +8080,7 @@
       });
       
       // Load themes on page load
-      loadThemes();
+      if (!IS_PARTICIPANTS_PAGE) loadThemes();
     })();
     <% } %>
   </script>

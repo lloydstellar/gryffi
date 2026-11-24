@@ -41,11 +41,31 @@
     .error-icon.revoked svg {
       stroke: #dc2626;
     }
-    .error-icon.completed {
+    .error-icon.completed,
+    .error-icon.requested {
       background: rgba(120, 197, 3, 0.15);
     }
-    .error-icon.completed svg {
+    .error-icon.completed svg,
+    .error-icon.requested svg {
       stroke: #0b4b34;
+    }
+    .request-link-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #0b4b34;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .request-link-btn:hover {
+      background: #093d2a;
+    }
+    .request-link-btn:focus-visible {
+      outline: 3px solid #0b4b34;
+      outline-offset: 2px;
     }
     .error-icon svg {
       width: 40px;
@@ -60,26 +80,33 @@
     }
     .error-message {
       font-size: 16px;
-      color: #64748b;
+      color: #5b6b80;
       line-height: 1.6;
       margin-bottom: 32px;
+    }
+    .error-context {
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
     }
     .logo {
       margin-bottom: 48px;
     }
     .logo img {
       height: 48px;
+      margin: 0 auto; /* Tailwind makes images block-level */
     }
   </style>
 </head>
 <body>
   <div class="error-container">
     <div class="logo">
-      <img src="/images/logos/Logo---transparant-lightgreen-cropped.png" alt="Gryffi">
+      <img src="/images/logos/Logo---cropped-transparant.png" alt="Gryffi">
     </div>
     
     <div class="error-icon <%= errorType %>">
-      <% if (errorType === 'completed') { %>
+      <% if (errorType === 'completed' || errorType === 'requested') { %>
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
@@ -94,8 +121,16 @@
       <% } %>
     </div>
     
+    <% if (typeof context !== 'undefined' && context) { %>
+      <p class="error-context"><%= context %></p>
+    <% } %>
     <h1 class="error-title"><%= title %></h1>
     <p class="error-message"><%= message %></p>
+    <% if (typeof requestNewLink !== 'undefined' && requestNewLink) { %>
+      <form method="post" action="<%= requestNewLink.url %>">
+        <button type="submit" class="request-link-btn"><%= requestNewLink.label %></button>
+      </form>
+    <% } %>
   </div>
 </body>
 </html>

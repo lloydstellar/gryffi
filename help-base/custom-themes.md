@@ -12,9 +12,9 @@ Custom Themes allow you to personalize the appearance of your journeys, emails a
 1. Theme Name.
 2. Logo: upload a PNG, preferably with a transparent background.
 3. The colors, such as the primary and accent color.
-4. Live Preview of a Space step, Guide step, Content step and email.
+4. Live Preview of a Space step, AI guide step, Content step and email.
 5. Save Theme.
-![Themes in System Settings: Create Custom Theme (6), the active theme (7) and the preset themes (8)](images/custom-themes/overview.en.webp)
+![Themes on the Organization page: Create Custom Theme (6), the active theme (7) and the preset themes (8)](images/custom-themes/overview.en.webp)
 
 6. Create Custom Theme: your own colors and logo.
 7. The theme your journeys use now.
@@ -34,7 +34,7 @@ Custom themes enable:
 
 ### Accessing the Editor
 
-1. Go to System Settings → Themes
+1. Go to Organization → Themes
 2. Click "Create Custom Theme" (6) or edit existing
 3. Use visual editor to customize colors and upload logo's
 

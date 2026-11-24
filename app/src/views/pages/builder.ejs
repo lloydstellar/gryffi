@@ -216,7 +216,9 @@
     </div>
     <div class="player-header-right">
       <% if (typeof player !== 'undefined' && player.endUser) { %>
-        <span class="player-greeting"><%= t('expedition.welcome.greeting', { firstName: player.endUser.firstName }) %></span>
+        <%# In the journey language (14 languages), not the language of the maker interface %>
+        <% const playerGreeting = typeof playerTranslations !== 'undefined' && playerTranslations?.player?.greeting; %>
+        <span class="player-greeting"><%= playerGreeting ? playerGreeting.replace('{{firstName}}', () => player.endUser.firstName || '') : t('expedition.welcome.greeting', { firstName: player.endUser.firstName }) %></span>
       <% } %>
       <% if (typeof previewMode !== 'undefined' && previewMode) { %>
         <a href="<%= typeof returnUrl !== 'undefined' ? returnUrl : '/dashboard/journeys' %>" class="preview-close-btn" title="<%= t('common.close') %>">
@@ -329,7 +331,7 @@
     .mobile-warning-card p {
       font-size: 14px;
       line-height: 1.6;
-      color: #64748b;
+      color: #5b6b80;
       margin: 0 0 24px;
     }
     
@@ -523,15 +525,15 @@
   <!-- Top toolbar -->
   <header class="fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-sm border-b border-zen-200/50 z-50">
     <div class="builder-toolbar-inner flex items-center h-full px-4">
-    <a href="/dashboard/journeys" class="flex items-center gap-2 text-gryffi-primary hover:text-gryffi-primary/80 transition-colors">
+    <a href="/dashboard/journeys" class="flex items-center gap-2 text-gryffi-primary hover:text-gryffi-primary/80 transition-colors" aria-label="<%= t('nav.journeys') %>">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>
       <img src="/images/logos/Logo---illustration-only-cropped-transparant.png" alt="Gryffi" class="w-7 h-7">
     </a>
     
-    <div class="journey-title-section ml-4 flex items-center gap-2">
-      <h1 class="font-medium text-zen-800" title="<%= journey.title %>"><%= journey.title %></h1>
+    <div class="journey-title-section ml-4 flex items-center gap-2 min-w-0">
+      <h1 class="font-medium text-zen-800 truncate" style="max-width: 18rem; min-width: 6rem;" title="<%= journey.title %>"><%= journey.title %></h1>
       <% if (journey.is_public) { %>
         <span class="text-xs px-2 py-0.5 rounded-full flex items-center gap-1" style="background: rgba(120, 197, 3, 0.15); color: #5a9302;">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -540,9 +542,12 @@
           <%= t('journeys.public.badge') %>
         </span>
       <% } %>
-      <span class="text-xs px-2 py-0.5 rounded-full <%= journey.status === 'published' ? 'bg-gryffi-accent/20 text-gryffi-primary' : 'bg-zen-200 text-zen-600' %>">
+      <span id="journeyStatusBadge" class="text-xs px-2 py-0.5 rounded-full <%= journey.status === 'published' ? 'bg-gryffi-accent/20 text-gryffi-primary' : 'bg-zen-200 text-zen-600' %>">
         <%= t('journeys.status.' + journey.status) %>
       </span>
+      <% if (readOnly && !(journey.is_demo)) { %>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-zen-100 text-zen-600"><%= t('builder.viewOnly') %></span>
+      <% } %>
       
       <% if (journey.is_public && journey.public_token) { %>
         <!-- Public Link Button -->
@@ -551,12 +556,12 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
             </svg>
-            <%= t('journeys.public.publicLink') %>
+            <span class="public-link-label"><%= t('journeys.public.publicLink') %></span>
           </button>
           <div id="publicLinkDropdown" class="absolute left-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-zen-100 p-4 hidden z-50">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-zen-700"><%= t('journeys.public.publicLink') %></span>
-              <button type="button" id="closePublicLinkDropdown" class="text-zen-400 hover:text-zen-600">
+              <button type="button" id="closePublicLinkDropdown" class="text-zen-500 hover:text-zen-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -578,68 +583,12 @@
     
     <div class="flex-1"></div>
     
-    <!-- Step type buttons - Zen style -->
-    <div class="flex items-center gap-2 mr-4">
-      <span class="toolbar-add-label text-xs font-medium text-zen-500 whitespace-nowrap"><%= t('builder.toolbar.addStep') %></span>
-      <div class="flex items-center gap-1 bg-zen-100/50 rounded-xl p-1">
-        <button class="step-type-btn" data-type="space" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.space') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.space') %></span>
-        </button>
-        <button class="step-type-btn" data-type="guide" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.guide') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.guide') %></span>
-        </button>
-        <button class="step-type-btn" data-type="content" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.content') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.content') %></span>
-        </button>
-        <button class="step-type-btn" data-type="challenge" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.challenge') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.challenge') %></span>
-        </button>
-        <button class="step-type-btn" data-type="form" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.form') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.form') %></span>
-        </button>
-        <button class="step-type-btn" data-type="poll" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.poll') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.poll') %></span>
-        </button>
-        <button class="step-type-btn" data-type="reward" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.reward') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.reward') %></span>
-        </button>
-        <button class="step-type-btn" data-type="nested_journey" title="<%= t('builder.toolbar.clickToAdd', { type: t('builder.stepTypes.nestedJourney') }) %>">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10v2a2 2 0 002 2h2m6-4v-2a2 2 0 00-2-2h-2"></path>
-          </svg>
-          <span class="step-type-label text-xs"><%= t('builder.stepTypes.nestedJourneyShort') %></span>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Help button -->
-    <button id="builderHelpBtn" class="p-2 hover:bg-zen-100 rounded-lg text-zen-500 hover:text-gryffi-primary transition-colors mr-1" title="<%= t('help.sidebarTooltip') %>">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Help: same place on every builder page, with a visible label -->
+    <button type="button" id="builderHelpBtn" class="builder-help-btn mr-1" aria-keyshortcuts="?">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
+      <span><%= t('help.button') %></span>
     </button>
     
     <!-- Journey Settings button -->
@@ -668,27 +617,118 @@
       </button>
     </div>
     
-    <span id="saveStatus" class="text-xs text-zen-400 hidden mr-2 whitespace-nowrap"></span>
+    <!-- The builder saves every change by itself; this says so -->
+    <% if (!readOnly) { %>
+    <p id="saveStatus" class="builder-save-status" role="status" aria-live="polite" data-state="idle">
+      <svg class="save-icon-done" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"></path></svg>
+      <svg class="save-icon-busy" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4a8 8 0 018 8"></path></svg>
+      <svg class="save-icon-error" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v5m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span data-save-text><%= t('builder.status.allSaved') %></span>
+    </p>
+    <% } %>
 
     <div class="flex items-center gap-2">
       <button id="previewBtn" class="btn-secondary text-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <%= t('builder.toolbar.preview') %>
       </button>
-      <button id="saveBtn" class="btn-primary text-sm">
-        <%= t('builder.toolbar.save') %>
-      </button>
+      <% const canPublishJourney = !readOnly && ['admin', 'manager'].includes(locals.user?.role); %>
+      <% if (canPublishJourney) { %>
+        <!-- Publishing is the main action of a draft; taking a live journey offline is a quiet button -->
+        <button type="button" id="publishToggleBtn" data-status="<%= journey.status %>"
+                class="text-sm <%= journey.status === 'published' ? 'btn-quiet' : 'btn-primary' %>">
+          <%= journey.status === 'published' ? t('builder.toolbar.unpublish') : t('journeys.actions.publish') %>
+        </button>
+      <% } %>
     </div>
     </div><!-- /.builder-toolbar-inner -->
   </header>
+  <script>
+    // Compact step types when the title area would run into them
+    (function fitBuilderToolbar() {
+      const section = document.querySelector('.journey-title-section');
+      const header = section?.closest('header');
+      if (!section || !header) return;
+      const fit = () => {
+        header.classList.remove('toolbar-compact');
+        if (section.scrollWidth > section.clientWidth + 1) header.classList.add('toolbar-compact');
+      };
+      window.addEventListener('resize', fit);
+      document.fonts?.ready.then(fit);
+      // Badges, the publish button and the save status change size later on
+      if (window.ResizeObserver) {
+        const observer = new ResizeObserver(fit);
+        [...section.children, ...section.parentElement.children].forEach(el => observer.observe(el));
+      }
+      fit();
+    })();
+  </script>
 <% } %>
 
 <% if (typeof playerMode === 'undefined' || !playerMode) { %>
   <!-- Main area (BUILDER MODE ONLY) -->
   <main class="pt-14 h-screen flex">
+    <!-- Step types: always with their name, in a column next to the canvas -->
+    <nav class="step-palette" aria-labelledby="toolbarAddLabel">
+      <p class="step-palette-title" id="toolbarAddLabel"><%= t('builder.toolbar.addStep') %></p>
+      <div id="stepTypeGroup" class="step-palette-list" role="group" aria-labelledby="toolbarAddLabel">
+        <button class="step-type-btn" data-type="space" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.space') %></span><span class="step-type-desc"><%= t('builder.palette.space') %></span></span>
+        </button>
+        <button class="step-type-btn" data-type="guide" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.guide') %></span><span class="step-type-desc"><%= t('builder.palette.guide') %></span></span>
+        </button>
+        <button class="step-type-btn" data-type="content" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.content') %></span><span class="step-type-desc"><%= t('builder.palette.content') %></span></span>
+        </button>
+        <button class="step-type-btn" data-type="challenge" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.challenge') %></span><span class="step-type-desc"><%= t('builder.palette.challenge') %></span></span>
+        </button>
+        <button class="step-type-btn" data-type="form" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.form') %></span><span class="step-type-desc"><%= t('builder.palette.form') %></span></span>
+        </button>
+        <button class="step-type-btn" data-type="poll" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.poll') %></span><span class="step-type-desc"><%= t('builder.palette.poll') %></span></span>
+        </button>
+        <button class="step-type-btn" data-type="reward" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.reward') %></span><span class="step-type-desc"><%= t('builder.palette.reward') %></span></span>
+        </button>
+        <button class="step-type-btn" data-type="nested_journey" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10v2a2 2 0 002 2h2m6-4v-2a2 2 0 00-2-2h-2"></path>
+          </svg>
+          <span class="step-type-text"><span class="step-type-label"><%= t('builder.stepTypes.nestedJourney') %></span><span class="step-type-desc"><%= t('builder.palette.nested_journey') %></span></span>
+        </button>
+      </div>
+    </nav>
+    
+
     <!-- Canvas -->
     <div id="canvas" class="flex-1 relative overflow-hidden cursor-grab bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%221%22%20cy%3D%221%22%20r%3D%221%22%20fill%3D%22%23cbd5e1%22%20opacity%3D%220.3%22%2F%3E%3C%2Fsvg%3E')]">
       <div class="flow-canvas" id="flowCanvas">
@@ -708,34 +748,25 @@
         </svg>
         
         <!-- Steps will be rendered here -->
-        <div id="stepsContainer" style="z-index: 2; position: relative;"></div>
+        <div id="stepsContainer" style="z-index: 2; position: relative;" role="group" aria-label="<%= t('builder.keyboard.steps') %>"></div>
+        <p id="canvasKeyboardHint" hidden><%= t('builder.keyboard.hint') %></p>
         
-        <% if (!steps || steps.length === 0) { %>
-        <div id="emptyState" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div class="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-zen">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gryffi-accent/10 flex items-center justify-center">
-              <svg class="w-8 h-8 text-gryffi-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-zen-900 mb-2">Create your first step</h3>
-            <p class="text-zen-500 text-sm max-w-xs">
-              Click a step type above to begin building your interactive journey.
-            </p>
-          </div>
-        </div>
-        <% } %>
       </div>
       
       <!-- Mini zoom controls -->
       <div class="zoom-controls absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm p-1 cursor-default">
-        <button id="zoomOut" class="p-1.5 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-700 cursor-pointer">
+        <button type="button" id="zoomFit" class="p-1.5 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-700 cursor-pointer" title="<%= t('builder.toolbar.fitAll') %>" aria-label="<%= t('builder.toolbar.fitAll') %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"></path>
+          </svg>
+        </button>
+        <button type="button" id="zoomOut" class="p-1.5 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-700 cursor-pointer" title="<%= t('builder.toolbar.zoomOut') %>" aria-label="<%= t('builder.toolbar.zoomOut') %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
           </svg>
         </button>
         <span id="zoomLevel" class="text-xs text-zen-500 w-10 text-center">100%</span>
-        <button id="zoomIn" class="p-1.5 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-700 cursor-pointer">
+        <button type="button" id="zoomIn" class="p-1.5 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-700 cursor-pointer" title="<%= t('builder.toolbar.zoomIn') %>" aria-label="<%= t('builder.toolbar.zoomIn') %>">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
           </svg>
@@ -744,6 +775,9 @@
     </div>
     
     <!-- Properties panel - Zen style -->
+    <!-- First steps hint: points at the step types on an empty canvas, then at the properties panel -->
+    <div id="builderCoach" class="builder-coach" role="note" aria-labelledby="builderCoachTitle" hidden></div>
+
     <aside id="propertiesPanel" class="w-80 bg-white border-l border-zen-200/50 h-full overflow-y-auto hidden">
       <div id="propertiesContent">
         <!-- Content rendered dynamically by JS -->
@@ -753,31 +787,6 @@
 <% } %>
 
 <% if (typeof playerMode === 'undefined' || !playerMode) { %>
-  <!-- Resources Modal (BUILDER MODE ONLY) -->
-  <div id="resourcesModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
-    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden">
-      <div class="p-4 border-b border-zen-200 flex items-center justify-between">
-        <h2 class="font-semibold text-zen-900">Resources</h2>
-        <button id="closeResourcesModal" class="p-1 hover:bg-zen-100 rounded">
-          <svg class="w-5 h-5 text-zen-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="p-4 overflow-y-auto max-h-[60vh]">
-        <div id="resourcesList" class="space-y-2">
-          <!-- Resources rendered here -->
-        </div>
-        <button id="addResourceBtn" class="mt-4 w-full btn-secondary text-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Add Resource
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Preview Modal (BUILDER MODE ONLY) -->
   <div id="previewModal" class="fixed inset-0 z-50 hidden" style="background: var(--theme-background, #ecf2eb);">
     <div class="h-full flex flex-col">
@@ -827,7 +836,7 @@
                 <div id="guideChatRole" class="text-xs text-zen-500"></div>
               </div>
             </div>
-            <button id="closeChatPanel" class="p-1 hover:bg-zen-100 rounded text-zen-400 hover:text-zen-600">
+            <button id="closeChatPanel" class="p-1 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-600">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -867,7 +876,7 @@
             <div id="guideChatRole" class="text-xs text-zen-500"></div>
           </div>
         </div>
-        <button id="closeChatPanel" class="p-1 hover:bg-zen-100 rounded text-zen-400 hover:text-zen-600">
+        <button id="closeChatPanel" class="p-1 hover:bg-zen-100 rounded text-zen-500 hover:text-zen-600">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
@@ -903,7 +912,10 @@
       resources: <%- safeJson(resources || []) %>,
       guides: <%- safeJson(typeof guides !== 'undefined' ? guides : []) %>,
       readOnly: <%- safeJson(!!readOnly) %>,
+      // Viewers may preview but not send automation emails (api.js viewer rule)
+      isViewer: <%- safeJson(locals.user?.role === 'viewer') %>,
       isDemoJourney: <%- safeJson(typeof isDemoJourney !== 'undefined' && isDemoJourney) %>,
+      canCreateJourney: <%- safeJson(typeof canCreateJourney !== 'undefined' && !!canCreateJourney) %>,
       locale: '<%= typeof locale !== 'undefined' ? locale : (typeof language !== 'undefined' ? language : 'en') %>',
       // Journey language for preview (may differ from UI locale if journey has language override)
       journeyLanguage: '<%= typeof journeyLanguage !== 'undefined' ? journeyLanguage : (typeof locale !== 'undefined' ? locale : 'en') %>',
@@ -1014,7 +1026,6 @@
           'builder.preview.defaultGreeting': 'player.chat.defaultGreeting',
           'builder.preview.invalidVideoUrl': 'player.content.invalidVideoUrl',
           'builder.preview.noContentYet': 'player.content.noContentYet',
-          'builder.preview.pressPlayToStart': 'player.content.pressPlayToStart',
           'builder.preview.chatWithGuide': 'player.pacing.chatWithGuide',
           'builder.reward.preview.congratulations': 'player.reward.congratulations',
           'builder.reward.preview.yourCode': 'player.reward.yourCode',
@@ -1165,6 +1176,12 @@
   
   <% if (typeof publicMode !== 'undefined' && publicMode) { %>
   <!-- Public Journey Identification Modal -->
+  <%# Texts for the participant come from the player translations (journey language, 14 languages) %>
+  <% const pt = (path) => {
+       const value = path.split('.').reduce((node, key) => (node && typeof node === 'object' ? node[key] : undefined),
+         typeof playerTranslations !== 'undefined' ? playerTranslations?.player : undefined);
+       return typeof value === 'string' ? value : t('journeys.public.' + path);
+     }; %>
   <div id="publicIdentifyModal" class="fixed inset-0 hidden" style="background: rgba(0,0,0,0.5); z-index: 99999;">
     <div class="min-h-screen flex items-center justify-center p-4" style="position: relative; z-index: 99999;">
       <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden" style="animation: modalSlideIn 0.2s ease-out; position: relative; z-index: 100000;">
@@ -1178,39 +1195,39 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
               </div>
-              <h3 id="identifyTitle" class="text-xl font-semibold text-zen-900"><%= t('journeys.public.identify.title') %></h3>
-              <p id="identifyDescription" class="text-zen-600 text-sm mt-1"><%= t('journeys.public.identify.description') %></p>
+              <h3 id="identifyTitle" class="text-xl font-semibold text-zen-900"><%= pt('identify.title') %></h3>
+              <p id="identifyDescription" class="text-zen-600 text-sm mt-1"><%= pt('identify.description') %></p>
             </div>
             
             <form id="publicIdentifyForm" class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.identify.firstName') %></label>
-                <input type="text" name="firstName" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
+                <label for="publicIdentifyFirstName" class="block text-sm font-medium text-zen-700 mb-1"><%= pt('identify.firstName') %></label>
+                <input type="text" id="publicIdentifyFirstName" name="firstName" autocomplete="given-name" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
               </div>
               <div>
-                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.identify.lastName') %></label>
-                <input type="text" name="lastName" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
+                <label for="publicIdentifyLastName" class="block text-sm font-medium text-zen-700 mb-1"><%= pt('identify.lastName') %></label>
+                <input type="text" id="publicIdentifyLastName" name="lastName" autocomplete="family-name" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
               </div>
               <div>
-                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.identify.email') %></label>
-                <input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
+                <label for="publicIdentifyEmail" class="block text-sm font-medium text-zen-700 mb-1"><%= pt('identify.email') %></label>
+                <input type="email" id="publicIdentifyEmail" name="email" autocomplete="email" required class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-base">
               </div>
               
-              <div id="identifyError" class="hidden text-red-500 text-sm text-center p-3 bg-red-50 rounded-lg"></div>
+              <div id="identifyError" role="alert" class="hidden text-red-500 text-sm text-center p-3 bg-red-50 rounded-lg"></div>
               
               <!-- Remember me checkbox -->
               <label class="flex items-start gap-3 cursor-pointer select-none mt-2">
                 <input type="checkbox" id="rememberMeCheckbox" class="w-5 h-5 mt-0.5 rounded border-zen-300 text-gryffi-primary focus:ring-gryffi-accent cursor-pointer" style="accent-color: var(--theme-primary, #0b4b34);">
-                <span class="text-sm text-zen-600 leading-tight"><%= t('journeys.public.identify.rememberMe') %></span>
+                <span class="text-sm text-zen-600 leading-tight"><%= pt('identify.rememberMe') %></span>
               </label>
               
               <button type="submit" class="w-full py-3 px-4 rounded-lg font-medium transition-colors" style="background: var(--theme-primary, #0b4b34); color: var(--theme-button-text, white);">
-                <%= t('journeys.public.identify.submit') %>
+                <%= pt('identify.submit') %>
               </button>
               
               <% if (typeof previewMode !== 'undefined' && previewMode) { %>
               <!-- Skip option only visible in preview mode -->
-              <button type="button" id="skipIdentifyBtn" class="w-full py-2 mt-2 text-sm text-zen-400 hover:text-zen-600 transition-colors">
+              <button type="button" id="skipIdentifyBtn" class="w-full py-2 mt-2 text-sm text-zen-500 hover:text-zen-600 transition-colors">
                 <%= t('journeys.public.identify.skipPreview') %>
               </button>
               <% } %>
@@ -1225,24 +1242,24 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-zen-900"><%= t('journeys.public.verify.title') %></h3>
+              <h3 class="text-xl font-semibold text-zen-900"><%= pt('verify.title') %></h3>
               <p class="text-zen-600 text-sm mt-1" id="verifyEmailText"></p>
             </div>
             
             <form id="publicVerifyForm" class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-zen-700 mb-1"><%= t('journeys.public.verify.code') %></label>
-                <input type="text" name="code" required pattern="[0-9]{6}" maxlength="6" class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-center text-2xl tracking-widest font-mono">
+                <label for="publicVerifyCode" class="block text-sm font-medium text-zen-700 mb-1"><%= pt('verify.code') %></label>
+                <input type="text" id="publicVerifyCode" name="code" autocomplete="one-time-code" inputmode="numeric" required pattern="[0-9]{6}" maxlength="6" class="w-full px-4 py-3 rounded-lg border border-zen-200 focus:border-gryffi-primary focus:ring-2 focus:ring-gryffi-accent/20 outline-none transition-colors text-center text-2xl tracking-widest font-mono">
               </div>
               
-              <div id="verifyError" class="hidden text-red-500 text-sm text-center p-3 bg-red-50 rounded-lg"></div>
+              <div id="verifyError" role="alert" class="hidden text-red-500 text-sm text-center p-3 bg-red-50 rounded-lg"></div>
               
               <button type="submit" class="w-full py-3 px-4 rounded-lg font-medium transition-colors" style="background: var(--theme-primary, #0b4b34); color: var(--theme-button-text, white);">
-                <%= t('journeys.public.verify.submit') %>
+                <%= pt('verify.submit') %>
               </button>
               
               <button type="button" id="resendCodeBtn" class="w-full py-2 text-sm text-zen-500 hover:text-zen-700 transition-colors">
-                <%= t('journeys.public.verify.resend') %>
+                <%= pt('verify.resend') %>
               </button>
             </form>
           </div>
@@ -1280,26 +1297,26 @@
       // Context-specific content for different step types
       const stepContent = {
         poll: {
-          title: <%-safeJson(t('journeys.public.identify.poll.title'))%>,
-          description: <%-safeJson(t('journeys.public.identify.poll.description'))%>,
+          title: <%-safeJson(pt('identify.poll.title'))%>,
+          description: <%-safeJson(pt('identify.poll.description'))%>,
           icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>`
         },
         reward: {
-          title: <%-safeJson(t('journeys.public.identify.reward.title'))%>,
-          description: <%-safeJson(t('journeys.public.identify.reward.description'))%>,
+          title: <%-safeJson(pt('identify.reward.title'))%>,
+          description: <%-safeJson(pt('identify.reward.description'))%>,
           icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>`
         },
         form: {
-          title: <%-safeJson(t('journeys.public.identify.form.title'))%>,
-          description: <%-safeJson(t('journeys.public.identify.form.description'))%>,
+          title: <%-safeJson(pt('identify.form.title'))%>,
+          description: <%-safeJson(pt('identify.form.description'))%>,
           icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`
         }
       };
       
       // Default content (fallback)
       const defaultContent = {
-        title: <%-safeJson(t('journeys.public.identify.title'))%>,
-        description: <%-safeJson(t('journeys.public.identify.description'))%>,
+        title: <%-safeJson(pt('identify.title'))%>,
+        description: <%-safeJson(pt('identify.description'))%>,
         icon: `<svg class="w-8 h-8" style="color: ${themeAccent};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>`
       };
       
@@ -1442,7 +1459,7 @@
               window.close();
               // If window.close() didn't work (e.g., not opened by script), show message
               setTimeout(() => {
-                alert(<%-safeJson(t('journeys.public.closeWindowMessage'))%>);
+                alert(<%-safeJson(pt('closeWindowMessage'))%>);
               }, 100);
             }
           }
@@ -1581,35 +1598,18 @@
           
           const data = await response.json();
           
-          if (data.success && data.alreadyVoted) {
-            // User already voted - close modal and resolve with the poll results
-            modal.classList.add('hidden');
-            pendingAction?.resolve({ 
-              alreadyVoted: true, 
-              userVote: data.userVote,
-              results: data.results,
-              totalVotes: data.totalVotes,
-              message: data.message
-            });
-            pendingAction = null;
-          } else if (data.success && data.needsVerification) {
+          if (data.success && data.needsVerification) {
             // Show verification step
             identifyStep.classList.add('hidden');
             verifyStep.classList.remove('hidden');
-            verifyEmailText.textContent = <%-safeJson(t('journeys.public.verify.description'))%>.replace('{{email}}', email);
+            verifyEmailText.textContent = <%-safeJson(pt('verify.description'))%>.replace('{{email}}', () => email);
           } else if (!data.success) {
-            identifyError.textContent = data.error || 'Failed to identify';
+            identifyError.textContent = <%-safeJson(pt('identify.error'))%>;
             identifyError.classList.remove('hidden');
-            
-            if (data.code === 'ALREADY_VOTED' || data.code === 'ALREADY_CLAIMED' || data.code === 'ALREADY_PARTICIPATED') {
-              // Close modal and reject
-              modal.classList.add('hidden');
-              pendingAction?.reject(new Error(data.error));
-            }
           }
         } catch (err) {
           console.error('Identify error:', err);
-          identifyError.textContent = 'An error occurred. Please try again.';
+          identifyError.textContent = <%-safeJson(pt('identify.error'))%>;
           identifyError.classList.remove('hidden');
         }
       });
@@ -1646,12 +1646,18 @@
             // Resolve pending action
             pendingAction?.resolve(true);
           } else {
-            verifyError.textContent = data.error || 'Invalid code';
+            // The server's message is in the maker language; show the participant's
+            const verifyMessages = {
+              INVALID_CODE: <%-safeJson(pt('verify.invalidCode'))%>,
+              CODE_EXPIRED: <%-safeJson(pt('verify.codeExpired'))%>,
+              TOO_MANY_ATTEMPTS: <%-safeJson(pt('verify.tooManyAttempts'))%>
+            };
+            verifyError.textContent = verifyMessages[data.code] || <%-safeJson(pt('identify.error'))%>;
             verifyError.classList.remove('hidden');
           }
         } catch (err) {
           console.error('Verify error:', err);
-          verifyError.textContent = 'An error occurred. Please try again.';
+          verifyError.textContent = <%-safeJson(pt('identify.error'))%>;
           verifyError.classList.remove('hidden');
         }
       });
@@ -1679,7 +1685,7 @@
           
           if (data.success) {
             if (window.gryffi?.toast) {
-              window.gryffi.toast.success(<%-safeJson(t('journeys.public.verify.codeSent'))%>);
+              window.gryffi.toast.success(<%-safeJson(pt('verify.codeSent'))%>);
             }
           }
         } catch (err) {
@@ -1744,56 +1750,189 @@
   <% } %>
   
   <style>
-    .step-type-btn {
+    /* The help panel starts below the builder toolbar */
+    :root {
+      --help-panel-top: 56px;
+    }
+
+    /* Step types: a column next to the canvas, every type with its name and
+       a short line about what it is for */
+    .step-palette {
+      flex-shrink: 0;
+      width: 200px;
+      height: 100%;
+      overflow-y: auto;
+      padding: 16px 12px;
+      background: #fff;
+      border-right: 1px solid rgba(203, 213, 225, 0.6);
+    }
+    .step-palette-title {
+      margin: 0 0 10px 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b4b34;
+    }
+    .step-palette-list {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      color: #64748b;
-      transition: all 0.15s ease;
+      gap: 4px;
     }
-    .step-type-btn:hover {
-      background: white;
-      color: #0b4b34;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    .step-type-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #334155;
+      text-align: left;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
     }
-    .step-type-btn:active {
-      transform: scale(0.95);
-    }
-    
-    /* Some room between the title and the step types, however narrow; only
-       the title gives way */
-    .builder-toolbar-inner > .flex-1 {
-      min-width: 16px;
-    }
-    .builder-toolbar-inner > a {
+    .step-type-btn svg {
       flex-shrink: 0;
+      margin-top: 2px;
+      color: #0b4b34;
     }
-    .builder-toolbar-inner .journey-title-section {
+    .step-type-text {
+      display: flex;
+      flex-direction: column;
       min-width: 0;
     }
-    
-    /* Less room: no "+ Add step" label, a long journey title gets an ellipsis */
-    @media (max-width: 1439px) {
-      .toolbar-add-label {
+    .step-type-label {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #1f2937;
+    }
+    .step-type-desc {
+      font-size: 12px;
+      line-height: 1.35;
+      color: #64748b;
+    }
+    .step-type-btn:hover {
+      background: #f1f7ef;
+      border-color: #d4e6d0;
+    }
+    .step-type-btn:focus-visible {
+      outline: 3px solid #78c503;
+      outline-offset: 1px;
+    }
+    .step-type-btn:active {
+      background: #e6f1e2;
+    }
+    /* Narrow screens: the name under the icon, without the description */
+    @media (max-width: 1180px) {
+      .step-palette {
+        width: 92px;
+        padding: 12px 6px;
+      }
+      .step-palette-title {
+        margin: 0 0 8px;
+        text-align: center;
+        font-size: 12px;
+      }
+      .step-type-btn {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 4px;
+        text-align: center;
+      }
+      .step-type-label {
+        font-size: 12px;
+        font-weight: 500;
+        overflow-wrap: anywhere;
+      }
+      .step-type-desc {
         display: none;
       }
-      .journey-title-section h1 {
-        max-width: 240px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    }
+
+    /* Toolbar: help with a label, the save status and a quiet button */
+    .builder-help-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #475569;
+    }
+    .builder-help-btn:hover {
+      background: #f1f5f9;
+      color: #0b4b34;
+    }
+    .builder-help-btn:focus-visible,
+    .btn-quiet:focus-visible {
+      outline: 3px solid #78c503;
+      outline-offset: 2px;
+    }
+    .btn-quiet {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 500;
+      color: #475569;
+      background: transparent;
+    }
+    .btn-quiet:hover {
+      background: #f1f5f9;
+      color: #1f2937;
+    }
+    .builder-save-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      /* Room before Preview, also with the longer English and German texts */
+      margin: 0 16px 0 8px;
+      font-size: 13px;
+      white-space: nowrap;
+      color: #2f6b12;
+    }
+    .builder-save-status svg {
+      display: none;
+      flex-shrink: 0;
+    }
+    .builder-save-status[data-state="idle"] .save-icon-done,
+    .builder-save-status[data-state="saved"] .save-icon-done {
+      display: block;
+    }
+    .builder-save-status[data-state="saving"],
+    .builder-save-status[data-state="pending"] {
+      color: #64748b;
+    }
+    .builder-save-status[data-state="saving"] .save-icon-busy,
+    .builder-save-status[data-state="pending"] .save-icon-busy {
+      display: block;
+    }
+    .builder-save-status[data-state="error"] {
+      color: #b42318;
+    }
+    .builder-save-status[data-state="error"] .save-icon-error {
+      display: block;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .builder-save-status[data-state="saving"] .save-icon-busy {
+        animation: save-spin 0.9s linear infinite;
       }
     }
-    /* Even less: the step types as icons; the name stays in the tooltip and for screen readers */
-    @media (max-width: 1365px) {
-      .step-type-btn {
-        position: relative;
-        padding: 6px;
-      }
-      .step-type-btn .step-type-label {
+    @keyframes save-spin {
+      to { transform: rotate(360deg); }
+    }
+    /* Tight toolbar: the public link shows only its icon */
+    header.toolbar-compact .public-link-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+    @media (max-width: 1099px) {
+      .builder-help-btn span,
+      .builder-save-status span {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -1803,13 +1942,152 @@
       }
     }
     
+    /* First steps hint: a callout with an arrow towards what to click next */
+    .builder-coach {
+      position: fixed;
+      z-index: 40;
+      width: min(320px, calc(100vw - 32px));
+      padding: 16px 18px 14px;
+      background: #fff;
+      border: 1px solid #d4e6d0;
+      border-radius: 14px;
+      box-shadow: 0 12px 32px -8px rgba(11, 75, 52, 0.28), 0 2px 6px rgba(15, 23, 42, 0.08);
+      color: #1f2937;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .builder-coach.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+    .builder-coach[data-kind="panel"] {
+      transform: translateX(-4px);
+    }
+    .builder-coach[data-kind="panel"].is-visible {
+      transform: none;
+    }
+    /* The arrow: a turned square on the edge facing the target */
+    .builder-coach-arrow {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border: 1px solid #d4e6d0;
+      transform: rotate(45deg);
+    }
+    .builder-coach[data-kind="addStep"] .builder-coach-arrow {
+      left: -8px;
+      top: calc(var(--arrow-y, 28px) - 7px);
+      border-top: none;
+      border-right: none;
+    }
+    .builder-coach-steps {
+      margin: 0 0 12px;
+      padding-left: 22px;
+      list-style: decimal;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #475569;
+    }
+    .builder-coach-steps li + li {
+      margin-top: 4px;
+    }
+    .builder-coach-link {
+      display: inline-block;
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0b4b34;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .builder-coach[data-kind="panel"] .builder-coach-arrow {
+      right: -8px;
+      top: calc(var(--arrow-y, 28px) - 7px);
+      border-left: none;
+      border-bottom: none;
+    }
+    .builder-coach-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #0b4b34;
+    }
+    .builder-coach-title svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: #78c503;
+    }
+    .builder-coach-text {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #475569;
+    }
+    .builder-coach-text strong {
+      color: #0b4b34;
+      font-weight: 600;
+    }
+    .builder-coach-close {
+      display: block;
+      margin-left: auto;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #0b4b34;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .builder-coach-close:hover {
+      background: #083d2a;
+    }
+    .builder-coach-close:focus-visible {
+      outline: 3px solid #78c503;
+      outline-offset: 2px;
+    }
+    /* The element the hint points at: a soft green ring */
+    .coach-target {
+      position: relative;
+      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.6), 0 0 0 8px rgba(120, 197, 3, 0.16);
+      border-radius: 12px;
+    }
+    /* The step type the hint names */
+    .step-type-btn.coach-suggested {
+      background: #fff;
+      color: #0b4b34;
+      box-shadow: inset 0 0 0 2px #78c503;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .coach-target {
+        animation: coach-ring 1.8s ease-out 2;
+      }
+    }
+    @keyframes coach-ring {
+      0% { box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.6), 0 0 0 0 rgba(120, 197, 3, 0.35); }
+      70% { box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.6), 0 0 0 12px rgba(120, 197, 3, 0); }
+      100% { box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.6), 0 0 0 8px rgba(120, 197, 3, 0.16); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .builder-coach,
+      .builder-coach[data-kind="panel"] {
+        transition: none;
+        transform: none;
+      }
+    }
+
     .btn-ghost {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 6px 12px;
       border-radius: 8px;
-      color: #64748b;
+      color: #5b6b80;
       transition: all 0.15s ease;
     }
     .btn-ghost:hover {
@@ -1871,7 +2149,7 @@
     .step-body {
       padding: 8px 12px;
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
     }
     
     .step-footer {
@@ -1952,7 +2230,7 @@
       padding: 10px 14px;
       border-radius: 8px;
       font-size: 13px;
-      color: #64748b;
+      color: #5b6b80;
       transition: all 0.15s ease;
     }
     .connection-context-menu button:hover {
@@ -2023,7 +2301,7 @@
     .image-picker-close {
       padding: 6px;
       border-radius: 8px;
-      color: #64748b;
+      color: #5b6b80;
       transition: all 0.15s;
     }
     .image-picker-close:hover {
@@ -2045,7 +2323,7 @@
       border-radius: 8px;
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       transition: all 0.15s;
     }
     .image-picker-tab:hover {
@@ -2177,7 +2455,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #94a3b8;
+      color: #5b6b80;
     }
     .image-preview-actions {
       position: absolute;
@@ -2192,7 +2470,7 @@
       border-radius: 6px;
       font-size: 12px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
       transition: all 0.15s;
     }
@@ -2209,7 +2487,7 @@
       display: block;
       font-size: 12px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       margin-bottom: 4px;
     }
     .form-input {
@@ -2230,8 +2508,8 @@
     }
     .form-input:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .form-textarea {
       width: 100%;
@@ -2253,8 +2531,8 @@
     }
     .form-textarea:focus {
       outline: none;
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .form-checkbox {
       display: flex;
@@ -2381,7 +2659,7 @@
     .quiz-wizard-option .option-indicator svg {
       width: 14px;
       height: 14px;
-      color: #94a3b8;
+      color: #5b6b80;
       transition: all 0.2s ease;
     }
     .quiz-wizard-option:hover .option-indicator {
@@ -2530,7 +2808,7 @@
     .typing-dots span {
       width: 8px;
       height: 8px;
-      background: var(--theme-text-secondary, #94a3b8);
+      background: var(--theme-text-secondary, #5b6b80);
       border-radius: 50%;
       animation: typing-bounce 1.4s ease-in-out infinite;
     }
@@ -2555,7 +2833,7 @@
       padding: 10px 8px;
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       background: none;
       border: none;
       border-bottom: 2px solid transparent;
@@ -2757,7 +3035,7 @@
       border-radius: 8px;
       background: transparent;
       border: none;
-      color: #64748b;
+      color: #5b6b80;
       cursor: pointer;
       transition: all 0.15s ease;
     }
@@ -2785,7 +3063,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #94a3b8;
+      color: #5b6b80;
     }
     .variable-category-header svg {
       color: #78c503;
@@ -2827,7 +3105,7 @@
       padding: 6px 12px;
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       background: transparent;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
@@ -2865,11 +3143,11 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #64748b;
+      color: #5b6b80;
     }
     .preview-note {
       font-size: 11px;
-      color: #94a3b8;
+      color: #5b6b80;
     }
     .preview-subject {
       font-size: 14px;
@@ -2934,17 +3212,28 @@
     /* ============================================
        CONTENT STEP - Media Type Selector
        ============================================ */
+    /* Three equal columns; icon above the label so long words
+       (Afbeelding, Solo texto) fit without overflowing the panel */
+    .media-type-selector {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
     .media-type-btn {
-      flex: 1;
+      min-width: 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 10px 12px;
+      gap: 4px;
+      padding: 10px 8px;
+      text-align: center;
+      line-height: 1.25;
+      hyphens: auto;
       border-radius: 10px;
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: #5b6b80;
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       transition: all 0.15s ease;
@@ -2954,6 +3243,10 @@
       background: white;
       border-color: #cbd5e1;
       color: #334155;
+    }
+    .media-type-btn:focus-visible {
+      outline: 2px solid #0b4b34;
+      outline-offset: 2px;
     }
     .media-type-btn.active {
       background: white;
@@ -2972,8 +3265,8 @@
       background: white;
     }
     .simple-editor:focus-within {
-      border-color: #78c503;
-      box-shadow: 0 0 0 3px rgba(120, 197, 3, 0.1);
+      border-color: #0b4b34;
+      box-shadow: 0 0 0 3px rgba(11, 75, 52, 0.15);
     }
     .simple-editor-toolbar {
       display: flex;
@@ -2990,7 +3283,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 6px;
-      color: #64748b;
+      color: #5b6b80;
       background: transparent;
       border: none;
       cursor: pointer;
@@ -3094,7 +3387,7 @@
     }
     .pacing-option-desc {
       font-size: 12px;
-      color: #64748b;
+      color: #5b6b80;
     }
     .pacing-option.selected .pacing-option-label {
       color: #0b4b34;
@@ -3429,37 +3722,50 @@
       margin-bottom: 0;
     }
     
-    /* Citation badges */
-    .citation-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      padding: 2px 5px;
-      margin: 0 2px;
-      background: var(--theme-primary, #0b4b34);
-      color: var(--theme-button-text, white);
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      text-decoration: none;
-      vertical-align: baseline;
+    /* Citations: a small number in the answer, the sources listed below */
+    .citation-ref {
+      background: none;
+      border: 0;
+      padding: 0 1px;
+      margin-left: 1px;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
       line-height: 1;
+      color: var(--theme-primary, #0b4b34);
+      vertical-align: super;
+      cursor: pointer;
     }
-    .citation-badge:hover {
-      background: var(--theme-accent, #78c503);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    .citation-ref:hover,
+    .citation-source:hover {
+      text-decoration: underline;
     }
-    .citation-icon {
-      width: 12px;
-      height: 12px;
-      flex-shrink: 0;
+    .chat-sources {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(15, 23, 42, 0.12);
+      font-size: 12px;
+      color: var(--theme-text-secondary, #475569);
     }
-    .citation-text {
-      font-size: 10px;
-      white-space: nowrap;
+    .chat-sources ol {
+      margin: 4px 0 0 18px;
+      padding: 0;
+      list-style: decimal;
+    }
+    .citation-source {
+      background: none;
+      border: 0;
+      padding: 2px 0;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .citation-ref:focus-visible,
+    .citation-source:focus-visible {
+      outline: 2px solid var(--theme-accent, #78c503);
+      outline-offset: 2px;
+      border-radius: 2px;
     }
     
     /* Source Drawer */
@@ -3523,7 +3829,7 @@
       padding: 8px;
       border: none;
       background: transparent;
-      color: #6b7280;
+      color: #5b6b80;
       cursor: pointer;
       border-radius: 6px;
       transition: all 0.15s;
@@ -3547,7 +3853,7 @@
     }
     .source-drawer-label {
       font-weight: 600;
-      color: #6b7280;
+      color: #5b6b80;
       margin-right: 8px;
     }
     .source-drawer-text {
@@ -4025,10 +4331,14 @@
         font-size: 15px;
       }
       
-      /* Citation badge - Larger touch target */
-      .citation-badge {
-        padding: 4px 8px;
+      /* Citations - Larger touch target */
+      .citation-ref {
+        padding: 0 3px;
         font-size: 12px;
+      }
+      .citation-source {
+        padding: 4px 0;
+        font-size: 13px;
       }
       
       /* Form inputs - Prevent iOS zoom */

@@ -5,7 +5,7 @@ related_features: [maker-roles, admin-role, manager-role, viewer-role]
 
 # Editor Role
 
-The Editor role is designed for content creators who need to build journeys and guides but don't require user management or administrative access. Create and edit journeys and AI guides. But the editor cannot publish, send invitations.
+The Editor role is designed for content creators who need to build journeys and guides but don't need to manage participants, makers or settings. Create and edit journeys and AI guides. But the editor cannot publish, send invitations.
 
 ## Related Features
 

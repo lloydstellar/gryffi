@@ -23,9 +23,9 @@ export default {
           100: '#f0f4ef',
           200: '#e2e8e1',
           300: '#c8d4c6',
-          400: '#9fb49c',
-          500: '#789476',
-          600: '#5c7459',
+          400: '#5e765b',   // mostly text (hints): 4.5:1 on white and zen-50
+          500: '#5c7459',   // 4.5:1 on gryffi-bg (WCAG AA for text)
+          600: '#4e654b',
           700: '#485c46',
           800: '#3c4a3a',
           900: '#333f32',

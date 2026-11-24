@@ -5,68 +5,46 @@ related_features: [journey-builder, entry-exit-messages]
 
 # Step Pacing
 
-Step Pacing controls when users can progress from one step to the next, managing the timing and flow of journey content.
+Pacing sets when participants can continue to the next step. Until then, the Continue buttons stay hidden and the step shows what the participant is waiting for.
 
-![Pacing of a Guide step on the Advanced tab (1)](images/step-pacing/advanced.en.webp)
+![Pacing of an AI guide step on the How it works tab (1)](images/step-pacing/advanced.en.webp)
 
-1. Pacing: when end users can continue to the next step. Immediately, or after they sent 2, 4 or 6 messages to the guide.
+1. Pacing: when participants can continue to the next step. Immediately, or after they sent 2, 4 or 6 messages to the guide.
 
-## Overview
+## Where to set it
 
-Pacing options:
+1. Select the step on the canvas.
+2. Open the How it works tab.
+3. Pick an option under "Pacing" (or "Form Requirement" for a form step).
 
-- Immediate progression
-- Timed delays
-- Scheduled availability
-- Completion requirements
+The default is Immediately: participants can continue right away.
 
-## Pacing Options
+## Options per step type
 
-### Immediate
+The options depend on the step type. You pick one of a fixed list; there is no free number of seconds or minutes.
 
-| Setting | Behavior |
-|---------|----------|
-| No delay | Next available instantly |
-| User control | Progress when ready |
+| Step type | Options |
+|-----------|---------|
+| Space | Immediately, after 10 seconds, after 30 seconds, after 1 minute |
+| Content with text | Immediately, after 30 seconds, after 1 minute, after 2 minutes |
+| Content with an image | Immediately, after 10 seconds, after 30 seconds |
+| Content with a video | Immediately, after 1 minute, after 2 minutes, after 5 minutes |
+| Guide | Immediately, after 2, 4 or 6 messages to the guide |
+| Form | After submitting (default), or Always (participants can skip the form) |
 
-### Timed Delay
+Quiz and poll steps have no pacing option. A quiz has to be finished first, and a required poll has to be answered.
 
-| Setting | Behavior |
-|---------|----------|
-| Seconds | Wait X seconds |
-| Minutes | Wait X minutes |
+## What participants see
 
-## Configuring Pacing
+- With a time option, the step counts down: "Take your time... 25s". For a video the countdown starts when the video starts playing, and says "Keep watching... 25s".
+- With a message option on a guide step, the step shows how many messages are still needed: "Chat with the guide (1/4 messages)".
+- When the wait is over, the step says "You can now continue" and the Continue buttons appear. Screen readers announce this too.
 
-### Step Settings
+## Tips
 
-1. Select step
-2. Go to Advanced tab
-3. Find "Pacing" section (1)
-4. Configure options
-
-## Use Cases
-
-### Content Absorption
-
-Ensure users spend time:
-- Minimum 30 seconds on content
-- Watch video before continuing
-- Read important instructions
-
-## User Experience
-
-### Locked State
-
-Users see:
-- "Available at [time]"
-- What's required
-
-## Best Practices
-
-- Explain why waiting
-- Reasonable durations
-- Test user experience
+- Use a short wait only where it helps, for example a safety instruction that people tend to skip. A wait on every step slows everyone down.
+- Some people read slower than others. Pick the shortest option that does the job.
+- Try the step in the preview to feel how long the wait is.
 
 ## Related Features
 

@@ -5,28 +5,28 @@ related_features: [end-user-management, end-user-groups, manual-user-entry]
 
 # CSV Import
 
-CSV Import allows you to bulk upload end users to your organization using a spreadsheet file.
+CSV Import allows you to bulk upload participants to your organization using a spreadsheet file.
 
 ![CSV/Excel Import (1) with the file requirements and the drop zone (2)](images/csv-import/upload.en.webp)
 
-1. CSV/Excel Import in System Settings, Users.
+1. CSV/Excel Import on the Participants page.
 2. Drop your file here, or click to choose it. A file has three columns: first name, last name and email address.
 
 ## Overview
 
 CSV import enables:
 
-- Bulk user creation
-- Update existing users
+- Adding many participants at once
+- Skipping participants who are already there
 - Preview before confirming
 
-[[goto:/dashboard/system-settings#users/csv]]
+[[goto:/dashboard/participants#users/csv]]
 
 ## Preparing Your CSV
 
 ### Download Template
 
-1. Go to System Settings → Users → CSV/Excel Import (1)
+1. Go to Participants → CSV/Excel Import (1)
 2. Drag a CSV, Excel or OpenDocument spreadsheet to "Drop your file here" (2), or click it to choose a file
 
 ### Required Columns
@@ -53,7 +53,7 @@ Fred,Bucket,fredbucket@mycompany.com
 
 ### Duplicate Detection
 
-Users are matched by email address. If an email address is already in the end users of your company, no new user will be made.
+Participants are matched by email address. If an email address is already in the participants of your company, no new participant is made.
 
 ## Error Handling
 
@@ -75,6 +75,6 @@ Users are matched by email address. If an email address is already in the end us
 
 ## Related Features
 
-- [[goto:/dashboard/system-settings#users/csv]] - Import users
-- [[goto:/dashboard/system-settings#users/csv]] - User management
+- [[goto:/dashboard/participants#users/csv]] - Import participants
+- [[goto:/dashboard/participants#users/csv]] - Manage participants
 - See: end-user-management, manual-user-entry

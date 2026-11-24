@@ -5,75 +5,52 @@ related_features: [api-keys]
 
 # API Access
 
-The API Access feature allows developers to integrate Gryffi with external systems, automate workflows, and build custom applications.
+With the API, another system can add participants to Gryffi, invite them to a journey and put them in groups. An HR system can, for example, invite every new employee to the onboarding journey on their first day.
 
-![API in System Settings: Generate API Key (1)](images/api-access/overview.en.webp)
+![API on the Organization page: Generate API Key (1)](images/api-access/overview.en.webp)
 
 1. Generate API Key: create the key for the public API. Gryffi shows it once; store it in a safe place.
 
-## Overview
+## What the API can do
 
-Gryffi's API enables:
+- List the published journeys
+- Create and delete participants
+- Invite a participant to a journey (Gryffi sends the invitation mail)
+- List, create and delete groups, and add or remove group members
 
-- Send journeys
-- Create and delete end users
-- Create and delete groups
+The API cannot change journeys and does not give analytics.
 
 ## Prerequisites
 
 To use the API, you need:
 
 1. **Admin role** in your organization
-2. **API Key** generated from settings with **Generate API Key** (1)
+2. **API Key** generated on the Organization page with **Generate API Key** (1)
 
 [[goto:/dashboard/system-settings#api]]
 
-## API Documentation
+An organization has one key. **Regenerate Key** makes a new key and the old one stops working at once. **Revoke Key** removes the key.
 
-### Base URL
-https://api.gryffi.com/v1
+## Base URL and authentication
 
-### Authentication
-All requests require an API key in the header:
-Authorization: Bearer YOUR_API_KEY
+The base URL is your Gryffi address followed by `/api/v1`.
 
-## Available Endpoints
+Send the key in the `X-API-Key` header with every request. Send request bodies as JSON with `Content-Type: application/json`.
 
-### Journeys
+## Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/journeys` | GET | List all journeys |
-| `/journeys/{id}` | GET | Get journey details |
-| `/journeys` | POST | Create new journey |
-| `/journeys/{id}` | PUT | Update journey |
-| `/journeys/{id}` | DELETE | Delete journey |
-
-### Users
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/users` | GET | List end users |
-| `/users/{id}` | GET | Get user details |
-| `/users` | POST | Create end user |
-| `/users/{id}` | PUT | Update user |
-| `/users/sync` | POST | Bulk sync users |
-
-### Analytics
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/analytics/journeys` | GET | Journey statistics |
-| `/analytics/users` | GET | User engagement data |
-| `/analytics/steps` | GET | Step performance |
-
-### Invitations
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/invitations` | GET | List invitations |
-| `/invitations` | POST | Send invitations |
-| `/invitations/{id}` | DELETE | Cancel invitation |
+| Endpoint | Method | What it does |
+|----------|--------|--------------|
+| `/journeys` | GET | List the published journeys (id, title, description) |
+| `/end-users` | POST | Create a participant. Returns the existing one if the email address is already known |
+| `/end-users` | DELETE | Delete a participant by email address |
+| `/invitations` | POST | Invite a participant to a published journey. Creates the participant if needed |
+| `/groups` | GET | List the groups with their number of members |
+| `/groups` | POST | Create a group |
+| `/groups/{id}/members` | GET | List the members of a group |
+| `/groups/{id}/members` | POST | Add participants to a group by email address |
+| `/groups/{id}/members` | DELETE | Remove participants from a group by email address |
+| `/groups/{id}` | DELETE | Delete a group. The group must be empty |
 
 ## Request Examples
 
@@ -84,9 +61,9 @@ Get all published journeys to find the journey_id for invitations.
 curl -X GET "https://api.gryffi.com/api/v1/journeys" \
   -H "X-API-Key: grf_your_api_key_here"
 
-### Create End User
+### Create Participant
 
-Create a new end user in Gryffi. If the email already exists, the existing user is returned.
+Create a new participant in Gryffi. If the email already exists, the existing participant is returned with `"created": false`.
 
 curl -X POST "https://api.gryffi.com/api/v1/end-users" \
   -H "X-API-Key: grf_your_api_key_here" \
@@ -99,7 +76,7 @@ curl -X POST "https://api.gryffi.com/api/v1/end-users" \
 
 ### Invite to Journey
 
-Invite an end user to a specific journey. Creates the user if they don't exist yet.
+Invite a participant to a specific journey. Creates the participant if they don't exist yet. Gryffi sends the invitation mail in the language of the journey, or else the language of your organization.
 
 curl -X POST "https://api.gryffi.com/api/v1/invitations" \
   -H "X-API-Key: grf_your_api_key_here" \
@@ -114,9 +91,15 @@ curl -X POST "https://api.gryffi.com/api/v1/invitations" \
     "send_reminder": false
   }'
 
-### Delete End User
+- `validity_days`: how long the link works: 7, 14 (default), 30 or 90.
+- `max_completions`: how often the participant can complete the journey: 1 (default), 2, or -1 for unlimited.
+- `send_reminder`: `true` sends a reminder halfway through the validity period. Default `false`.
 
-Remove an end user from Gryffi by their email address.
+The answer contains the personal link (`magic_link`), in case you want to send it yourself as well. If the participant already has an open invitation for this journey, the answer is 409 with the id of that invitation.
+
+### Delete Participant
+
+Remove a participant from Gryffi by their email address. This also removes their invitations and progress.
 
 curl -X DELETE "https://api.gryffi.com/api/v1/end-users" \
   -H "X-API-Key: grf_your_api_key_here" \
@@ -141,7 +124,7 @@ curl -X GET "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members" 
 
 ### Create Group
 
-Create a new group to organize end users.
+Create a new group to organize participants.
 
 curl -X POST "https://api.gryffi.com/api/v1/groups" \
   -H "X-API-Key: grf_your_api_key_here" \
@@ -153,7 +136,7 @@ curl -X POST "https://api.gryffi.com/api/v1/groups" \
 
 ### Add Group Members
 
-Add one or more end users to a group by their email addresses.
+Add one or more participants to a group by their email addresses. Send at most 1000 addresses per request. The answer lists which addresses were added, which were already a member and which are not a participant.
 
 curl -X POST "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members" \
   -H "X-API-Key: grf_your_api_key_here" \
@@ -164,7 +147,7 @@ curl -X POST "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members"
 
 ### Remove Group Members
 
-Remove one or more end users from a group by their email addresses.
+Remove one or more participants from a group by their email addresses.
 
 curl -X DELETE "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members" \
   -H "X-API-Key: grf_your_api_key_here" \
@@ -180,12 +163,30 @@ Delete a group. The group must be empty (no members) before it can be deleted.
 curl -X DELETE "https://api.gryffi.com/api/v1/groups/your-group-uuid-here" \
   -H "X-API-Key: grf_your_api_key_here"
 
+## Answers and errors
+
+Every answer is JSON. A successful answer has `"success": true`. An error has `"success": false` with `error` and a `message` that says what to change.
+
+| Status | Meaning |
+|--------|---------|
+| 200, 201 | Done (201: something new was created) |
+| 400 | Something in the request is missing or wrong, for example `validity_days` is 45 or the body is not valid JSON |
+| 401 | No key, or the key is wrong or revoked |
+| 403 | Your plan does not include the API, or a limit of your plan is reached |
+| 404 | The journey, group or participant does not exist in your organization |
+| 409 | It already exists: an open invitation, or a group with the same name |
+| 429 | Too many requests. Wait and try again |
+
+## Limits
+
+- 5000 requests per 15 minutes per organization.
+- After 30 requests with a wrong key in 15 minutes, an IP address is blocked for the rest of those 15 minutes. Requests with a valid key do not count, also when the answer is 404 or 409.
+
 ## Best Practices
 
-- Store API keys securely (environment variables)
-- Implement retry logic with exponential backoff
-- Handle rate limits gracefully
-- Don't send too many requests in a row
+- Store the API key in a safe place, such as an environment variable, and never in code.
+- Retry after a 429 with a growing wait time.
+- Check the answer of every request: a 409 for an invitation means the participant already has one.
 
 ## Related Features
 

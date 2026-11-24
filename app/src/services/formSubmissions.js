@@ -24,6 +24,7 @@ import { fileURLToPath } from 'url';
 import { query } from '../db/index.js';
 import { isImageAllowed } from './nsfwDetection.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
+import { detectFileType } from '../utils/imageType.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,15 +36,17 @@ export const DOWNLOAD_LINK_VALIDITY_DAYS = 30;
 
 const FORM_UPLOADS_DIR = path.join(__dirname, '../../uploads/form-submissions');
 
-// Mirrors the accept lists used by the form step file field in the builder
-// (image / document / audio subtypes).
-const ALLOWED_MIME_TYPES = new Set([
-  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-  'application/pdf', 'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/plain',
-  'audio/mpeg'
-]);
+// Formats per file field subtype, mirroring the accept lists of the form
+// step file field in the builder. The type is always read from the content.
+const SUBTYPE_MIME_TYPES = {
+  image: new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']),
+  document: new Set([
+    'application/pdf', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain'
+  ]),
+  audio: new Set(['audio/mpeg'])
+};
 
 /**
  * Escape user-controlled values before embedding them in HTML email bodies.
@@ -60,9 +63,15 @@ export function escapeHtml(val) {
 /**
  * Validate and decode incoming form attachments (Base64 data URLs from the
  * player). Throws an Error with a descriptive message when limits are hit.
- * Returns [{ filename, buffer, contentType, fieldLabel }].
+ *
+ * The client's contentType and file extension are ignored: the format is
+ * read from the content, must match the subtype of the file field it was
+ * uploaded for, and decides the stored extension and mime type.
+ * @param {Array} attachments - [{ filename, content, fieldLabel }] from the request
+ * @param {Array} fields - The form step's configured fields (basic_props.fields)
+ * @returns {Promise<Array<{filename: string, buffer: Buffer, contentType: string, fieldLabel: string|null}>>}
  */
-export function processAttachments(attachments) {
+export async function processAttachments(attachments, fields) {
   if (!attachments || !Array.isArray(attachments) || attachments.length === 0) {
     return [];
   }
@@ -71,9 +80,12 @@ export function processAttachments(attachments) {
     throw new Error(`Maximum ${MAX_FILES_PER_SUBMISSION} attachments allowed`);
   }
 
+  const fileFields = (Array.isArray(fields) ? fields : []).filter(f => f && f.type === 'file');
+
   let totalSize = 0;
-  return attachments.map(att => {
-    let base64Content = String(att.content || '');
+  const files = [];
+  for (const att of attachments) {
+    let base64Content = String(att?.content || '');
     if (base64Content.includes(',')) {
       base64Content = base64Content.split(',')[1];
     }
@@ -90,18 +102,29 @@ export function processAttachments(attachments) {
       throw new Error('Total attachment size exceeds 24MB limit');
     }
 
-    const contentType = String(att.contentType || 'application/octet-stream').toLowerCase();
-    if (!ALLOWED_MIME_TYPES.has(contentType)) {
-      throw new Error('File type not allowed');
+    const fieldLabel = att?.fieldLabel ? String(att.fieldLabel).slice(0, 255) : null;
+    const allowed = new Set();
+    for (const field of fileFields) {
+      if (String(field.label ?? '').slice(0, 255) !== (fieldLabel ?? '')) continue;
+      for (const mime of SUBTYPE_MIME_TYPES[field.fileSubtype] || SUBTYPE_MIME_TYPES.image) allowed.add(mime);
     }
 
-    return {
-      filename: sanitizeFilename(att.filename),
+    const detected = await detectFileType(buffer);
+    if (!detected || !allowed.has(detected.mime)) {
+      const err = new Error('File type not allowed');
+      err.code = 'FILE_TYPE_NOT_ALLOWED';
+      err.fieldLabel = fieldLabel;
+      throw err;
+    }
+
+    files.push({
+      filename: withExtension(sanitizeFilename(att?.filename), detected.ext),
       buffer,
-      contentType,
-      fieldLabel: att.fieldLabel ? String(att.fieldLabel).slice(0, 255) : null
-    };
-  });
+      contentType: detected.mime,
+      fieldLabel
+    });
+  }
+  return files;
 }
 
 /**
@@ -126,6 +149,15 @@ export async function checkAttachmentImages(files) {
 function sanitizeFilename(name) {
   const base = path.basename(String(name || 'file'));
   return base.replace(/[^\w.\-() ]/g, '_').slice(0, 200) || 'file';
+}
+
+/**
+ * Replace the extension of a (sanitized) filename with the detected one.
+ */
+function withExtension(filename, ext) {
+  const current = path.extname(filename);
+  const stem = (current ? filename.slice(0, -current.length) : filename) || 'file';
+  return `${stem}${ext}`;
 }
 
 /**
@@ -490,7 +522,7 @@ export function buildFormSubmissionEmailBody({
     const fileRows = files.map(file => `
       <tr>
         <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
-          <span style="color: #1f2937; font-weight: 600;">📎 ${escapeHtml(file.original_name)}</span>
+          <span style="color: #1f2937; font-weight: 600;">${escapeHtml(file.original_name)}</span>
           <span style="color: #9ca3af; font-size: 13px;"> (${formatFileSize(file.size_bytes)})</span>
         </td>
         <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">

@@ -11,7 +11,7 @@ The Knowledge Base is the foundation of your AI Guide's intelligence. It contain
 
 1. Click to upload files or drag them here: PDF, Word, text, Markdown, CSV, PowerPoint or images.
 2. Add Text: type or paste knowledge without a file.
-3. A knowledge source with its number of chunks and status. Completed means the guide can use it.
+3. A knowledge source with its number of pieces of text and status. Completed means the guide can use it.
 
 ## Overview
 
@@ -50,7 +50,7 @@ Write content directly:
 
 ### Seeding the Knowledge Base via the Journey Wizard
 
-When you create a journey with the Journey Wizard and upload a document in step 1, you can also ask the wizard to create a new AI Guide and seed that Guide's knowledge base with the same document. The file is processed through the normal knowledge-base pipeline (text extraction, chunking, embedding), so the result is identical to uploading the document manually on the Guide's knowledge-base page. After the wizard finishes, you can add more documents or text to the Guide as usual. See: journey-wizard.
+When you create a journey with the Journey Wizard and upload a document in step 1, you can also ask the wizard to create a new AI Guide and seed that Guide's knowledge base with the same document. The file is processed through the normal knowledge-base pipeline (text extraction, splitting into pieces of text, embedding), so the result is identical to uploading the document manually on the Guide's knowledge-base page. After the wizard finishes, you can add more documents or text to the Guide as usual. See: journey-wizard.
 
 ## Content Organization
 
@@ -60,7 +60,7 @@ See all knowledge base items (3):
 - Title and description
 - Source type
 - Date added
-- Number of chunks used
+- Number of pieces of text used
 - Status of document
 
 ### Delete Content
@@ -68,9 +68,9 @@ See all knowledge base items (3):
 Remove outdated or incorrect content:
 - Press the trash icon next to the document or text
 
-## Chunks stored in the database
+## Pieces of text stored in the database
 
-The documents are brought back to text only. A part of the text is stored in a chunk it the database. Documents can be split in multiple chunks to store in the database. The larger the document, the more chunks used in the database.
+Gryffi turns each document into plain text. It splits that text into pieces of text and stores them in the database. The larger the document, the more pieces of text it uses. Your subscription plan sets how many pieces of text your knowledge bases can hold.
 
 ## The RAG system
 
@@ -78,9 +78,9 @@ RAG is a framework that provides an AI model with access to external, up-to-date
 
 How it works:
 
-1. Retrieval: When a user asks a question, the system searches an external database (like Markdown files, PDFs, or a vector database) for the most relevant snippets of information.
+1. Retrieval: When a participant asks a question, the system searches an external database (like Markdown files, PDFs, or a vector database) for the most relevant snippets of information.
 
-2. Augmentation: These snippets are added to the user’s original prompt as specific context.
+2. Augmentation: These snippets are added to the participant's original question as specific context.
 
 3. Generation: The AI uses both its internal logic and this provided context to generate a precise, grounded answer.
 

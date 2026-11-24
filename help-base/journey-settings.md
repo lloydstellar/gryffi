@@ -44,7 +44,7 @@ Journey settings include:
 
 ### Renaming Wizard-Generated Journeys
 
-Journeys created with the Journey Wizard get an AI-proposed title and a one-sentence description instead of a name you typed yourself. These are meant as suggestions. Open Journey Settings and update the **Title** and **Description** fields to match your organization's wording. This has no impact on the generated steps — only the metadata on the journey card and the default browser tab label.
+Journeys created with the Journey Wizard get an AI-proposed title and a one-sentence description instead of a name you typed yourself. These are meant as suggestions. Open Journey Settings and update the **Title** and **Description** fields to match your organization's wording. This has no impact on the generated steps, only on the metadata on the journey card and the default browser tab label.
 
 See: journey-wizard
 
@@ -54,18 +54,18 @@ Set a "Start Step" (3) and an "End Step" (4). Without these start and end step, 
 
 ## Language Settings
 
-Journey language settings allow you to customize the language experience for end-users on a per-journey basis.
+Journey language settings allow you to customize the language experience for participants on a per-journey basis.
 
 ### Journey Interface Language
 
-By default, the interface of the journey the end user sees is in your organization default language. You can override the interface language for an individual journey:
+By default, the interface of the journey the participant sees is in your organization default language. You can override the interface language for an individual journey:
 
 1. In Journey Settings, find "Interface Language"
 2. Enable "Use a different language" (5)
 3. Select from available languages:
    - **Base languages**: English, Dutch, German, French, Spanish
    - **Extended languages**: Italian, Portuguese, Danish, Norwegian, Finnish, Swedish, Polish, Romanian, Turkish
-4. Save the journey
+4. The builder saves your change by itself
 
 This affects all player interface elements:
 - Navigation buttons ("Continue", "Back", etc.)
@@ -82,7 +82,7 @@ You can set a separate language for AI Guide responses, independent of the journ
 1. In Journey Settings, find "AI Guide language"
 2. Enable "Override AI Guide language"
 3. Select the desired language for AI responses
-4. Save the journey
+4. The builder saves your change by itself
 
 When enabled:
 - The AI Guide greeting will be generated in the selected language
@@ -101,7 +101,7 @@ When AI Guide language override is enabled, you can also set a static "Opening s
 1. Enable "Override AI Guide language" first
 2. Find the "Opening sentence override" textarea
 3. Enter a translated opening sentence for the AI Guide
-4. Save the journey
+4. The builder saves your change by itself
 
 **Benefits:**
 - Instant loading (no AI generation delay)

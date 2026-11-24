@@ -150,3 +150,124 @@ dbTest('shows "Powered by Gryffi" unless the administrator switches it off', asy
   assert.doesNotMatch(hidden.text, /Powered by Gryffi/);
   assert.match(hidden.html, /Hello/);
 });
+
+dbTest('the verification code email escapes the name and uses the requested language', async () => {
+  await settings.setSettings({ 'email.provider': 'nuntly', 'email.nuntlyApiKey': 'nuntly-test-key' });
+  const originalFetch = globalThis.fetch;
+  let body = null;
+  globalThis.fetch = async (url, init) => {
+    body = JSON.parse(init.body);
+    return new Response(JSON.stringify({ data: { id: 'msg_456' } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+  try {
+    // A public journey lets anyone type a name; it must not become HTML in our email
+    await email.sendVerificationCodeEmail({
+      to: 'person@mail-test.nl',
+      firstName: '<a href="https://evil.test">Click here</a>',
+      journeyTitle: 'Safety & <b>you</b>',
+      verificationCode: '123456',
+      language: 'pl'
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.equal(body.subject, 'Twój kod weryfikacyjny: Safety & <b>you</b>');
+  assert.doesNotMatch(body.html, /<a href="https:\/\/evil\.test">/);
+  assert.match(body.html, /Cześć &lt;a href=&quot;https:\/\/evil\.test&quot;&gt;Click here&lt;\/a&gt;,/);
+  assert.match(body.html, /„Safety &amp; &lt;b&gt;you&lt;\/b&gt;”/);
+  assert.match(body.html, /123456/);
+  assert.match(body.text, /Cześć <a href="https:\/\/evil\.test">Click here<\/a>,/);
+});
+
+dbTest('the email layout escapes variables in plain and HTML bodies', async () => {
+  const variables = {
+    first_name: '<img src=x onerror=alert(1)>',
+    email: 'person@mail-test.nl',
+    user_name: 'Sam <b>Bold</b>',
+    user_first_name: 'Sam <b>Bold</b>',
+    journey_title: 'Safety & <b>you</b>',
+    company_name: '"Acme"',
+    custom_link: 'https://app.mail-test.nl/e/abc?x=1&y=2',
+    custom_link_text: '<i>Start</i>'
+  };
+
+  // Plain text body, as automation emails send it
+  const plain = await email.renderEmail({
+    to: 'person@mail-test.nl',
+    subject: 'Hi {first_name}',
+    customBody: 'Hello {first_name}\nPrice: $& {{journey_title}}',
+    variables
+  });
+  assert.doesNotMatch(plain.html, /<img src=x|<b>Bold<\/b>|<i>Start<\/i>/);
+  assert.match(plain.html, /Hello &lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.match(plain.html, /Price: \$&amp; Safety &amp; &lt;b&gt;you&lt;\/b&gt;/);
+  assert.match(plain.html, /href="https:\/\/app\.mail-test\.nl\/e\/abc\?x=1&amp;y=2"/);
+  assert.match(plain.html, /alt="&quot;Acme&quot;"/);
+  assert.match(plain.text, /Hello <img src=x onerror=alert\(1\)>/);
+  assert.equal(plain.subject, 'Hi <img src=x onerror=alert(1)>');
+
+  // HTML body, as the reward and form emails send it: the maker's markup stays
+  const html = await email.renderEmail({
+    to: 'person@mail-test.nl',
+    subject: 'Reward',
+    customBody: '<p style="color: {{primaryColor}};">Well done {user_name}</p>',
+    isHtmlBody: true,
+    variables
+  });
+  assert.match(html.html, /<p style="color: #[0-9a-fA-F]{6};">Well done Sam &lt;b&gt;Bold&lt;\/b&gt;<\/p>/);
+  assert.match(html.text, /Well done Sam <b>Bold<\/b>/);
+
+  // One pass: a value that looks like a placeholder is not filled in
+  const nested = await email.renderEmail({
+    to: 'person@mail-test.nl',
+    subject: 'x',
+    customBody: 'Name: {first_name}',
+    variables: { first_name: '{email}', email: 'secret@mail-test.nl' }
+  });
+  assert.match(nested.html, /Name: \{email\}/);
+  assert.doesNotMatch(nested.html, /Name: secret/);
+});
+
+dbTest('the invitation email escapes the name and title but keeps its own markup', async () => {
+  await settings.setSettings({ 'email.provider': 'nuntly', 'email.nuntlyApiKey': 'nuntly-test-key' });
+  const originalFetch = globalThis.fetch;
+  let body = null;
+  globalThis.fetch = async (url, init) => {
+    body = JSON.parse(init.body);
+    return new Response(JSON.stringify({ data: { id: 'msg_789' } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+  try {
+    await email.sendInvitationEmail({
+      to: 'person@mail-test.nl',
+      firstName: '<a href="https://evil.test">Sam</a>',
+      journeyTitle: 'Safety & <b>you</b>',
+      companyName: 'Acme',
+      magicLink: 'https://app.mail-test.nl/e/abc?x=1&y=2',
+      validityText: '1 week',
+      language: 'en'
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.equal(body.subject, "You're invited to Safety & <b>you</b>");
+  assert.doesNotMatch(body.html, /<a href="https:\/\/evil\.test">|<b>you<\/b>/);
+  assert.match(body.html, /Hello &lt;a href=&quot;https:\/\/evil\.test&quot;&gt;Sam&lt;\/a&gt;,/);
+  assert.match(body.html, /"<strong>Safety &amp; &lt;b&gt;you&lt;\/b&gt;<\/strong>" at Acme/);
+  assert.match(body.html, /href="https:\/\/app\.mail-test\.nl\/e\/abc\?x=1&amp;y=2"/);
+  assert.match(body.text, /Hello <a href="https:\/\/evil\.test">Sam<\/a>,/);
+  assert.match(body.text, /participate in "Safety & <b>you<\/b>" at Acme/);
+});
+
+dbTest('security mail has no unsubscribe link or List-Unsubscribe header', async () => {
+  const args = { to: 'person@mail-test.nl', subject: 'Hi', customBody: 'Hello', unsubscribeEmail: 'maker@mail-test.nl' };
+
+  const invite = await email.renderEmail(args);
+  assert.match(invite.html, /mailto:maker@mail-test\.nl/);
+  assert.match(invite.text, /Unsubscribe: mailto:maker@mail-test\.nl/);
+  assert.ok(invite.headers['List-Unsubscribe']);
+
+  const code = await email.renderEmail({ ...args, transactional: true, unsubscribeUrl: 'https://app.mail-test.nl/u/1' });
+  assert.doesNotMatch(code.html, /mailto:|Unsubscribe|u\/1/);
+  assert.doesNotMatch(code.text, /Unsubscribe/);
+  assert.deepEqual(code.headers, {});
+});

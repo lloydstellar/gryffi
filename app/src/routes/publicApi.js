@@ -6,16 +6,21 @@
  * Base URL: ${API_URL}/api/v1 (configured via environment variable)
  * 
  * Rate Limiting: 5000 requests per 15 minutes per organization
- * (applied after API key validation, so each org gets their own quota)
+ * (applied after API key validation, so each org gets their own quota).
+ * Before the key check: at most 30 rejected keys (401) per IP per 15 minutes.
+ *
+ * Answers are JSON: { success: true, ... } or { success: false, error, message }.
+ * Wrong input gives 400 with what is wrong, an unknown id 404.
  */
 import { Router } from 'express';
 import { query } from '../db/index.js';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { sendInvitationEmail } from '../services/email.js';
-import { getOrganizationUsageWithLimits } from '../services/subscription.js';
+import { findOrganizationByApiKey } from '../services/apiKeys.js';
+import { invitationEmailLanguage, invitationValidityText } from '../utils/invitationText.js';
+import { getOrganizationUsageWithLimits, recordLimitHit, RESOURCE_TYPES } from '../services/subscription.js';
 import { publicApiLimiter, publicApiAuthFailureLimiter } from '../middleware/rateLimit.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
+import { newInvitationToken } from '../services/invitationTokens.js';
 
 const router = Router();
 
@@ -30,7 +35,7 @@ async function requireApiKey(req, res, next) {
   try {
     const apiKey = req.headers['x-api-key'];
     
-    if (!apiKey) {
+    if (!apiKey || typeof apiKey !== 'string') {
       return res.status(401).json({
         success: false,
         error: 'API key required',
@@ -47,26 +52,8 @@ async function requireApiKey(req, res, next) {
       });
     }
     
-    // Find organization with matching API key hash
-    // We need to check all organizations since we can't reverse the hash
-    // Organizations whose plan includes API access first: valid keys are
-    // found after fewer bcrypt compares.
-    const orgsResult = await query(`
-      SELECT o.id, o.name, o.api_key_hash, o.subscription_tier_id
-      FROM organizations o
-      LEFT JOIN subscription_tiers t ON t.id = o.subscription_tier_id
-      WHERE o.api_key_hash IS NOT NULL
-      ORDER BY COALESCE(t.api_access, false) DESC
-    `);
-    
-    let matchedOrg = null;
-    for (const org of orgsResult.rows) {
-      const isMatch = await bcrypt.compare(apiKey, org.api_key_hash);
-      if (isMatch) {
-        matchedOrg = org;
-        break;
-      }
-    }
+    // One indexed lookup (services/apiKeys.js)
+    const matchedOrg = await findOrganizationByApiKey(apiKey);
     
     if (!matchedOrg) {
       return res.status(401).json({
@@ -121,6 +108,17 @@ router.use(requireApiKey);
 // This allows each organization 5000 requests per 15 minutes
 router.use(publicApiLimiter);
 
+// Ids in the path are UUIDs; anything else cannot exist (and would make the
+// database query fail with a server error)
+router.param('id', (req, res, next, id) => {
+  if (isUuid(id)) return next();
+  res.status(404).json({
+    success: false,
+    error: 'Group not found',
+    message: 'The specified group does not exist or does not belong to your organization'
+  });
+});
+
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
@@ -141,6 +139,63 @@ function sanitizeString(str, maxLength = 255) {
   return str.trim().slice(0, maxLength);
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * @param {unknown} value
+ * @returns {boolean} true for a UUID string
+ */
+function isUuid(value) {
+  return typeof value === 'string' && UUID_PATTERN.test(value);
+}
+
+/** Most email addresses one request may add to or remove from a group */
+const MAX_EMAILS_PER_REQUEST = 1000;
+
+/**
+ * Names of the fields that are missing or not text.
+ * @param {Object} body
+ * @param {string[]} fields
+ * @returns {string[]}
+ */
+function invalidTextFields(body, fields) {
+  return fields.filter(f => typeof body?.[f] !== 'string' || !body[f].trim());
+}
+
+/**
+ * 400 answer for fields that are missing or not text.
+ * @param {import('express').Response} res
+ * @param {string[]} fields
+ */
+function sendInvalidFields(res, fields) {
+  return res.status(400).json({
+    success: false,
+    error: 'Missing required fields',
+    message: `These fields are required and must be text: ${fields.join(', ')}`
+  });
+}
+
+/**
+ * A number from JSON, also when it was sent as text ("14").
+ * @param {unknown} value
+ * @returns {number}
+ */
+function toNumber(value) {
+  return typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+}
+
+/**
+ * A boolean from JSON, also when it was sent as text ("true", "false").
+ * @param {unknown} value
+ * @returns {boolean|null} null when it is neither
+ */
+function toBoolean(value) {
+  if (typeof value === 'boolean') return value;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return null;
+}
+
 // ============================================
 // END USER ENDPOINTS
 // ============================================
@@ -159,16 +214,11 @@ function sanitizeString(str, maxLength = 255) {
 router.post('/end-users', async (req, res) => {
   try {
     const orgId = req.organizationId;
-    const { email, first_name, last_name } = req.body;
+    const { email, first_name, last_name } = req.body || {};
     
     // Validate required fields
-    if (!email || !first_name || !last_name) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields',
-        message: 'email, first_name, and last_name are required'
-      });
-    }
+    const invalid = invalidTextFields(req.body, ['email', 'first_name', 'last_name']);
+    if (invalid.length > 0) return sendInvalidFields(res, invalid);
     
     // Validate email format
     const cleanEmail = sanitizeString(email.toLowerCase(), 255);
@@ -194,6 +244,7 @@ router.post('/end-users', async (req, res) => {
     // Check end user limit
     const usageData = await getOrganizationUsageWithLimits(orgId);
     if (usageData && usageData.usage.endUsers.isAtLimit) {
+      await recordLimitHit(orgId, RESOURCE_TYPES.END_USERS, { source: 'public_api', current: usageData.usage.endUsers.used, limit: usageData.usage.endUsers.limit, tier: usageData.tier?.name });
       return res.status(403).json({
         success: false,
         error: 'Limit reached',
@@ -269,9 +320,9 @@ router.post('/end-users', async (req, res) => {
 router.delete('/end-users', async (req, res) => {
   try {
     const orgId = req.organizationId;
-    const { email } = req.body;
+    const { email } = req.body || {};
     
-    if (!email) {
+    if (typeof email !== 'string' || !email.trim()) {
       return res.status(400).json({
         success: false,
         error: 'Missing required field',
@@ -362,16 +413,11 @@ router.post('/invitations', async (req, res) => {
       validity_days = 14,
       max_completions = 1,
       send_reminder = false
-    } = req.body;
+    } = req.body || {};
     
     // Validate required fields
-    if (!email || !first_name || !last_name || !journey_id) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields',
-        message: 'email, first_name, last_name, and journey_id are required'
-      });
-    }
+    const invalid = invalidTextFields(req.body, ['email', 'first_name', 'last_name', 'journey_id']);
+    if (invalid.length > 0) return sendInvalidFields(res, invalid);
     
     // Validate email
     const cleanEmail = sanitizeString(email.toLowerCase(), 255);
@@ -394,20 +440,42 @@ router.post('/invitations', async (req, res) => {
       });
     }
     
-    // Validate validity_days
+    // Validate the options: a value we do not know is an error, not a silent default
     const validDays = [7, 14, 30, 90];
-    const cleanValidityDays = validDays.includes(validity_days) ? validity_days : 14;
+    const cleanValidityDays = toNumber(validity_days);
+    if (!validDays.includes(cleanValidityDays)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid validity_days',
+        message: 'validity_days must be 7, 14, 30 or 90'
+      });
+    }
     
-    // Validate max_completions
     const validCompletions = [1, 2, -1];
-    const cleanMaxCompletions = validCompletions.includes(max_completions) ? max_completions : 1;
+    const cleanMaxCompletions = toNumber(max_completions);
+    if (!validCompletions.includes(cleanMaxCompletions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid max_completions',
+        message: 'max_completions must be 1, 2 or -1 (unlimited)'
+      });
+    }
+    
+    const sendReminder = toBoolean(send_reminder);
+    if (sendReminder === null) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid send_reminder',
+        message: 'send_reminder must be true or false'
+      });
+    }
     
     // Validate journey exists and belongs to organization
-    const journeyResult = await query(
-      `SELECT id, title, status FROM journeys 
+    const journeyResult = isUuid(journey_id) ? await query(
+      `SELECT id, title, status, settings FROM journeys 
        WHERE id = $1 AND organization_id = $2 AND deleted_at IS NULL`,
       [journey_id, orgId]
-    );
+    ) : { rows: [] };
     
     if (journeyResult.rows.length === 0) {
       return res.status(404).json({
@@ -430,19 +498,23 @@ router.post('/invitations', async (req, res) => {
     
     // Check end user limit before creating (if user doesn't exist)
     const existingUserResult = await query(
-      `SELECT id FROM end_users WHERE organization_id = $1 AND LOWER(email) = $2`,
+      `SELECT id, first_name FROM end_users WHERE organization_id = $1 AND LOWER(email) = $2`,
       [orgId, cleanEmail]
     );
     
     let endUserId;
     let userCreated = false;
+    // The mail greets a known participant with the name Gryffi already has
+    let greetingName = cleanFirstName;
     
     if (existingUserResult.rows.length > 0) {
       endUserId = existingUserResult.rows[0].id;
+      greetingName = existingUserResult.rows[0].first_name || cleanFirstName;
     } else {
       // Check limit before creating new user
       const usageData = await getOrganizationUsageWithLimits(orgId);
       if (usageData && usageData.usage.endUsers.isAtLimit) {
+        await recordLimitHit(orgId, RESOURCE_TYPES.END_USERS, { source: 'public_api', current: usageData.usage.endUsers.used, limit: usageData.usage.endUsers.limit, tier: usageData.tier?.name });
         return res.status(403).json({
           success: false,
           error: 'Limit reached',
@@ -477,15 +549,16 @@ router.post('/invitations', async (req, res) => {
       });
     }
     
-    // Generate secure token for magic link
-    const token = crypto.randomBytes(32).toString('hex');
+    // Secure token for the magic link; the database keeps its hash and an
+    // encrypted copy, not the token (services/invitationTokens.js)
+    const { token, tokenHash, tokenEncrypted } = newInvitationToken('hex');
     
     // Calculate expiry
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + cleanValidityDays);
     
     // Calculate reminder time (halfway through validity period)
-    const reminderAt = send_reminder ? new Date() : null;
+    const reminderAt = sendReminder ? new Date() : null;
     if (reminderAt) {
       reminderAt.setDate(reminderAt.getDate() + Math.floor(cleanValidityDays / 2));
     }
@@ -493,13 +566,13 @@ router.post('/invitations', async (req, res) => {
     // Create invitation
     const invResult = await query(
       `INSERT INTO invitations (
-        organization_id, token, journey_id, end_user_id, 
+        organization_id, token_hash, token_encrypted, journey_id, end_user_id, 
         expires_at, max_completions, send_reminder, reminder_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id, token, expires_at`,
-      [orgId, token, journey_id, endUserId, expiresAt, 
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id, expires_at`,
+      [orgId, tokenHash, tokenEncrypted, journey_id, endUserId, expiresAt, 
        cleanMaxCompletions === -1 ? null : cleanMaxCompletions,
-       send_reminder, reminderAt]
+       sendReminder, reminderAt]
     );
     
     const invitation = invResult.rows[0];
@@ -507,15 +580,13 @@ router.post('/invitations', async (req, res) => {
     // Generate magic link
     const magicLink = `${getAppBaseUrl()}/e/${token}`;
     
-    // Get organization language for email
-    const orgResult = await query(`SELECT language FROM organizations WHERE id = $1`, [orgId]);
-    const orgLanguage = orgResult.rows[0]?.language || 'en';
-    
-    // Format validity text
-    const validityText = cleanValidityDays === 7 ? '1 week' :
-                         cleanValidityDays === 14 ? '2 weeks' :
-                         cleanValidityDays === 30 ? '1 month' :
-                         `${cleanValidityDays} days`;
+    // Language of the mail: the same choice as invitations from the maker interface
+    const orgResult = await query(
+      `SELECT COALESCE(settings->>'default_language', language) AS language FROM organizations WHERE id = $1`,
+      [orgId]
+    );
+    const emailLanguage = invitationEmailLanguage(journey.settings, orgResult.rows[0]?.language);
+    const validityText = invitationValidityText(emailLanguage, cleanValidityDays);
     
     // For API-driven invites there is no individual maker in the request, so
     // route the unsubscribe to the org's primary admin (the human responsible
@@ -538,12 +609,12 @@ router.post('/invitations', async (req, res) => {
     try {
       await sendInvitationEmail({
         to: cleanEmail,
-        firstName: cleanFirstName,
+        firstName: greetingName,
         journeyTitle: journey.title,
         companyName: orgName,
         magicLink: magicLink,
         validityText: validityText,
-        language: orgLanguage,
+        language: emailLanguage,
         orgId: orgId, // For custom theme support
         unsubscribeEmail: primaryAdminEmail
       });
@@ -564,7 +635,7 @@ router.post('/invitations', async (req, res) => {
         expires_at: invitation.expires_at,
         magic_link: magicLink,
         max_completions: cleanMaxCompletions === -1 ? 'unlimited' : cleanMaxCompletions,
-        send_reminder: send_reminder
+        send_reminder: sendReminder
       }
     });
     
@@ -731,10 +802,10 @@ router.get('/groups/:id/members', async (req, res) => {
 router.post('/groups', async (req, res) => {
   try {
     const orgId = req.organizationId;
-    const { name, description } = req.body;
+    const { name, description } = req.body || {};
     
     // Validate required fields
-    if (!name) {
+    if (typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({
         success: false,
         error: 'Missing required field',
@@ -813,7 +884,7 @@ router.post('/groups/:id/members', async (req, res) => {
   try {
     const orgId = req.organizationId;
     const groupId = req.params.id;
-    const { emails } = req.body;
+    const { emails } = req.body || {};
     
     // Validate input
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
@@ -821,6 +892,13 @@ router.post('/groups/:id/members', async (req, res) => {
         success: false,
         error: 'Missing required field',
         message: 'An array of email addresses is required'
+      });
+    }
+    if (emails.length > MAX_EMAILS_PER_REQUEST) {
+      return res.status(400).json({
+        success: false,
+        error: 'Too many email addresses',
+        message: `Send at most ${MAX_EMAILS_PER_REQUEST} email addresses per request`
       });
     }
     
@@ -914,7 +992,7 @@ router.delete('/groups/:id/members', async (req, res) => {
   try {
     const orgId = req.organizationId;
     const groupId = req.params.id;
-    const { emails } = req.body;
+    const { emails } = req.body || {};
     
     // Validate input
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
@@ -922,6 +1000,13 @@ router.delete('/groups/:id/members', async (req, res) => {
         success: false,
         error: 'Missing required field',
         message: 'An array of email addresses is required'
+      });
+    }
+    if (emails.length > MAX_EMAILS_PER_REQUEST) {
+      return res.status(400).json({
+        success: false,
+        error: 'Too many email addresses',
+        message: `Send at most ${MAX_EMAILS_PER_REQUEST} email addresses per request`
       });
     }
     
@@ -1062,6 +1147,15 @@ router.delete('/groups/:id', async (req, res) => {
       message: 'An error occurred while deleting the group'
     });
   }
+});
+
+// Unknown paths under /api/v1: JSON, like every other answer of this API
+router.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Not found',
+    message: `${req.method} ${req.baseUrl}${req.path} does not exist`
+  });
 });
 
 export default router;

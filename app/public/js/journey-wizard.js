@@ -148,6 +148,7 @@
     branchingDescription: $('#jwBranchingDescription'),
     // language
     languageSelect: $('#jwLanguage'),
+    guideBlockedHint: $('#jwGuideBlockedHint'),
     // summary
     summaryList: $('#jwSummaryList'),
     // progress
@@ -155,6 +156,10 @@
     progressBarFill: $('#jwProgressBarFill'),
     // success
     openBuilder: $('#jwOpenBuilder'),
+    preview: $('#jwPreview'),
+    sendToSelf: $('#jwSendToSelf'),
+    sendToSelfBlock: $('#jwSendToSelfBlock'),
+    sendToSelfResult: $('#jwSendToSelfResult'),
     // error
     errorMessage: $('#jwErrorMessage'),
     errorRetry: $('#jwErrorRetry'),
@@ -380,6 +385,8 @@
         if (state.guide === 'existing') ok = !!(el.guideExistingSelect && el.guideExistingSelect.value);
         else if (state.guide === 'newWithKb' || state.guide === 'newNoKb') ok = !!(el.guideName && (el.guideName.value || '').trim());
         else ok = true;
+        // Say why Next is not available yet
+        if (el.guideBlockedHint) el.guideBlockedHint.hidden = ok;
         break;
       case 'language': ok = !!el.languageSelect.value; break;
       case 'summary': ok = true; break;
@@ -471,6 +478,7 @@
     });
 
     // Back / Next
+    el.sendToSelf?.addEventListener('click', sendCreatedJourneyToSelf);
     el.backBtn.addEventListener('click', goBack);
     el.nextBtn.addEventListener('click', goNext);
 
@@ -944,7 +952,9 @@
       goto: 'components'
     });
 
-    items.push({ key: 'language', label: S.language, value: state.language.toUpperCase(), goto: 'language' });
+    // The language by name ("Nederlands"), as in the list on the language page
+    const languageOption = el.languageSelect && [...el.languageSelect.options].find(o => o.value === state.language);
+    items.push({ key: 'language', label: S.language, value: languageOption ? languageOption.textContent.trim() : state.language.toUpperCase(), goto: 'language' });
     // Name is chosen by Gryffi — show it as a non-editable row so the maker
     // understands the journey will get a suggested title they can rename later.
     items.push({ key: 'title', label: S.title, value: S.titleAuto || '—' });
@@ -1053,6 +1063,8 @@
           if (data.done && data.journeyId) {
             clearPersistedState();
             el.openBuilder.href = `/dashboard/builder/${data.journeyId}`;
+            el.preview.href = `/dashboard/preview/${data.journeyId}`;
+            createdJourneyId = data.journeyId;
             showSuccess();
             try { reader.cancel(); } catch (_) {}
             return;
@@ -1060,22 +1072,25 @@
           if (data.error) {
             try { reader.cancel(); } catch (_) {}
             // Map known server error codes to localised friendly messages.
-            // Falls back to the raw server message when no code is set so we
-            // don't accidentally swallow useful context.
+            // Anything else gets the general message: the raw text ("Mistral
+            // did not return valid JSON") means nothing to a maker. The
+            // details stay in the console and the server log.
             const codeMessages = {
               mistral_timeout:     I18N.errors.timeout,
               mistral_rate_limit:  I18N.errors.rateLimit,
               mistral_unavailable: I18N.errors.serviceUnavailable
             };
             const friendly = data.code && codeMessages[data.code];
-            showFailure(friendly || data.error);
+            if (!friendly) console.error('[Wizard] generation failed:', data.error);
+            showFailure(friendly || I18N.errors.generic);
             return;
           }
         }
       }
     } catch (err) {
+      // Usually the connection dropped ("network error"): not useful to show
       console.error('[Wizard] generation failed', err);
-      showFailure(err.message || I18N.errors.generic);
+      showFailure(I18N.errors.generic);
     }
   }
 
@@ -1171,6 +1186,32 @@
     startProgressCreep(PROGRESS_NEXT_MILESTONE[clamped]);
   }
 
+  // The journey the wizard just made (for the buttons on the last screen)
+  let createdJourneyId = null;
+
+  /**
+   * "Send it to yourself" on the last screen: publish the new journey and
+   * email the maker the invitation (window.gryffi.sendToSelf in app.js).
+   */
+  async function sendCreatedJourneyToSelf() {
+    if (!createdJourneyId || !window.gryffi?.sendToSelf) return;
+    const texts = I18N.sendToSelf || {};
+    const label = el.sendToSelf.textContent;
+    el.sendToSelf.disabled = true;
+    el.sendToSelf.textContent = texts.sending || label;
+    const result = await window.gryffi.sendToSelf(createdJourneyId, { isDraft: true });
+    el.sendToSelf.textContent = label;
+    el.sendToSelf.disabled = false;
+    if (result.cancelled) return;
+
+    const message = window.gryffi.sendToSelfMessage(result, texts);
+    el.sendToSelfResult.textContent = message.text;
+    el.sendToSelfResult.dataset.kind = message.kind;
+    el.sendToSelfResult.hidden = false;
+    // Sent (or already sent): the button has done its job
+    if (result.ok && !result.emailError && el.sendToSelfBlock) el.sendToSelfBlock.hidden = true;
+  }
+
   function showSuccess() {
     stopProgressCreep();
     stopStatusRotation();
@@ -1178,6 +1219,9 @@
     Object.values(pagesBySlug).forEach(p => { p.hidden = true; });
     pagesBySlug.success.hidden = false;
     el.footer.hidden = true;
+    // A second run starts with a clean last screen
+    if (el.sendToSelfResult) el.sendToSelfResult.hidden = true;
+    if (el.sendToSelfBlock) el.sendToSelfBlock.hidden = false;
     el.progressFill.style.width = '100%';
     if (el.progressBarFill) el.progressBarFill.style.width = '100%';
   }

@@ -7,13 +7,15 @@
  * - Provides semantic search across help documentation
  * - Generates AI responses using Mistral with context from docs
  * - Returns navigation links to relevant parts of the app
+ * - Serves the help pages as articles, grouped in categories
  */
 
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { aiFetch, getAiConfig, isAiConfigured } from './aiProvider.js';
+import { aiFetch, getAiConfig, isAiConfigured, messageText } from './aiProvider.js';
+import redis from '../db/redis.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +46,53 @@ const LANGUAGE_NAMES = {
   es: 'Spanish (Español)'
 };
 
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+const AI_TIMEOUT_MS = 25000;
+
+/**
+ * One chat completion. A busy provider (429) or a server error gets two more
+ * tries, the last one on the fallback model, so a maker who asks a few
+ * questions in a row still gets an answer.
+ * @param {Array<{role: string, content: string}>} messages
+ * @param {{maxTokens: number, temperature?: number, model?: string, timeoutMs?: number, json?: boolean}} options
+ * @returns {Promise<string>} the answer text
+ * @throws when every try failed or AI is not configured
+ */
+async function chatCompletion(messages, { maxTokens, temperature = 0.3, model, timeoutMs = AI_TIMEOUT_MS, json = false } = {}) {
+  const config = await getAiConfig();
+  const first = model || config.chatModel;
+  const models = [first, first, config.fallbackModel || first];
+  let lastError = null;
+  for (let attempt = 0; attempt < models.length; attempt++) {
+    if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 800 * attempt));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await aiFetch('/chat/completions', {
+        body: JSON.stringify({
+          model: models[attempt], messages, temperature, max_tokens: maxTokens,
+          ...(json ? { response_format: { type: 'json_object' } } : {})
+        }),
+        signal: controller.signal
+      });
+      if (response.ok) {
+        const text = messageText(await response.json()).trim();
+        if (text) return text;
+        lastError = new Error('Empty response');
+      } else {
+        lastError = new Error(`HTTP ${response.status}`);
+        if (!RETRY_STATUSES.has(response.status)) break;
+      }
+    } catch (err) {
+      if (err?.name === 'AiNotConfiguredError') throw err;
+      lastError = err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError || new Error('AI request failed');
+}
+
 /**
  * Load UI glossary from i18n files for a specific language
  * Extracts key UI terms that should be used in help responses
@@ -72,6 +121,7 @@ function loadUIGlossary(language) {
       glossary['Invitations'] = localeData.nav.invitations || 'Invitations';
       glossary['Settings'] = localeData.nav.settings || 'Settings';
       glossary['System Settings'] = localeData.nav.systemSettings || 'System Settings';
+      glossary['Participants'] = localeData.nav.participants || 'Participants';
       glossary['Team'] = localeData.nav.team || 'Team';
       glossary['Analytics'] = localeData.nav.analytics || 'Analytics';
     }
@@ -125,7 +175,7 @@ function loadUIGlossary(language) {
     if (localeData.dashboard?.actions) {
       glossary['New Journey'] = localeData.dashboard.actions.newJourney || 'New Journey';
       glossary['Send Invitation'] = localeData.dashboard.actions.sendInvitation || 'Send Invitation';
-      glossary['Add End User'] = localeData.dashboard.actions.addEndUser || 'Add End User';
+      glossary['Add Participant'] = localeData.dashboard.actions.addEndUser || 'Add Participant';
     }
     
     // Auth terms
@@ -152,10 +202,10 @@ function loadUIGlossary(language) {
       glossary['Builder'] = localeData.builder.title || 'Builder';
     }
     
-    // End user terms
+    // Participant terms (the people who follow journeys)
     if (localeData.systemSettings?.users || localeData.dashboard?.stats) {
-      glossary['End User'] = localeData.systemSettings?.users?.title?.replace(/s$/, '') || localeData.builder?.automations?.variableCategories?.endUser || 'End User';
-      glossary['End Users'] = localeData.systemSettings?.users?.title || localeData.dashboard?.stats?.endUsers || 'End Users';
+      glossary['Participant'] = localeData.builder?.automations?.variableCategories?.endUser || 'Participant';
+      glossary['Participants'] = localeData.systemSettings?.users?.title || localeData.dashboard?.stats?.endUsers || 'Participants';
     }
     
     // Maker/Team terms
@@ -172,7 +222,6 @@ function loadUIGlossary(language) {
     
     // System settings terms
     if (localeData.systemSettings) {
-      glossary['Users tab'] = localeData.systemSettings.tabs?.users || 'Users';
       glossary['API tab'] = localeData.systemSettings.tabs?.api || 'API';
       glossary['Themes tab'] = localeData.systemSettings.tabs?.themes || 'Themes';
       glossary['General tab'] = localeData.systemSettings.tabs?.general || 'General';
@@ -296,7 +345,9 @@ function termsFromDocs(docs, language) {
   for (const doc of docs) {
     for (const match of (doc.content || '').matchAll(/\*\*([^*\n]{2,60})\*\*|"([^"\n]{2,40})"/g)) {
       const term = (match[1] || match[2]).trim().replace(/[.:]$/, '');
-      const translated = index.get(term.toLowerCase());
+      // A plural title ("Floor Plans") uses the singular UI name ("Floor plan")
+      const lower = term.toLowerCase();
+      const translated = index.get(lower) || (lower.endsWith('s') ? index.get(lower.slice(0, -1)) : null);
       if (translated) terms[term] = translated;
     }
   }
@@ -473,12 +524,50 @@ function extractImages(content) {
 }
 
 /**
+ * A help page as an article for the help window: text blocks (Markdown) and
+ * screenshot blocks in the order of the page. The title, the [[goto:]] tags,
+ * HTML comments and the "Related Features" part are left out; the related
+ * pages come from the frontmatter and the "See:" line of that part.
+ * @param {string} rawBody - Markdown without frontmatter
+ * @param {string[]} frontmatterRelated - related_features from the frontmatter
+ * @returns {{ blocks: Array<{type: 'text', text: string}|{type: 'image', index: number}>, related: string[] }}
+ */
+function articleFromBody(rawBody, frontmatterRelated) {
+  const relatedPart = rawBody.match(/^## Related Features?\s*\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
+  const seeAlso = relatedPart
+    ? [...relatedPart[1].matchAll(/^- See:\s*(.+)$/gm)].flatMap(m => m[1].split(',').map(id => id.trim()))
+    : [];
+  const related = [...new Set([...(Array.isArray(frontmatterRelated) ? frontmatterRelated : []), ...seeAlso])];
+
+  const body = (relatedPart ? rawBody.replace(relatedPart[0], '') : rawBody)
+    .replace(/^# .+\n?/m, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/^[ \t]*\[\[(?:goto|show):[^\]]*\]\][ \t]*$/gm, '')
+    .replace(/\[\[(?:goto|show):[^\]]*\]\]/g, '');
+
+  const blocks = [];
+  let last = 0;
+  let index = 0;
+  const addText = (text) => {
+    const trimmed = text.replace(/\n{3,}/g, '\n\n').trim();
+    if (trimmed) blocks.push({ type: 'text', text: trimmed });
+  };
+  for (const match of body.matchAll(IMAGE_BLOCK)) {
+    addText(body.slice(last, match.index));
+    blocks.push({ type: 'image', index: index++ });
+    last = match.index + match[0].length;
+  }
+  addText(body.slice(last));
+  return { blocks, related };
+}
+
+/**
  * Screenshot URLs of a help page for a language, falling back to English
  * @param {Object} doc - Help document
  * @param {string} language - Maker interface language
  * @returns {Array<{src: string, alt: string, markers: Object}>}
  */
-export function getHelpImages(doc, language = 'en') {
+function getHelpImages(doc, language = 'en') {
   return (doc?.images || []).map(({ base, alt }) => {
     const localized = `${base}.${language}.webp`;
     const file = fs.existsSync(path.join(HELP_BASE_PATH, localized)) ? localized : `${base}.en.webp`;
@@ -539,6 +628,7 @@ async function loadHelpDocuments() {
       const { links } = extractTags(body);
       const keywords = extractKeywords(plainContent);
       const words = new Set(tokenize(plainContent));
+      const article = articleFromBody(rawBody, frontmatter.related_features);
 
       // Get feature ID from frontmatter or filename
       const featureId = frontmatter.feature_id || file.replace('.md', '');
@@ -554,7 +644,8 @@ async function loadHelpDocuments() {
         images,
         keywords,
         words,
-        relatedFeatures: frontmatter.related_features || []
+        relatedFeatures: frontmatter.related_features || [],
+        article
       });
     }
     
@@ -589,13 +680,6 @@ export async function initHelpCache({ waitForIndex = false } = {}) {
   });
   if (waitForIndex) await build;
   return helpDocsCache.length;
-}
-
-/**
- * One help page by its id, or null
- */
-export async function getHelpDoc(id) {
-  return (await getHelpDocs()).find(doc => doc.id === id) || null;
 }
 
 // ============================================
@@ -765,14 +849,14 @@ const VERB_SYNONYMS = {
 
 // The words makers use, and the words the help pages use for the same thing.
 // Without an AI provider the help search only matches words, so a question
-// about "participants" or a "course" must still find "end users" and
-// "journeys". Gryffi's own names in the five maker languages are included,
+// about "end users", "employees" or a "course" must still find "participants"
+// and "journeys". Gryffi's own names in the five maker languages are included,
 // so that search works a little in those languages too.
 const TERM_GROUPS = [
-  [['participant', 'participants', 'employee', 'employees', 'staff', 'people', 'learner', 'learners', 'trainee', 'trainees',
+  [['employee', 'employees', 'staff', 'people', 'learner', 'learners', 'trainee', 'trainees',
     'student', 'students', 'hire', 'hires', 'newcomer', 'newcomers', 'worker', 'workers', 'enduser', 'endusers',
-    'deelnemer', 'deelnemers', 'medewerker', 'medewerkers', 'eindgebruiker', 'eindgebruikers', 'teilnehmer', 'mitarbeiter',
-    'participante', 'participantes', 'empleado', 'empleados'], ['end', 'user', 'users']],
+    'deelnemer', 'deelnemers', 'medewerker', 'medewerkers', 'eindgebruiker', 'eindgebruikers', 'teilnehmer', 'endbenutzer',
+    'mitarbeiter', 'participante', 'participantes', 'empleado', 'empleados'], ['participant', 'participants']],
   [['course', 'courses', 'training', 'trainings', 'programme', 'program', 'module', 'modules', 'lesson', 'lessons',
     'expeditie', 'expedities', 'expedition', 'expeditionen', 'parcours', 'expedición', 'expediciones', 'cursus'], ['journey', 'journeys']],
   [['chatbot', 'chatbots', 'bot', 'bots', 'chat', 'assistant', 'gids', 'gidsen', 'guía', 'guías'], ['guide', 'guides']],
@@ -834,7 +918,7 @@ function tokenize(text) {
 /**
  * Word-match score of one help page (the original scoring, on whole words)
  */
-function lexicalScore(doc, queryLower, expandedWords, context, idf) {
+function lexicalScore(doc, queryLower, expandedWords, context, idf, focus = '') {
   let score = 0;
   const titleWords = new Set(tokenize(doc.title));
   const idWords = new Set(doc.id.toLowerCase().split('-'));
@@ -851,43 +935,35 @@ function lexicalScore(doc, queryLower, expandedWords, context, idf) {
   if (doc.relatedFeatures.some(r => r.split('-').some(part => expandedWords.includes(part)))) score += 10;
   // The page the maker is on gets a small boost
   if (context && (doc.id.toLowerCase().includes(context.toLowerCase()))) score += 15;
+  // The page about what the maker has selected (a quiz step in the builder) a bigger one
+  if (focus && doc.id === focus) score += 40;
   return score;
 }
 
 /**
  * The help pages are in English and the embedding model matches English best,
- * so a question from a maker who uses another language is translated first.
- * Returns the question unchanged when that is not possible.
+ * so a question from a maker who uses another language is translated first,
+ * with the small model. Returns the question unchanged when that is not possible.
  */
+const englishQuestions = new Map();
 async function toEnglish(query, language) {
+  const key = `${language}\n${query}`;
+  if (englishQuestions.has(key)) return englishQuestions.get(key);
   const term = getJourneyTerm(language);
   const termNote = term ? ` In this software, "${term.singular}" and "${term.plural}" mean journey and journeys.` : '';
-  // One retry: a failed translation falls back to the weaker search
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const { chatModel } = await getAiConfig();
-      const response = await aiFetch('/chat/completions', {
-        body: JSON.stringify({
-          model: chatModel,
-          messages: [
-            { role: 'system', content: `Translate the question into English. Reply with the translated question only. Do not add or explain anything.${termNote}` },
-            { role: 'user', content: query.slice(0, 500) }
-          ],
-          temperature: 0,
-          max_tokens: 80
-        })
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const translated = data.choices?.[0]?.message?.content?.trim();
-        if (translated) return translated;
-      }
-    } catch {
-      // try again, then give up
-    }
-    if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 400));
+  try {
+    const { classifierModel } = await getAiConfig();
+    const translated = await chatCompletion([
+      { role: 'system', content: `Translate the question into English. Reply with the translated question only. Do not add or explain anything.${termNote}` },
+      { role: 'user', content: query.slice(0, 500) }
+    ], { model: classifierModel, temperature: 0, maxTokens: 80 });
+    englishQuestions.set(key, translated);
+    if (englishQuestions.size > 200) englishQuestions.delete(englishQuestions.keys().next().value);
+    return translated;
+  } catch {
+    // the weaker search, on the question as asked
+    return query;
   }
-  return query;
 }
 
 /**
@@ -901,7 +977,7 @@ async function toEnglish(query, language) {
  *   than English, the question is translated to English for the search
  * @returns {Promise<Array>} - Matching documents
  */
-export async function searchHelp(query, context = '', limit = 5, { language = 'en' } = {}) {
+export async function searchHelp(query, context = '', limit = 5, { language = 'en', focus = '' } = {}) {
   const docs = await getHelpDocs();
   // Right after a start the semantic index is still being built. Wait for it
   // a little: word matching alone finds nothing for a question that is not
@@ -920,7 +996,7 @@ export async function searchHelp(query, context = '', limit = 5, { language = 'e
     const count = docs.filter(doc => doc.words.has(word) || doc.id.includes(word)).length;
     return count === 0 ? 1 : Math.log((docs.length + 1) / (count + 1)) / Math.log(docs.length + 1);
   };
-  const lexical = docs.map(doc => lexicalScore(doc, queryLower, expandedWords, context, idf));
+  const lexical = docs.map(doc => lexicalScore(doc, queryLower, expandedWords, context, idf, focus));
   const maxLexical = Math.max(1, ...lexical);
   let minSemantic = 0;
   let maxSemantic = 1;
@@ -943,39 +1019,59 @@ export async function searchHelp(query, context = '', limit = 5, { language = 'e
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 
-  console.log('[Help Search]', semantic ? 'hybrid' : 'words only', '|', query, searchQuery !== query ? `(${searchQuery})` : '', '|', results.map(r => `${r.id} ${r.score}`).join(', '));
+  // The question itself stays out of the logs: makers type it and it can hold customer data
+  console.log('[Help Search]', semantic ? 'hybrid' : 'words only', '|', results.map(r => `${r.id} ${r.score}`).join(', ') || 'no results');
   return results;
+}
+
+/**
+ * What the model sometimes adds although the prompt says not to: images,
+ * "[Screenshot: ...]" notes and numbers in square brackets (the markers are
+ * written as "(3)"; "[3]" would not link to the screenshot)
+ * @param {string} text
+ * @returns {string}
+ */
+function cleanAnswer(text) {
+  return text
+    .replace(/!\[[^\]\n]*\]\([^)\n]*\)/g, '')
+    .replace(/\[\((\d{1,2})\)\]/g, '($1)')
+    .replace(/\[Screenshot:[^\]\n]*\]/gi, '')
+    .replace(/ ?\[\d{1,2}\]/g, '')
+    .replace(/[ \t]+$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 /**
  * Generate AI response for help query
  * @param {string} query - User's question
- * @param {Array} relevantDocs - Relevant documentation
+ * @param {Array} relevantDocs - Relevant documentation, best match first
  * @param {string} context - Current UI context
  * @param {string} language - Response language
- * @param {Object} makerContext - Information about the maker asking the question
- * @returns {Promise<Object>} - AI response with answer, link, source
+ * @param {Object} makerContext - Role and plan of the maker asking the question
+ * @returns {Promise<Object>} - { answer, link, source: {id, title}|null, images };
+ *   answer is null when no AI answer could be made (the help window then shows
+ *   the article of the best match)
  */
-export async function generateHelpResponse(query, relevantDocs, context, language = 'en', makerContext = null) {
+export async function generateHelpResponse(query, relevantDocs, context, language = 'en', makerContext = null, selection = null) {
+  const topDoc = relevantDocs[0];
+  const sourceOf = (doc) => ({ link: doc?.links[0] || null, source: doc ? { id: doc.id, title: doc.title } : null });
+  const base = sourceOf(topDoc);
+
   if (!(await isAiConfigured())) {
-    console.warn('[Help Service] No AI provider configured');
-    return {
-      answer: getStaticFallback(query, relevantDocs, language),
-      link: relevantDocs[0]?.links[0] || null,
-      source: relevantDocs[0]?.id || null
-    };
+    return { ...base, answer: null, images: [] };
   }
 
-  const { chatModel } = await getAiConfig();
-  
   const languageName = LANGUAGE_NAMES[language] || 'English';
-  
-  // The screenshots of the first document are shown below the answer
-  const shownScreenshots = relevantDocs[0]?.images?.length
+
+  // The screenshots of the first page, with their numbered markers. Only the
+  // screenshots whose numbers the answer uses are shown with it.
+  const shownScreenshots = topDoc?.images?.length
     ? `
-SCREENSHOTS SHOWN BELOW YOUR ANSWER (from "${relevantDocs[0].title}"), with numbered markers:
-${relevantDocs[0].images.map(img => img.legend.map(item => `(${item.number}) = ${item.text}`).join('\n')).join('\n')}
-In the documentation of "${relevantDocs[0].title}", a number in brackets such as (3) points at that marker. When a step of your answer is about one of these elements, put its number in brackets right after the element, exactly like the documentation, for example "Click Save (5)". Use only the numbers listed above, and only for the element they belong to.
+SCREENSHOTS (from "${topDoc.title}"), with numbered markers:
+${topDoc.images.map(img => img.legend.map(item => `(${item.number}) = ${item.text}`).join('\n')).join('\n')}
+The screenshots in which your answer uses a number are shown next to your answer. When a step is about one of these elements, put its number in brackets right after the element, for example "Click Save (5)".
+Check every number before you write it: the element you name must be exactly the element of that number in the list above. A similar element is not the same (for example "Convert to Public" is not "Convert to Private"). Never use a number that is not in the list, and never use a number from another page.
 `
     : '';
 
@@ -983,7 +1079,7 @@ In the documentation of "${relevantDocs[0].title}", a number in brackets such as
   const docTerms = language !== 'en' ? termsFromDocs(relevantDocs, language) : {};
 
   // Build context from relevant docs; only the first one, whose screenshots
-  // are shown, keeps its screenshot legends. A long page does not fit: it
+  // can be shown, keeps its screenshot legends. A long page does not fit: it
   // sends its introduction and the parts that fit the question best.
   const queryVector = await questionVector(query);
   const docsContext = relevantDocs.map((doc, i) => {
@@ -999,180 +1095,403 @@ ${localizeUiNames(relevantParts(doc, text, queryVector, i === 0 ? FIRST_DOC_CHAR
   const glossary = language !== 'en'
     ? { ...(loadUIGlossary(language) || {}), ...docTerms }
     : null;
-  if (glossary) {
-    console.log(`[Help Service] Using UI glossary for ${language} with ${Object.keys(glossary).length} terms`);
-  }
   const glossarySection = glossary ? `
 UI TERMINOLOGY (use these exact translations for UI elements):
 ${formatGlossaryForPrompt(glossary)}
 ` : '';
 
-  // Build maker context section for personalized responses
-  let makerContextSection = '';
-  if (makerContext) {
-    const parts = [];
-    if (makerContext.name) {
-      parts.push(`- Maker name: ${makerContext.name}`);
-    }
-    if (makerContext.role) {
-      const roleNames = {
-        admin: 'Admin (full access)',
-        manager: 'Manager (can manage journeys and users)',
-        creator: 'Creator (can create journeys)',
-        viewer: 'Viewer (read-only access)'
-      };
-      parts.push(`- Maker role: ${roleNames[makerContext.role] || makerContext.role}`);
-    }
-    if (makerContext.organization?.name) {
-      parts.push(`- Organization: ${makerContext.organization.name}`);
-    }
-    if (makerContext.organization?.country) {
-      parts.push(`- Country: ${makerContext.organization.country}`);
-    }
-    if (makerContext.organization?.tier) {
-      const tierName = makerContext.organization.tier.displayName || makerContext.organization.tier.name;
-      parts.push(`- Current subscription plan: ${tierName}`);
-    }
-    
-    if (parts.length > 0) {
-      makerContextSection = `
-MAKER & ORGANIZATION CONTEXT:
-${parts.join('\n')}
-
-Use this information to give personalized answers. For example:
-- If a feature requires a higher tier plan than what the organization has, mention they would need to upgrade
-- If the maker has a viewer role and asks about creating content, mention they need elevated permissions
-- Reference the organization name when appropriate to make the response more personal
-`;
-    }
+  // Role and plan: only to say that something needs another role or plan
+  const makerLines = [];
+  if (makerContext?.role) {
+    const roleNames = {
+      admin: 'Admin',
+      manager: 'Journey Manager',
+      member: 'Editor',
+      editor: 'Editor',
+      viewer: 'Viewer (read-only)'
+    };
+    makerLines.push(`- Role of the maker: ${roleNames[makerContext.role] || makerContext.role}`);
   }
-  
+  const tier = makerContext?.organization?.tier;
+  if (tier) makerLines.push(`- Subscription plan: ${tier.displayName || tier.name}`);
+  const makerContextSection = makerLines.length ? `
+THE MAKER WHO ASKS:
+${makerLines.join('\n')}
+Mention the role or the plan only when the documentation says the feature needs a role or plan that this maker does not have.
+` : '';
+
   // Gryffi's own word for "journey" in this language (expeditie, Expedition, ...)
   const journeyTerm = getJourneyTerm(language);
   const journeyRule = journeyTerm
     ? `\n7. In ${languageName}, Gryffi calls a journey "${journeyTerm.singular}" (plural "${journeyTerm.plural}"). Always use that word for journey and journeys, also when the documentation says "journey". Only keep "journey" when it is part of an exact UI name from the UI TERMINOLOGY section.`
     : '';
 
-  const systemPrompt = `You are the Gryffi Help Assistant, helping users understand and use the Gryffi platform.
+  const systemPrompt = `You are the Gryffi Help Assistant. You help makers (the people who build journeys) use Gryffi.
 
-CRITICAL RULES - YOU MUST FOLLOW THESE:
-1. Answer ONLY based on the provided documentation below - NEVER make up or invent information
-2. If the answer is NOT explicitly in the documentation, you MUST say that you don't have information about this topic in the help documentation
-3. Do NOT guess, assume, or extrapolate beyond what is written in the docs
-4. If unsure, always err on the side of saying "I don't have specific information about this"
-5. RESPOND IN ${languageName.toUpperCase()} - translate from English docs as needed
-6. When referring to UI elements (buttons, menus, settings), use the EXACT translations from the UI TERMINOLOGY section below. The maker sees the interface in ${languageName}: write only the translated name, never the English one, not even in brackets${journeyRule}
+RULES:
+1. Answer ONLY from the documentation below. Never invent buttons, menus, settings or features.
+2. If the documentation does not answer the question, say in one sentence that the help documentation does not cover it, and suggest contacting support. If it answers only part of the question, answer that part and say what is not covered.
+3. Do not guess or extrapolate beyond what is written. Never say that something is impossible, does not exist or cannot be undone, unless the documentation says so.
+4. Always write in ${languageName}, the interface language of the maker: also when the documentation is in English and also when the question is asked in another language.
+5. Use the EXACT UI names. The maker sees the interface in ${languageName}: write only the name from the UI TERMINOLOGY section, never the English one, not even in brackets.
+6. Only answer about Gryffi.${journeyRule}
+8. In the answer, never mention page ids, file names or documentation that is not shown here.
+9. Refer to people without gender: "the participant", "they".${language === 'de' ? '\n10. In German, always address the maker formally with "Sie".' : ''}
 ${glossarySection}${makerContextSection}
-CURRENT CONTEXT:
-The user is currently in the "${context || 'dashboard'}" section of Gryffi.
+THE MAKER IS ON THIS PAGE: "${context || 'dashboard'}"${selection?.stepType ? `\nTHE MAKER HAS THIS STEP TYPE SELECTED IN THE BUILDER: "${selection.stepType}"${selection.tab ? ` (panel tab: "${selection.tab}")` : ''}. Questions such as "how does this work" are about this step type.` : ''}
 
 DOCUMENTATION (ONLY use information from this section):
 ${docsContext}
 ${shownScreenshots}
-RESPONSE FORMAT:
-- Start with a brief intro sentence
-- For "how to" questions: use numbered steps (1. 2. 3. etc.)
-- Keep each step clear and actionable
-- NEVER include URLs, links, paths, or [[goto:...]] / [[show:...]] tags
-- NEVER include images, image syntax or "[Screenshot: ...]" notes: the screenshots are shown below your answer
-- NEVER mention specific page URLs like /dashboard/... or /settings/...
-- Just describe the action using the translated UI terms (e.g. "Ga naar Instellingen" not "Go to Settings")
-- Be helpful and friendly
-- Use simple language suitable for non-technical users
-- Maximum 4-6 steps for instructions
-- If the documentation does not contain the answer, respond with a message like "This topic is not yet covered in the help documentation. Please contact support for assistance."`;
+FORMAT:
+- Start with the answer itself. No greeting, no "Here's how", and do not repeat the question.
+- Never mention the name of the organization.
+- For "how do I" questions: numbered steps (1. 2. 3.), one action per step, at most 7 steps.
+- For other questions: a few short sentences. Use a list only when it makes the answer clearer.
+- Short sentences in plain language, for people who are not technical.
+- Use **bold** only for UI names.
+- NEVER include URLs, paths, links, [[goto:...]] tags, images or "[Screenshot: ...]" notes.
+- End with one last line: "SOURCE: " and the id (in brackets after the title above) of the page your answer mainly comes from, for example "SOURCE: ${topDoc?.id || 'dashboard'}". Write "SOURCE: none" when the documentation does not answer the question.`;
 
   try {
-    const response = await aiFetch('/chat/completions', {
-      body: JSON.stringify({
-        model: chatModel,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query }
-        ],
-        temperature: 0.3, // Lower for more factual responses
-        max_tokens: 300
-      })
-    });
-    
-    if (!response.ok) {
-      console.error('[Help Service] Mistral API error:', response.status);
-      throw new Error('API error');
+    const raw = await chatCompletion([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: query }
+    ], { maxTokens: 900, temperature: 0.2 });
+
+    // The page the answer comes from, named by the model on the last line:
+    // the best search match is not always the page that answers the question
+    // A SOURCE note is not part of the answer; usually on a line of its own,
+    // sometimes at the end of the last line, sometimes with more than one id
+    let text = raw.trimEnd();
+    let sourceDoc = topDoc;
+    const at = text.toUpperCase().lastIndexOf('SOURCE:');
+    const note = at === -1 ? '' : text.slice(at + 'SOURCE:'.length).replace(/[*_`()]/g, '').trim();
+    if (at !== -1 && note.length <= 120 && /^[a-z0-9\-,. ]*$/i.test(note)) {
+      text = text.slice(0, at).replace(/[*_(\s]+$/, '');
+      const id = note.split(',')[0].trim().replace(/\.$/, '').toLowerCase();
+      sourceDoc = id === 'none' ? null : (relevantDocs.find(doc => doc.id === id) || topDoc);
     }
-    
-    const data = await response.json();
-    const answer = data.choices?.[0]?.message?.content?.trim() || '';
+    const answer = cleanAnswer(text);
 
-    // Only use the link from the TOP matching document so we never point the
-    // maker to an unrelated part of the app.
-    let link = null;
-    let source = null;
-    if (relevantDocs.length > 0) {
-      const topDoc = relevantDocs[0];
-      source = topDoc.id;
-      if (topDoc.links.length > 0) {
-        link = topDoc.links[0];
-      }
-    }
+    // Only the screenshots the answer points at: a screenshot the answer does
+    // not refer to is often about another part of the page
+    const used = new Set([...answer.matchAll(/\((\d{1,2})\)/g)].map(m => Number(m[1])));
+    const images = getHelpImages(topDoc, language)
+      .filter((image, i) => topDoc.images[i].legend.some(item => used.has(item.number)));
 
-    return { answer, link, source };
-
+    return { ...sourceOf(sourceDoc), answer, images };
   } catch (error) {
     console.error('[Help Service] AI generation error:', error.message);
-    const topDoc = relevantDocs[0];
-    return {
-      answer: getStaticFallback(query, relevantDocs, language),
-      link: topDoc?.links[0] || null,
-      source: topDoc?.id || null
-    };
+    return { ...base, answer: null, images: [] };
   }
 }
 
-/**
- * Static fallback when AI is unavailable
- */
-function getStaticFallback(query, docs, language) {
-  if (docs.length === 0) {
-    const messages = {
-      en: "I couldn't find specific information about that. Try browsing the help topics or contact support.",
-      nl: "Ik kon geen specifieke informatie hierover vinden. Probeer de hulponderwerpen te bekijken of neem contact op met support.",
-      de: "Ich konnte keine spezifischen Informationen dazu finden. Versuchen Sie, die Hilfethemen zu durchsuchen oder kontaktieren Sie den Support.",
-      fr: "Je n'ai pas trouvé d'informations spécifiques à ce sujet. Essayez de parcourir les rubriques d'aide ou contactez le support.",
-      es: "No pude encontrar información específica sobre eso. Intente explorar los temas de ayuda o contacte con soporte."
-    };
-    return messages[language] || messages.en;
-  }
-  
-  // Return excerpt from best matching doc
-  const topDoc = docs[0];
-  const excerpt = topDoc.content
-    .replace(/^---[\s\S]*?---\n/, '') // Remove frontmatter
-    .replace(/\[\[.*?\]\]/g, '') // Remove tags
-    .replace(/^#+\s+.+$/gm, '') // Remove headings
-    .replace(/\|.*?\|/g, '') // Remove tables
-    .trim()
-    .substring(0, 300);
-  
-  return excerpt + '...';
-}
-
-/**
- * Get list of all help topics for browse mode
- */
-export async function getHelpTopics() {
-  const docs = await getHelpDocs();
-
-  return docs.map(doc => ({
-    id: doc.id,
-    title: doc.title
-  })).sort((a, b) => a.title.localeCompare(b.title));
-}
-
-export default {
-  initHelpCache,
-  getHelpDoc,
-  searchHelp,
-  generateHelpResponse,
-  getHelpTopics,
-  getHelpImages
+// The help pages per category, in the order of the help window. A page that
+// is missing (the Community Edition has no plan pages) is skipped; a page in
+// no category goes to "other".
+/** The help page about each step type in the builder */
+export const STEP_TYPE_ARTICLES = {
+  space: 'space-step',
+  guide: 'guide-step',
+  content: 'content-step',
+  challenge: 'challenge-step',
+  form: 'form-step',
+  poll: 'poll-step',
+  reward: 'reward-codes',
+  nested_journey: 'subjourney-step'
 };
+
+const HELP_CATEGORIES = [
+  { key: 'gettingStarted', ids: ['dashboard', 'journey-wizard', 'end-user-experience', 'organization-registration', 'login'] },
+  { key: 'journeys', ids: ['journey-builder', 'journey-settings', 'journey-preview', 'public-journeys', 'copy-translate', 'custom-themes', 'image-library', 'trash'] },
+  { key: 'steps', ids: ['space-step', 'floor-plans', 'guide-step', 'step-assistant', 'content-step', 'challenge-step', 'quiz-settings', 'form-step', 'form-file-uploads', 'form-email-settings', 'poll-step', 'reward-codes', 'subjourney-step', 'step-pacing'] },
+  { key: 'guides', ids: ['ai-guides-overview', 'guide-knowledge-base', 'avatar-cropper', 'ai-credits'] },
+  { key: 'participants', ids: ['end-user-management', 'manual-user-entry', 'csv-import', 'end-user-groups', 'microsoft-365-sync', 'google-workspace-sync', 'invitations-overview', 'invitation-options', 'magic-links'] },
+  { key: 'analytics', ids: ['analytics-overview', 'reports', 'poll-results', 'form-submissions'] },
+  { key: 'team', ids: ['team-management', 'maker-invitations', 'maker-roles', 'admin-role', 'manager-role', 'editor-role', 'viewer-role'] },
+  { key: 'account', ids: ['user-settings', 'password-management', 'two-factor-authentication', 'authentication', 'language-settings', 'organization-settings', 'system-settings', 'api-access', 'api-keys'] },
+  { key: 'plans', ids: ['subscription-overview', 'usage-limits', 'free-tier', 'professional-tier', 'enterprise-tier', 'custom-tier'] }
+];
+
+/**
+ * All help pages, grouped in categories, for browsing in the help window
+ * @param {string} [language] - Maker interface language of the titles
+ * @returns {Promise<Array<{key: string, articles: Array<{id: string, title: string}>}>>}
+ */
+export async function getHelpTopics(language = 'en') {
+  const docs = await getHelpDocs();
+  const titles = await helpTitles(language);
+  const byId = new Map(docs.map(doc => [doc.id, doc]));
+  const listed = new Set(HELP_CATEGORIES.flatMap(category => category.ids));
+  const categories = HELP_CATEGORIES.map(category => ({
+    key: category.key,
+    articles: category.ids.filter(id => byId.has(id)).map(id => ({ id, title: titles.get(id) }))
+  }));
+  const other = docs.filter(doc => !listed.has(doc.id))
+    .map(doc => ({ id: doc.id, title: titles.get(doc.id) }))
+    .sort((a, b) => a.title.localeCompare(b.title));
+  if (other.length) categories.push({ key: 'other', articles: other });
+  return categories.filter(category => category.articles.length > 0);
+}
+
+// ============================================
+// ARTICLE TRANSLATION
+// The help pages are written in English. An article opened in another
+// interface language is translated once by the AI and kept in Redis, under a
+// hash of its text: a changed page is translated again.
+// ============================================
+
+const ARTICLE_CACHE_VERSION = 1;
+const ARTICLE_TTL_SECONDS = 180 * 24 * 60 * 60;
+const ARTICLE_BATCH_CHARS = 6000;
+const ARTICLE_TIMEOUT_MS = 90000;
+const articleTranslationsInFlight = new Map();
+
+/**
+ * The texts of an article that are translated, in a fixed order: the title,
+ * the text blocks, then the legend lines of the screenshots
+ */
+function articleSegments(doc) {
+  return [
+    doc.title,
+    ...doc.article.blocks.filter(block => block.type === 'text').map(block => block.text),
+    ...doc.images.flatMap(image => image.legend.map(item => item.text))
+  ];
+}
+
+/**
+ * Translate a list of Markdown texts with one AI call
+ * @returns {Promise<string[]>} the translations, in the same order
+ */
+async function translateSegments(segments, language, glossary) {
+  const languageName = LANGUAGE_NAMES[language];
+  const term = getJourneyTerm(language);
+  const rules = [
+    'Keep all Markdown: headings, lists and their numbering, tables, **bold** and `code`.',
+    'Keep code blocks (``` ... ```) and everything in them unchanged.',
+    'Keep every number in brackets, such as (3), in the same place: it points at a marker in a screenshot.',
+    'Keep URLs, email addresses, file names and technical values (such as client IDs and OAuth scopes) unchanged.',
+    'For names of buttons, menus and fields, use the exact translation from the UI TERMINOLOGY list when it has one.',
+    'Write plain language with short sentences. Do not add, explain or leave out anything.'
+  ];
+  if (term) rules.push(`Gryffi calls a journey "${term.singular}" (plural "${term.plural}") in ${languageName}. Use that word.`);
+  if (language === 'de') rules.push('Address the reader formally with "Sie".');
+  const glossaryText = formatGlossaryForPrompt(glossary);
+
+  const text = await chatCompletion([
+    {
+      role: 'system',
+      content: `You translate help articles of Gryffi, a web application, from English into ${languageName}.
+You get a JSON object whose values are Markdown texts, with the keys s1 to s${segments.length}. Reply with only a JSON object with exactly the same keys, each with the translation of its own text. Never merge or split texts.
+
+RULES:
+${rules.map((rule, i) => `${i + 1}. ${rule}`).join('\n')}
+${glossaryText ? `\nUI TERMINOLOGY (English = ${languageName}):\n${glossaryText}` : ''}`
+    },
+    { role: 'user', content: JSON.stringify(Object.fromEntries(segments.map((segment, i) => [`s${i + 1}`, segment]))) }
+  ], { maxTokens: 8000, temperature: 0.1, timeoutMs: ARTICLE_TIMEOUT_MS, json: true });
+
+  const reply = JSON.parse(text) || {};
+  const translated = segments.map((segment, i) => reply[`s${i + 1}`]);
+  if (translated.some((item, i) => typeof item !== 'string' || (!item.trim() && segments[i].trim()))) {
+    throw new Error('Translation is missing segments');
+  }
+  return translated;
+}
+
+/**
+ * Translate a batch; when the reply does not fit (a text merged, split or
+ * missing), translate each half on its own, down to one text per call
+ */
+async function translateBatch(segments, language, glossary) {
+  try {
+    return await translateSegments(segments, language, glossary);
+  } catch (err) {
+    if (segments.length === 1 || err?.name === 'AiNotConfiguredError') throw err;
+    const half = Math.ceil(segments.length / 2);
+    return [
+      ...await translateBatch(segments.slice(0, half), language, glossary),
+      ...await translateBatch(segments.slice(half), language, glossary)
+    ];
+  }
+}
+
+/**
+ * Texts in another language: from Redis, or translated now (in batches, so a
+ * long article fits) and then stored under a hash of the texts
+ * @param {string} name - part of the cache key, e.g. the page id
+ * @param {string[]} segments - English Markdown texts
+ * @param {string} language
+ * @param {Object} terms - UI names of these texts with their translation
+ * @returns {Promise<string[]|null>} null when they cannot be translated
+ */
+async function cachedTranslation(name, segments, language, terms) {
+  const { chatModel } = await getAiConfig();
+  const hash = crypto.createHash('sha256')
+    // The UI names belong in the key: when the interface words change, the translation follows
+    .update(JSON.stringify([ARTICLE_CACHE_VERSION, chatModel, language, segments, terms || {}]))
+    .digest('hex')
+    .slice(0, 24);
+  const key = `help:translation:${language}:${name}:${hash}`;
+
+  try {
+    const cached = JSON.parse(await redis.get(key) || 'null');
+    if (Array.isArray(cached) && cached.length === segments.length) return cached;
+  } catch (err) {
+    console.warn('[Help Service] Article cache unavailable:', err.message);
+  }
+
+  // Two makers opening the same article at once share one translation
+  if (articleTranslationsInFlight.has(key)) return articleTranslationsInFlight.get(key);
+  const work = (async () => {
+    const glossary = { ...(loadUIGlossary(language) || {}), ...terms };
+    const batches = [];
+    let batch = [];
+    let size = 0;
+    for (const segment of segments) {
+      if (batch.length && size + segment.length > ARTICLE_BATCH_CHARS) {
+        batches.push(batch);
+        batch = [];
+        size = 0;
+      }
+      batch.push(segment);
+      size += segment.length;
+    }
+    if (batch.length) batches.push(batch);
+
+    const results = [];
+    for (const part of batches) results.push(...await translateBatch(part, language, glossary));
+    try {
+      await redis.set(key, JSON.stringify(results), 'EX', ARTICLE_TTL_SECONDS);
+    } catch (err) {
+      console.warn('[Help Service] Article translation not cached:', err.message);
+    }
+    return results;
+  })();
+  articleTranslationsInFlight.set(key, work);
+  try {
+    return await work;
+  } catch (err) {
+    console.error(`[Help Service] Translating ${name} into ${language} failed:`, err.message);
+    return null;
+  } finally {
+    articleTranslationsInFlight.delete(key);
+  }
+}
+
+/**
+ * The segments of an article in another language
+ * @returns {Promise<string[]|null>}
+ */
+function translatedSegments(doc, language) {
+  const terms = termsFromDocs([doc], language);
+  // UI names in bold or quotes get the label the maker sees before translating
+  const segments = articleSegments(doc).map(segment => localizeUiNames(segment, terms));
+  return cachedTranslation(doc.id, segments, language, terms);
+}
+
+/**
+ * The titles of all help pages in a language (English when they cannot be
+ * translated), translated together in one call and cached
+ * @returns {Promise<Map<string, string>>} page id -> title
+ */
+async function helpTitles(language) {
+  const docs = await getHelpDocs();
+  const titles = new Map(docs.map(doc => [doc.id, doc.title]));
+  if (language === 'en' || !LANGUAGE_NAMES[language] || !(await isAiConfigured())) return titles;
+  // The titles get the UI names too, so "Floor Plans" becomes the word the maker sees
+  const titleTerms = termsFromDocs(docs.map(doc => ({ content: `**${doc.title}**` })), language);
+  const translated = await cachedTranslation('titles', docs.map(doc => doc.title), language, titleTerms);
+  if (translated) docs.forEach((doc, i) => titles.set(doc.id, translated[i]));
+  return titles;
+}
+
+/**
+ * Page title in the maker's language, for the source and the related pages
+ * of an answer
+ * @returns {Promise<(id: string) => string>}
+ */
+export async function helpTitleLookup(language = 'en') {
+  const titles = await helpTitles(language);
+  return (id) => titles.get(id) || id;
+}
+
+/**
+ * One help page as an article in the maker's language, with its screenshots
+ * in that language when available. Without AI, or when translating fails,
+ * the article is in English (translated: false).
+ * @param {string} id - feature_id of the page
+ * @param {string} language - Maker interface language
+ * @returns {Promise<Object|null>} { id, title, link, blocks, related, translated } or null
+ */
+export async function getHelpArticle(id, language = 'en') {
+  const docs = await getHelpDocs();
+  const doc = docs.find(d => d.id === id);
+  if (!doc) return null;
+  const images = getHelpImages(doc, language);
+
+  let translations = null;
+  if (language !== 'en' && LANGUAGE_NAMES[language] && await isAiConfigured()) {
+    translations = await translatedSegments(doc, language);
+  }
+  // Hand out the translated segments in the order of articleSegments()
+  const segments = translations || articleSegments(doc);
+  let next = 0;
+  const take = () => segments[next++];
+  const title = take();
+  const blocks = doc.article.blocks.map(block => (block.type === 'image' ? block : { type: 'text', text: take() }));
+  const legends = doc.images.map(image => image.legend.map(item => ({ number: item.number, text: take() })));
+
+  // The same title as in the list of articles
+  const titles = translations ? await helpTitles(language) : null;
+  return {
+    id: doc.id,
+    title: titles?.get(doc.id) || title,
+    link: doc.links[0] || null,
+    translated: language === 'en' || !!translations,
+    blocks: blocks.map(block => (block.type === 'image'
+      ? { type: 'image', image: images[block.index], legend: legends[block.index] }
+      : block)),
+    related: doc.article.related
+      .map(relatedId => docs.find(d => d.id === relatedId))
+      .filter(Boolean)
+      .map(d => ({ id: d.id, title: titles?.get(d.id) || d.title }))
+  };
+}
+
+let prewarmRunning = false;
+const PREWARM_PAUSE_MS = 1000;
+
+/**
+ * Translate all help articles and their titles into the other maker
+ * languages ahead of time, so no maker waits for a translation. Runs in the
+ * background after every start (so after every deploy); what is already in
+ * the cache is skipped, so only new or changed pages cost an AI call. A page
+ * that fails is translated when a maker opens it.
+ */
+export async function prewarmHelpTranslations() {
+  if (prewarmRunning || !(await isAiConfigured())) return;
+  prewarmRunning = true;
+  const started = Date.now();
+  let ready = 0;
+  let failed = 0;
+  try {
+    const docs = await getHelpDocs();
+    for (const language of Object.keys(LANGUAGE_NAMES).filter(code => code !== 'en')) {
+      await helpTitles(language);
+      for (const doc of docs) {
+        const before = Date.now();
+        if (await translatedSegments(doc, language)) ready++;
+        else failed++;
+        // A translation that took time was an AI call: leave room for makers
+        if (Date.now() - before > 200) await new Promise(resolve => setTimeout(resolve, PREWARM_PAUSE_MS));
+      }
+    }
+    console.log(`[Help Service] Article translations ready: ${ready}, failed: ${failed} (${Math.round((Date.now() - started) / 1000)}s)`);
+  } catch (err) {
+    console.error('[Help Service] Prewarming translations failed:', err.message);
+  } finally {
+    prewarmRunning = false;
+  }
+}

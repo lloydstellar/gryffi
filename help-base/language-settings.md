@@ -7,7 +7,7 @@ related_features: [organization-settings, journey-language, user-settings, journ
 
 Language Settings control the interface, email and PDF languages available throughout Gryffi.
 
-![Select language in Settings (1)](images/language-settings/interface.en.webp)
+![Select language in My account (1)](images/language-settings/interface.en.webp)
 
 1. Select language: the language of your own interface. It does not change the language of others or of journeys.
 
@@ -16,7 +16,7 @@ Language Settings control the interface, email and PDF languages available throu
 There are several language settings that control different parts of the platform:
 1. The organization default language
 2. The makers personal interface language
-3. Journey-specific language overrides (for end-users)
+3. Journey-specific language overrides (for participants)
 4. AI Guide language overrides
 
 [[goto:/dashboard/settings]]
@@ -31,27 +31,27 @@ These languages are available for the entire platform including the maker interf
 
 | Language | Code | Maker Interface | Journey Player | Emails & PDFs |
 |----------|:----:|:---------------:|:--------------:|:-------------:|
-| English | en | ✅ | ✅ | ✅ |
-| Dutch (Nederlands) | nl | ✅ | ✅ | ✅ |
-| German (Deutsch) | de | ✅ | ✅ | ✅ |
-| French (Français) | fr | ✅ | ✅ | ✅ |
-| Spanish (Español) | es | ✅ | ✅ | ✅ |
+| English | en | Yes | Yes | Yes |
+| Dutch (Nederlands) | nl | Yes | Yes | Yes |
+| German (Deutsch) | de | Yes | Yes | Yes |
+| French (Français) | fr | Yes | Yes | Yes |
+| Spanish (Español) | es | Yes | Yes | Yes |
 
 ### Extended Languages (Journey Player Only)
 
-These additional languages are available for end-user journey experiences. They can be selected as journey language override or AI Guide language override:
+These additional languages are available for participant journey experiences. They can be selected as journey language override or AI Guide language override:
 
 | Language | Code | Journey Player |
 |----------|:----:|:--------------:|
-| Italian (Italiano) | it | ✅ |
-| Portuguese (Português) | pt | ✅ |
-| Danish (Dansk) | da | ✅ |
-| Norwegian (Norsk) | no | ✅ |
-| Finnish (Suomi) | fi | ✅ |
-| Swedish (Svenska) | sv | ✅ |
-| Polish (Polski) | pl | ✅ |
-| Romanian (Română) | ro | ✅ |
-| Turkish (Türkçe) | tr | ✅ |
+| Italian (Italiano) | it | Yes |
+| Portuguese (Português) | pt | Yes |
+| Danish (Dansk) | da | Yes |
+| Norwegian (Norsk) | no | Yes |
+| Finnish (Suomi) | fi | Yes |
+| Swedish (Svenska) | sv | Yes |
+| Polish (Polski) | pl | Yes |
+| Romanian (Română) | ro | Yes |
+| Turkish (Türkçe) | tr | Yes |
 
 Extended languages affect:
 - Journey player interface (buttons, messages, navigation)
@@ -65,25 +65,25 @@ Extended languages affect:
 Only a maker with the role Admin can make changes to the Default organization language.
 
 Set organization default:
-1. Go to System Settings → General
+1. Go to Organization → General
 2. Go to the optie "Default organization language" and select "Use one language for the whole organization
 3. Select the language from the drop down menu
 4. Click Save
 
-This effects the journeys interface (not the journeys content), the automated emails and the downloadable PDFs for all maker and end users.
+This effects the journeys interface (not the journeys content), the automated emails and the downloadable PDFs for all maker and participants.
 
 ### Makers Personal Language
 
 Set personal interface language:
-1. Go to Settings → Language
+1. Go to My account → Language
 2. Select your language in **Select language** (1)
 3. Save
 
-This only affects the interface of the maker setting this language. No content or other makers or end users are effected.
+This only affects the interface of the maker setting this language. No content or other makers or participants are effected.
 
 ## Journey Language Overrides
 
-You can override the language settings for individual journeys. This is useful when you need to deliver content to end-users in a different language than your organization default.
+You can override the language settings for individual journeys. This is useful when you need to deliver content to participants in a different language than your organization default.
 
 ### Journey Interface Language
 
@@ -92,7 +92,7 @@ Override the interface language for a specific journey:
 2. Click on the canvas background to open Journey Settings
 3. Enable "Use a different language"
 4. Select the desired language (base or extended)
-5. Save the journey
+5. The builder saves your change by itself
 
 This changes:
 - Navigation buttons and messages
@@ -107,7 +107,7 @@ You can set a separate language for AI Guide responses, independent of the journ
 2. Click on the canvas background to open Journey Settings
 3. Enable "Override AI Guide language"
 4. Select the desired language for AI responses
-5. Save the journey
+5. The builder saves your change by itself
 
 This is useful when:
 - You want the interface in one language but AI responses in another

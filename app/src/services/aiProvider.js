@@ -95,6 +95,24 @@ export async function isAiConfigured() {
 }
 
 /**
+ * The answer text of a chat completion. Reasoning models (such as
+ * mistral-large-latest since late 2026) return the content as an array of
+ * parts, [{type: 'thinking', ...}, {type: 'text', text}]; only the text parts
+ * belong to the answer. Plain models return a string.
+ * @param {Object} data - parsed /chat/completions response
+ * @returns {string} the answer, or '' when there is none
+ */
+export function messageText(data) {
+  const content = data?.choices?.[0]?.message?.content;
+  if (typeof content === 'string') return content;
+  if (!Array.isArray(content)) return '';
+  return content
+    .filter((part) => part?.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text)
+    .join('');
+}
+
+/**
  * Send a POST request to the AI provider, like fetch() with the address and
  * authorization filled in.
  * @param {string} path - API path after the base URL, e.g. '/chat/completions'

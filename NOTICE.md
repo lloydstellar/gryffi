@@ -9,7 +9,9 @@ The three photos in `app/public/images/demo/`, used in the demo journey, come
 from Pexels or Unsplash and are used under the
 [Pexels License](https://www.pexels.com/license/) or the
 [Unsplash License](https://unsplash.com/license). They are not covered by the
-AGPL-3.0.
+AGPL-3.0. The same goes for `app/public/images/wizard-placeholder.jpg`, the
+placeholder image of the journey wizard (Pexels photo 4439444, Pexels
+License).
 
 The Gryffi name and logos are trademarks, see [TRADEMARK.md](TRADEMARK.md).
 
@@ -27,9 +29,9 @@ The Gryffi name and logos are trademarks, see [TRADEMARK.md](TRADEMARK.md).
 | Library | File | License |
 |---|---|---|
 | Chart.js | `app/public/js/vendor/chart.umd.js` | MIT |
-| html2canvas | `app/public/js/vendor/html2canvas.min.js` | MIT |
 | jsPDF | `app/public/js/vendor/jspdf.umd.min.js` | MIT |
 | DOMPurify | `app/public/js/vendor/purify.min.js` | Apache-2.0 or MPL-2.0 |
+| Cropper.js | `app/public/js/vendor/cropper.min.js`, `cropper.min.css` | MIT |
 
 The server dependencies are listed in `app/package.json`, each with its own
 license.

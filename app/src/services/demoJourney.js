@@ -343,13 +343,21 @@ function isOrganizationSpecificImage(url) {
     return false;
   }
   
-  // Organization-specific paths that are not accessible across orgs
-  const orgSpecificPatterns = [
-    '/uploads/organizations/',
-    '/media/organizations/'
-  ];
-  
-  return orgSpecificPatterns.some(pattern => url.includes(pattern));
+  // Organization files are not accessible across orgs
+  return url.includes('/uploads/organizations/');
+}
+
+/**
+ * File path of an organization image URL (/uploads/...), or null when the
+ * URL would point outside the uploads directory. Image URLs are maker input.
+ * @param {string} imageUrl - Image URL from a step or journey
+ * @returns {string|null}
+ */
+function uploadsPathFromUrl(imageUrl) {
+  if (!imageUrl.startsWith('/uploads/')) return null;
+  const uploadsRoot = path.resolve(UPLOADS_DIR);
+  const sourcePath = path.resolve(uploadsRoot, imageUrl.substring('/uploads/'.length));
+  return sourcePath.startsWith(uploadsRoot + path.sep) ? sourcePath : null;
 }
 
 /**
@@ -377,20 +385,10 @@ async function copyImageToDemo(imageUrl, stepIndex, fieldName) {
       fs.mkdirSync(DEMO_IMAGES_DIR, { recursive: true });
     }
     
-    // Extract the relative path from the URL
     // URL format: /uploads/organizations/{orgId}/pexels/filename.jpg
     // File path in container: /app/uploads/organizations/{orgId}/pexels/filename.jpg
-    let relativePath = imageUrl;
-    if (relativePath.startsWith('/uploads/')) {
-      relativePath = relativePath.substring('/uploads/'.length);
-    } else if (relativePath.startsWith('/media/')) {
-      relativePath = relativePath.substring('/media/'.length);
-    }
-    
-    // image_url is maker input: never read outside the uploads directory
-    const uploadsRoot = path.resolve(UPLOADS_DIR);
-    const sourcePath = path.resolve(uploadsRoot, relativePath);
-    if (!sourcePath.startsWith(uploadsRoot + path.sep)) {
+    const sourcePath = uploadsPathFromUrl(imageUrl);
+    if (!sourcePath) {
       console.warn(`[Demo Deploy] Refused image path outside uploads: ${imageUrl}`);
       return imageUrl;
     }
@@ -446,15 +444,11 @@ async function copyCoverImageToDemo(imageUrl) {
       fs.mkdirSync(DEMO_IMAGES_DIR, { recursive: true });
     }
     
-    // Extract the relative path from the URL
-    let relativePath = imageUrl;
-    if (relativePath.startsWith('/uploads/')) {
-      relativePath = relativePath.substring('/uploads/'.length);
-    } else if (relativePath.startsWith('/media/')) {
-      relativePath = relativePath.substring('/media/'.length);
+    const sourcePath = uploadsPathFromUrl(imageUrl);
+    if (!sourcePath) {
+      console.warn(`[Demo Deploy] Refused cover image path outside uploads: ${imageUrl}`);
+      return imageUrl;
     }
-    
-    const sourcePath = path.join(UPLOADS_DIR, relativePath);
     
     // Check if source file exists
     if (!fs.existsSync(sourcePath)) {
@@ -674,19 +668,6 @@ export async function upsertDemoJourney(data) {
 }
 
 /**
- * Delete a demo journey
- * @param {string} id - Demo journey ID
- */
-export async function deleteDemoJourney(id) {
-  try {
-    await query('DELETE FROM demo_journeys WHERE id = $1', [id]);
-  } catch (err) {
-    console.error('Error deleting demo journey:', err);
-    throw err;
-  }
-}
-
-/**
  * Get or create user onboarding state
  * @param {string} userId - User ID
  * @param {string} organizationId - Organization ID
@@ -775,29 +756,6 @@ export async function updateUserOnboardingState(userId, updates) {
 export async function shouldShowWelcome(userId, organizationId) {
   const state = await getUserOnboardingState(userId, organizationId);
   return !state.has_seen_welcome && !state.has_skipped_tour && !state.has_completed_tour;
-}
-
-/**
- * Mark a contextual hint as shown
- * @param {string} userId - User ID
- * @param {string} hintId - Hint identifier
- */
-export async function markHintShown(userId, hintId) {
-  try {
-    const state = await query(`SELECT hints_shown FROM user_onboarding WHERE user_id = $1`, [userId]);
-    if (state.rows.length === 0) return;
-    
-    const hints = state.rows[0].hints_shown || {};
-    hints[hintId] = new Date().toISOString();
-    
-    await query(`
-      UPDATE user_onboarding 
-      SET hints_shown = $1, updated_at = NOW()
-      WHERE user_id = $2
-    `, [JSON.stringify(hints), userId]);
-  } catch (err) {
-    console.error('Error marking hint as shown:', err);
-  }
 }
 
 /**
@@ -1242,12 +1200,12 @@ export function getDefaultDemoJourneyContent(language = 'en') {
           position_x: 35,
           position_y: 175,
           basic_props: {
-            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Welcome to Gryffi. This is a preview of the exact experience your end users will have. <br><br>Would you prefer the short or the full-length journey?</p></blockquote><h3 data-path-to-node="3"></h3>',
+            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Welcome to Gryffi. This is a preview of the exact experience your participants will have. <br><br>Would you prefer the short or the full-length journey?</p></blockquote><h3 data-path-to-node="3"></h3>',
             image_url: '/images/demo/step-1-image.png',
             video_url: '',
             media_type: 'image',
             text_position: 'below',
-            media_description: 'Welcome to Gryffi. This is a preview of the exact experience your end users will have.\n\nWould you prefer the short or the full-length journey?\n'
+            media_description: 'Welcome to Gryffi. This is a preview of the exact experience your participants will have.\n\nWould you prefer the short or the full-length journey?\n'
           },
           advanced_props: {}
         },
@@ -1337,7 +1295,7 @@ export function getDefaultDemoJourneyContent(language = 'en') {
                 fileSubtype: null
               }
             ],
-            description: 'This is a Form Step. Use it to collect essential data from your end users, which is particularly useful for tasks like onboarding new personnel.',
+            description: 'This is a Form Step. Use it to collect essential data from your participants, which is particularly useful for tasks like onboarding new personnel.',
             email_subject: 'Formulierinzending: {{journey_title}}',
             recipient_email: ''
           },
@@ -1524,12 +1482,12 @@ export function getDefaultDemoJourneyContent(language = 'en') {
           position_x: 35,
           position_y: 175,
           basic_props: {
-            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Willkommen bei Gryffi. Dies ist eine Vorschau auf das genaue Erlebnis, das Ihre Endbenutzer haben werden. <br><br>Möchten Sie die kurze oder die ausführliche Expedition?</p></blockquote><h3 data-path-to-node="3"></h3>',
+            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Willkommen bei Gryffi. Dies ist eine Vorschau auf das genaue Erlebnis, das Ihre Teilnehmer haben werden. <br><br>Möchten Sie die kurze oder die ausführliche Expedition?</p></blockquote><h3 data-path-to-node="3"></h3>',
             image_url: '/images/demo/step-1-image.png',
             video_url: '',
             media_type: 'image',
             text_position: 'below',
-            media_description: 'Willkommen bei Gryffi. Dies ist eine Vorschau auf das genaue Erlebnis, das Ihre Endbenutzer haben werden.\n\nMöchten Sie die kurze oder die ausführliche Expedition?'
+            media_description: 'Willkommen bei Gryffi. Dies ist eine Vorschau auf das genaue Erlebnis, das Ihre Teilnehmer haben werden.\n\nMöchten Sie die kurze oder die ausführliche Expedition?'
           },
           advanced_props: {}
         },
@@ -1619,7 +1577,7 @@ export function getDefaultDemoJourneyContent(language = 'en') {
                 fileSubtype: null
               }
             ],
-            description: 'Dies ist ein Formular-Schritt. Nutzen Sie ihn, um wichtige Daten von Ihren Endbenutzern zu sammeln, was besonders nützlich für Aufgaben wie die Einarbeitung neuer Mitarbeiter ist.',
+            description: 'Dies ist ein Formular-Schritt. Nutzen Sie ihn, um wichtige Daten von Ihren Teilnehmern zu sammeln, was besonders nützlich für Aufgaben wie die Einarbeitung neuer Mitarbeiter ist.',
             email_subject: 'Formulareinreichung: {{journey_title}}',
             recipient_email: ''
           },
@@ -1806,12 +1764,12 @@ export function getDefaultDemoJourneyContent(language = 'en') {
           position_x: 35,
           position_y: 175,
           basic_props: {
-            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Bienvenido a Gryffi. Esta es una vista previa de la experiencia exacta que tendrán tus usuarios finales. <br><br>¿Prefieres el expedición corto o el de duración completa?</p></blockquote><h3 data-path-to-node="3"></h3>',
+            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Bienvenido a Gryffi. Esta es una vista previa de la experiencia exacta que tendrán tus participantes. <br><br>¿Prefieres el expedición corto o el de duración completa?</p></blockquote><h3 data-path-to-node="3"></h3>',
             image_url: '/images/demo/step-1-image.png',
             video_url: '',
             media_type: 'image',
             text_position: 'below',
-            media_description: 'Bienvenido a Gryffi. Esta es una vista previa de la experiencia exacta que tendrán tus usuarios finales.\n\n¿Prefieres el expedición corto o el de duración completa?'
+            media_description: 'Bienvenido a Gryffi. Esta es una vista previa de la experiencia exacta que tendrán tus participantes.\n\n¿Prefieres el expedición corto o el de duración completa?'
           },
           advanced_props: {}
         },
@@ -1901,7 +1859,7 @@ export function getDefaultDemoJourneyContent(language = 'en') {
                 fileSubtype: null
               }
             ],
-            description: 'Este es un Paso de Formulario. Úsalo para recopilar datos esenciales de tus usuarios finales, lo cual es especialmente útil para tareas como la incorporación de nuevo personal.',
+            description: 'Este es un Paso de Formulario. Úsalo para recopilar datos esenciales de tus participantes, lo cual es especialmente útil para tareas como la incorporación de nuevo personal.',
             email_subject: 'Envío de formulario: {{journey_title}}',
             recipient_email: ''
           },
@@ -2088,12 +2046,12 @@ export function getDefaultDemoJourneyContent(language = 'en') {
           position_x: 35,
           position_y: 175,
           basic_props: {
-            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Bienvenue sur Gryffi. Voici un aperçu de l\'expérience exacte que vos utilisateurs finaux vivront. <br><br>Préférez-vous le parcours court ou complet ?</p></blockquote><h3 data-path-to-node="3"></h3>',
+            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Bienvenue sur Gryffi. Voici un aperçu de l\'expérience exacte que vos participants vivront. <br><br>Préférez-vous le parcours court ou complet ?</p></blockquote><h3 data-path-to-node="3"></h3>',
             image_url: '/images/demo/step-1-image.png',
             video_url: '',
             media_type: 'image',
             text_position: 'below',
-            media_description: 'Bienvenue sur Gryffi. Voici un aperçu de l\'expérience exacte que vos utilisateurs finaux vivront.\n\nPréférez-vous le parcours court ou complet ?'
+            media_description: 'Bienvenue sur Gryffi. Voici un aperçu de l\'expérience exacte que vos participants vivront.\n\nPréférez-vous le parcours court ou complet ?'
           },
           advanced_props: {}
         },
@@ -2183,7 +2141,7 @@ export function getDefaultDemoJourneyContent(language = 'en') {
                 fileSubtype: null
               }
             ],
-            description: 'Il s\'agit d\'une Étape Formulaire. Utilisez-la pour collecter des données essentielles auprès de vos utilisateurs finaux, ce qui est particulièrement utile pour des tâches comme l\'intégration de nouveaux employés.',
+            description: 'Il s\'agit d\'une Étape Formulaire. Utilisez-la pour collecter des données essentielles auprès de vos participants, ce qui est particulièrement utile pour des tâches comme l\'intégration de nouveaux employés.',
             email_subject: 'Soumission du formulaire : {{journey_title}}',
             recipient_email: ''
           },
@@ -2370,12 +2328,12 @@ export function getDefaultDemoJourneyContent(language = 'en') {
           position_x: 35,
           position_y: 175,
           basic_props: {
-            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Welkom bij Gryffi. Dit is een voorbeeld van de exacte ervaring die je eindgebruikers zullen hebben. <br><br>Geef je de voorkeur aan de korte of de volledige expeditie?</p></blockquote><h3 data-path-to-node="3"></h3>',
+            body: '<blockquote data-path-to-node="2"><p data-path-to-node="2,0">Welkom bij Gryffi. Dit is een voorbeeld van de exacte ervaring die je deelnemers zullen hebben. <br><br>Geef je de voorkeur aan de korte of de volledige expeditie?</p></blockquote><h3 data-path-to-node="3"></h3>',
             image_url: '/images/demo/step-1-image.png',
             video_url: '',
             media_type: 'image',
             text_position: 'below',
-            media_description: 'Welkom bij Gryffi. Dit is een voorbeeld van de exacte ervaring die je eindgebruikers zullen hebben.\n\nGeef je de voorkeur aan de korte of de volledige expeditie?'
+            media_description: 'Welkom bij Gryffi. Dit is een voorbeeld van de exacte ervaring die je deelnemers zullen hebben.\n\nGeef je de voorkeur aan de korte of de volledige expeditie?'
           },
           advanced_props: {}
         },
@@ -2465,7 +2423,7 @@ export function getDefaultDemoJourneyContent(language = 'en') {
                 fileSubtype: null
               }
             ],
-            description: 'Dit is een Formulierstap. Gebruik deze om essentiële gegevens van je eindgebruikers te verzamelen, wat vooral handig is voor taken zoals het onboarden van nieuwe medewerkers.',
+            description: 'Dit is een Formulierstap. Gebruik deze om essentiële gegevens van je deelnemers te verzamelen, wat vooral handig is voor taken zoals het onboarden van nieuwe medewerkers.',
             email_subject: 'Formulierinzending: {{journey_title}}',
             recipient_email: ''
           },

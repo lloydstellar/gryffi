@@ -401,21 +401,3 @@ export async function testConnection(accessToken) {
     return false;
   }
 }
-
-export default {
-  isMicrosoftConfigured,
-  getAdminConsentUrl,
-  getAuthorizationUrl,
-  getClientCredentialsToken,
-  getTenantInfo,
-  listUsers,
-  fetchAllUsers,
-  listGroups,
-  fetchAllGroups,
-  getGroupMembers,
-  fetchAllGroupMembers,
-  transformMicrosoftUser,
-  transformMicrosoftGroup,
-  refreshToken,
-  testConnection
-};

@@ -39,12 +39,12 @@ Set the default interface language for the whole company:
 
 Only **Admin** role can access organization settings:
 
-1. Go to System Settings
+1. Go to Organization
 2. Select the "General" tab
 3. Change the company name (1), the default organization language (2) or the country (3)
 4. Click **Save** (4)
 
 ## Related Features
 
-- [[goto:/dashboard/system-settings#general]] - Settings dashboard
+- [[goto:/dashboard/system-settings#general]] - Organization
 - See: team-management, custom-themes, language-settings

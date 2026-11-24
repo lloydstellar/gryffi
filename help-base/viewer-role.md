@@ -18,7 +18,7 @@ Viewers cannot:
 
 - Create or edit journeys
 - Create or edit AI guides
-- Manage end users or makers
+- Manage participants or makers
 - Access settings
 - Publish or modify content
 

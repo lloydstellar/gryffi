@@ -1,12 +1,14 @@
 {
   "player": {
     "welcome": "Tervetuloa",
+    "greeting": "Tervetuloa, {{firstName}}!",
     "guide": "Opas",
     "aiAssistant": "AI Avustaja",
     "noGuideSelected": "Ei opasta valittu",
     "pleaseSelectGuide": "Valitse AI Opas vaiheen asetuksista",
     "selectGuideForStep": "Valitse opas tälle vaiheelle.",
     "chat": {
+      "yourGuide": "Oppaasi",
       "typeMessage": "Kirjoita viestisi...",
       "typeQuestion": "Kirjoita kysymyksesi...",
       "askGuide": "Kysy {{name}}",
@@ -14,12 +16,17 @@
       "defaultGreeting": "Hei! Kuinka voin auttaa?",
       "chatError": "Pahoittelen, en pystynyt käsittelemään sitä.",
       "connectionError": "Minulla on yhteysongelmia. Yritä uudelleen.",
-      "guideUnavailable": "En pysty vastaamaan kysymyksiin juuri nyt. Voit jatkaa seuraavaan vaiheeseen."
+      "guideUnavailable": "En pysty vastaamaan kysymyksiin juuri nyt. Voit jatkaa seuraavaan vaiheeseen.",
+      "sources": "Lähteet",
+      "showSource": "Näytä lähde {{number}}"
     },
     "content": {
       "invalidVideoUrl": "Virheellinen video-URL",
       "noContentYet": "Sisältöä ei ole vielä lisätty",
-      "pressPlayToStart": "Paina toista aloittaaksesi katselun"
+      "pressPlayToStart": "Aloita katselu napsauttamalla Toista video",
+      "videoLoad": "Toista video",
+      "videoNotice": "Tämä video on YouTubessa. Kun napsautat Toista video, selaimesi muodostaa yhteyden YouTubeen (Google). Google saa silloin IP-osoitteesi ja voi tallentaa tietoja laitteellesi.",
+      "videoPrivacyLink": "Googlen tietosuojakäytäntö"
     },
     "navigation": {
       "whenReady": "Kun olet valmis:",
@@ -27,12 +34,12 @@
       "leaveJourney": "Poistu retkeltä?",
       "leaveJourneyMessage": "Haluatko varmasti poistua tältä retkeltä? Edistymisesi on tallennettu.",
       "leaveConfirm": "Poistu",
-      "stayContinue": "Jää"
+      "stayContinue": "Jää",
+      "doAgain": "Haluatko suorittaa tämän tutkimusretken uudelleen?"
     },
     "pacing": {
       "readyToContinue": "Voit nyt jatkaa",
       "takeYourTimeMinutes": "Käytä {{minutes}} minuutti tutkimiseen",
-      "takeYourTimeMinutesPlural": "Käytä {{minutes}} minuuttia tutkimiseen",
       "takeYourTimeSeconds": "Ota aikaa... {{seconds}}s",
       "keepWatching": "Jatka katsomista... {{seconds}}s",
       "chatWithGuide": "Keskustele oppaan kanssa ({{count}}/{{total}} viestiä)"
@@ -52,19 +59,15 @@
       "alreadySubmitted": {
         "title": "Olet jo lähettänyt tämän lomakkeen",
         "message": "Lähetit tämän lomakkeen {{date}}. Voit lähettää sen uudelleen tai jatkaa täyttämättä.",
-        "skipButton": "Jatka lähettämättä",
-        "submitAgain": "Lähetä uudelleen"
+        "skipButton": "Jatka lähettämättä"
       },
       "fileUpload": {
         "dropzone": "Vedä tiedosto tähän tai klikkaa selataksesi",
-        "dragActive": "Pudota tiedosto tähän",
         "maxSize": "Max {{size}} Mt",
         "invalidType": "Virheellinen tiedostotyyppi. Sallitut: {{types}}",
         "fileTooLarge": "Tiedosto liian suuri. Maksimikoko: {{size}} Mt",
         "totalTooLarge": "Liitteiden kokonaiskoko ylittää rajan (38 Mt)",
         "removeFile": "Poista tiedosto",
-        "noFileSelected": "Ei tiedostoa valittu",
-        "fileSelected": "Tiedosto valittu: {{name}}",
         "subtypes": {
           "image": "Kuva",
           "document": "Asiakirja",
@@ -77,17 +80,19 @@
         }
       },
       "imageRejected": "Tätä kuvaa ei voi ladata. Valitse toinen kuva.",
-      "imageCheckUnavailable": "Emme voineet tarkistaa kuvaasi juuri nyt. Yritä uudelleen muutaman minuutin kuluttua."
+      "imageCheckUnavailable": "Emme voineet tarkistaa kuvaasi juuri nyt. Yritä uudelleen muutaman minuutin kuluttua.",
+      "fieldRequired": "Täytä tämä kenttä.",
+      "invalidEmail": "Anna kelvollinen sähköpostiosoite, esimerkiksi nimi@yritys.fi.",
+      "fileRequired": "Valitse tiedosto kenttään \"{{field}}\"."
     },
     "quiz": {
+      "title": "Tietovisa",
       "questionOf": "Kysymys {{current}} / {{total}}",
-      "checkAnswer": "Tarkista vastaus",
       "next": "Seuraava",
       "previous": "Edellinen",
       "finish": "Lähetä vastaukset",
       "correct": "Oikein!",
       "incorrect": "Ei aivan oikein",
-      "tryAgain": "Yritä uudelleen",
       "score": "Pisteesi",
       "passed": "Tietovisa läpäisty!",
       "completed": "Tietovisa suoritettu",
@@ -105,17 +110,19 @@
       "completePollToContinue": "Suorita kysely jatkaaksesi",
       "alreadyVoted": "Olet jo äänestänyt",
       "voteRecorded": "Äänesi on kirjattu",
-      "votes": "ääntä",
-      "votesCount": "{{count}} ääni",
-      "votesCountPlural": "{{count}} ääntä",
       "respondents": "{{count}} osallistuja",
       "respondentsPlural": "{{count}} osallistujaa",
-      "yourVote": "Äänesi"
+      "chooseFirst": "Valitse ensin vastaus ja napsauta sitten \"Äänestä\"."
     },
     "space": {
       "dragHint": "Vedä katsoaksesi ympärillesi",
       "viewFloorplan": "Näytä pohjapiirros",
-      "youAreHere": "Olet tässä"
+      "youAreHere": "Olet tässä",
+      "panoramaLabel": "360°-kuva: {{title}}",
+      "panoramaKeyboardHint": "Katso ympärillesi nuolinäppäimillä. Zoomaa näppäimillä + ja -.",
+      "zoomIn": "Lähennä",
+      "zoomOut": "Loitonna",
+      "panoramaLoadFailed": "360°-kuvaa ei voitu ladata. Lataa sivu uudelleen ja yritä uudestaan."
     },
     "stepTypes": {
       "reward": "Palkinto"
@@ -131,19 +138,20 @@
       "emailSent": "Kopio on lähetetty sähköpostiisi",
       "alreadyClaimed": "Olet jo lunastanut palkinnon tältä tutkimusretkeltä",
       "noMoreRewards": "Pahoittelut, kaikki palkinnot on jaettu",
+      "claimFailed": "Palkintoasi ei voitu noutaa. Lataa sivu uudelleen ja yritä uudestaan.",
       "previewMode": "Esikatselu - Ei oikeaa koodia luotu",
       "claimed": "Palkinto lunastettu",
       "soldOut": {
         "title": "Harmi!",
-        "message": "Valitettavasti tulit liian myöhään saadaksesi palkinnon. Kaikki palkinnot on jo jaettu.",
-        "continueJourney": "Jatka tutkimusretkeä"
+        "message": "Valitettavasti tulit liian myöhään saadaksesi palkinnon. Kaikki palkinnot on jo jaettu."
       }
     },
     "tts": {
       "listen": "Kuuntele",
       "stop": "Pysäytä",
       "listenLabel": "Kuuntele tämä vaihe ääneen luettuna",
-      "stopLabel": "Pysäytä ääneen lukeminen"
+      "stopLabel": "Pysäytä ääneen lukeminen",
+      "noVoice": "Laitteessasi ei ole ääntä tälle kielelle. Kokeile toista selainta tai pyydä IT-osastoa asentamaan sellainen."
     },
     "reading": {
       "settings": "Lukuasetukset",
@@ -151,11 +159,93 @@
     },
     "orientation": {
       "step": "Vaihe {{current}}/{{total}}",
-      "duration": "±{{minutes}} min"
+      "duration": "noin {{minutes}} min",
+      "stepApprox": "Vaihe {{current}}/noin {{total}}"
     },
     "session": {
       "expired": "Istuntosi on päättynyt. Jatka valitsemalla Lataa uudelleen.",
       "reload": "Lataa uudelleen"
+    },
+    "identify": {
+      "title": "Kuka olet?",
+      "description": "Anna tietosi jatkaaksesi",
+      "poll": {
+        "title": "Yksi ääni per henkilö",
+        "description": "Jotta kysely pysyy reiluna, tarvitsemme nimesi ja sähköpostiosoitteesi. Näin jokainen voi äänestää vain kerran."
+      },
+      "reward": {
+        "title": "Lunasta palkintosi",
+        "description": "Jotta voimme lähettää palkinnon sinulle, tarvitsemme nimesi ja sähköpostiosoitteesi. Saat palkintokoodin suoraan sähköpostiisi."
+      },
+      "form": {
+        "title": "Melkein valmista!",
+        "description": "Anna tietosi, jotta tiedämme, kuka lähetti tämän lomakkeen. Tietosi lähetetään vastauksesi mukana."
+      },
+      "firstName": "Etunimi",
+      "lastName": "Sukunimi",
+      "email": "Sähköpostiosoite",
+      "rememberMe": "Muista tietoni ensi kertaa varten",
+      "submit": "Jatka",
+      "error": "Jokin meni vikaan. Yritä uudelleen."
+    },
+    "verify": {
+      "title": "Vahvista sähköpostiosoitteesi",
+      "description": "Lähetimme vahvistuskoodin osoitteeseen {{email}}",
+      "code": "Vahvistuskoodi",
+      "submit": "Vahvista",
+      "resend": "Lähetä koodi uudelleen",
+      "codeSent": "Vahvistuskoodi lähetetty",
+      "invalidCode": "Virheellinen vahvistuskoodi",
+      "codeExpired": "Vahvistuskoodi on vanhentunut",
+      "tooManyAttempts": "Liian monta väärää koodia. Anna tietosi uudelleen, niin saat uuden koodin."
+    },
+    "closeWindowMessage": "Voit sulkea tämän välilehden ja palata edelliselle sivulle.",
+    "magicLink": {
+      "expired": {
+        "title": "Linkki on vanhentunut",
+        "message": "Tämä kutsulinkki on vanhentunut. Pyydä uusi linkki henkilöltä, joka kutsui sinut.",
+        "messageAskInviter": "Tämä kutsulinkki on vanhentunut. Pyydä uusi linkki henkilöltä {{name}}.",
+        "requestButton": "Pyydä uusi linkki",
+        "requestedTitle": "Pyyntö lähetetty",
+        "requestedMessage": "Pyysimme henkilöä {{name}} lähettämään sinulle uuden linkin. Saat sen sähköpostitse.",
+        "requestedMessageOrg": "Pyysimme organisaatiota {{org}} lähettämään sinulle uuden linkin. Saat sen sähköpostitse.",
+        "alreadyRequested": "Uutta linkkiä on jo pyydetty viimeisen 24 tunnin aikana. Saat sen sähköpostitse heti, kun se on lähetetty."
+      },
+      "completed": {
+        "title": "Tutkimusretki suoritettu",
+        "message": "Olet jo suorittanut tämän tutkimusretken. Kiitos osallistumisesta."
+      },
+      "revoked": {
+        "title": "Kutsu on peruttu",
+        "message": "Tämä kutsu ei ole enää voimassa. Jos tarvitset yhä pääsyn, ota yhteyttä henkilöön, joka kutsui sinut."
+      },
+      "verification": {
+        "title": "Vahvista henkilöllisyytesi",
+        "subtitle": "Avaat tämän linkin uudella laitteella.",
+        "explanation": "Lähetimme 6-numeroisen koodin sähköpostiosoitteeseesi. Kirjoita se alle.",
+        "codeLabel": "Vahvistuskoodi",
+        "submit": "Vahvista",
+        "verifying": "Tarkistetaan...",
+        "resend": "Lähetä uusi koodi",
+        "resent": "Lähetimme sinulle uuden koodin. Tarkista sähköpostisi.",
+        "invalid": "Koodi ei ole oikein. Tarkista koodi sähköpostistasi ja yritä uudelleen.",
+        "expired": "Koodi on vanhentunut. Valitse Lähetä uusi koodi.",
+        "lockedWait": "Liian monta väärää koodia. Odota 10 minuuttia ja valitse sitten Lähetä uusi koodi.",
+        "sessionExpired": "Tämä sivu on vanhentunut. Avaa sähköpostisi linkki uudelleen.",
+        "journeyLabel": "Tutkimusretki"
+      },
+      "welcomeBack": {
+        "title": "Tervetuloa takaisin, {{firstName}}!",
+        "message": "Olet jo suorittanut tämän tutkimusretken.",
+        "restartButton": "Aloita alusta",
+        "reviewButton": "Näytä edellinen yritys"
+      },
+      "error": "Jokin meni vikaan. Yritä uudelleen."
+    },
+    "resume": {
+      "message": "Olet ollut täällä aiemmin. Haluatko jatkaa siitä, mihin jäit?",
+      "continue": "Jatka siitä, mihin jäin",
+      "restart": "Aloita alusta"
     }
   }
 }

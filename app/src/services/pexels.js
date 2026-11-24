@@ -13,6 +13,14 @@ const __dirname = path.dirname(__filename);
 
 const PEXELS_API_URL = 'https://api.pexels.com/v1';
 
+// Search locales Pexels supports, by ISO 639-1 code (all 14 Gryffi languages
+// except Norwegian Bokmal map 1:1; "no" is "nb-NO" at Pexels)
+const PEXELS_LOCALES = {
+  en: 'en-US', nl: 'nl-NL', de: 'de-DE', fr: 'fr-FR', es: 'es-ES', it: 'it-IT',
+  pt: 'pt-BR', da: 'da-DK', no: 'nb-NO', fi: 'fi-FI', sv: 'sv-SE', pl: 'pl-PL',
+  ro: 'ro-RO', tr: 'tr-TR'
+};
+
 // Base path for media storage
 // This maps to data/uploads/organizations/ on the host via Docker volume
 const MEDIA_BASE_PATH = path.join(__dirname, '../../uploads/organizations');
@@ -24,6 +32,8 @@ const MEDIA_BASE_PATH = path.join(__dirname, '../../uploads/organizations');
  * @param {number} page - Page number
  * @param {Object} opts - Additional options
  * @param {string} opts.orientation - portrait | landscape | square
+ * @param {string} opts.language - Language of the query (ISO 639-1), so a Dutch
+ *   "kantoor" finds offices too
  * @returns {Promise<Object>} - Pexels search results
  */
 export async function searchPhotos(query, perPage = 15, page = 1, opts = {}) {
@@ -36,6 +46,8 @@ export async function searchPhotos(query, perPage = 15, page = 1, opts = {}) {
   try {
     let url = `${PEXELS_API_URL}/search?query=${encodeURIComponent(query)}&per_page=${perPage}&page=${page}`;
     if (opts.orientation) url += `&orientation=${opts.orientation}`;
+    const locale = PEXELS_LOCALES[opts.language];
+    if (locale) url += `&locale=${locale}`;
     
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
@@ -84,68 +96,6 @@ export async function searchPhotos(query, perPage = 15, page = 1, opts = {}) {
   } catch (error) {
     console.error('Pexels search error:', error);
     return { photos: [], total_results: 0, error: error.message };
-  }
-}
-
-/**
- * Get curated photos from Pexels (trending/popular)
- * @param {number} perPage - Results per page
- * @param {number} page - Page number
- * @returns {Promise<Object>} - Curated photos
- */
-export async function getCuratedPhotos(perPage = 15, page = 1) {
-  const apiKey = await getSetting('pexels.apiKey');
-  if (!apiKey) {
-    return { photos: [], error: 'API key not configured' };
-  }
-
-  try {
-    const url = `${PEXELS_API_URL}/curated?per_page=${perPage}&page=${page}`;
-    
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-    
-    let response;
-    try {
-      response = await fetch(url, {
-        headers: {
-          'Authorization': apiKey
-        },
-        signal: controller.signal
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
-
-    if (!response.ok) {
-      throw new Error(`Pexels API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    return {
-      photos: data.photos.map(photo => ({
-        id: photo.id,
-        width: photo.width,
-        height: photo.height,
-        url: photo.url,
-        photographer: photo.photographer,
-        photographer_url: photo.photographer_url,
-        alt: photo.alt || 'Curated photo',
-        src: {
-          original: photo.src.original,
-          large: photo.src.large,
-          medium: photo.src.medium,
-          small: photo.src.small,
-          thumbnail: photo.src.tiny
-        }
-      })),
-      page: data.page,
-      per_page: data.per_page
-    };
-  } catch (error) {
-    console.error('Pexels curated error:', error);
-    return { photos: [], error: error.message };
   }
 }
 
@@ -366,27 +316,3 @@ export async function getSuggestedSearchTerms(stepType, stepTitle) {
   }
   return { terms: fallbacks };
 }
-
-/**
- * Legacy synchronous version — only used as fallback
- * @deprecated Use getSuggestedSearchTerms (async) instead
- */
-export function getSuggestedSearchTermsSync(stepType, _stepTitle) {
-  const baseTerms = {
-    space: ['modern office interior', 'meeting room', 'corporate lobby', 'workspace', 'office reception'],
-    guide: ['friendly person face portrait', 'professional headshot smiling', 'business person portrait'],
-    avatar: ['friendly person face portrait', 'professional woman headshot', 'professional man headshot'],
-    content: ['business teamwork', 'presentation meeting', 'learning knowledge'],
-    challenge: ['quiz competition', 'thinking lightbulb', 'achievement trophy']
-  };
-  return baseTerms[stepType] || baseTerms.content;
-}
-
-export default {
-  searchPhotos,
-  getCuratedPhotos,
-  downloadPhoto,
-  ensureMediaDirectories,
-  getSuggestedSearchTerms,
-  getSuggestedSearchTermsSync
-};

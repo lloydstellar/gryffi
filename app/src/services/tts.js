@@ -22,25 +22,34 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
-// Native preset voices per language. Voxtral's preset catalog currently
-// only contains English and French voices; its cross-lingual voice
-// adaptation reads other languages with an English pronunciation, which
-// sounds wrong, so we only enable languages that have a native voice.
-// Override per language via TTS_VOXTRAL_VOICE_<LANG> (e.g.
-// TTS_VOXTRAL_VOICE_NL) once custom voice profiles with native reference
-// audio are created via Mistral's Voices API - then also add the language
-// to VOXTRAL_TTS_LANGUAGES below and to the client list.
+// Native preset voices per language (Voxtral 3, checked against the voice
+// list of the Mistral account on 16 November 2026). Languages outside Gryffi's
+// 14 journey languages are left out. Danish, Finnish and Swedish have no preset
+// voice: an English voice would read them with an English pronunciation, so
+// they keep the browser voice until a cloned native voice exists. Override per
+// language via TTS_VOXTRAL_VOICE_<LANG> (e.g. TTS_VOXTRAL_VOICE_DA once a
+// cloned voice is made with Mistral's Voices API); add the language here and to
+// SERVER_TTS_LANGUAGES in app/public/js/builder.js as well.
 const NATIVE_VOICES = {
-  en: 'gb_oliver_neutral', // calm, even, neutral
-  fr: 'fr_marie_neutral'
+  en: 'gb_oliver_neutral', // Oliver, calm, even, neutral
+  fr: 'fr_marie_neutral',  // Marie, composed, steady
+  nl: 'voice_3145',        // Lotte
+  de: 'voice_481',         // Heidi
+  es: 'voice_483',         // Elena
+  it: 'voice_482',         // Lorenzo
+  pt: 'voice_480',         // Gabriela (Brazilian, like the Portuguese player texts)
+  no: 'voice_3134',        // Lars
+  pl: 'voice_3154',        // Leon
+  ro: 'voice_3155',        // Irina
+  tr: 'voice_3138'         // Oran
 };
 
 /**
- * Languages read by Voxtral TTS (subset of Gryffi's 14 journey languages).
- * All other languages use the browser's Web Speech API client-side.
+ * Languages read by Voxtral TTS (11 of Gryffi's 14 journey languages).
+ * Danish, Finnish and Swedish use the browser's Web Speech API client-side.
  * Keep in sync with SERVER_TTS_LANGUAGES in app/public/js/builder.js.
  */
-export const VOXTRAL_TTS_LANGUAGES = ['en', 'fr'];
+export const VOXTRAL_TTS_LANGUAGES = Object.keys(NATIVE_VOICES);
 
 // Voxtral has a ~300 word soft limit per request; the client chunks text at
 // sentence boundaries (~1100 chars) well below this hard cap.
@@ -70,10 +79,16 @@ export function getTtsCacheDir() {
   return CACHE_DIR;
 }
 
+/**
+ * The voice for a language: an override per language, the native preset, and
+ * only then the general voice from the settings. A single general voice must
+ * not win over a native one, or one voice would read every language with its
+ * own pronunciation.
+ */
 function getVoiceForLanguage(language, defaultVoice) {
   return process.env[`TTS_VOXTRAL_VOICE_${language.toUpperCase()}`]
-    || defaultVoice
-    || NATIVE_VOICES[language];
+    || NATIVE_VOICES[language]
+    || defaultVoice;
 }
 
 class TtsError extends Error {
@@ -125,7 +140,9 @@ export async function getOrCreateTtsAudio(text, language) {
   if (!promise) {
     promise = synthesize(input, voice, ttsModel, filePath);
     inFlight.set(hash, promise);
-    promise.finally(() => inFlight.delete(hash));
+    // The caller awaits `promise` itself; this branch only cleans up, and must not
+    // leave a second, unhandled rejection behind when the request fails.
+    promise.finally(() => inFlight.delete(hash)).catch(() => {});
   }
   await promise;
 
@@ -152,6 +169,14 @@ async function synthesize(input, voice, model, filePath) {
 
     if (!response.ok) {
       const errBody = await response.text().catch(() => '');
+      // Mistral's moderation sometimes blocks harmless text (in November 2026 a
+      // sentence about colleagues with ADHD or dyslexia, as hate and
+      // discrimination). The speech endpoint takes no guardrail settings, so the
+      // player falls back to the browser voice; the log line shows how often.
+      if (response.status === 403 && errBody.includes('guardrail')) {
+        console.warn(`[TTS] Mistral moderation blocked a text (${input.length} characters)`);
+        throw new TtsError('TTS_BLOCKED', 'Voxtral TTS request blocked by Mistral moderation', 502);
+      }
       throw new TtsError(
         'TTS_UPSTREAM_ERROR',
         `Voxtral TTS request failed (${response.status}): ${errBody.slice(0, 300)}`,

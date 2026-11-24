@@ -51,7 +51,7 @@ export const SETTINGS = Object.freeze({
   'ai.embeddingBaseUrl': { type: 'url', env: 'AI_EMBEDDING_BASE_URL' },
   'ai.embeddingApiKey': { type: 'string', secret: true, env: 'OPENAI_API_KEY' },
   'ai.embeddingModel': { type: 'string', env: 'AI_EMBEDDING_MODEL' },
-  'ai.ttsModel': { type: 'string', env: 'TTS_VOXTRAL_MODEL', default: 'voxtral-mini-tts-2603' },
+  'ai.ttsModel': { type: 'string', env: 'TTS_VOXTRAL_MODEL', default: 'voxtral-mini-tts-3-0' },
   'ai.ttsVoice': { type: 'string', env: 'TTS_VOXTRAL_VOICE' },
   'ai.monthlyQuestionLimit': { type: 'number', min: 0, default: null },
   // Features that need their own model; off when no suitable model is configured

@@ -76,7 +76,7 @@ writeFileSync(join(docs, 'troubleshooting/index.md'), troubleshooting);
 // ------------------------------------------------------------------ the guide
 
 const SECTIONS = [
-  { text: 'Journeys', items: ['journey-builder', 'journey-wizard', 'journey-settings', 'journey-preview', 'step-pacing', 'public-journeys', 'copy-translate', 'language-settings'] },
+  { text: 'Journeys', items: ['journey-builder', 'journey-wizard', 'journey-settings', 'journey-preview', 'step-pacing', 'public-journeys', 'copy-translate', 'language-settings', 'trash'] },
   { text: 'Steps', items: ['space-step', 'floor-plans', 'guide-step', 'content-step', 'challenge-step', 'quiz-settings', 'form-step', 'form-file-uploads', 'form-email-settings', 'form-submissions', 'poll-step', 'reward-step', 'subjourney-step', 'step-assistant', 'image-library'] },
   { text: 'AI guides', items: ['ai-guides-overview', 'guide-knowledge-base'] },
   { text: 'Participants', items: ['end-user-management', 'manual-user-entry', 'csv-import', 'end-user-groups', 'google-workspace-sync', 'microsoft-365-sync', 'invitations-overview', 'invitation-options', 'magic-links', 'end-user-experience'] },
