@@ -66,7 +66,7 @@
         "maxSize": "Maks {{size}} MB",
         "invalidType": "Ugyldig filtype. Tillatt: {{types}}",
         "fileTooLarge": "Fil for stor. Maksimal størrelse: {{size}} MB",
-        "totalTooLarge": "Total vedleggsstørrelse overskrider grensen (38 MB)",
+        "totalTooLarge": "Filene er for store til sammen. Maksimum er {{size}} MB totalt. Fjern en fil, eller velg en mindre fil.",
         "removeFile": "Fjern fil",
         "subtypes": {
           "image": "Bilde",
@@ -122,6 +122,7 @@
       "panoramaKeyboardHint": "Bruk piltastene for å se deg rundt. Bruk + og - for å zoome.",
       "zoomIn": "Zoom inn",
       "zoomOut": "Zoom ut",
+      "centerOnMarker": "Vis hvor du er",
       "panoramaLoadFailed": "360°-bildet kunne ikke lastes inn. Last inn siden på nytt for å prøve igjen."
     },
     "stepTypes": {

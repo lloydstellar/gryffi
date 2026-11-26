@@ -21,6 +21,7 @@ import { getOrganizationUsageWithLimits, recordLimitHit, RESOURCE_TYPES } from '
 import { publicApiLimiter, publicApiAuthFailureLimiter } from '../middleware/rateLimit.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
 import { newInvitationToken } from '../services/invitationTokens.js';
+import { formFilesOfEndUsers, removeFormFiles } from '../services/formSubmissions.js';
 
 const router = Router();
 
@@ -359,11 +360,14 @@ router.delete('/end-users', async (req, res) => {
     // Note: We allow API to delete any end user (including synced ones)
     // since API access implies full automation control
     
-    // Delete the end user (cascades to invitations, progress, etc.)
+    // Delete the end user (cascades to invitations, progress, etc.). The
+    // files of their form submissions go from disk as well.
+    const formFiles = await formFilesOfEndUsers(orgId, { endUserId: endUser.id });
     await query(
       `DELETE FROM end_users WHERE id = $1 AND organization_id = $2`,
       [endUser.id, orgId]
     );
+    removeFormFiles(formFiles);
     
     res.status(200).json({
       success: true,

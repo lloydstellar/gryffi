@@ -451,14 +451,15 @@ async function storeVerificationCode(userId, code) {
 }
 
 /**
- * Check if organization is on Pro+ tier (professional, enterprise, custom, partner)
+ * Check if organization is on a paid tier or the Community Edition (every tier
+ * except free): those get a login code after repeated wrong passwords
  */
 async function isProTier(orgId) {
   try {
     const tierData = await getOrganizationTier(orgId);
     // tierData has structure { tier: { name: 'professional', ... }, ... }
     const tierName = tierData?.tier?.name;
-    return tierName && ['professional', 'enterprise', 'custom', 'partner'].includes(tierName);
+    return Boolean(tierName) && tierName !== 'free';
   } catch (err) {
     console.error('[Auth] Failed to check tier:', err);
     return false;
@@ -3643,11 +3644,11 @@ router.get('/e/:token/forms/submission-status/:stepId', async (req, res) => {
  */
 router.post('/e/:token/forms/submit', async (req, res) => {
   const { token } = req.params;
-  // NOTE: recipient_email / step_title are intentionally NOT taken from the
+  // NOTE: recipient_email / step_title / email_subject are intentionally NOT taken from the
   // request body. They are resolved server-side from the step configuration
   // below, so a magic-link holder cannot use this endpoint as an open mail
   // relay to send mail to arbitrary recipients.
-  const { step_id, email_subject, responses, attachments } = req.body;
+  const { step_id, responses, attachments } = req.body;
 
   try {
     // Validate the magic link token
@@ -3775,7 +3776,7 @@ router.post('/e/:token/forms/submit', async (req, res) => {
       fields: stepBasicProps.fields,
       files: storedFiles
     });
-    const subject = email_subject || buildFormSubmissionSubject(orgLanguage, journeyTitle);
+    const subject = buildFormSubmissionSubject(orgLanguage, journeyTitle, { template: stepBasicProps.email_subject, stepTitle: step_title });
     
     let emailStatus = 'sent';
     let emailProviderId = null;
@@ -5332,7 +5333,7 @@ router.post('/p/:token/forms/submit', async (req, res) => {
         files: storedFiles,
         publicBadge: req.t('journeys.public.badge')
       });
-      const subject = buildFormSubmissionSubject(orgLanguage, p.journey_title);
+      const subject = buildFormSubmissionSubject(orgLanguage, p.journey_title, { template: basicProps.email_subject, stepTitle: formTitle });
       
       let emailStatus = 'sent';
       let emailProviderId = null;

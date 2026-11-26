@@ -1,94 +1,71 @@
 ---
 feature_id: avatar-cropper
-related_features: [user-settings, guide-identity]
+related_features: [ai-guides-overview, image-library]
 ---
 
 # Avatar Cropper
 
-The Avatar Cropper allows you to upload and adjust profile images for AI guides
+With the avatar cropper you choose and crop the picture of an AI guide. Participants see this picture next to the answers of the guide.
 
 ## Overview
 
-The cropper provides:
-
-- Choose image
-- Suggested and Search images from Pexels image database
-- Upload your own image
-- Crop and resize
-- Zoom and position
-- Preview before saving
+- Choose a picture: suggested pictures, a search on Pexels, your library or your own upload.
+- Crop it to a circle.
+- Zoom, move and rotate the picture.
 
 ## Using the Cropper
 
-### Step 1: Upload Image
+### Step 1: Choose a picture
 
-1. Click Choose Avatar 
-2. Go to the 4th tab "Upload"
-3. Drag and drop or click to upload image
-2. Supported formats: JPG, PNG, GIF, WebP
-3. Maximum size: 10 MB
+1. Open the AI guide and click **Choose Avatar** (or **Change** when the guide already has a picture).
+2. Pick a picture on one of the tabs:
+   - **Suggested**: pictures that fit the name of the guide.
+   - **Search**: search for pictures on Pexels.
+   - **Library**: pictures your organization uploaded or used before.
+   - **Upload**: drag a file here, or click to choose one. JPEG, PNG, GIF or WebP, up to 10 MB.
 
-### Step 2: Crop Image
+### Step 2: Crop the picture
 
-1. Drag to position the image
-2. Use zoom slider to resize
-3. Crop circle shows final result
+The window **Crop Avatar** opens.
+
+1. Drag the picture to move it.
+2. Zoom with the scroll wheel, or with the **Zoom in** and **Zoom out** buttons.
+3. Turn the picture with **Rotate left** and **Rotate right**.
+4. Click **Reset** to start again.
+5. The circle shows what participants will see.
 
 ### Step 3: Save
 
-1. Click "Save"
-2. Image is processed and saved
-3. Appears throughout the interface
+1. Click **Crop & Save**.
+2. The picture appears at the guide.
 
-## Crop Options
-
-### Zoom
-
-- Use slider to zoom in/out
-- Scroll wheel also works
-- Pinch on touch devices
-
-### Position
-
-- Click and drag to move
-- Center important content
-- Check preview circle
+To remove the picture, click **Remove** next to it.
 
 ## Best Practices
 
-### Image Selection
-
-- Use clear, high-quality images
-- Choose images that work at small sizes
-- Consider the context (professional vs casual)
-
-### For Profiles
-
-- Face should be centered
-- Good lighting
-- Appropriate background
-
-### For AI Guides
-
-- Recognizable at small size
-- Matches brand style
-- Professional appearance
+- Use a clear, sharp picture.
+- Choose a picture that is easy to recognize at a small size.
+- Put the face or the main subject in the middle of the circle.
+- Match the style of your organization.
 
 ## Troubleshooting
 
-### Image Won't Upload
+### Picture won't upload
 
-- Check file size (max 10 MB)
-- Verify format (JPG, PNG, GIF, WebP)
-- Try different browser
+- Check the size: 10 MB at most.
+- Check the type: JPEG, PNG, GIF or WebP.
+- Gryffi checks every uploaded picture for nudity. A picture that fails this check, or that cannot be checked, is refused.
 
-### Poor Quality
+### No suggested or search pictures
 
-- Use higher resolution source
-- Avoid excessive zoom
-- Check original image quality
+Suggested and Search use Pexels. When Pexels is not set up for your installation, use **Upload** or **Library** instead.
+
+### Poor quality
+
+- Use a picture with a higher resolution.
+- Do not zoom in too far.
 
 ## Related Features
 
-- [[goto:/dashboard/guides]] - Edit profile
-- See: user-settings, guide-identity
+- [[goto:/dashboard/guides]] - AI guides
+- See: ai-guides-overview, image-library

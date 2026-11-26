@@ -66,7 +66,7 @@
         "maxSize": "Max {{size}} MB",
         "invalidType": "Ungültiger Dateityp. Erlaubt: {{types}}",
         "fileTooLarge": "Datei zu groß. Maximale Größe: {{size}} MB",
-        "totalTooLarge": "Gesamtgröße der Anhänge überschreitet Limit (38 MB)",
+        "totalTooLarge": "Die Dateien sind zusammen zu groß. Das Maximum ist {{size}} MB insgesamt. Entfernen Sie eine Datei oder wählen Sie eine kleinere Datei.",
         "removeFile": "Datei entfernen",
         "subtypes": {
           "image": "Bild",
@@ -122,6 +122,7 @@
       "panoramaKeyboardHint": "Mit den Pfeiltasten sehen Sie sich um. Mit + und - zoomen Sie.",
       "zoomIn": "Vergrößern",
       "zoomOut": "Verkleinern",
+      "centerOnMarker": "Zeigen, wo Sie sind",
       "panoramaLoadFailed": "Das 360°-Foto konnte nicht geladen werden. Laden Sie die Seite neu, um es noch einmal zu versuchen."
     },
     "stepTypes": {

@@ -196,7 +196,7 @@ STEP TYPES YOU MAY USE:
 ${wantsGuide ? (chosenGuideName
   ? `  The AI Guide's name is "${chosenGuideName}" (chosen by the maker). If you mention a name in the greeting, you MUST use exactly this name. Do not invent any other name.`
   : '  Write a short, warm greeting WITHOUT introducing the guide by a personal name (the maker has not chosen one yet).') : ''}
-- "form": a short form collecting info from the user (provide 1-3 fields, each with label + type: text|textarea|email).
+- "form": a short form collecting info from the user (provide 1-3 fields, each with label + type: text|textarea).
 - "poll": a single-question survey with 2-4 options.
 - "space": a location/place step that describes a physical space (room, area, venue). Provide a short space_description.
 - "reward": a closing reward step. Provide a title and description only.
@@ -747,10 +747,12 @@ function basicPropsFor(type, s, ctx) {
         // "description" is what the builder edits and the player shows
         description: sanitize(s.form_intro || '', 300),
         fields: Array.isArray(s.form_fields) && s.form_fields.length > 0
-          ? s.form_fields.slice(0, 6).map((f, i) => ({
+          // Same limits as the builder: at most 5 fields, and only field
+          // types the builder can edit ("email" becomes a short text field)
+          ? s.form_fields.slice(0, 5).map((f, i) => ({
               id: `field_${i + 1}`,
               label: sanitize(f.label || `Field ${i + 1}`, 200),
-              type: ['text', 'textarea', 'email'].includes(f.type) ? f.type : 'text',
+              type: ['text', 'textarea'].includes(f.type) ? f.type : 'text',
               required: !!f.required
             }))
           : [{ id: 'field_1', label: 'Your answer', type: 'text', required: false }]

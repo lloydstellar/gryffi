@@ -33,9 +33,9 @@ An organization has one key. **Regenerate Key** makes a new key and the old one 
 
 ## Base URL and authentication
 
-The base URL is your Gryffi address followed by `/api/v1`.
+The base URL is your Gryffi address followed by `/api/v1`. The **API** tab shows your address as **Base URL**, and its examples use it. In the examples below, replace `https://your-gryffi-address` with that address.
 
-Send the key in the `X-API-Key` header with every request. Send request bodies as JSON with `Content-Type: application/json`.
+Send the key in the `X-API-Key` header with every request. A key starts with `grf_`. The key gives access to all endpoints below, for your whole organization. You cannot limit a key to some endpoints. Send request bodies as JSON with `Content-Type: application/json`.
 
 ## Endpoints
 
@@ -58,14 +58,14 @@ Send the key in the `X-API-Key` header with every request. Send request bodies a
 
 Get all published journeys to find the journey_id for invitations.
 
-curl -X GET "https://api.gryffi.com/api/v1/journeys" \
+curl -X GET "https://your-gryffi-address/api/v1/journeys" \
   -H "X-API-Key: grf_your_api_key_here"
 
 ### Create Participant
 
 Create a new participant in Gryffi. If the email already exists, the existing participant is returned with `"created": false`.
 
-curl -X POST "https://api.gryffi.com/api/v1/end-users" \
+curl -X POST "https://your-gryffi-address/api/v1/end-users" \
   -H "X-API-Key: grf_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -78,7 +78,7 @@ curl -X POST "https://api.gryffi.com/api/v1/end-users" \
 
 Invite a participant to a specific journey. Creates the participant if they don't exist yet. Gryffi sends the invitation mail in the language of the journey, or else the language of your organization.
 
-curl -X POST "https://api.gryffi.com/api/v1/invitations" \
+curl -X POST "https://your-gryffi-address/api/v1/invitations" \
   -H "X-API-Key: grf_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -101,7 +101,7 @@ The answer contains the personal link (`magic_link`), in case you want to send i
 
 Remove a participant from Gryffi by their email address. This also removes their invitations and progress.
 
-curl -X DELETE "https://api.gryffi.com/api/v1/end-users" \
+curl -X DELETE "https://your-gryffi-address/api/v1/end-users" \
   -H "X-API-Key: grf_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -112,21 +112,21 @@ curl -X DELETE "https://api.gryffi.com/api/v1/end-users" \
 
 Get all groups in your organization with their member count.
 
-curl -X GET "https://api.gryffi.com/api/v1/groups" \
+curl -X GET "https://your-gryffi-address/api/v1/groups" \
   -H "X-API-Key: grf_your_api_key_here"
 
 ### List Group Members
 
 Get all members of a specific group.
 
-curl -X GET "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members" \
+curl -X GET "https://your-gryffi-address/api/v1/groups/your-group-uuid-here/members" \
   -H "X-API-Key: grf_your_api_key_here"
 
 ### Create Group
 
 Create a new group to organize participants.
 
-curl -X POST "https://api.gryffi.com/api/v1/groups" \
+curl -X POST "https://your-gryffi-address/api/v1/groups" \
   -H "X-API-Key: grf_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -138,7 +138,7 @@ curl -X POST "https://api.gryffi.com/api/v1/groups" \
 
 Add one or more participants to a group by their email addresses. Send at most 1000 addresses per request. The answer lists which addresses were added, which were already a member and which are not a participant.
 
-curl -X POST "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members" \
+curl -X POST "https://your-gryffi-address/api/v1/groups/your-group-uuid-here/members" \
   -H "X-API-Key: grf_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -149,7 +149,7 @@ curl -X POST "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members"
 
 Remove one or more participants from a group by their email addresses.
 
-curl -X DELETE "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/members" \
+curl -X DELETE "https://your-gryffi-address/api/v1/groups/your-group-uuid-here/members" \
   -H "X-API-Key: grf_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -160,7 +160,7 @@ curl -X DELETE "https://api.gryffi.com/api/v1/groups/your-group-uuid-here/member
 
 Delete a group. The group must be empty (no members) before it can be deleted.
 
-curl -X DELETE "https://api.gryffi.com/api/v1/groups/your-group-uuid-here" \
+curl -X DELETE "https://your-gryffi-address/api/v1/groups/your-group-uuid-here" \
   -H "X-API-Key: grf_your_api_key_here"
 
 ## Answers and errors
@@ -170,9 +170,9 @@ Every answer is JSON. A successful answer has `"success": true`. An error has `"
 | Status | Meaning |
 |--------|---------|
 | 200, 201 | Done (201: something new was created) |
-| 400 | Something in the request is missing or wrong, for example `validity_days` is 45 or the body is not valid JSON |
+| 400 | Something in the request is missing or wrong, for example `validity_days` is 45, the body is not valid JSON, or the group you want to delete still has members |
 | 401 | No key, or the key is wrong or revoked |
-| 403 | Your plan does not include the API, or a limit of your plan is reached |
+| 403 | The request is not allowed |
 | 404 | The journey, group or participant does not exist in your organization |
 | 409 | It already exists: an open invitation, or a group with the same name |
 | 429 | Too many requests. Wait and try again |

@@ -22,24 +22,20 @@ CSV import enables:
 
 [[goto:/dashboard/participants#users/csv]]
 
-## Preparing Your CSV
-
-### Download Template
-
-1. Go to Participants → CSV/Excel Import (1)
-2. Drag a CSV, Excel or OpenDocument spreadsheet to "Drop your file here" (2), or click it to choose a file
+## Preparing Your File
 
 ### Required Columns
 
-File Format Requirements
-Supported formats: CSV, Excel (.xlsx, .xls), OpenDocument (.ods)
+Supported formats: CSV, Excel (.xlsx, .xls), OpenDocument (.ods). The maximum file size is 10 MB.
 
 Your file should have 3 columns:
-Column A: First Name
-Column B: Last Name
-Column C: Email Address
+- Column A: First Name
+- Column B: Last Name
+- Column C: Email Address
 
-A header row is optional and will be automatically detected
+All three are required in every row. Gryffi only reads the first sheet and columns A, B and C.
+
+A header row is optional and will be automatically detected.
 
 ### Example CSV
 
@@ -49,24 +45,36 @@ John,Doe,johndoe@mycompany.com
 Fred,Bucket,fredbucket@mycompany.com
 ```
 
+## Importing
+
+1. Go to Participants → CSV/Excel Import (1)
+2. Drag your file to "Drop your file here" (2), or click it to choose a file
+3. Check the Import Preview. It shows how many new participants will be imported, which participants already exist and which rows have a problem
+4. Click "Yes, import participants"
+
 ## Handling Duplicates
 
-### Duplicate Detection
+Participants are matched by email address. If an email address already belongs to a participant in your organization, that row is skipped. No new participant is made.
 
-Participants are matched by email address. If an email address is already in the participants of your company, no new participant is made.
+If the same email address appears more than once in the file, only the first row is imported.
 
-## Error Handling
+## Rows With a Problem
 
-### Common Errors
+A row with a problem is skipped. The other rows are still imported. The preview lists each skipped row and the reason:
 
-| Error | Solution |
+| Reason | Solution |
 |-------|----------|
-| Invalid email | Check email format |
-| Missing required field | Add email column |
+| first name is empty | Fill in column A |
+| last name is empty | Fill in column B |
+| email address is empty | Fill in column C |
+| "..." is not a valid email address | Correct the email address |
+| "..." appears more than once in the file | Remove the extra row |
+
+Fix the rows in your file and import it again to add them. Participants that were already imported are skipped the second time.
+
+If none of the rows can be imported, you see "Nothing was imported".
 
 ## Best Practices
-
-### Data Preparation
 
 - Clean data before import
 - Verify email addresses
@@ -76,5 +84,6 @@ Participants are matched by email address. If an email address is already in the
 ## Related Features
 
 - [[goto:/dashboard/participants#users/csv]] - Import participants
-- [[goto:/dashboard/participants#users/csv]] - Manage participants
-- See: end-user-management, manual-user-entry
+- [[goto:/dashboard/participants#users/manual]] - Manage participants
+
+See: end-user-management, manual-user-entry, end-user-groups

@@ -3,6 +3,75 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.12.0] - 2026-11-26
+
+Before you update: this release changes the database when Gryffi starts.
+The result tables (progress, quiz attempts, poll votes, form submissions,
+rewards, video statistics) no longer depend on the steps, so results can
+stay after a step or journey is deleted. You do not need to do anything.
+Results that were deleted before this version do not come back.
+
+Analytics:
+
+- Results stay after deletion. When a journey leaves the trash for good,
+  or you delete a step in the builder, its results stay in Analytics. A
+  switch "Show deleted journeys and steps" at the top of Analytics is off
+  by default; turn it on to see them, marked "Deleted". On the Overview
+  tab, only an admin can delete these results for good, uploaded files
+  included. A journey without any results is still removed completely.
+  Undo in the builder brings a deleted step back with its results.
+- Every maker role can open Analytics now, including the Forms tab with
+  the form submissions and their files. Before, editors and viewers could
+  not. Deleting archived polls is admin only.
+- Moving a journey to the trash no longer asks what to do with poll
+  results: the polls are archived and stay in Analytics.
+- The dashboard counts new form responses from real submissions. Before,
+  poll votes were counted too.
+
+Builder:
+
+- Floor plans can be renamed and deleted. Choose a floor plan in a Space
+  step to see Edit floor plan and Delete floor plan. Deleting asks first
+  and says in how many steps the floor plan is shown; those steps stop
+  showing it, and the image is removed.
+- The journey wizard makes form steps the builder can edit: at most five
+  fields, and no email field type.
+- The subject of the form email fills in `{{journey_title}}` and
+  `{{step_title}}` everywhere, also in the preview email and in public
+  journeys. The server builds the subject from the step.
+
+Participants and sync:
+
+- Directory sync with Google Workspace and Microsoft 365 removes nobody
+  when more than 3 people and more than 10% of the synced participants
+  would be removed at once. Before, the limits differed per sync and a
+  single leaver could block a small directory.
+- Deleting a participant also removes the files they uploaded in forms
+  from the disk. A job runs every hour and removes form files that no
+  submission refers to any more, and files of builder preview emails
+  once their download link has expired (30 days).
+- Invitation reminders are no longer sent for journeys in the trash.
+
+Security:
+
+- Only admins can create, edit, activate or delete themes. Before, the
+  API allowed every maker role.
+- After 3 wrong passwords, Gryffi asks for a 6 digit code sent by email.
+  This did not work in the Community Edition before.
+
+Player:
+
+- The message about attachments that are too large gives the right limit
+  (24 MB) and says how to fix it, in all 14 languages.
+- The floor plan labels and the button that shows where you are on the
+  floor plan use the language of the journey.
+
+Help:
+
+- Every help page was checked against the app and rewritten where it was
+  wrong or out of date. New page about tracking rewards. The help ids now
+  match the file names.
+
 ## [0.11.0] - 2026-11-24
 
 Before you update: magic links are now stored as a hash and an encrypted

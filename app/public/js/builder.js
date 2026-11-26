@@ -4253,6 +4253,10 @@ class FlowBuilder {
                   </svg>
                   ${window.t('builder.props.uploadNewFloorplan')}
                 </button>
+                <div id="floorplanManageBtns" class="hidden mt-2 flex flex-wrap gap-2">
+                  <button type="button" class="btn-secondary btn-sm" id="editFloorplanBtn">${window.t('builder.props.editFloorplan')}</button>
+                  <button type="button" class="btn-secondary btn-sm text-red-600" id="deleteFloorplanBtn">${window.t('builder.props.deleteFloorplan')}</button>
+                </div>
               </div>
               
               <!-- Floorplan Preview & Marker Placement -->
@@ -4292,7 +4296,7 @@ class FlowBuilder {
           <div>
             <div class="flex items-center gap-2">
               <label class="form-label mb-0" for="propGuideId">${window.t('builder.props.selectGuide')}</label>
-              ${this.tipButton('guideCredits', 'ai-credits')}
+              ${window.GRYFFI?.isCommunity ? '' : this.tipButton('guideCredits', 'ai-credits')}
             </div>
             ${this.hintLine('guideStep')}
             <select class="form-input" id="propGuideId">
@@ -4735,7 +4739,7 @@ class FlowBuilder {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
               <span class="form-label mb-0">${window.t('builder.reward.codeSettings')}</span>
-              ${this.tipButton('rewardCodes', 'reward-codes')}
+              ${this.tipButton('rewardCodes', 'reward-step')}
             </div>
             
             <!-- Random vs Manual Toggle -->
@@ -5520,6 +5524,7 @@ class FlowBuilder {
         document.getElementById('propFloorplanMarkerY').value = '';
       }
       floorplanSelect.dataset.saved = selectedId;
+      document.getElementById('floorplanManageBtns')?.classList.toggle('hidden', !selectedId);
       if (selectedId) {
         const selectedOption = floorplanSelect.options[floorplanSelect.selectedIndex];
         const imageUrl = selectedOption.dataset.url;
@@ -5533,6 +5538,14 @@ class FlowBuilder {
     // Upload new floorplan button
     document.getElementById('uploadNewFloorplanBtn')?.addEventListener('click', () => {
       this.showFloorplanUploadModal();
+    });
+
+    // Edit or delete the selected floor plan
+    document.getElementById('editFloorplanBtn')?.addEventListener('click', () => {
+      if (floorplanSelect?.value) this.showFloorplanEditModal(floorplanSelect.value);
+    });
+    document.getElementById('deleteFloorplanBtn')?.addEventListener('click', () => {
+      if (floorplanSelect?.value) this.deleteFloorplan(floorplanSelect.value);
     });
     
     // Floorplan marker placement
@@ -8975,8 +8988,9 @@ class FlowBuilder {
         }
         
         // Show marker area if a floorplan is selected
+        const currentFloorplan = currentFloorplanId ? data.floorplans.find(fp => fp.id === currentFloorplanId) : null;
+        document.getElementById('floorplanManageBtns')?.classList.toggle('hidden', !currentFloorplan);
         if (currentFloorplanId) {
-          const currentFloorplan = data.floorplans.find(fp => fp.id === currentFloorplanId);
           if (currentFloorplan) {
             this.showFloorplanMarkerArea(currentFloorplan.image_url, markerX ? parseFloat(markerX) : null, markerY ? parseFloat(markerY) : null);
           }
@@ -9167,6 +9181,125 @@ class FlowBuilder {
   }
   
   /**
+   * Rename the floor plan or change its description
+   */
+  async showFloorplanEditModal(floorplanId) {
+    const floorplan = this.floorplans?.find(fp => fp.id === floorplanId);
+    if (!floorplan) return;
+
+    const content = `
+      <div class="space-y-4">
+        <div>
+          <label class="form-label" for="editFloorplanName">${window.t('builder.props.floorplanName')}</label>
+          <input type="text" id="editFloorplanName" class="form-input" maxlength="255" value="${escapeHtml(floorplan.name)}" />
+        </div>
+        <div>
+          <label class="form-label" for="editFloorplanDescription">${window.t('builder.props.floorplanDescription')}</label>
+          <input type="text" id="editFloorplanDescription" class="form-input" maxlength="1000" value="${escapeHtml(floorplan.description || '')}" placeholder="${window.t('builder.props.floorplanDescriptionPlaceholder')}" />
+        </div>
+      </div>
+    `;
+
+    let name = '';
+    let description = '';
+    const confirmed = await window.gryffi.modal.confirm(content, {
+      title: window.t('builder.props.editFloorplan'),
+      confirmText: window.t('common.save'),
+      cancelText: window.t('common.cancel'),
+      size: 'medium',
+      html: true,
+      danger: false,
+      type: 'info',
+      validate: () => {
+        name = document.getElementById('editFloorplanName')?.value?.trim() || '';
+        description = document.getElementById('editFloorplanDescription')?.value?.trim() || '';
+        if (!name) {
+          document.getElementById('editFloorplanName')?.focus();
+          return window.t('builder.props.floorplanNameRequired');
+        }
+        return null;
+      }
+    });
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/floorplans/${encodeURIComponent(floorplanId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description })
+      });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.error);
+      window.gryffi.toast.success(window.t('common.saved'));
+      await this.loadFloorplans();
+    } catch (err) {
+      console.error('Floorplan update error:', err);
+      window.gryffi.toast.error(window.t('builder.props.editFloorplanFailed'));
+    }
+  }
+
+  /**
+   * Delete a floor plan. The server turns "Show floor plan" off in every step
+   * that used it; the steps in memory follow, so autosave does not bring the
+   * reference back.
+   */
+  async deleteFloorplan(floorplanId) {
+    const floorplan = this.floorplans?.find(fp => fp.id === floorplanId);
+    if (!floorplan) return;
+
+    let stepCount = 0;
+    try {
+      const usage = await fetch(`/api/floorplans/${encodeURIComponent(floorplanId)}/usage`).then(r => r.json());
+      if (usage.success) stepCount = usage.steps;
+    } catch (_) { /* the confirmation still works without the count */ }
+
+    let message = window.t('builder.props.deleteFloorplanConfirm', { name: floorplan.name });
+    if (stepCount > 0) {
+      const usageKey = stepCount === 1 ? 'builder.props.deleteFloorplanInUse_one' : 'builder.props.deleteFloorplanInUse_other';
+      message += ' ' + window.t(usageKey, { count: stepCount });
+    }
+    const confirmed = await window.gryffi.modal.confirm(message, {
+      title: window.t('builder.props.deleteFloorplan'),
+      confirmText: window.t('common.delete'),
+      cancelText: window.t('common.cancel'),
+      danger: true
+    });
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/floorplans/${encodeURIComponent(floorplanId)}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.error);
+
+      for (const step of this.steps || []) {
+        const props = typeof step.basic_props === 'string' ? JSON.parse(step.basic_props || '{}') : step.basic_props;
+        if (props?.floorplan?.floorplan_id === floorplanId) {
+          step.basic_props = { ...props, floorplan: { enabled: false } };
+        }
+      }
+
+      // The open step used this floor plan: turn it off in the panel too
+      const select = document.getElementById('propFloorplanId');
+      if (select && (select.value === floorplanId || select.dataset.saved === floorplanId)) {
+        select.dataset.saved = '';
+        document.getElementById('propFloorplanMarkerX').value = '';
+        document.getElementById('propFloorplanMarkerY').value = '';
+        document.getElementById('floorplanMarkerArea')?.classList.add('hidden');
+        const checkbox = document.getElementById('propFloorplanEnabled');
+        if (checkbox?.checked) {
+          checkbox.checked = false;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+      }
+      await this.loadFloorplans();
+      window.gryffi.toast.success(window.t('builder.props.floorplanDeleted'));
+    } catch (err) {
+      console.error('Floorplan delete error:', err);
+      window.gryffi.toast.error(window.t('builder.props.deleteFloorplanFailed'));
+    }
+  }
+
+  /**
    * Show the floorplan overlay for the journey player
    */
   async showFloorplanOverlay(floorplanId, markerX, markerY) {
@@ -9221,7 +9354,7 @@ class FlowBuilder {
                     <div class="floorplan-viewer-marker-inner">
                       <div class="floorplan-viewer-marker-dot"></div>
                       <div class="floorplan-viewer-marker-pulse"></div>
-                      <div class="floorplan-viewer-marker-label">${window.t('builder.props.youAreHere')}</div>
+                      <div class="floorplan-viewer-marker-label">${window.tPlayer('player.space.youAreHere')}</div>
                     </div>
                   </div>
                 ` : ''}
@@ -9239,7 +9372,7 @@ class FlowBuilder {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                 </svg>
               </button>
-              <button class="floorplan-zoom-btn" id="floorplanCenterMarker" title="Center on marker">
+              <button type="button" class="floorplan-zoom-btn" id="floorplanCenterMarker" title="${escapeHtml(window.tPlayer('player.space.centerOnMarker'))}" aria-label="${escapeHtml(window.tPlayer('player.space.centerOnMarker'))}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -9484,7 +9617,7 @@ class FlowBuilder {
                   <div class="floorplan-viewer-marker-inner">
                     <div class="floorplan-viewer-marker-dot"></div>
                     <div class="floorplan-viewer-marker-pulse"></div>
-                    <div class="floorplan-viewer-marker-label">${window.t('builder.props.youAreHere')}</div>
+                    <div class="floorplan-viewer-marker-label">${window.tPlayer('player.space.youAreHere')}</div>
                   </div>
                 </div>
               ` : ''}
@@ -9502,7 +9635,7 @@ class FlowBuilder {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
               </svg>
             </button>
-            <button class="floorplan-zoom-btn" id="floorplanSheetCenterMarker" title="Center on marker">
+            <button type="button" class="floorplan-zoom-btn" id="floorplanSheetCenterMarker" title="${escapeHtml(window.tPlayer('player.space.centerOnMarker'))}" aria-label="${escapeHtml(window.tPlayer('player.space.centerOnMarker'))}">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -12688,7 +12821,7 @@ class FlowBuilder {
                 <svg class="floorplan-pill-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                 </svg>
-                <span class="floorplan-pill-text">${window.t('builder.props.viewFloorplan')}</span>
+                <span class="floorplan-pill-text">${window.tPlayer('player.space.viewFloorplan')}</span>
               </button>
             ` : ''}
           </div>
@@ -13554,7 +13687,7 @@ class FlowBuilder {
         }, 0);
         
         if (totalAttachmentSize > 24 * 1024 * 1024) {
-          this.showToast(window.tPlayer('player.form.fileUpload.totalTooLarge'), 'error');
+          this.showToast(window.tPlayer('player.form.fileUpload.totalTooLarge', { size: 24 }), 'error');
           return;
         }
         
@@ -13605,9 +13738,6 @@ class FlowBuilder {
                 step_id: step.id,
                 step_title: step.title,
                 recipient_email: basicProps.recipient_email,
-                email_subject: (basicProps.email_subject || 'Form submission: {{journey_title}}')
-                  .replace('{{journey_title}}', this.journey.title)
-                  .replace('{{step_title}}', step.title),
                 attachments: attachments.length > 0 ? attachments : undefined,
                 responses
               })

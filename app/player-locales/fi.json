@@ -66,7 +66,7 @@
         "maxSize": "Max {{size}} Mt",
         "invalidType": "Virheellinen tiedostotyyppi. Sallitut: {{types}}",
         "fileTooLarge": "Tiedosto liian suuri. Maksimikoko: {{size}} Mt",
-        "totalTooLarge": "Liitteiden kokonaiskoko ylittää rajan (38 Mt)",
+        "totalTooLarge": "Tiedostot ovat yhdessä liian suuria. Enimmäiskoko on yhteensä {{size}} Mt. Poista tiedosto tai valitse pienempi tiedosto.",
         "removeFile": "Poista tiedosto",
         "subtypes": {
           "image": "Kuva",
@@ -122,6 +122,7 @@
       "panoramaKeyboardHint": "Katso ympärillesi nuolinäppäimillä. Zoomaa näppäimillä + ja -.",
       "zoomIn": "Lähennä",
       "zoomOut": "Loitonna",
+      "centerOnMarker": "Näytä, missä olet",
       "panoramaLoadFailed": "360°-kuvaa ei voitu ladata. Lataa sivu uudelleen ja yritä uudestaan."
     },
     "stepTypes": {

@@ -1,11 +1,11 @@
 ---
 feature_id: challenge-step
-related_features: [journey-builder, quiz-settings, journey-wizard]
+related_features: [journey-builder, quiz-settings, step-assistant, journey-wizard]
 ---
 
 # Quiz Step
 
-The Quiz step asks participants multiple-choice questions to test what they know. It's essential for training, assessments, and gamified learning experiences.
+The Quiz step asks participants multiple-choice questions to test what they know. Use it for training, checks after a learning module or a bit of fun.
 
 ![The settings of a Quiz step: a question (2), the correct answer (3) and the How it works tab (4)](images/challenge-step/properties.en.webp)
 
@@ -16,12 +16,12 @@ The Quiz step asks participants multiple-choice questions to test what they know
 
 ## Overview
 
-Quiz steps let you:
+With a Quiz step you can:
 
-- Create multiple-choice questions
-- Set passing scores
-- Provide feedback on answers
-- Gate journey progression based on performance
+- Ask one or more multiple-choice questions
+- Set how many answers must be correct to continue
+- Show participants right away if their answer is correct
+- Let participants try again when they do not pass
 
 ## Properties
 
@@ -29,81 +29,74 @@ Quiz steps let you:
 
 | Property | Description |
 |----------|-------------|
-| **Title** | The quiz name (e.g., "Safety Knowledge Check") |
+| **Title** | The name of the quiz (for example "Safety check") |
+| **Questions** | The questions with their answer options |
+| **Randomize question order** | Each participant sees the questions in a different random order. This option shows when the quiz has 2 or more questions. |
 
 ### Questions
 
-Each question consists of:
+Each question has:
 
 | Element | Description |
 |---------|-------------|
-| **Question Text** | The question being asked |
-| **Answer Options** | Multiple choice options (2-6 options) |
-| **Correct Answer** | Mark which option(s) are correct |
+| **Question** | The question text |
+| **Answer Options** | 2 to 6 answer options |
+| **Correct answer** | One option per question. Click the circle in front of the right answer. |
 
-### Adding Questions
+### Adding questions
 
 Click the Quiz step on the canvas (1) to open its settings.
 
-1. Click "Add Question" button
-2. Enter the question text (2)
-3. Add answer options (minimum 2). Click **+ Add Option** for another option.
-4. Mark the correct answer(s) by selecting the radio button (3)
-5. Repeat for additional questions
+1. Click **+ Add Question**.
+2. Type the question (2).
+3. Fill in the answer options. A question starts with 2 options. Click **+ Add Option** for another option, up to 6.
+4. Click the circle in front of the right answer (3).
+5. Repeat for more questions.
 
-### Quiz Settings
-
-| Setting | Description |
-|---------|-------------|
-| **Passing Score** | Minimum percentage to pass (e.g., 70%) |
-| **Show Results** | Display score after completion |
-| **Randomize Questions** | Shuffle question order |
-| **Show feedback after answer** | Shows the participant what the correct answer is |
-| **Try again** | Lets the participant try again after failing |
-| **Success message** | The message that the participant sees after passing the quiz |
+Each question has buttons to move it up or down, duplicate it or remove it. Click a question to fold it open or closed.
 
 ## How it works
 
-The passing score, feedback and retakes are on the **How it works** tab (4).
+The quiz settings are on the **How it works** tab (4):
 
-## Question Types
+| Setting | Description |
+|---------|-------------|
+| **Guide in this step** | An AI guide that helps participants while they are on this step |
+| **Passing Score** | How many answers must be correct to continue: No requirement (always pass), At least 1, 2, ... correct, or All questions. The default is No requirement. |
+| **Show feedback after each answer** | Participants see right away if their answer is correct. On by default. |
+| **Allow retake on failure** | Participants can try again if they do not pass. On by default. |
+| **Pass Message** | The text participants see when they pass |
+| **Fail Message** | The text participants see when they do not pass |
 
-### Single Answer
-The participant selects one correct answer from multiple options.
+See: quiz-settings, step-assistant
 
-### Multiple Answer
-The participant can select multiple correct answers (all must be selected to be correct).
+## Tips
 
-## Best Practices
+### Writing good questions
 
-### Writing Good Questions
+- Be clear and specific.
+- Avoid trick questions.
+- Make the wrong answers plausible.
+- Test understanding, not memorization.
+- Don't use "all of the above" or "none of the above".
+- Avoid questions with "not" in them.
 
-- Be clear and specific
-- Avoid trick questions
-- Make wrong answers plausible
-- Test understanding, not memorization
-- Don't use "all of the above" or "none of the above"
-- Avoid negatively worded questions
+### Setting the passing score
 
-### Setting Passing Scores
-
-| Content Type | Recommended Score |
-|--------------|-------------------|
-| Compliance/Safety | 80-100% |
-| General Training | 70-80% |
-| Fun/Engagement | 50-60% |
-
+The passing score is a number of correct answers. For a safety or compliance quiz, ask for all questions or nearly all. For a quiz just for fun, a lower score or No requirement works fine.
 
 ## Use Cases
 
-- **Training Assessment**: Test knowledge after learning modules
-- **Compliance Verification**: Ensure understanding of regulations
-- **Onboarding Checkpoints**: Verify new employee comprehension
-- **Gamification**: Add fun competitive elements
+- **Training check**: test knowledge after a learning module
+- **Compliance**: check that participants understood the rules
+- **Onboarding checkpoints**: check what new colleagues have learned
+- **Fun**: add a playful element to the journey
 
 ## Generated by the Journey Wizard
 
-The Journey Wizard can include a Quiz step when you pick the **Extended (7 steps)** length. The wizard generates multiple-choice questions based on the journey's topic and, if provided, the uploaded document. Review the questions carefully before publishing: the AI draft is a starting point and may miss nuance or organization-specific rules. See: journey-wizard.
+The Journey Wizard adds a Quiz step when you tick **Knowledge check**. The wizard writes multiple-choice questions based on the topic of the journey and, if you uploaded one, your document. Check the questions before you publish: the AI draft is a starting point and can miss details or rules of your organization.
+
+See: journey-wizard
 
 ## Related Features
 

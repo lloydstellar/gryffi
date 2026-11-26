@@ -15,6 +15,7 @@ import { searchPhotos, downloadPhoto, getSuggestedSearchTerms, ensureMediaDirect
 import { sendJourneyEmail, sendAutomationEmail, sendEmail, sendInvitationEmail } from '../services/email.js';
 import {
   processAttachments, checkAttachmentImages, storeSubmissionFiles, resolveStoragePath as resolveFormFilePath,
+  formFilesOfEndUsers, removeFormFiles,
   buildFormSubmissionEmailBody, buildFormSubmissionSubject, formatFileSize
 } from '../services/formSubmissions.js';
 import { 
@@ -33,6 +34,11 @@ import redis from '../db/redis.js';
 import { isValidCountryCode } from '../utils/countries.js';
 import { detectImageType } from '../utils/imageType.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
+import { tooManySyncDeletions } from '../utils/syncSafety.js';
+import {
+  purgeJourney, keepDeletedStep, forgetDeletedStep, deleteJourneyResults, deleteStepResults,
+  wantsDeleted, liveResultsSql
+} from '../services/deletedResults.js';
 import { encryptToken, decryptToken } from '../services/oauthTokens.js';
 import { hashInvitationToken, newInvitationToken, invitationToken } from '../services/invitationTokens.js';
 import {
@@ -1431,7 +1437,7 @@ router.delete('/journeys/:id', async (req, res) => {
     const journeyId = req.params.id;
     const orgId = req.organizationId;
     const userRole = req.user?.role;
-    const { confirmRewardsArchive, archivePolls } = req.body; // archivePolls: true = archive, false = delete
+    const { confirmRewardsArchive } = req.body;
 
     // Check permissions: only admin and manager can delete
     if (userRole !== 'admin' && userRole !== 'manager') {
@@ -1518,36 +1524,32 @@ router.delete('/journeys/:id', async (req, res) => {
       `, [journeyId, rewardsWithClaims.map(r => r.id)]);
     }
 
-    // Handle polls based on user's choice
-    let archivedPolls = 0;
-    if (archivePolls === true) {
-      // Archive polls: save question/options data before journey deletion
-      const pollsToArchive = await query(`
-        SELECT p.id, s.basic_props->>'question' as question, s.basic_props->'options' as options
-        FROM polls p
-        JOIN steps s ON p.step_id = s.id
-        WHERE s.journey_id = $1 AND (p.is_archived = false OR p.is_archived IS NULL)
-      `, [journeyId]);
-      
-      for (const poll of pollsToArchive.rows) {
-        // Convert options to JSON string for JSONB column
-        const optionsJson = typeof poll.options === 'string' 
-          ? poll.options 
-          : JSON.stringify(poll.options || []);
-        await query(`
-          UPDATE polls SET 
-            is_archived = true, 
-            archived_at = NOW(), 
-            archived_question = $1,
-            archived_options = $2::jsonb,
-            archived_journey_title = $3,
-            updated_at = NOW()
-          WHERE id = $4
-        `, [poll.question, optionsJson, journey.title, poll.id]);
-      }
-      archivedPolls = pollsToArchive.rows.length;
+    // Archive the polls: their results stay in Analytics, with question and
+    // options saved
+    const pollsToArchive = await query(`
+      SELECT p.id, s.basic_props->>'question' as question, s.basic_props->'options' as options
+      FROM polls p
+      JOIN steps s ON p.step_id = s.id
+      WHERE s.journey_id = $1 AND (p.is_archived = false OR p.is_archived IS NULL)
+    `, [journeyId]);
+    
+    for (const poll of pollsToArchive.rows) {
+      // Convert options to JSON string for JSONB column
+      const optionsJson = typeof poll.options === 'string' 
+        ? poll.options 
+        : JSON.stringify(poll.options || []);
+      await query(`
+        UPDATE polls SET 
+          is_archived = true, 
+          archived_at = NOW(), 
+          archived_question = $1,
+          archived_options = $2::jsonb,
+          archived_journey_title = $3,
+          updated_at = NOW()
+        WHERE id = $4
+      `, [poll.question, optionsJson, journey.title, poll.id]);
     }
-    // If archivePolls is false or undefined, polls will be deleted with the cascade
+    const archivedPolls = pollsToArchive.rows.length;
 
     // Soft delete: set deleted_at timestamp
     await query(
@@ -1588,7 +1590,7 @@ router.post('/journeys/:id/restore', async (req, res) => {
 
     // Verify journey belongs to organization and is deleted
     const journeyCheck = await query(
-      'SELECT id FROM journeys WHERE id = $1 AND organization_id = $2 AND deleted_at IS NOT NULL',
+      'SELECT id FROM journeys WHERE id = $1 AND organization_id = $2 AND deleted_at IS NOT NULL AND purged_at IS NULL',
       [journeyId, orgId]
     );
 
@@ -2461,41 +2463,18 @@ router.delete('/journeys/:id/permanent', async (req, res) => {
       });
     }
 
-    // Verify journey belongs to organization and is deleted
+    // Verify journey belongs to organization and is in the trash
     const journeyCheck = await query(
-      'SELECT id, title FROM journeys WHERE id = $1 AND organization_id = $2 AND deleted_at IS NOT NULL',
+      'SELECT id FROM journeys WHERE id = $1 AND organization_id = $2 AND deleted_at IS NOT NULL AND purged_at IS NULL',
       [journeyId, orgId]
     );
 
     if (journeyCheck.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Journey not found in trash' });
     }
-    
-    const journeyTitle = journeyCheck.rows[0].title;
-    
-    // Before deleting: detach archived polls from steps so they survive cascade delete
-    // Set step_id to NULL and store journey title for reference
-    await query(`
-      UPDATE polls p
-      SET step_id = NULL, archived_journey_title = COALESCE(archived_journey_title, $2), updated_at = NOW()
-      FROM steps s
-      WHERE p.step_id = s.id 
-        AND s.journey_id = $1 
-        AND p.is_archived = true
-    `, [journeyId, journeyTitle]);
-    
-    // Before deleting: detach archived rewards from journey/steps so they survive cascade delete
-    await query(`
-      UPDATE rewards 
-      SET step_id = NULL, journey_id = NULL, updated_at = NOW()
-      WHERE journey_id = $1 AND is_archived = true
-    `, [journeyId]);
 
-    // Permanently delete: cascade will handle non-archived related records
-    await query(
-      'DELETE FROM journeys WHERE id = $1 AND organization_id = $2',
-      [journeyId, orgId]
-    );
+    // With results the journey stays, hidden, for Analytics (services/deletedResults.js)
+    await purgeJourney(journeyId, orgId);
 
     res.json({ success: true, message: req.t('journeys.delete.permanentSuccess') });
 
@@ -2537,6 +2516,21 @@ router.post('/steps', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid step id' });
     }
 
+    // An id of a deleted step of this organization may only come back in its
+    // own journey (undo in the builder); then the step gets its results back.
+    // Results are matched on step_id and journey_id, so another organization
+    // reusing an id never sees them.
+    let restoresDeletedStep = false;
+    if (id) {
+      const deleted = await query('SELECT journey_id FROM deleted_steps WHERE id = $1 AND organization_id = $2', [id, orgId]);
+      if (deleted.rows.length > 0) {
+        if (deleted.rows[0].journey_id !== String(journey_id).toLowerCase()) {
+          return res.status(409).json({ success: false, error: 'Invalid step id' });
+        }
+        restoresDeletedStep = true;
+      }
+    }
+
     const insertStepSql = id
       ? `
         INSERT INTO steps (id, journey_id, type, title, position_x, position_y, is_start, is_end, basic_props, advanced_props)
@@ -2575,6 +2569,7 @@ router.post('/steps', async (req, res) => {
         ];
 
     const result = await query(insertStepSql, params);
+    if (restoresDeletedStep) await forgetDeletedStep(id, journey_id, orgId);
     
     // Update journey timestamp
     await query('UPDATE journeys SET updated_at = NOW() WHERE id = $1', [journey_id]);
@@ -2802,7 +2797,10 @@ router.delete('/steps/:id', async (req, res) => {
       }
     }
     
-    // Delete step (cascades to paths, and rewards if not archived)
+    // Results of the step stay in Analytics: keep a copy of the step first
+    await keepDeletedStep(stepId, orgId);
+
+    // Delete step (cascades to paths; results keep their step_id)
     await query('DELETE FROM steps WHERE id = $1', [stepId]);
     
     // Update journey timestamp
@@ -3830,7 +3828,7 @@ router.post('/forms/submit', async (req, res) => {
     // Recipient and subject come from the saved step, never from the request:
     // otherwise this route could send mail with our domain to any address.
     const stepCheck = await query(
-      `SELECT s.basic_props FROM steps s
+      `SELECT s.basic_props, s.title FROM steps s
        JOIN journeys j ON j.id = s.journey_id
        WHERE s.id = $1 AND s.journey_id = $2 AND j.organization_id = $3`,
       [step_id, journey_id, orgId]
@@ -3840,6 +3838,7 @@ router.post('/forms/submit', async (req, res) => {
     }
     const recipient_email = stepCheck.rows[0].basic_props?.recipient_email;
     const email_subject = stepCheck.rows[0].basic_props?.email_subject;
+    const savedStepTitle = stepCheck.rows[0].title || step_title || 'Form';
 
     if (!responses || Object.keys(responses).length === 0) {
       return res.status(400).json({ success: false, error: 'No form responses provided' });
@@ -3902,7 +3901,7 @@ router.post('/forms/submit', async (req, res) => {
     });
     // A preview mails the maker who tests it, not the real recipient, so
     // trying out a form never lands in someone else's inbox
-    const subject = `[Preview] ${email_subject || buildFormSubmissionSubject(orgLanguage, journeyTitle)}`;
+    const subject = `[Preview] ${buildFormSubmissionSubject(orgLanguage, journeyTitle, { template: email_subject, stepTitle: savedStepTitle })}`;
     const previewTo = req.user.email;
     
     const result = await sendJourneyEmail({
@@ -3951,15 +3950,11 @@ router.post('/forms/submit', async (req, res) => {
 
 /**
  * GET /api/analytics/form-submissions - List form submissions for Analytics
- * Only admins and managers can view submitted form data (may contain
- * personal information). Strictly organization-scoped (org filter + RLS).
+ * Every maker role can read them, like the rest of Analytics. The data may
+ * contain personal information: strictly organization-scoped (org filter + RLS).
  */
 router.get('/analytics/form-submissions', async (req, res) => {
   try {
-    const userRole = req.user?.role;
-    if (userRole !== 'admin' && userRole !== 'manager') {
-      return res.status(403).json({ success: false, error: 'Permission denied' });
-    }
     
     const orgId = req.organizationId;
     
@@ -3969,32 +3964,36 @@ router.get('/analytics/form-submissions', async (req, res) => {
       SELECT s.id, 'private' AS source,
              COALESCE(j.title, s.journey_title) AS journey_title,
              COALESCE(st.title, s.step_title) AS step_title,
+             (st.id IS NULL OR j.deleted_at IS NOT NULL) AS is_deleted,
              TRIM(COALESCE(eu.first_name, '') || ' ' || COALESCE(eu.last_name, '')) AS submitter_name,
              eu.email AS submitter_email,
              s.responses, s.email_sent, s.created_at
       FROM private_form_submissions s
       LEFT JOIN journeys j ON s.journey_id = j.id
-      LEFT JOIN steps st ON s.step_id = st.id
+      LEFT JOIN steps st ON s.step_id = st.id AND st.journey_id = s.journey_id
       LEFT JOIN end_users eu ON s.end_user_id = eu.id
       WHERE s.organization_id = $1
+        AND ${liveResultsSql('s', '$2')}
       
       UNION ALL
       
       SELECT p.id, 'public' AS source,
              COALESCE(j.title, p.journey_title) AS journey_title,
              COALESCE(st.title, p.step_title) AS step_title,
+             (st.id IS NULL OR j.deleted_at IS NOT NULL) AS is_deleted,
              TRIM(COALESCE(pp.first_name, '') || ' ' || COALESCE(pp.last_name, '')) AS submitter_name,
              pp.email AS submitter_email,
              p.responses, p.email_sent, p.created_at
       FROM public_form_submissions p
       LEFT JOIN journeys j ON p.journey_id = j.id
-      LEFT JOIN steps st ON p.step_id = st.id
+      LEFT JOIN steps st ON p.step_id = st.id AND st.journey_id = p.journey_id
       LEFT JOIN public_participants pp ON p.participant_id = pp.id
       WHERE p.organization_id = $1
+        AND ${liveResultsSql('p', '$2')}
       
       ORDER BY created_at DESC
       LIMIT 500
-    `, [orgId]);
+    `, [orgId, wantsDeleted(req)]);
     
     // Attach uploaded files per submission
     const submissionIds = submissionsResult.rows.map(r => r.id);
@@ -4039,14 +4038,10 @@ router.get('/analytics/form-submissions', async (req, res) => {
 /**
  * GET /api/analytics/form-submissions/files/:fileId/download
  * Authenticated download of a form submission file for Analytics.
- * Only admins and managers of the owning organization.
+ * Every maker of the owning organization.
  */
 router.get('/analytics/form-submissions/files/:fileId/download', async (req, res) => {
   try {
-    const userRole = req.user?.role;
-    if (userRole !== 'admin' && userRole !== 'manager') {
-      return res.status(403).json({ success: false, error: 'Permission denied' });
-    }
     
     const { fileId } = req.params;
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(fileId)) {
@@ -6123,11 +6118,14 @@ router.delete('/end-users/:id', async (req, res) => {
       });
     }
     
-    // Delete the user (all sources allowed now)
+    // Delete the user (all sources allowed now). Their form files go from
+    // disk too: the submission rows cascade away, the files do not.
+    const formFiles = await formFilesOfEndUsers(orgId, { endUserId: userId });
     await query(
       `DELETE FROM end_users WHERE id = $1 AND organization_id = $2`,
       [userId, orgId]
     );
+    removeFormFiles(formFiles);
     
     res.json({
       success: true,
@@ -6174,11 +6172,13 @@ router.delete('/end-users/source/:source', async (req, res) => {
       });
     }
     
-    // Delete all users from this source
+    // Delete all users from this source, with their form files on disk
+    const formFiles = await formFilesOfEndUsers(orgId, { source });
     await query(
       `DELETE FROM end_users WHERE organization_id = $1 AND source = $2`,
       [orgId, source]
     );
+    removeFormFiles(formFiles);
     
     res.json({
       success: true,
@@ -7523,7 +7523,7 @@ async function syncGoogleUsers(orgId, options = {}) {
   // Find users to remove
   const usersToRemove = currentUsers.filter(u => !googleEmailSet.has(u.email.toLowerCase()));
   
-  // PROTECTION: If more than 10% of users would be deleted, abort deletions
+  // PROTECTION: skip all deletions above the safety limit (utils/syncSafety.js)
   const deletePercentage = currentUsers.length > 0 
     ? (usersToRemove.length / currentUsers.length) * 100 
     : 0;
@@ -7534,7 +7534,7 @@ async function syncGoogleUsers(orgId, options = {}) {
   if (usersToRemove.length > 0 && fetchIncomplete) {
     console.warn(`[Google Sync] Directory only partly read - skipping ${usersToRemove.length} deletions`);
     deleteSkipped = true;
-  } else if (usersToRemove.length > 0 && deletePercentage > 50) {
+  } else if (usersToRemove.length > 0 && tooManySyncDeletions(currentUsers.length, usersToRemove.length)) {
     console.warn(`[Google Sync] PROTECTION: Would delete ${usersToRemove.length} users (${deletePercentage.toFixed(1)}%) - skipping deletions for safety`);
     deleteSkipped = true;
   } else if (usersToRemove.length > 0) {
@@ -8194,7 +8194,7 @@ async function syncMicrosoftUsers(orgId) {
   // Find users to remove (in our system but not in sync set)
   const usersToRemove = currentUsers.filter(u => u.external_id && !syncExternalIdSet.has(u.external_id));
   
-  // PROTECTION: If more than 10% of users would be deleted, abort deletions
+  // PROTECTION: skip all deletions above the safety limit (utils/syncSafety.js)
   const deletePercentage = currentUsers.length > 0 
     ? (usersToRemove.length / currentUsers.length) * 100 
     : 0;
@@ -8205,7 +8205,7 @@ async function syncMicrosoftUsers(orgId) {
   if (usersToRemove.length > 0 && fetchIncomplete) {
     console.warn(`[Microsoft Sync] Directory only partly read - skipping ${usersToRemove.length} deletions`);
     deleteSkipped = true;
-  } else if (usersToRemove.length > 0 && deletePercentage > 50) {
+  } else if (usersToRemove.length > 0 && tooManySyncDeletions(currentUsers.length, usersToRemove.length)) {
     console.warn(`[Microsoft Sync] PROTECTION: Would delete ${usersToRemove.length} users (${deletePercentage.toFixed(1)}%) - skipping deletions for safety`);
     deleteSkipped = true;
   } else if (usersToRemove.length > 0) {
@@ -8952,7 +8952,8 @@ router.get('/invitations', async (req, res) => {
     const orgId = req.organizationId;
     const { filter, journey_id, limit = 50, offset = 0 } = req.query;
 
-    let whereClause = 'WHERE i.organization_id = $1';
+    // Invitations of a journey that was deleted for good stay for Analytics only
+    let whereClause = 'WHERE i.organization_id = $1 AND j.purged_at IS NULL';
     const params = [orgId];
     let paramIndex = 2;
 
@@ -9093,9 +9094,11 @@ router.post('/polls/:stepId/reset', async (req, res) => {
 
 /**
  * DELETE /api/analytics/polls/archived - Delete multiple archived polls permanently
+ * Admins only: results of deleted journeys and steps are removed by an admin
  */
 router.delete('/analytics/polls/archived', async (req, res) => {
   try {
+    if (!requireTeamAdmin(req, res)) return;
     const orgId = req.organizationId;
     const { pollIds } = req.body;
     
@@ -9134,6 +9137,85 @@ router.delete('/analytics/polls/archived', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/analytics/deleted - Journeys deleted for good and deleted steps
+ * that still have results (Analytics, "Show deleted journeys and steps")
+ */
+router.get('/analytics/deleted', async (req, res) => {
+  try {
+    const orgId = req.organizationId;
+    const [journeys, steps] = await Promise.all([
+      query(`
+        SELECT j.id, j.title, j.purged_at,
+               (SELECT COUNT(*) FROM invitations i WHERE i.journey_id = j.id)
+                 + (SELECT COUNT(*) FROM public_participants pp WHERE pp.journey_id = j.id) AS participant_count
+        FROM journeys j
+        WHERE j.organization_id = $1 AND j.purged_at IS NOT NULL
+        ORDER BY j.purged_at DESC
+      `, [orgId]),
+      // Steps of a journey deleted for good go with that journey
+      query(`
+        SELECT ds.id, ds.title, ds.type, ds.deleted_at, j.id AS journey_id, j.title AS journey_title
+        FROM deleted_steps ds
+        JOIN journeys j ON j.id = ds.journey_id
+        WHERE ds.organization_id = $1 AND j.purged_at IS NULL
+        ORDER BY ds.deleted_at DESC
+      `, [orgId])
+    ]);
+    res.json({
+      success: true,
+      canDelete: isAdmin(req),
+      journeys: journeys.rows.map((row) => ({ ...row, participant_count: parseInt(row.participant_count, 10) || 0 })),
+      steps: steps.rows
+    });
+  } catch (err) {
+    console.error('[Analytics] Deleted results list error:', err);
+    res.status(500).json({ success: false, error: req.t('analytics.deleted.loadError') });
+  }
+});
+
+/**
+ * DELETE /api/analytics/deleted/journeys/:id - Remove all results of a journey
+ * that was deleted for good, and the journey itself. Admins only.
+ */
+router.delete('/analytics/deleted/journeys/:id', async (req, res) => {
+  try {
+    if (!requireTeamAdmin(req, res)) return;
+    if (!isUuid(req.params.id)) {
+      return res.status(404).json({ success: false, error: req.t('analytics.deleted.notFound') });
+    }
+    const removed = await deleteJourneyResults(req.params.id, req.organizationId);
+    if (!removed) {
+      return res.status(404).json({ success: false, error: req.t('analytics.deleted.notFound') });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Analytics] Delete journey results error:', err);
+    res.status(500).json({ success: false, error: req.t('analytics.deleted.deleteError') });
+  }
+});
+
+/**
+ * DELETE /api/analytics/deleted/steps/:id - Remove all results of a deleted
+ * step. Admins only.
+ */
+router.delete('/analytics/deleted/steps/:id', async (req, res) => {
+  try {
+    if (!requireTeamAdmin(req, res)) return;
+    if (!isUuid(req.params.id)) {
+      return res.status(404).json({ success: false, error: req.t('analytics.deleted.notFound') });
+    }
+    const removed = await deleteStepResults(req.params.id, req.organizationId);
+    if (!removed) {
+      return res.status(404).json({ success: false, error: req.t('analytics.deleted.notFound') });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Analytics] Delete step results error:', err);
+    res.status(500).json({ success: false, error: req.t('analytics.deleted.deleteError') });
+  }
+});
+
 // ============================================
 // REPORTS API
 // ============================================
@@ -9152,8 +9234,10 @@ router.get('/reports/journey/:journeyId', async (req, res) => {
       SELECT j.id, j.title, j.status, j.created_at, j.published_at,
              (SELECT COUNT(*) FROM steps WHERE journey_id = j.id) as step_count
       FROM journeys j
-      WHERE j.id = $1 AND j.organization_id = $2 AND j.deleted_at IS NULL
-    `, [journeyId, orgId]);
+      WHERE j.id = $1 AND j.organization_id = $2
+        -- A deleted journey only with "Show deleted journeys and steps" on
+        AND ($3::boolean OR j.deleted_at IS NULL)
+    `, [journeyId, orgId, wantsDeleted(req)]);
     
     if (journeyResult.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Journey not found' });
@@ -9320,6 +9404,9 @@ router.get('/reports/overview', async (req, res) => {
     const periodStart = new Date(Date.now() - periodMs);
     const previousPeriodStart = new Date(Date.now() - periodMs * 2);
     
+    // Results of journeys deleted for good only with "Show deleted" on
+    const showDeleted = wantsDeleted(req);
+
     // Current period stats
     const currentStats = await query(`
       SELECT 
@@ -9327,9 +9414,10 @@ router.get('/reports/overview', async (req, res) => {
         COUNT(*) FILTER (WHERE completions_count > 0) as completed,
         COUNT(*) FILTER (WHERE first_accessed_at IS NOT NULL) as engaged,
         AVG(EXTRACT(EPOCH FROM (completed_at - first_accessed_at)) / 86400) FILTER (WHERE completed_at IS NOT NULL) as avg_days_to_complete
-      FROM invitations
+      FROM invitations i
       WHERE organization_id = $1 AND created_at >= $2
-    `, [orgId, periodStart.toISOString()]);
+        AND ${liveResultsSql('i', '$3', { hasStep: false })}
+    `, [orgId, periodStart.toISOString(), showDeleted]);
     
     // Previous period stats (for comparison)
     const previousStats = await query(`
@@ -9337,9 +9425,10 @@ router.get('/reports/overview', async (req, res) => {
         COUNT(*) as total_invitations,
         COUNT(*) FILTER (WHERE completions_count > 0) as completed,
         COUNT(*) FILTER (WHERE first_accessed_at IS NOT NULL) as engaged
-      FROM invitations
+      FROM invitations i
       WHERE organization_id = $1 AND created_at >= $2 AND created_at < $3
-    `, [orgId, previousPeriodStart.toISOString(), periodStart.toISOString()]);
+        AND ${liveResultsSql('i', '$4', { hasStep: false })}
+    `, [orgId, previousPeriodStart.toISOString(), periodStart.toISOString(), showDeleted]);
     
     // Activity over time (grouped by day/week depending on period)
     const groupBy = period <= 30 ? 'day' : 'week';
@@ -9348,11 +9437,12 @@ router.get('/reports/overview', async (req, res) => {
         date_trunc($3, created_at) as period_date,
         COUNT(*) as invitations_sent,
         COUNT(*) FILTER (WHERE completions_count > 0) as completed
-      FROM invitations
+      FROM invitations i
       WHERE organization_id = $1 AND created_at >= $2
+        AND ${liveResultsSql('i', '$4', { hasStep: false })}
       GROUP BY date_trunc($3, created_at)
       ORDER BY period_date ASC
-    `, [orgId, periodStart.toISOString(), groupBy]);
+    `, [orgId, periodStart.toISOString(), groupBy, showDeleted]);
     
     // Top journeys by engagement
     const topJourneysResult = await query(`
@@ -9474,12 +9564,15 @@ router.get('/reports/journeys', async (req, res) => {
         j.title,
         j.status,
         j.published_at,
+        (j.deleted_at IS NOT NULL) as is_deleted,
         (SELECT COUNT(*) FROM invitations WHERE journey_id = j.id) as invitation_count,
         (SELECT COUNT(*) FROM invitations WHERE journey_id = j.id AND completions_count > 0) as completed_count
       FROM journeys j
-      WHERE j.organization_id = $1 AND j.deleted_at IS NULL
+      WHERE j.organization_id = $1
+        -- Deleted journeys only with "Show deleted journeys and steps" on
+        AND ($2::boolean OR j.deleted_at IS NULL)
       ORDER BY j.updated_at DESC
-    `, [orgId]);
+    `, [orgId, wantsDeleted(req)]);
     
     res.json({
       success: true,
@@ -9488,6 +9581,7 @@ router.get('/reports/journeys', async (req, res) => {
         title: j.title,
         status: j.status,
         publishedAt: j.published_at,
+        isDeleted: j.is_deleted === true,
         invitationCount: parseInt(j.invitation_count) || 0,
         completedCount: parseInt(j.completed_count) || 0
       }))
@@ -9971,6 +10065,134 @@ router.post('/floorplans', memoryUpload.single('image'), async (req, res) => {
   }
 });
 
+/**
+ * Space steps of the organization that show this floor plan (also journeys
+ * in the trash). The reference lives in steps.basic_props.floorplan.
+ */
+async function floorplanUsage(orgId, floorplanId) {
+  const result = await query(`
+    SELECT s.id, s.journey_id, j.title AS journey_title
+    FROM steps s
+    JOIN journeys j ON j.id = s.journey_id
+    WHERE j.organization_id = $1
+      AND s.basic_props->'floorplan'->>'floorplan_id' = $2
+  `, [orgId, floorplanId]);
+  return result.rows;
+}
+
+/**
+ * PUT /api/floorplans/:id - Rename a floorplan or change its description
+ */
+router.put('/floorplans/:id', async (req, res) => {
+  try {
+    const orgId = req.organizationId;
+    const floorplanId = req.params.id;
+    if (!isUuid(floorplanId)) {
+      return res.status(404).json({ success: false, error: req.t('builder.props.floorplanNotFound') });
+    }
+    const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
+    const description = typeof req.body?.description === 'string' ? req.body.description.trim() : '';
+    if (!name) {
+      return res.status(400).json({ success: false, error: req.t('errors.floorplan_name_required') });
+    }
+
+    const result = await query(`
+      UPDATE floorplans
+      SET name = $3, description = $4, updated_at = NOW()
+      WHERE id = $1 AND organization_id = $2
+      RETURNING *
+    `, [floorplanId, orgId, name.slice(0, 255), description.slice(0, 1000) || null]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: req.t('builder.props.floorplanNotFound') });
+    }
+    res.json({ success: true, floorplan: result.rows[0] });
+  } catch (err) {
+    console.error('[Floorplans] Update error:', err);
+    res.status(500).json({ success: false, error: req.t('errors.saveFailed') });
+  }
+});
+
+/**
+ * GET /api/floorplans/:id/usage - Number of steps that show this floorplan,
+ * for the confirmation before deleting it
+ */
+router.get('/floorplans/:id/usage', async (req, res) => {
+  try {
+    const floorplanId = req.params.id;
+    if (!isUuid(floorplanId)) {
+      return res.status(404).json({ success: false, error: req.t('builder.props.floorplanNotFound') });
+    }
+    const usage = await floorplanUsage(req.organizationId, floorplanId);
+    res.json({
+      success: true,
+      steps: usage.length,
+      journeys: new Set(usage.map((row) => row.journey_id)).size
+    });
+  } catch (err) {
+    console.error('[Floorplans] Usage error:', err);
+    res.status(500).json({ success: false, error: req.t('errors.failedToLoad') });
+  }
+});
+
+/**
+ * DELETE /api/floorplans/:id - Delete a floorplan and its image. Steps that
+ * showed it get "Show floor plan" turned off, so participants never see a
+ * button to a map that is gone.
+ */
+router.delete('/floorplans/:id', async (req, res) => {
+  try {
+    const orgId = req.organizationId;
+    const floorplanId = req.params.id;
+    if (!isUuid(floorplanId)) {
+      return res.status(404).json({ success: false, error: req.t('builder.props.floorplanNotFound') });
+    }
+
+    const existing = await query(
+      'SELECT id, image_url FROM floorplans WHERE id = $1 AND organization_id = $2',
+      [floorplanId, orgId]
+    );
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ success: false, error: req.t('builder.props.floorplanNotFound') });
+    }
+
+    const updated = await query(`
+      UPDATE steps s
+      SET basic_props = jsonb_set(s.basic_props, '{floorplan}', '{"enabled": false}'::jsonb),
+          updated_at = NOW()
+      FROM journeys j
+      WHERE j.id = s.journey_id AND j.organization_id = $1
+        AND s.basic_props->'floorplan'->>'floorplan_id' = $2
+      RETURNING s.id
+    `, [orgId, floorplanId]);
+
+    await query('DELETE FROM floorplans WHERE id = $1 AND organization_id = $2', [floorplanId, orgId]);
+
+    // The image is only stored for this floor plan (not in the media
+    // library). Only remove a file inside this organization's media folder.
+    const imageUrl = existing.rows[0].image_url || '';
+    const prefix = `/uploads/organizations/${orgId}/media/`;
+    if (imageUrl.startsWith(prefix)) {
+      const mediaDir = path.resolve(__dirname, '../../uploads/organizations', orgId, 'media');
+      const filePath = path.resolve(mediaDir, imageUrl.slice(prefix.length));
+      const stillUsed = await query(
+        'SELECT 1 FROM floorplans WHERE organization_id = $1 AND image_url = $2 UNION ALL SELECT 1 FROM media WHERE organization_id = $1 AND url = $2 LIMIT 1',
+        [orgId, imageUrl]
+      );
+      if (filePath.startsWith(mediaDir + path.sep) && stillUsed.rows.length === 0) {
+        fs.promises.unlink(filePath).catch((err) => {
+          if (err.code !== 'ENOENT') console.error('[Floorplans] Could not remove image:', err.message);
+        });
+      }
+    }
+
+    res.json({ success: true, updatedSteps: updated.rows.map((row) => row.id) });
+  } catch (err) {
+    console.error('[Floorplans] Delete error:', err);
+    res.status(500).json({ success: false, error: req.t('errors.failedToDelete') });
+  }
+});
+
 // ============================================
 // THEMES - Custom journey styling
 // ============================================
@@ -10103,6 +10325,8 @@ router.get('/themes', async (req, res) => {
  */
 router.post('/themes', memoryUpload.single('logo'), async (req, res) => {
   try {
+    // The theme is part of the organization settings, which only admins manage
+    if (!requireTeamAdmin(req, res)) return;
     const orgId = req.organizationId;
     const { name, description, tokens, preset_key } = req.body;
     if (!(await isFeatureEnabled(orgId, 'custom_branding'))) {
@@ -10201,6 +10425,8 @@ router.post('/themes', memoryUpload.single('logo'), async (req, res) => {
  */
 router.put('/themes/:id', memoryUpload.single('logo'), async (req, res) => {
   try {
+    // The theme is part of the organization settings, which only admins manage
+    if (!requireTeamAdmin(req, res)) return;
     const orgId = req.organizationId;
     const themeId = req.params.id;
     const { name, description, tokens } = req.body;
@@ -10319,6 +10545,8 @@ router.put('/themes/:id', memoryUpload.single('logo'), async (req, res) => {
  */
 router.delete('/themes/:id', async (req, res) => {
   try {
+    // The theme is part of the organization settings, which only admins manage
+    if (!requireTeamAdmin(req, res)) return;
     const orgId = req.organizationId;
     const themeId = req.params.id;
     
@@ -10374,6 +10602,8 @@ router.delete('/themes/:id', async (req, res) => {
  */
 router.post('/themes/:id/activate', async (req, res) => {
   try {
+    // The theme is part of the organization settings, which only admins manage
+    if (!requireTeamAdmin(req, res)) return;
     const orgId = req.organizationId;
     const themeId = req.params.id;
     
@@ -10403,6 +10633,8 @@ router.post('/themes/:id/activate', async (req, res) => {
  */
 router.post('/themes/deactivate', async (req, res) => {
   try {
+    // The theme is part of the organization settings, which only admins manage
+    if (!requireTeamAdmin(req, res)) return;
     const orgId = req.organizationId;
     
     await query(`
@@ -10587,7 +10819,12 @@ router.get('/analytics/summary', async (req, res) => {
       journeyFilterEvents = 'AND journey_id = $3';
     }
     
-    const params = journey_id ? [...baseParams, journey_id] : baseParams;
+    const params = journey_id ? [...baseParams, journey_id] : [...baseParams];
+    // Results of deleted journeys and steps only with "Show deleted" on
+    params.push(wantsDeleted(req));
+    const deletedParam = `$${params.length}`;
+    const liveProgress = liveResultsSql('eup', deletedParam, { hasStep: false });
+    const liveEvents = liveResultsSql('je', deletedParam);
     
     // Get journey starts and completions from end_user_progress (most reliable source)
     const progressStats = await query(`
@@ -10596,9 +10833,10 @@ router.get('/analytics/summary', async (req, res) => {
         COUNT(CASE WHEN eup.completed_at IS NOT NULL THEN 1 END) as completed
       FROM end_user_progress eup
       JOIN invitations i ON eup.invitation_id = i.id
-      WHERE i.organization_id = $1 
+      WHERE i.organization_id = $1
         AND eup.started_at >= $2
         ${journeyFilterProgress}
+        AND ${liveProgress}
     `, params);
     
     // Get unique active users from progress
@@ -10606,28 +10844,31 @@ router.get('/analytics/summary', async (req, res) => {
       SELECT COUNT(DISTINCT eup.end_user_id) as count
       FROM end_user_progress eup
       JOIN invitations i ON eup.invitation_id = i.id
-      WHERE i.organization_id = $1 
+      WHERE i.organization_id = $1
         AND eup.started_at >= $2
         ${journeyFilterProgress}
+        AND ${liveProgress}
     `, params);
     
     // Get event counts by type (for detailed breakdown)
     const eventCounts = await query(`
       SELECT event_type, COUNT(*) as count
-      FROM journey_events
+      FROM journey_events je
       WHERE organization_id = $1 AND created_at >= $2 ${journeyFilterEvents}
+        AND ${liveEvents}
       GROUP BY event_type
     `, params);
     
     // Get average step duration from events
     const avgDuration = await query(`
       SELECT AVG(duration_ms) as avg_ms
-      FROM journey_events
-      WHERE organization_id = $1 
-        AND created_at >= $2 
+      FROM journey_events je
+      WHERE organization_id = $1
+        AND created_at >= $2
         AND event_type = 'step_completed'
         AND duration_ms IS NOT NULL
         ${journeyFilterEvents}
+        AND ${liveEvents}
     `, params);
     
     // Get daily trend from end_user_progress (more reliable than events)
@@ -10639,9 +10880,10 @@ router.get('/analytics/summary', async (req, res) => {
         COUNT(DISTINCT eup.end_user_id) as unique_users
       FROM end_user_progress eup
       JOIN invitations i ON eup.invitation_id = i.id
-      WHERE i.organization_id = $1 
+      WHERE i.organization_id = $1
         AND eup.started_at >= $2
         ${journeyFilterProgress}
+        AND ${liveProgress}
       GROUP BY DATE(eup.started_at)
       ORDER BY date
     `, params);
@@ -10714,6 +10956,9 @@ router.get('/analytics/quiz-stats', async (req, res) => {
       whereClause += ` AND qa.end_user_id = $${paramIndex++}`;
       params.push(end_user_id);
     }
+    // Results of deleted journeys and steps only with "Show deleted" on
+    whereClause += ` AND ${liveResultsSql('qa', `$${paramIndex++}`)}`;
+    params.push(wantsDeleted(req));
     
     // Overall quiz stats
     const overallStats = await query(`
@@ -10734,14 +10979,15 @@ router.get('/analytics/quiz-stats', async (req, res) => {
       SELECT 
         qa.step_id,
         s.title as step_title,
+        COALESCE(s.is_deleted, false) as step_deleted,
         COUNT(*) as attempts,
         AVG(qa.score_percentage) as avg_score,
         SUM(CASE WHEN qa.passed THEN 1 ELSE 0 END) as passed,
         AVG(qa.duration_ms) as avg_duration_ms
       FROM quiz_attempts qa
-      LEFT JOIN steps s ON qa.step_id = s.id
+      LEFT JOIN analytics_steps s ON qa.step_id = s.id AND s.journey_id = qa.journey_id
       WHERE ${whereClause}
-      GROUP BY qa.step_id, s.title
+      GROUP BY qa.step_id, s.title, s.is_deleted
       ORDER BY attempts DESC
     `, params);
     
@@ -10767,10 +11013,11 @@ router.get('/analytics/quiz-stats', async (req, res) => {
         qa.*,
         eu.first_name || ' ' || eu.last_name as user_name,
         eu.email as user_email,
-        s.title as step_title
+        s.title as step_title,
+        COALESCE(s.is_deleted, false) as step_deleted
       FROM quiz_attempts qa
       LEFT JOIN end_users eu ON qa.end_user_id = eu.id
-      LEFT JOIN steps s ON qa.step_id = s.id
+      LEFT JOIN analytics_steps s ON qa.step_id = s.id AND s.journey_id = qa.journey_id
       WHERE ${whereClause}
       ORDER BY qa.created_at DESC
       LIMIT 50
@@ -10829,6 +11076,9 @@ router.get('/analytics/video-stats', async (req, res) => {
       whereClause += ` AND vw.step_id = $${paramIndex++}`;
       params.push(step_id);
     }
+    // Results of deleted journeys and steps only with "Show deleted" on
+    whereClause += ` AND ${liveResultsSql('vw', `$${paramIndex++}`)}`;
+    params.push(wantsDeleted(req));
     
     // Overall video stats
     const overallStats = await query(`
@@ -10850,14 +11100,15 @@ router.get('/analytics/video-stats', async (req, res) => {
       SELECT 
         vw.step_id,
         s.title as step_title,
+        COALESCE(s.is_deleted, false) as step_deleted,
         COUNT(*) as views,
         AVG(vw.watch_percentage) as avg_watch_percentage,
         SUM(CASE WHEN vw.completed THEN 1 ELSE 0 END) as completed,
         AVG(vw.video_duration_sec) as avg_video_duration_sec
       FROM video_watch_sessions vw
-      LEFT JOIN steps s ON vw.step_id = s.id
+      LEFT JOIN analytics_steps s ON vw.step_id = s.id AND s.journey_id = vw.journey_id
       WHERE ${whereClause}
-      GROUP BY vw.step_id, s.title
+      GROUP BY vw.step_id, s.title, s.is_deleted
       ORDER BY views DESC
     `, params);
     
@@ -10939,6 +11190,9 @@ router.get('/analytics/user/:userId', async (req, res) => {
     if (journey_id) {
       params.push(journey_id);
     }
+    // Results of deleted journeys and steps only with "Show deleted" on
+    params.push(wantsDeleted(req));
+    const deletedParam = `$${params.length}`;
     
     // Journey activity summary
     const journeyActivity = await query(`
@@ -10953,6 +11207,7 @@ router.get('/analytics/user/:userId', async (req, res) => {
       FROM journey_events je
       JOIN journeys j ON je.journey_id = j.id
       WHERE je.end_user_id = $1 AND je.organization_id = $2 ${journeyFilter('je')}
+        AND ${liveResultsSql('je', deletedParam)}
       GROUP BY je.journey_id, j.title
       ORDER BY last_activity DESC
     `, params);
@@ -10962,6 +11217,7 @@ router.get('/analytics/user/:userId', async (req, res) => {
       SELECT 
         qa.step_id,
         s.title as step_title,
+        s.is_deleted as step_deleted,
         j.title as journey_title,
         COUNT(*) as attempts,
         MAX(qa.score_percentage) as best_score,
@@ -10969,10 +11225,11 @@ router.get('/analytics/user/:userId', async (req, res) => {
         SUM(CASE WHEN qa.passed THEN 1 ELSE 0 END) as passed_count,
         AVG(qa.duration_ms) as avg_duration_ms
       FROM quiz_attempts qa
-      JOIN steps s ON qa.step_id = s.id
+      JOIN analytics_steps s ON qa.step_id = s.id AND s.journey_id = qa.journey_id
       JOIN journeys j ON qa.journey_id = j.id
       WHERE qa.end_user_id = $1 AND qa.organization_id = $2 ${journeyFilter('qa')}
-      GROUP BY qa.step_id, s.title, j.title
+        AND ${liveResultsSql('qa', deletedParam)}
+      GROUP BY qa.step_id, s.title, s.is_deleted, j.title
       ORDER BY MAX(qa.created_at) DESC
     `, params);
     
@@ -10981,14 +11238,16 @@ router.get('/analytics/user/:userId', async (req, res) => {
       SELECT 
         vw.step_id,
         s.title as step_title,
+        s.is_deleted as step_deleted,
         COUNT(*) as watch_sessions,
         MAX(vw.watch_percentage) as max_watch_percentage,
         SUM(vw.watch_time_sec) as total_watch_time_sec,
         SUM(CASE WHEN vw.completed THEN 1 ELSE 0 END) as completed_count
       FROM video_watch_sessions vw
-      JOIN steps s ON vw.step_id = s.id
+      JOIN analytics_steps s ON vw.step_id = s.id AND s.journey_id = vw.journey_id
       WHERE vw.end_user_id = $1 AND vw.organization_id = $2 ${journeyFilter('vw')}
-      GROUP BY vw.step_id, s.title
+        AND ${liveResultsSql('vw', deletedParam)}
+      GROUP BY vw.step_id, s.title, s.is_deleted
     `, params);
     
     // Time spent per step (from journey_events)
@@ -10997,16 +11256,18 @@ router.get('/analytics/user/:userId', async (req, res) => {
         je.step_id,
         s.title as step_title,
         s.type as step_type,
+        s.is_deleted as step_deleted,
         AVG(je.duration_ms) as avg_duration_ms,
         COUNT(*) as visit_count
       FROM journey_events je
-      JOIN steps s ON je.step_id = s.id
+      JOIN analytics_steps s ON je.step_id = s.id AND s.journey_id = je.journey_id
       WHERE je.end_user_id = $1 
         AND je.organization_id = $2 
         AND je.event_type = 'step_completed'
         AND je.duration_ms IS NOT NULL
         ${journeyFilter('je')}
-      GROUP BY je.step_id, s.title, s.type
+        AND ${liveResultsSql('je', deletedParam)}
+      GROUP BY je.step_id, s.title, s.type, s.is_deleted
       ORDER BY avg_duration_ms DESC
     `, params);
     
@@ -11120,6 +11381,9 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
       return res.status(404).json({ success: false, error: 'User not found' });
     }
     
+    // Results of deleted steps only with "Show deleted" on
+    const showDeleted = wantsDeleted(req);
+
     const journeyResult = await query(`
       SELECT j.id, j.title, j.settings
       FROM journeys j
@@ -11143,12 +11407,14 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
         je.event_data,
         je.created_at,
         s.title as step_title,
-        s.type as step_type
+        s.type as step_type,
+        s.is_deleted as step_deleted
       FROM journey_events je
-      LEFT JOIN steps s ON je.step_id = s.id
+      LEFT JOIN analytics_steps s ON je.step_id = s.id AND s.journey_id = je.journey_id
       WHERE je.end_user_id = $1 AND je.journey_id = $2 AND je.organization_id = $3
+        AND ${liveResultsSql('je', '$4')}
       ORDER BY je.created_at ASC
-    `, [userId, journeyId, orgId]);
+    `, [userId, journeyId, orgId, showDeleted]);
     
     // Get quiz attempts with details
     const quizAttempts = await query(`
@@ -11164,10 +11430,11 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
         qa.created_at,
         s.title as step_title
       FROM quiz_attempts qa
-      JOIN steps s ON qa.step_id = s.id
+      JOIN analytics_steps s ON qa.step_id = s.id AND s.journey_id = qa.journey_id
       WHERE qa.end_user_id = $1 AND qa.journey_id = $2 AND qa.organization_id = $3
+        AND ${liveResultsSql('qa', '$4')}
       ORDER BY qa.created_at ASC
-    `, [userId, journeyId, orgId]);
+    `, [userId, journeyId, orgId, showDeleted]);
     
     // Get form submissions
     const formSubmissions = await query(`
@@ -11181,10 +11448,11 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
         fa.created_at,
         s.title as step_title
       FROM form_analytics fa
-      JOIN steps s ON fa.step_id = s.id
+      JOIN analytics_steps s ON fa.step_id = s.id AND s.journey_id = fa.journey_id
       WHERE fa.end_user_id = $1 AND fa.journey_id = $2 AND fa.organization_id = $3
+        AND ${liveResultsSql('fa', '$4')}
       ORDER BY fa.created_at ASC
-    `, [userId, journeyId, orgId]);
+    `, [userId, journeyId, orgId, showDeleted]);
     
     // Get AI Guide chat sessions
     const chatSessions = await query(`
@@ -11202,8 +11470,9 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
       FROM guide_chat_sessions gcs
       LEFT JOIN guides g ON gcs.guide_id = g.id
       WHERE gcs.end_user_id = $1 AND gcs.journey_id = $2 AND gcs.organization_id = $3
+        AND ${liveResultsSql('gcs', '$4', { hasStep: false })}
       ORDER BY gcs.created_at ASC
-    `, [userId, journeyId, orgId]);
+    `, [userId, journeyId, orgId, showDeleted]);
     
     // Get video watch sessions
     const videoSessions = await query(`
@@ -11218,10 +11487,11 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
         vws.created_at,
         s.title as step_title
       FROM video_watch_sessions vws
-      JOIN steps s ON vws.step_id = s.id
+      JOIN analytics_steps s ON vws.step_id = s.id AND s.journey_id = vws.journey_id
       WHERE vws.end_user_id = $1 AND vws.journey_id = $2 AND vws.organization_id = $3
+        AND ${liveResultsSql('vws', '$4')}
       ORDER BY vws.created_at ASC
-    `, [userId, journeyId, orgId]);
+    `, [userId, journeyId, orgId, showDeleted]);
     
     // Get poll votes
     const pollVotes = await query(`
@@ -11231,13 +11501,14 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
         je.created_at,
         s.title as step_title
       FROM journey_events je
-      JOIN steps s ON je.step_id = s.id
+      JOIN analytics_steps s ON je.step_id = s.id AND s.journey_id = je.journey_id
       WHERE je.end_user_id = $1 
         AND je.journey_id = $2 
         AND je.organization_id = $3
+        AND ${liveResultsSql('je', '$4')}
         AND je.event_type = 'poll_voted'
       ORDER BY je.created_at ASC
-    `, [userId, journeyId, orgId]);
+    `, [userId, journeyId, orgId, showDeleted]);
     
     // Build step-by-step timeline
     const stepMap = new Map();
@@ -11251,6 +11522,7 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
           step_id: event.step_id,
           step_title: event.step_title,
           step_type: event.step_type,
+          step_deleted: event.step_deleted === true,
           entered_at: null,
           completed_at: null,
           duration_ms: null,
@@ -11471,7 +11743,8 @@ router.get('/analytics/group/:groupId', async (req, res) => {
       WHERE je.end_user_id = ANY($1)
         AND je.created_at >= $2
         AND ($3::uuid IS NULL OR je.journey_id = $3)
-    `, [userIds, sinceDate, journeyFilterId]);
+        AND ${liveResultsSql('je', '$4')}
+    `, [userIds, sinceDate, journeyFilterId, wantsDeleted(req)]);
     
     // Quiz performance for group
     const groupQuizStats = await query(`
@@ -11480,11 +11753,12 @@ router.get('/analytics/group/:groupId', async (req, res) => {
         SUM(CASE WHEN passed THEN 1 ELSE 0 END)::numeric / NULLIF(COUNT(*), 0) * 100 as pass_rate,
         COUNT(*) as total_attempts,
         COUNT(DISTINCT end_user_id) as users_attempted
-      FROM quiz_attempts
-      WHERE end_user_id = ANY($1)
-        AND created_at >= $2
-        AND ($3::uuid IS NULL OR journey_id = $3)
-    `, [userIds, sinceDate, journeyFilterId]);
+      FROM quiz_attempts qa
+      WHERE qa.end_user_id = ANY($1)
+        AND qa.created_at >= $2
+        AND ($3::uuid IS NULL OR qa.journey_id = $3)
+        AND ${liveResultsSql('qa', '$4')}
+    `, [userIds, sinceDate, journeyFilterId, wantsDeleted(req)]);
     
     // Video engagement for group
     const groupVideoStats = await query(`
@@ -11493,11 +11767,12 @@ router.get('/analytics/group/:groupId', async (req, res) => {
         SUM(CASE WHEN completed THEN 1 ELSE 0 END)::numeric / NULLIF(COUNT(*), 0) * 100 as completion_rate,
         SUM(watch_time_sec) as total_watch_time_sec,
         COUNT(DISTINCT end_user_id) as users_watched
-      FROM video_watch_sessions
-      WHERE end_user_id = ANY($1)
-        AND created_at >= $2
-        AND ($3::uuid IS NULL OR journey_id = $3)
-    `, [userIds, sinceDate, journeyFilterId]);
+      FROM video_watch_sessions vw
+      WHERE vw.end_user_id = ANY($1)
+        AND vw.created_at >= $2
+        AND ($3::uuid IS NULL OR vw.journey_id = $3)
+        AND ${liveResultsSql('vw', '$4')}
+    `, [userIds, sinceDate, journeyFilterId, wantsDeleted(req)]);
     
     // Per-user summary for leaderboard
     const userLeaderboard = await query(`
@@ -11511,11 +11786,12 @@ router.get('/analytics/group/:groupId', async (req, res) => {
       FROM end_users eu
       LEFT JOIN journey_events je ON eu.id = je.end_user_id AND je.created_at >= $2
         AND ($3::uuid IS NULL OR je.journey_id = $3)
+        AND ${liveResultsSql('je', '$4')}
       WHERE eu.id = ANY($1)
       GROUP BY eu.id, eu.first_name, eu.last_name, eu.email
       ORDER BY completions DESC, steps_completed DESC
       LIMIT 20
-    `, [userIds, sinceDate, journeyFilterId]);
+    `, [userIds, sinceDate, journeyFilterId, wantsDeleted(req)]);
     
     res.json({
       success: true,
@@ -11558,18 +11834,23 @@ router.get('/analytics/guide-chat-stats', async (req, res) => {
     // Use milliseconds calculation for reliable date math across month boundaries
     const sinceDate = new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000);
     
-    let whereClause = 'organization_id = $1 AND created_at >= $2';
+    // Every query reads guide_chat_sessions as gcs
+    let whereClause = 'gcs.organization_id = $1 AND gcs.created_at >= $2';
     const params = [orgId, sinceDate];
     let paramIndex = 3;
-    
+
     if (journey_id) {
-      whereClause += ` AND journey_id = $${paramIndex++}`;
+      whereClause += ` AND gcs.journey_id = $${paramIndex++}`;
       params.push(journey_id);
     }
     if (guide_id) {
-      whereClause += ` AND guide_id = $${paramIndex++}`;
+      whereClause += ` AND gcs.guide_id = $${paramIndex++}`;
       params.push(guide_id);
     }
+    // Chats in journeys deleted for good only with "Show deleted" on
+    const showDeleted = wantsDeleted(req);
+    whereClause += ` AND ${liveResultsSql('gcs', `$${paramIndex++}`, { hasStep: false })}`;
+    params.push(showDeleted);
     
     // Overall guide chat stats
     const overallStats = await query(`
@@ -11581,7 +11862,7 @@ router.get('/analytics/guide-chat-stats', async (req, res) => {
         AVG(message_count) as avg_messages_per_session,
         AVG(total_duration_ms) as avg_session_duration_ms,
         SUM(total_duration_ms) as total_chat_time_ms
-      FROM guide_chat_sessions
+      FROM guide_chat_sessions gcs
       WHERE ${whereClause}
     `, params);
     
@@ -11597,7 +11878,7 @@ router.get('/analytics/guide-chat-stats', async (req, res) => {
         COUNT(DISTINCT COALESCE(gcs.end_user_id::text, gcs.session_id)) as unique_users
       FROM guide_chat_sessions gcs
       LEFT JOIN guides g ON gcs.guide_id = g.id
-      WHERE ${whereClause.replace('organization_id', 'gcs.organization_id').replace('created_at', 'gcs.created_at')}
+      WHERE ${whereClause}
       GROUP BY gcs.guide_id, g.name
       ORDER BY sessions DESC
     `, params);
@@ -11614,10 +11895,11 @@ router.get('/analytics/guide-chat-stats', async (req, res) => {
       WHERE gcs.organization_id = $1 
         AND gcs.created_at >= $2
         AND ($3::uuid IS NULL OR gcs.journey_id = $3)
+        AND ${liveResultsSql('gcs', '$4', { hasStep: false })}
       GROUP BY step_data->>'step_id', step_data->>'step_title', step_data->>'step_type'
       ORDER BY question_count DESC
       LIMIT 10
-    `, [orgId, sinceDate, journey_id || null]);
+    `, [orgId, sinceDate, journey_id || null, showDeleted]);
     
     // Recent sessions with details
     const recentSessions = await query(`
@@ -11631,7 +11913,7 @@ router.get('/analytics/guide-chat-stats', async (req, res) => {
       LEFT JOIN guides g ON gcs.guide_id = g.id
       LEFT JOIN end_users eu ON gcs.end_user_id = eu.id
       LEFT JOIN journeys j ON gcs.journey_id = j.id
-      WHERE ${whereClause.replace('organization_id', 'gcs.organization_id').replace('created_at', 'gcs.created_at')}
+      WHERE ${whereClause}
       ORDER BY gcs.last_message_at DESC
       LIMIT 20
     `, params);
@@ -11643,7 +11925,7 @@ router.get('/analytics/guide-chat-stats', async (req, res) => {
         COUNT(*) as sessions,
         SUM(message_count) as messages,
         SUM(user_message_count) as questions
-      FROM guide_chat_sessions
+      FROM guide_chat_sessions gcs
       WHERE ${whereClause}
       GROUP BY DATE(created_at)
       ORDER BY date
@@ -11691,6 +11973,7 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
     
     const { journeyId } = req.params;
     const { days = 30 } = req.query;
+    const showDeleted = wantsDeleted(req);
     const sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
     
     const orgId = req.session.organization?.id;
@@ -11702,11 +11985,13 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
     
     // Get journey info and steps
     const journeyResult = await query(`
-      SELECT j.id, j.title, j.status,
+      SELECT j.id, j.title, j.status, (j.deleted_at IS NOT NULL) as is_deleted,
              (SELECT COUNT(*) FROM steps WHERE journey_id = j.id) as total_steps
       FROM journeys j
       WHERE j.id = $1 AND j.organization_id = $2
-    `, [journeyId, orgId]);
+        -- A journey deleted for good only with "Show deleted journeys and steps" on
+        AND ($3::boolean OR j.purged_at IS NULL)
+    `, [journeyId, orgId, showDeleted]);
     
     console.log('[Analytics] Journey result rows:', journeyResult.rows.length);
     
@@ -11722,10 +12007,11 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
       SELECT 
         COUNT(DISTINCT CASE WHEN event_type IN ('journey_started', 'step_entered') THEN COALESCE(end_user_id::text, session_id) END) as started,
         COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN COALESCE(end_user_id::text, session_id) END) as completed
-      FROM journey_events
-      WHERE journey_id = $1 AND organization_id = $2 AND created_at >= $3
-    `, [journeyId, orgId, sinceDate]);
-    
+      FROM journey_events je
+      WHERE je.journey_id = $1 AND je.organization_id = $2 AND je.created_at >= $3
+        AND ${liveResultsSql('je', '$4')}
+    `, [journeyId, orgId, sinceDate, showDeleted]);
+
     const started = parseInt(overallStats.rows[0].started) || 0;
     const completed = parseInt(overallStats.rows[0].completed) || 0;
     const completionRate = started > 0 ? Math.round((completed / started) * 100) : 0;
@@ -11737,19 +12023,21 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
         s.title as step_title,
         s.type as step_type,
         s.is_start,
+        s.is_deleted,
         COUNT(DISTINCT CASE WHEN je.event_type = 'step_entered' THEN COALESCE(je.end_user_id::text, je.session_id) END) as users_reached,
         COUNT(DISTINCT CASE WHEN je.event_type = 'step_completed' THEN COALESCE(je.end_user_id::text, je.session_id) END) as users_completed,
         AVG(CASE WHEN je.event_type = 'step_completed' AND je.duration_ms IS NOT NULL THEN je.duration_ms END) as avg_duration_ms,
         MIN(CASE WHEN je.event_type = 'step_entered' THEN je.created_at END) as first_reached
       FROM journey_events je
-      JOIN steps s ON je.step_id = s.id
-      WHERE je.journey_id = $1 
-        AND je.organization_id = $2 
+      JOIN analytics_steps s ON je.step_id = s.id AND s.journey_id = je.journey_id
+      WHERE je.journey_id = $1
+        AND je.organization_id = $2
         AND je.created_at >= $3
         AND je.step_id IS NOT NULL
-      GROUP BY je.step_id, s.title, s.type, s.is_start
+        AND ($4::boolean OR NOT s.is_deleted)
+      GROUP BY je.step_id, s.title, s.type, s.is_start, s.is_deleted
       ORDER BY s.is_start DESC, first_reached ASC NULLS LAST
-    `, [journeyId, orgId, sinceDate]);
+    `, [journeyId, orgId, sinceDate, showDeleted]);
     
     // Put the steps in the order of the journey itself: breadth-first from
     // the start step along the paths (branches top to bottom on the canvas).
@@ -11773,6 +12061,7 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
         step_id: stepData.step_id,
         step_title: stepData.step_title,
         step_type: stepData.step_type,
+        step_deleted: stepData.is_deleted === true,
         step_order: index + 1,
         users_reached: usersReached,
         users_completed: usersCompleted,
@@ -11791,8 +12080,9 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
         SUM(CASE WHEN qa.passed THEN 1 ELSE 0 END) as passed_count
       FROM quiz_attempts qa
       WHERE qa.journey_id = $1 AND qa.organization_id = $2 AND qa.created_at >= $3
+        AND ${liveResultsSql('qa', '$4')}
       GROUP BY qa.step_id
-    `, [journeyId, orgId, sinceDate]);
+    `, [journeyId, orgId, sinceDate, showDeleted]);
     
     // Merge quiz stats into funnel
     const funnelWithQuiz = funnel.map(step => {
@@ -11812,8 +12102,9 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
     const dailyTrend = await query(`
       WITH events AS (
         SELECT event_type, created_at, COALESCE(end_user_id::text, session_id) as participant
-        FROM journey_events
-        WHERE journey_id = $1 AND organization_id = $2 AND created_at >= $3
+        FROM journey_events je
+        WHERE je.journey_id = $1 AND je.organization_id = $2 AND je.created_at >= $3
+          AND ${liveResultsSql('je', '$4')}
       ),
       first_start AS (
         SELECT participant, MIN(created_at) as started_at
@@ -11829,7 +12120,7 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
       LEFT JOIN first_start fs ON fs.participant = e.participant
       GROUP BY DATE(e.created_at)
       ORDER BY date
-    `, [journeyId, orgId, sinceDate]);
+    `, [journeyId, orgId, sinceDate, showDeleted]);
     
     res.json({
       success: true,
@@ -11837,6 +12128,7 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
         id: journey.id,
         title: journey.title,
         status: journey.status,
+        is_deleted: journey.is_deleted === true,
         total_steps: parseInt(journey.total_steps) || 0
       },
       funnel: funnelWithQuiz,
@@ -11883,6 +12175,10 @@ router.get('/analytics/users-overview', async (req, res) => {
       paramIndex++;
     }
     
+    // Results of deleted journeys and steps only with "Show deleted" on
+    // (the flag is the parameter after LIMIT and OFFSET)
+    const deletedParam = `$${params.length + 3}`;
+
     // Get users with analytics summary
     const usersResult = await query(`
       SELECT 
@@ -11894,20 +12190,24 @@ router.get('/analytics/users-overview', async (req, res) => {
          FROM end_user_groups g 
          JOIN end_user_group_members gm ON g.id = gm.group_id 
          WHERE gm.end_user_id = eu.id) as groups,
-        (SELECT COUNT(DISTINCT journey_id) FROM journey_events 
-         WHERE end_user_id = eu.id AND event_type = 'journey_completed') as journeys_completed,
-        (SELECT MAX(created_at) FROM journey_events WHERE end_user_id = eu.id) as last_activity,
-        (SELECT AVG(CASE WHEN total_questions > 0 THEN (correct_count::float / total_questions) * 100 END)
-         FROM quiz_attempts WHERE end_user_id = eu.id) as avg_quiz_score,
-        (SELECT COALESCE(json_agg(json_build_object('id', j.id, 'title', j.title) ORDER BY je_max.last_activity DESC), '[]'::json)
-         FROM (SELECT DISTINCT journey_id, MAX(created_at) as last_activity 
+        (SELECT COUNT(DISTINCT je.journey_id) FROM journey_events je
+         WHERE je.end_user_id = eu.id AND je.event_type = 'journey_completed'
+           AND ${liveResultsSql('je', deletedParam)}) as journeys_completed,
+        (SELECT MAX(je.created_at) FROM journey_events je
+         WHERE je.end_user_id = eu.id AND ${liveResultsSql('je', deletedParam)}) as last_activity,
+        (SELECT AVG(CASE WHEN qa.total_questions > 0 THEN (qa.correct_count::float / qa.total_questions) * 100 END)
+         FROM quiz_attempts qa
+         WHERE qa.end_user_id = eu.id AND ${liveResultsSql('qa', deletedParam)}) as avg_quiz_score,
+        (SELECT COALESCE(json_agg(json_build_object('id', j.id, 'title', j.title, 'deleted', j.purged_at IS NOT NULL) ORDER BY je_max.last_activity DESC), '[]'::json)
+         FROM (SELECT DISTINCT journey_id, MAX(created_at) as last_activity
                FROM journey_events WHERE end_user_id = eu.id GROUP BY journey_id) je_max
-         JOIN journeys j ON j.id = je_max.journey_id) as journeys
+         JOIN journeys j ON j.id = je_max.journey_id
+         WHERE (${deletedParam}::boolean OR j.purged_at IS NULL)) as journeys
       FROM end_users eu
       WHERE ${whereClause}
       ORDER BY last_activity DESC NULLS LAST
       LIMIT $${paramIndex++} OFFSET $${paramIndex}
-    `, [...params, limit, offset]);
+    `, [...params, limit, offset, wantsDeleted(req)]);
     
     // Get total count
     const countResult = await query(`
@@ -11965,19 +12265,22 @@ router.get('/analytics/groups-overview', async (req, res) => {
         (SELECT COUNT(DISTINCT je.end_user_id) 
          FROM journey_events je
          JOIN end_user_group_members gm ON je.end_user_id = gm.end_user_id
-         WHERE gm.group_id = g.id AND je.created_at >= $2) as active_users,
+         WHERE gm.group_id = g.id AND je.created_at >= $2
+           AND ${liveResultsSql('je', '$3')}) as active_users,
         (SELECT COUNT(DISTINCT je.end_user_id) 
          FROM journey_events je
          JOIN end_user_group_members gm ON je.end_user_id = gm.end_user_id
-         WHERE gm.group_id = g.id AND je.event_type = 'journey_completed' AND je.created_at >= $2) as users_completed,
+         WHERE gm.group_id = g.id AND je.event_type = 'journey_completed' AND je.created_at >= $2
+           AND ${liveResultsSql('je', '$3')}) as users_completed,
         (SELECT AVG(CASE WHEN qa.total_questions > 0 THEN (qa.correct_count::float / qa.total_questions) * 100 END)
          FROM quiz_attempts qa
          JOIN end_user_group_members gm ON qa.end_user_id = gm.end_user_id
-         WHERE gm.group_id = g.id AND qa.created_at >= $2) as avg_quiz_score
+         WHERE gm.group_id = g.id AND qa.created_at >= $2
+           AND ${liveResultsSql('qa', '$3')}) as avg_quiz_score
       FROM end_user_groups g
       WHERE g.organization_id = $1
       ORDER BY g.name
-    `, [orgId, sinceDate]);
+    `, [orgId, sinceDate, wantsDeleted(req)]);
     
     // Calculate completion rates and format
     const groups = groupsResult.rows.map(g => ({
@@ -11993,11 +12296,13 @@ router.get('/analytics/groups-overview', async (req, res) => {
     const orgAverages = await query(`
       SELECT 
         (SELECT AVG(CASE WHEN total_questions > 0 THEN (correct_count::float / total_questions) * 100 END)
-         FROM quiz_attempts WHERE organization_id = $1 AND created_at >= $2) as org_avg_quiz_score,
+         FROM quiz_attempts qa WHERE qa.organization_id = $1 AND qa.created_at >= $2
+           AND ${liveResultsSql('qa', '$3')}) as org_avg_quiz_score,
         (SELECT COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN end_user_id END)::float / NULLIF(COUNT(DISTINCT end_user_id), 0) * 100
-         FROM journey_events 
-         WHERE organization_id = $1 AND created_at >= $2) as org_completion_rate
-    `, [orgId, sinceDate]);
+         FROM journey_events je
+         WHERE je.organization_id = $1 AND je.created_at >= $2
+           AND ${liveResultsSql('je', '$3')}) as org_completion_rate
+    `, [orgId, sinceDate, wantsDeleted(req)]);
     
     res.json({
       success: true,
@@ -12036,6 +12341,7 @@ router.get('/analytics/top-journeys', async (req, res) => {
         j.id,
         j.title,
         j.status,
+        (j.deleted_at IS NOT NULL) as is_deleted,
         COUNT(DISTINCT eup.id) as started,
         COUNT(DISTINCT CASE WHEN eup.completed_at IS NOT NULL THEN eup.id END) as completed,
         AVG(CASE WHEN je.event_type = 'step_completed' AND je.duration_ms IS NOT NULL THEN je.duration_ms END) as avg_step_duration_ms
@@ -12043,18 +12349,21 @@ router.get('/analytics/top-journeys', async (req, res) => {
       LEFT JOIN invitations i ON j.id = i.journey_id AND i.organization_id = $1
       LEFT JOIN end_user_progress eup ON i.id = eup.invitation_id AND eup.started_at >= $2
       LEFT JOIN journey_events je ON j.id = je.journey_id AND je.created_at >= $2
-      WHERE j.organization_id = $1 AND j.deleted_at IS NULL
-      GROUP BY j.id, j.title, j.status
+      WHERE j.organization_id = $1
+        -- Deleted journeys only with "Show deleted journeys and steps" on
+        AND ($4::boolean OR j.deleted_at IS NULL)
+      GROUP BY j.id, j.title, j.status, j.deleted_at
       HAVING COUNT(DISTINCT eup.id) > 0
       ORDER BY COUNT(DISTINCT CASE WHEN eup.completed_at IS NOT NULL THEN eup.id END) DESC, 
                COUNT(DISTINCT eup.id) DESC
       LIMIT $3
-    `, [orgId, sinceDate, parseInt(limit)]);
+    `, [orgId, sinceDate, parseInt(limit), wantsDeleted(req)]);
     
     const journeys = journeysResult.rows.map(j => ({
       id: j.id,
       title: j.title,
       status: j.status,
+      is_deleted: j.is_deleted === true,
       started: parseInt(j.started) || 0,
       completed: parseInt(j.completed) || 0,
       completion_rate: parseInt(j.started) > 0 ? Math.round((parseInt(j.completed) / parseInt(j.started)) * 100) : 0,

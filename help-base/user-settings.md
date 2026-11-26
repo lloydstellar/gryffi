@@ -5,7 +5,7 @@ related_features: [password-management, two-factor-authentication, language-sett
 
 # My account
 
-My account lets you manage your personal account preferences, security settings, and profile information.
+My account has your personal settings: your language, your name, your password and two-factor authentication.
 
 ![My account: language (1), profile (2), password (3) and two-factor authentication (4)](images/user-settings/overview.en.webp)
 
@@ -18,72 +18,69 @@ My account lets you manage your personal account preferences, security settings,
 
 My account includes:
 
-- Personal interface language
-- First name and Last name
-- Password management
+- Your interface language
+- First name and last name
+- Change password
 - Two-factor authentication
+- Contact Support
 
 [[goto:/dashboard/settings]]
 
-## Profile Settings
-
-### Personal Information
+## Profile
 
 | Field | Description |
 |-------|-------------|
-| **First Name** (2) | Your first name |
-| **Last Name** | Your last name |
+| **First name** (2) | Your first name |
+| **Last name** | Your last name |
 
-## Password Settings
+Click **Save** to keep the changes.
 
-### Changing Password
+## Change password
 
-1. Go to My account
-2. Scroll to the Security section
-3. Enter current password (3)
-4. Enter new password twice
-5. Click "Update password"
+1. Go to My account.
+2. Scroll to the Security section.
+3. Enter your current password (3).
+4. Enter the new password twice.
+5. Click **Update password**.
+
+A password has at least 8 characters. Your other devices are signed out within a minute.
 
 See: password-management
 
-### Password Requirements
+## Two-factor authentication
 
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one number
-- At least one special character
+1. Go to My account.
+2. Find **Two-factor authentication** in the Security section.
+3. Turn on the switch (4).
 
-## Two-Factor Authentication
-
-Enable extra security:
-
-1. Go to My account
-2. Find "Two-Factor Authentication"
-3. Turn on the switch (4)
+From now on, Gryffi sends a 6-digit code to your email address each time you sign in.
 
 See: two-factor-authentication
 
-## Language Settings
+## Language
 
-### Interface Language
-
-Choose your preferred language (1):
+Choose your interface language (1):
 - English
 - Nederlands (Dutch)
 - Deutsch (German)
 - Français (French)
 - Español (Spanish)
 
+This changes only your own interface. It does not change the language for others, the organization default or the content of journeys.
+
 See: language-settings
+
+## Contact Support
+
+Click **Contact Support** to report a bug or ask a question. In the Community Edition, this opens the Gryffi discussions on GitHub in a new tab.
 
 ## Best Practices
 
-- Keep profile information current
-- Enable two-factor authentication
-- Use a strong, unique password
+- Keep your name up to date.
+- Turn on two-factor authentication.
+- Use a strong password that you do not use elsewhere.
 
 ## Related Features
 
-- [[goto:/dashboard/settings]] - Profile settings
-- [[goto:/dashboard/settings]] - Security settings
-- See: password-management, two-factor-authentication
+- [[goto:/dashboard/settings]] - My account
+- See: password-management, two-factor-authentication, language-settings

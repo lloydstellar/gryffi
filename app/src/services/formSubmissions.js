@@ -14,7 +14,9 @@
  * OUTSIDE uploads/organizations/ so they are never reachable through the
  * media-serving routes. Access is only possible via:
  * - GET /files/forms/:token (unguessable 256-bit token, expires), or
- * - the authenticated Analytics endpoint (admin/manager of the same org).
+ * - the authenticated Analytics endpoint (any maker of the same org).
+ * Files go with their rows: directly where the app deletes them, and through
+ * cleanupFormFiles() for rows that disappear by cascade.
  */
 
 import fs from 'fs';
@@ -238,6 +240,112 @@ export function resolveStoragePath(storagePath) {
     return null;
   }
   return resolved;
+}
+
+/**
+ * Remove stored form files from disk (after their rows are gone).
+ * @param {string[]} storagePaths - form_submission_files.storage_path values
+ * @returns {number} number of files removed
+ */
+export function removeFormFiles(storagePaths) {
+  let removed = 0;
+  for (const storagePath of storagePaths) {
+    const resolved = resolveStoragePath(storagePath);
+    if (!resolved) continue;
+    try {
+      fs.unlinkSync(resolved);
+      removed++;
+    } catch (err) {
+      if (err.code !== 'ENOENT') console.error('[FormSubmissions] Could not remove form file:', err.message);
+    }
+  }
+  return removed;
+}
+
+/**
+ * Storage paths of the files participants sent with forms in private
+ * journeys. Read them before deleting the participants: the submission rows
+ * cascade away with them, the files on disk do not.
+ * @param {string} orgId
+ * @param {{ endUserId?: string|null, source?: string|null }} filter - one participant or all of one source
+ * @returns {Promise<string[]>}
+ */
+export async function formFilesOfEndUsers(orgId, { endUserId = null, source = null } = {}) {
+  if (!endUserId && !source) return [];
+  const result = await query(`
+    SELECT f.storage_path
+    FROM form_submission_files f
+    JOIN private_form_submissions s ON s.id = f.private_submission_id
+    JOIN end_users u ON u.id = s.end_user_id
+    WHERE f.organization_id = $1 AND u.organization_id = $1
+      AND ($2::uuid IS NULL OR u.id = $2)
+      AND ($3::text IS NULL OR u.source = $3)
+  `, [orgId, endUserId, source]);
+  return result.rows.map((row) => row.storage_path);
+}
+
+// Files younger than this are skipped by the disk sweep: storeSubmissionFiles
+// writes the file just before it inserts the row.
+const ORPHAN_MIN_AGE_MS = 60 * 60 * 1000;
+
+/**
+ * Background cleanup (scheduler, hourly):
+ * 1. Files of builder preview submissions are only reachable through the
+ *    download link in the preview email. They go when that link expires.
+ * 2. Files on disk without a row in form_submission_files go. Rows disappear
+ *    through cascades (participant, invitation, public participant,
+ *    organization deleted) that cannot remove files themselves.
+ * Runs without org context, so it sees the rows of all organizations.
+ * @returns {Promise<{ previews: number, orphans: number }>}
+ */
+export async function cleanupFormFiles() {
+  const expired = await query(`
+    DELETE FROM form_submission_files
+    WHERE private_submission_id IS NULL AND public_submission_id IS NULL
+      AND download_token_expires_at < NOW()
+    RETURNING storage_path
+  `);
+  const previews = removeFormFiles(expired.rows.map((row) => row.storage_path));
+
+  let orphans = 0;
+  let orgDirs = [];
+  try {
+    orgDirs = fs.readdirSync(FORM_UPLOADS_DIR, { withFileTypes: true }).filter((d) => d.isDirectory());
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error('[FormSubmissions] Could not read form uploads:', err.message);
+    return { previews, orphans };
+  }
+
+  const now = Date.now();
+  for (const dir of orgDirs) {
+    const orgId = dir.name;
+    if (!/^[0-9a-f-]{36}$/i.test(orgId)) continue;
+    const known = await query('SELECT storage_path FROM form_submission_files WHERE organization_id = $1', [orgId]);
+    const keep = new Set(known.rows.map((row) => path.basename(row.storage_path)));
+    const orgDir = path.join(FORM_UPLOADS_DIR, orgId);
+    let names = [];
+    try {
+      names = fs.readdirSync(orgDir);
+    } catch (_) {
+      continue;
+    }
+    for (const name of names) {
+      if (keep.has(name)) continue;
+      const filePath = path.join(orgDir, name);
+      try {
+        const stat = fs.statSync(filePath);
+        if (!stat.isFile() || now - stat.mtimeMs < ORPHAN_MIN_AGE_MS) continue;
+        fs.unlinkSync(filePath);
+        orphans++;
+      } catch (err) {
+        if (err.code !== 'ENOENT') console.error('[FormSubmissions] Could not remove orphaned form file:', err.message);
+      }
+    }
+    try {
+      if (fs.readdirSync(orgDir).length === 0) fs.rmdirSync(orgDir);
+    } catch (_) { /* best effort */ }
+  }
+  return { previews, orphans };
 }
 
 /**
@@ -558,9 +666,17 @@ export function buildFormSubmissionEmailBody({
 }
 
 /**
- * Default email subject for a form submission.
+ * Email subject for a form submission: the subject the maker saved in the
+ * step ({{journey_title}} and {{step_title}} are filled in), or the default.
+ * Always built on the server from the saved step, never from the request.
  */
-export function buildFormSubmissionSubject(language, journeyTitle) {
+export function buildFormSubmissionSubject(language, journeyTitle, { template, stepTitle } = {}) {
   const t = getFormEmailTranslations(language);
-  return `${t.formSubmission}: ${journeyTitle}`;
+  const subject = typeof template === 'string' && template.trim()
+    ? template
+      .replaceAll('{{journey_title}}', journeyTitle || '')
+      .replaceAll('{{step_title}}', stepTitle || '')
+    : `${t.formSubmission}: ${journeyTitle}`;
+  // A subject is one line
+  return subject.replace(/[\r\n]+/g, ' ').trim().slice(0, 250);
 }

@@ -1,11 +1,11 @@
 ---
 feature_id: guide-knowledge-base
-related_features: [ai-guides-overview, guide-step, source-citations, journey-wizard]
+related_features: [ai-guides-overview, guide-step, journey-wizard]
 ---
 
 # Guide Knowledge Base
 
-The Knowledge Base is the foundation of your AI Guide's intelligence. It contains all the content your guide uses to answer questions. Upload static documents to the knowledge base with information your AI Guide can use to give answers.
+The knowledge base holds the content your AI guide uses to answer questions. Upload documents or type texts with the information the guide needs.
 
 ![The knowledge base of a guide: upload files (1), Add Text (2) and a knowledge source (3)](images/guide-knowledge-base/overview.en.webp)
 
@@ -15,13 +15,12 @@ The Knowledge Base is the foundation of your AI Guide's intelligence. It contain
 
 ## Overview
 
-The Knowledge Base:
+The knowledge base:
 
-- Stores your guide's source content
-- Powers AI responses
-- Enables source citations
-- Can be updated anytime
-- Supports multiple content types
+- Stores the content of your guide
+- Is where the guide finds its answers
+- Makes source citations possible
+- Can be changed at any time
 
 [[goto:/dashboard/guides]]
 
@@ -29,71 +28,76 @@ The Knowledge Base:
 
 ### Document Upload
 
-Upload files for the AI to learn from. Click the upload area (1) or drag your files onto it:
+Click the upload area (1) or drag your files onto it. You can upload several files at once. Each file can be at most 50 MB.
 
-| Format | Max Size | Notes |
-|--------|----------|-------|
-| PDF | 25 MB | Text extracted automatically |
-| Word (.docx) | 25 MB | Formatting preserved |
-| PowerPoint | 25 MB | Slides converted to text |
-| Text (.txt) | 10 MB | Plain text |
-| Markdown (.md) | 10 MB | Formatted text |
+| Format | How Gryffi reads it |
+|--------|---------------------|
+| PDF | Text is taken from the pages |
+| Word (.doc, .docx) | Text is taken from the document. Layout is not kept. |
+| PowerPoint (.pptx) | Text is taken from the slides |
+| Images (PNG, JPG, WebP, GIF) | Text in the image is read |
+| Text (.txt) | Plain text |
+| Markdown (.md) | Plain text |
+| CSV | The rows as text |
+
+Gryffi turns every file into plain text. After the upload the source shows **Processing**. When it shows **Completed**, the guide can use it. When it shows **Failed**, the reason is shown below the source.
+
+### When PDF, Word and PowerPoint files cannot be read
+
+PDF, Word, PowerPoint and image files are read by a separate document reader. On a self-hosted installation this reader can be switched off. The file then fails with a message that reading these files is switched off. Text, Markdown and CSV files still work. Add the content as text instead, or ask the administrator of your installation to turn on the document reader.
 
 ### Manual Content
 
-Write content directly:
+Type content directly:
 
-1. Click "Add Text" (2)
-2. Enter a title
-3. Write or paste what ever content you want your AI Guide to know
-4. Click "Add Knowledge"
+1. Click **Add Text** (2).
+2. Enter a **Title**.
+3. Type or paste the content your guide should know in **Content**.
+4. Click **Add Knowledge**.
 
-### Seeding the Knowledge Base via the Journey Wizard
+To change a text later, click **Edit** next to it.
 
-When you create a journey with the Journey Wizard and upload a document in step 1, you can also ask the wizard to create a new AI Guide and seed that Guide's knowledge base with the same document. The file is processed through the normal knowledge-base pipeline (text extraction, splitting into pieces of text, embedding), so the result is identical to uploading the document manually on the Guide's knowledge-base page. After the wizard finishes, you can add more documents or text to the Guide as usual. See: journey-wizard.
+### Filling the Knowledge Base with the Journey Wizard
+
+When you create a journey with the Journey Wizard and upload a document in the first step, the wizard can create a new AI guide from that document. The document goes through the same steps as a normal upload: the text is read, split into pieces of text and stored. The result is the same as uploading the document yourself on the page of the guide. After the wizard is done, you can add more documents or texts to the guide.
+
+See: journey-wizard
 
 ## Content Organization
 
 ### View Content
 
-See all knowledge base items (3):
-- Title and description
-- Source type
-- Date added
-- Number of pieces of text used
-- Status of document
+Each knowledge source (3) shows:
+- The name of the file or text
+- Whether it is a file or a text
+- The number of pieces of text it uses
+- The date it was added
+- Its status: Pending, Processing, Completed or Failed
 
 ### Delete Content
 
-Remove outdated or incorrect content:
-- Press the trash icon next to the document or text
+Remove outdated or wrong content:
+- Click the trash icon next to the document or text.
 
-## Pieces of text stored in the database
+## Pieces of text
 
-Gryffi turns each document into plain text. It splits that text into pieces of text and stores them in the database. The larger the document, the more pieces of text it uses. Your subscription plan sets how many pieces of text your knowledge bases can hold.
+Gryffi splits the text of each source into pieces of text and stores them in the database. A larger document uses more pieces of text. Next to the heading **Knowledge Base** you see how many pieces of text all your guides use together.
 
-## The RAG system
+## How the guide finds answers
 
-RAG is a framework that provides an AI model with access to external, up-to-date data without the need for expensive retraining. It effectively turns a "closed-book" AI into an "open-book" assistant.
+The guide is not trained on your documents. It looks up the answer every time:
 
-How it works:
+1. **Search**: when a participant asks a question, Gryffi searches the pieces of text of the guide. It picks the pieces that fit the question best.
+2. **Answer**: these pieces of text are given to the AI together with the question.
+3. **Sources**: the AI writes the answer from those pieces of text and refers to the sources it used.
 
-1. Retrieval: When a participant asks a question, the system searches an external database (like Markdown files, PDFs, or a vector database) for the most relevant snippets of information.
+This way of working is called RAG (retrieval-augmented generation). It has these advantages:
 
-2. Augmentation: These snippets are added to the participant's original question as specific context.
-
-3. Generation: The AI uses both its internal logic and this provided context to generate a precise, grounded answer.
-
-Why AI uses it:
-
-1. Accuracy: It minimizes "hallucinations" by forcing the AI to base its answers on facts from the retrieved data.
-
-2. Efficiency: Instead of retraining a model on new information, you simply update the text files in the database.
-
-3. Privacy: It allows the AI to answer questions using private or sensitive data that wasn't part of its original training set.
-
+- Answers are based on your own content, so the guide makes up less.
+- When you change the knowledge base, the guide uses the new content right away. No retraining is needed.
+- The guide can answer from your own documents, which were never part of the training of the AI.
 
 ## Related Features
 
-- [[goto:/dashboard/guides]] - Manage guides
-- See: ai-guides-overview, source-citations, journey-wizard
+- [[goto:/dashboard/guides]] - Manage AI guides
+- See: ai-guides-overview, guide-step, journey-wizard

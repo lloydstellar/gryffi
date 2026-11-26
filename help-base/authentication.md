@@ -1,123 +1,109 @@
 ---
 feature_id: authentication
-related_features: [login, two-factor-authentication, password-reset, magic-links]
+related_features: [login, two-factor-authentication, password-management, magic-links]
 ---
 
 # Authentication
 
-Authentication secures access to Gryffi by checking who you are through passwords and two-factor authentication.
+Authentication checks who you are before you get access to Gryffi. Makers and participants sign in in different ways.
 
 ## Overview
 
-Authentication methods:
+- Makers sign in with email address and password.
+- Makers can turn on two-factor authentication: an extra 6-digit code by email.
+- Participants open a journey with a magic link from their invitation email. They do not need a password.
 
-- Email/password login
-- Two-factor authentication (2FA)
-- Magic links
+## Makers: email and password
 
-## Login Methods
+1. Enter your email address.
+2. Enter your password.
+3. Click **Sign in**.
+4. If Gryffi asks for a code, enter the 6-digit code from your email and click **Verify**.
 
-### Email/Password
-
-Standard login:
-1. Enter registered email
-2. Enter password
-3. Click "Sign In"
-4. Complete 2FA if enabled
-
+See: login
 
 ## Two-Factor Authentication
 
 ### Setup
 
-Enable 2FA in account settings:
-1. Go to My account → Security
-2. Click "Enable 2FA"
-3. Now every time you login you get email verification
+1. Go to My account.
+2. Find **Two-factor authentication** in the Security section.
+3. Turn on the switch.
+
+From now on, every time you sign in, Gryffi emails you a 6-digit code.
 
 See: two-factor-authentication
 
 ### Using 2FA
 
-Login with 2FA:
-1. Enter email and password
-2. Enter one time passcode from email
-3. Access granted
+1. Enter your email address and password.
+2. Enter the 6-digit code from your email.
+3. Click **Verify**.
+
+The code works for 10 minutes.
 
 ## Security Features
 
-### Account Protection
+### Protection against wrong passwords
 
-| Feature | Description |
-|---------|-------------|
-| Failed Login Lockout | Temporary lock after failed attempts |
-| Session Management | Control active sessions |
+| Wrong passwords | What happens |
+|-----------------|--------------|
+| 3 in 15 minutes | Wait 30 seconds. Gryffi also asks for a 6-digit code by email after the right password. |
+| 5 in 15 minutes | Wait 5 minutes |
+| 10 | The account is locked for 30 minutes |
 
 ### Password Requirements
 
-| Requirement | Standard |
-|-------------|----------|
-| Minimum Length | 8 characters |
-| Uppercase | At least 1 |
-| Numbers | At least 1 |
-| Special Characters | At least 1 |
+A password has at least 8 characters. A longer password, or a sentence of several words, is safer.
 
-## Session Management
+### How long you stay signed in
+
+You stay signed in while you use Gryffi. After 7 days without using Gryffi, you need to sign in again. When you change your password, your other devices are signed out within a minute.
 
 ## For Participants
 
 ### Participant Authentication
 
-Participants can authenticate via:
-- Magic links
+Participants open a journey with the magic link in their invitation email.
+
+See: magic-links
 
 ### Public Journey Access
 
-Public journeys may not require authentication:
-- Anonymous access
-- Identification for form steps, reward steps and poll steps
+Anyone with the link can open a public journey without signing in. Gryffi asks for a name and email address before a form step, reward step or poll step.
+
+See: public-journeys
 
 ## For Administrators
 
 ### Managing Makers
 
-| Action | Description |
-|--------|-------------|
-| Reset Password | Send reset email |
-| Disable Account | Prevent login |
-| Force Logout | End all sessions |
+On the Makers page, an admin can deactivate a maker. A deactivated maker cannot sign in, and is signed out within a minute. Makers who forgot their password use **Forgot password?** on the login page themselves.
+
+See: makers-management
 
 ## Troubleshooting
 
 ### Can't Log In
 
-1. Verify email is correct
-2. Check password (case-sensitive)
-3. Try password reset
-4. Contact your admin if locked out
+1. Check your email address.
+2. Check your password. Passwords are case-sensitive.
+3. Click **Forgot password?** on the login page.
+4. Locked after 10 wrong passwords? Wait 30 minutes.
 
-### 2FA Issues
+### No code in your inbox
 
-1. Check your spam folder
+1. Check your spam folder.
+2. Click **Resend code**.
 
 ## Best Practices
 
-### For Makers
-
-- Use strong, unique passwords
-- Enable two-factor authentication
-- Don't share credentials
-- Log out on shared devices
-
-### For Administrators
-
-- Use 2FA for admins
-- Use strong, unique passwords
-- Don't share credentials
-- Log out on shared devices
+- Use a strong password that you do not use elsewhere.
+- Turn on two-factor authentication, especially for admins.
+- Do not share your account.
+- Sign out on shared devices.
 
 ## Related Features
 
-- [[goto:/login]] - Login page
-- [[goto:/dashboard/settings]] - Security settings
-- See: login, two-factor-authentication, password-reset
+- [[goto:/dashboard/settings]] - My account
+- See: login, two-factor-authentication, password-management

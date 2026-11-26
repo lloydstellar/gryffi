@@ -1198,18 +1198,18 @@ export const STEP_TYPE_ARTICLES = {
   challenge: 'challenge-step',
   form: 'form-step',
   poll: 'poll-step',
-  reward: 'reward-codes',
+  reward: 'reward-step',
   nested_journey: 'subjourney-step'
 };
 
 const HELP_CATEGORIES = [
   { key: 'gettingStarted', ids: ['dashboard', 'journey-wizard', 'end-user-experience', 'organization-registration', 'login'] },
   { key: 'journeys', ids: ['journey-builder', 'journey-settings', 'journey-preview', 'public-journeys', 'copy-translate', 'custom-themes', 'image-library', 'trash'] },
-  { key: 'steps', ids: ['space-step', 'floor-plans', 'guide-step', 'step-assistant', 'content-step', 'challenge-step', 'quiz-settings', 'form-step', 'form-file-uploads', 'form-email-settings', 'poll-step', 'reward-codes', 'subjourney-step', 'step-pacing'] },
+  { key: 'steps', ids: ['space-step', 'floor-plans', 'guide-step', 'step-assistant', 'content-step', 'challenge-step', 'quiz-settings', 'form-step', 'form-file-uploads', 'form-email-settings', 'poll-step', 'reward-step', 'subjourney-step', 'step-pacing'] },
   { key: 'guides', ids: ['ai-guides-overview', 'guide-knowledge-base', 'avatar-cropper', 'ai-credits'] },
   { key: 'participants', ids: ['end-user-management', 'manual-user-entry', 'csv-import', 'end-user-groups', 'microsoft-365-sync', 'google-workspace-sync', 'invitations-overview', 'invitation-options', 'magic-links'] },
   { key: 'analytics', ids: ['analytics-overview', 'reports', 'poll-results', 'form-submissions'] },
-  { key: 'team', ids: ['team-management', 'maker-invitations', 'maker-roles', 'admin-role', 'manager-role', 'editor-role', 'viewer-role'] },
+  { key: 'team', ids: ['makers-management', 'maker-invitations', 'maker-roles', 'admin-role', 'journeymanager-role', 'editor-role', 'viewer-role'] },
   { key: 'account', ids: ['user-settings', 'password-management', 'two-factor-authentication', 'authentication', 'language-settings', 'organization-settings', 'system-settings', 'api-access', 'api-keys'] },
   { key: 'plans', ids: ['subscription-overview', 'usage-limits', 'free-tier', 'professional-tier', 'enterprise-tier', 'custom-tier'] }
 ];

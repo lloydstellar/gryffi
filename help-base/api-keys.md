@@ -5,15 +5,13 @@ related_features: [api-access]
 
 # API Keys
 
-API Keys are secure tokens that authenticate your applications and integrations when accessing the Gryffi API.
+An API key lets another system, such as an HR system, use the Gryffi API on behalf of your organization. Only admins can generate, regenerate or revoke the key.
 
 ## Overview
 
-API keys enable:
-
-- Programmatic access to Gryffi
-- Secure authentication
-- Access control
+- An organization has one API key. All applications that use the API share it.
+- The key starts with `grf_`.
+- The key gives access to every API endpoint for your whole organization. You cannot limit a key to some endpoints.
 
 [[goto:/dashboard/system-settings#api]]
 
@@ -21,43 +19,33 @@ API keys enable:
 
 ### Generate New Key
 
-1. Go to Organization → API
-2. Click "Generate API Key"
-3. **Copy the key immediately** (shown once)
-4. After you stored the key, click: I have stored the key safely
+1. Go to Organization and open the **API** tab.
+2. Click **Generate API Key** and confirm.
+3. Copy the key right away. Gryffi shows it only once and cannot show it again later.
+4. After you stored the key, click **I have stored the key safely**.
 
-### Key Properties
+### Key details
 
 | Property | Description |
 |----------|-------------|
 | Created | When the key was generated |
-| Last Used | When an application last used the key |
-
-An organization has one API key. All applications that use the API share it.
+| Last used | When an application last used the key, or "Never used" |
 
 ## Key Security
 
 ### Best Practices
 
-- Store keys in environment variables
-- Never commit keys to code repositories
-- Rotate the key periodically
-- Revoke the key when no application uses it any more
-
-### Key Storage
-
-Safe storage methods:
-- Environment variables
-- Secret management services (AWS Secrets, Vault)
-- Encrypted configuration files
-- Never in plain text code
+- Store the key in an environment variable or a secret manager.
+- Never put the key in code or in a code repository.
+- Replace the key now and then with **Regenerate Key**.
+- Revoke the key when no application uses it any more.
 
 ### Example Usage
 
 .env file
 ```bash
 # Environment variable
-export GRYFFI_API_KEY="your-key-here"
+export GRYFFI_API_KEY="grf_your_api_key_here"
 ```
 
 ```javascript
@@ -67,39 +55,39 @@ const apiKey = process.env.GRYFFI_API_KEY;
 
 ## Managing Keys
 
-### Key details
-
-Organization → API shows when the key was created and when it was last used.
-
 ### Revoke Key
 
-Disable the key:
-1. Click "Revoke Key"
-2. Confirm
-3. The key stops working immediately
+1. Click **Revoke Key**.
+2. Confirm.
+3. The key stops working at once.
 
 ## Key Rotation
 
-### Why Rotate
+### When to replace the key
 
-- Security best practice
-- Suspected compromise
-- Employee offboarding
-- Policy compliance
+- As a regular security habit
+- When you think someone else knows the key
+- When someone who knew the key leaves your organization
 
 ### Rotation Process
 
-Click "Regenerate Key". The old key stops working at once, so put the new key in every application that uses the API.
+1. Click **Regenerate Key**.
+2. Confirm.
+3. Copy the new key and put it in every application that uses the API.
+
+The old key stops working at once.
 
 ## Troubleshooting
 
-### "Invalid API Key"
+### Answer 401 "Invalid API key"
 
-- Verify key is correct
-- Check key is active
-- Verify key hasn't been revoked
+- Check that you copied the whole key, starting with `grf_`.
+- Check that the key is sent in the `X-API-Key` header.
+- Check that nobody revoked or regenerated the key.
+
+After 30 requests with a wrong key in 15 minutes, your IP address is blocked for the rest of those 15 minutes.
 
 ## Related Features
 
-- [[goto:/dashboard/system-settings#api]] - API settings
+- [[goto:/dashboard/system-settings#api]] - API
 - See: api-access

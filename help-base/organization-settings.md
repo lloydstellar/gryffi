@@ -1,11 +1,11 @@
 ---
 feature_id: organization-settings
-related_features: [team-management, custom-themes, language-settings, system-settings]
+related_features: [makers-management, custom-themes, language-settings, system-settings]
 ---
 
 # Organization Settings
 
-Organization Settings allow administrators to configure company-wide preferences, like company name and language.
+Organization settings are the settings for your whole organization, such as the company name and the default language. Only admins can change them.
 
 ![Organization settings: company name (1), default language (2), country (3) and Save (4)](images/organization-settings/general.en.webp)
 
@@ -24,27 +24,42 @@ Organization settings include:
 
 [[goto:/dashboard/system-settings#general]]
 
-## Language Settings
+## Company name
 
-### Default Language
+This name is used across Gryffi and in emails.
 
-Set the default interface language for the whole company:
+## Default organization language
+
+Choose one language for the whole organization:
 - English
 - Dutch (Nederlands)
 - German (Deutsch)
 - French (Français)
 - Spanish (Español)
 
+Or choose **Use each maker's browser language**.
+
+The default language is used for:
+- The interface of makers, until they choose their own language in My account.
+- System emails. If no language is set, Gryffi uses English.
+- Journeys, unless a journey has its own language.
+
+See: language-settings
+
 ## Accessing Settings
 
-Only **Admin** role can access organization settings:
+Only the **Admin** role can open the Organization page:
 
-1. Go to Organization
-2. Select the "General" tab
-3. Change the company name (1), the default organization language (2) or the country (3)
-4. Click **Save** (4)
+1. Go to Organization.
+2. Select the **General** tab.
+3. Change the company name (1), the default organization language (2) or the country (3).
+4. Click **Save** (4).
+
+The General tab also has **Data Export**: download all data of your organization as a ZIP file.
+
+See: system-settings
 
 ## Related Features
 
 - [[goto:/dashboard/system-settings#general]] - Organization
-- See: team-management, custom-themes, language-settings
+- See: makers-management, custom-themes, language-settings, system-settings

@@ -66,7 +66,7 @@
         "maxSize": "Maks {{size}} MB",
         "invalidType": "Geçersiz dosya türü. İzin verilen: {{types}}",
         "fileTooLarge": "Dosya çok büyük. Maksimum boyut: {{size}} MB",
-        "totalTooLarge": "Toplam ek boyutu sınırı aşıyor (38 MB)",
+        "totalTooLarge": "Dosyalar birlikte çok büyük. En fazla toplam {{size}} MB olabilir. Bir dosyayı kaldırın veya daha küçük bir dosya seçin.",
         "removeFile": "Dosyayı kaldır",
         "subtypes": {
           "image": "Resim",
@@ -122,6 +122,7 @@
       "panoramaKeyboardHint": "Etrafına bakmak için ok tuşlarını kullan. Yakınlaştırmak veya uzaklaştırmak için + ve - tuşlarını kullan.",
       "zoomIn": "Yakınlaştır",
       "zoomOut": "Uzaklaştır",
+      "centerOnMarker": "Nerede olduğunuzu gösterin",
       "panoramaLoadFailed": "360° fotoğraf yüklenemedi. Tekrar denemek için sayfayı yenile."
     },
     "stepTypes": {

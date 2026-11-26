@@ -36,6 +36,9 @@ import { encryptToken, decryptToken, encryptStoredTokens } from './oauthTokens.j
 import { invitationToken, protectStoredInvitationTokens } from './invitationTokens.js';
 import { getAppBaseUrl } from '../utils/appUrl.js';
 import { isCloud, isCommunity, getEdition } from '../edition.js';
+import { tooManySyncDeletions } from '../utils/syncSafety.js';
+import { purgeJourney } from './deletedResults.js';
+import { cleanupFormFiles } from './formSubmissions.js';
 import { isFeatureEnabled, getSyncEndUserAllowance } from './subscription.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -71,6 +74,10 @@ const DATA_RETENTION_INTERVAL = 24 * 60 * 60 * 1000;
 const TTS_CACHE_CLEANUP_INTERVAL = 24 * 60 * 60 * 1000;
 const TTS_CACHE_MAX_AGE_DAYS = 60;
 
+// Form file cleanup interval (hourly): files of expired preview submissions
+// and files whose submission row went with a participant or invitation
+const FORM_FILE_CLEANUP_INTERVAL = 60 * 60 * 1000;
+
 // Track if scheduler is running
 let isSchedulerRunning = false;
 let cloudJobs = null;
@@ -84,6 +91,7 @@ let inactivityInterval = null;
 let billingInterval = null;
 let dataRetentionInterval = null;
 let ttsCacheCleanupInterval = null;
+let formFileCleanupInterval = null;
 
 /**
  * Sync Google users and groups for a single organization
@@ -237,7 +245,7 @@ async function syncGoogleUsersForOrg(orgId) {
     // Find users to remove
     const usersToRemove = currentUsers.filter(u => !googleEmailSet.has(u.email.toLowerCase()));
     
-    // PROTECTION: If more than 50% of users would be deleted, abort deletions
+    // PROTECTION: skip all deletions above the safety limit (utils/syncSafety.js)
     const deletePercentage = currentUsers.length > 0 
       ? (usersToRemove.length / currentUsers.length) * 100 
       : 0;
@@ -248,7 +256,7 @@ async function syncGoogleUsersForOrg(orgId) {
     if (usersToRemove.length > 0 && fetchIncomplete) {
       console.warn(`[Google Auto-Sync] ${org.name}: directory only partly read - skipping ${usersToRemove.length} deletions`);
       deleteSkipped = true;
-    } else if (usersToRemove.length > 0 && deletePercentage > 50) {
+    } else if (usersToRemove.length > 0 && tooManySyncDeletions(currentUsers.length, usersToRemove.length)) {
       console.warn(`[Google Auto-Sync] PROTECTION for ${org.name}: Would delete ${usersToRemove.length} users (${deletePercentage.toFixed(1)}%) - skipping deletions`);
       deleteSkipped = true;
     } else if (usersToRemove.length > 0) {
@@ -545,7 +553,7 @@ async function syncMicrosoftUsersForOrg(orgId) {
     // Find users to remove
     const usersToRemove = currentUsers.filter(u => u.external_id && !syncExternalIdSet.has(u.external_id));
     
-    // PROTECTION: Skip deletions if > 10%
+    // PROTECTION: skip all deletions above the safety limit (utils/syncSafety.js)
     const deletePercentage = currentUsers.length > 0 ? (usersToRemove.length / currentUsers.length) * 100 : 0;
     let deleted = 0;
     let deleteSkipped = false;
@@ -553,7 +561,7 @@ async function syncMicrosoftUsersForOrg(orgId) {
     if (usersToRemove.length > 0 && fetchIncomplete) {
       console.warn(`[Microsoft Auto-Sync] ${org.name}: directory only partly read - skipping ${usersToRemove.length} deletions`);
       deleteSkipped = true;
-    } else if (usersToRemove.length > 0 && deletePercentage > 10) {
+    } else if (usersToRemove.length > 0 && tooManySyncDeletions(currentUsers.length, usersToRemove.length)) {
       console.warn(`[Microsoft Auto-Sync] PROTECTION for ${org.name}: Would delete ${usersToRemove.length} users (${deletePercentage.toFixed(1)}%) - skipping`);
       deleteSkipped = true;
     } else if (usersToRemove.length > 0) {
@@ -744,27 +752,26 @@ async function runMicrosoftSyncForAllOrgs() {
  */
 async function cleanupExpiredTrash() {
   try {
-    // Find and delete journeys that have exceeded their retention period
-    // -1 means unlimited retention (Custom tier), so we exclude those
+    // Journeys that have exceeded their retention period leave the trash for
+    // good. -1 means unlimited retention (Custom tier), so we exclude those.
+    // A journey with results stays hidden for Analytics (services/deletedResults.js).
     const journeysResult = await query(`
-      DELETE FROM journeys
-      WHERE deleted_at IS NOT NULL
-      AND id IN (
-        SELECT j.id
-        FROM journeys j
-        JOIN organizations o ON j.organization_id = o.id
-        JOIN subscription_tiers t ON o.subscription_tier_id = t.id
-        WHERE j.deleted_at IS NOT NULL
+      SELECT j.id, j.title, j.organization_id
+      FROM journeys j
+      JOIN organizations o ON j.organization_id = o.id
+      JOIN subscription_tiers t ON o.subscription_tier_id = t.id
+      WHERE j.deleted_at IS NOT NULL
+        AND j.purged_at IS NULL
         AND t.trash_retention_days > 0
         AND j.deleted_at < NOW() - (t.trash_retention_days || ' days')::INTERVAL
-      )
-      RETURNING id, title, organization_id
     `);
     
-    if (journeysResult.rows.length > 0) {
-      console.log(`[Trash Cleanup] Permanently deleted ${journeysResult.rows.length} expired journey(s)`);
-      for (const journey of journeysResult.rows) {
-        console.log(`[Trash Cleanup] Deleted journey: "${journey.title}" (org: ${journey.organization_id})`);
+    for (const journey of journeysResult.rows) {
+      try {
+        const outcome = await purgeJourney(journey.id, journey.organization_id);
+        console.log(`[Trash Cleanup] Journey "${journey.title}" (org: ${journey.organization_id}) left the trash: ${outcome === 'kept' ? 'results kept for Analytics' : 'deleted'}`);
+      } catch (err) {
+        console.error(`[Trash Cleanup] Could not empty journey ${journey.id}:`, err.message);
       }
     }
     
@@ -935,6 +942,8 @@ async function sendInvitationReminders() {
         AND i.reminder_sent_at IS NULL
         AND i.status IN ('pending', 'active')
         AND i.expires_at > NOW()
+        -- No reminders for a journey in the trash (or deleted for good)
+        AND j.deleted_at IS NULL
     `);
     
     if (invitationsResult.rows.length === 0) {
@@ -1168,6 +1177,20 @@ async function cleanupOldEventData() {
 }
 
 /**
+ * Remove form files from disk that no submission refers to any more
+ */
+async function cleanupOrphanedFormFiles() {
+  try {
+    const { previews, orphans } = await cleanupFormFiles();
+    if (previews > 0 || orphans > 0) {
+      console.log(`[Form Files] Removed ${previews} expired preview file(s) and ${orphans} file(s) without submission`);
+    }
+  } catch (err) {
+    console.error('[Form Files] Cleanup error:', err.message);
+  }
+}
+
+/**
  * Start the background scheduler
  */
 /**
@@ -1275,6 +1298,14 @@ export function startScheduler() {
     resetMonthlyBillingPeriods();
   }, 180000);
   
+  // Form files without submission, hourly (first run after 20 minutes)
+  formFileCleanupInterval = setInterval(() => {
+    cleanupOrphanedFormFiles();
+  }, FORM_FILE_CLEANUP_INTERVAL);
+  setTimeout(() => {
+    cleanupOrphanedFormFiles();
+  }, 1200000);
+
   // Data retention cleanup daily
   dataRetentionInterval = setInterval(() => {
     cleanupOldEventData();
@@ -1305,7 +1336,7 @@ export function startScheduler() {
       .catch(err => console.error('[Scheduler] Could not start cloud jobs:', err));
   }
   
-  console.log(`[Scheduler] Started (${getEdition()} edition) - Google/Microsoft sync every 15 minutes, Trash cleanup every hour, Reminders every 30 minutes, Inactivity emails hourly, Billing reset daily, Data retention daily${isCommunity() ? ', Update check daily' : ''}${isCloud() ? ', Lint check nightly at 3:00 AM, Blacklist update daily, Unverified org cleanup hourly, Subscription reconciliation every 6 hours, Lifecycle emails hourly' : ''}`);
+  console.log(`[Scheduler] Started (${getEdition()} edition) - Google/Microsoft sync every 15 minutes, Trash cleanup every hour, Reminders every 30 minutes, Inactivity emails hourly, Billing reset daily, Data retention daily, Form file cleanup hourly${isCommunity() ? ', Update check daily' : ''}${isCloud() ? ', Lint check nightly at 3:00 AM, Blacklist update daily, Unverified org cleanup hourly, Subscription reconciliation every 6 hours, Lifecycle emails hourly' : ''}`);
 }
 
 /**
@@ -1339,6 +1370,10 @@ export function stopScheduler() {
   if (billingInterval) {
     clearInterval(billingInterval);
     billingInterval = null;
+  }
+  if (formFileCleanupInterval) {
+    clearInterval(formFileCleanupInterval);
+    formFileCleanupInterval = null;
   }
   if (dataRetentionInterval) {
     clearInterval(dataRetentionInterval);

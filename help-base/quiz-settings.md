@@ -1,11 +1,11 @@
 ---
 feature_id: quiz-settings
-related_features: [challenge-step, analytics-overview]
+related_features: [challenge-step, step-assistant, analytics-overview]
 ---
 
 # Quiz Settings
 
-Quiz Settings control how Quiz steps behave, including scoring, timing, and feedback options.
+Quiz settings control how a Quiz step works: the passing score, feedback, retakes and the messages after the quiz.
 
 ![The How it works tab of a Quiz step: passing score (1), feedback (2), retakes (3) and the pass message (4)](images/quiz-settings/advanced.en.webp)
 
@@ -16,40 +16,50 @@ Quiz Settings control how Quiz steps behave, including scoring, timing, and feed
 
 ## Overview
 
-On the What they see tab:
+On the **What they see** tab:
 
 - Title
-- One or more multiple choice questions
-- Randomize question order
+- One or more multiple-choice questions
+- Randomize question order (shows when the quiz has 2 or more questions)
 
-On the How it works tab:
+On the **How it works** tab:
 
 - Guide in this step
-- Passing score
+- Passing Score (1)
+- Show feedback after each answer (2)
+- Allow retake on failure (3)
 - Pass Message (4)
 - Fail Message
 
 ## Questions
 
-You can make questions with multiple answers. The blue dot in front of the answer, is the answer that is correct.
+Each question has 2 to 6 answer options. One option is the correct answer: the filled circle in front of it.
 
-## Scoring Settings
+See: challenge-step
+
+## Scoring
 
 ### Passing Score
 
-The **Passing Score** (1) option on the How it works tab lets you set the minimum correct answers to continue to the next step.
+**Passing Score** (1) sets how many answers must be correct to continue to the next step. Choose:
 
-### Retry Options
+- **No requirement (always pass)**: the default
+- **At least ... correct**: a number of correct answers
+- **All questions**: every answer must be correct
 
-The option **Allow retake on failure** (3) on the How it works tab sets if the participant can have another go at the quiz after failing.
+### Retakes
 
-## Feedback Settings
+**Allow retake on failure** (3) lets participants try the quiz again when they do not pass. It is on by default.
 
-The option **Show feedback after each answer** (2) on the How it works tab lets participants see if their answer is correct immediately.
+## Feedback
 
-### Question Order
+**Show feedback after each answer** (2) lets participants see right away if their answer is correct. It is on by default.
 
-With this option, you can set the questions to randomized, so every journey has a different quiz question order.
+The **Pass Message** (4) and **Fail Message** are the texts participants see after the quiz.
+
+## Question order
+
+Turn on **Randomize question order** on the What they see tab. Each participant then sees the questions in a different random order.
 
 ## Related Features
 

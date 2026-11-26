@@ -2322,7 +2322,67 @@ const migrations = [
      CREATE POLICY org_isolation ON help_unanswered
        USING (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid)
        WITH CHECK (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
-   END $$`
+   END $$`,
+
+  // Results stay in Analytics after a journey or step is deleted.
+  // A journey deleted for good (trash emptied) keeps its row with purged_at
+  // set when it has results; it stays hidden everywhere (deleted_at stays set)
+  // except in Analytics with "Show deleted journeys and steps" on. An admin can
+  // delete those results for good in Analytics (services/deletedResults.js).
+  `ALTER TABLE journeys ADD COLUMN IF NOT EXISTS purged_at TIMESTAMP WITH TIME ZONE`,
+  `CREATE INDEX IF NOT EXISTS idx_journeys_purged ON journeys(organization_id) WHERE purged_at IS NOT NULL`,
+  // A deleted step that has results: its last version, under its old id, so
+  // the results (which keep that step_id) still show a title and questions
+  `CREATE TABLE IF NOT EXISTS deleted_steps (
+    id UUID PRIMARY KEY,
+    journey_id UUID NOT NULL REFERENCES journeys(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    basic_props JSONB DEFAULT '{}',
+    advanced_props JSONB DEFAULT '{}',
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_deleted_steps_journey ON deleted_steps(journey_id)`,
+  `DO $$
+   BEGIN
+     ALTER TABLE deleted_steps ENABLE ROW LEVEL SECURITY;
+     BEGIN
+       DROP POLICY IF EXISTS org_isolation ON deleted_steps;
+     EXCEPTION WHEN OTHERS THEN NULL;
+     END;
+     CREATE POLICY org_isolation ON deleted_steps
+       USING (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid)
+       WITH CHECK (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
+   END $$`,
+  // Results no longer disappear with their step: these tables keep step_id
+  // without a foreign key to steps. They are still removed with their journey,
+  // participant or invitation (those foreign keys stay ON DELETE CASCADE).
+  `DO $$
+   BEGIN
+     ALTER TABLE quiz_attempts DROP CONSTRAINT IF EXISTS quiz_attempts_step_id_fkey;
+     ALTER TABLE video_watch_sessions DROP CONSTRAINT IF EXISTS video_watch_sessions_step_id_fkey;
+     ALTER TABLE form_analytics DROP CONSTRAINT IF EXISTS form_analytics_step_id_fkey;
+     ALTER TABLE public_poll_responses DROP CONSTRAINT IF EXISTS public_poll_responses_step_id_fkey;
+     ALTER TABLE public_form_submissions DROP CONSTRAINT IF EXISTS public_form_submissions_step_id_fkey;
+     ALTER TABLE public_reward_claims DROP CONSTRAINT IF EXISTS public_reward_claims_step_id_fkey;
+     ALTER TABLE private_form_submissions DROP CONSTRAINT IF EXISTS private_form_submissions_step_id_fkey;
+     -- Were ON DELETE SET NULL: the events, polls and rewards of a deleted
+     -- step keep its id
+     ALTER TABLE journey_events DROP CONSTRAINT IF EXISTS journey_events_step_id_fkey;
+     ALTER TABLE polls DROP CONSTRAINT IF EXISTS polls_step_id_fkey;
+     ALTER TABLE rewards DROP CONSTRAINT IF EXISTS rewards_step_id_fkey;
+   END $$`,
+  // Steps as Analytics sees them: the current steps plus the deleted steps
+  // that still have results (is_deleted = true)
+  `CREATE OR REPLACE VIEW analytics_steps WITH (security_invoker = true) AS
+     SELECT id, journey_id, type, title, basic_props, advanced_props,
+            false AS is_deleted, NULL::timestamptz AS deleted_at, is_start
+     FROM steps
+     UNION ALL
+     SELECT id, journey_id, type, title, basic_props, advanced_props,
+            true AS is_deleted, deleted_at, false AS is_start
+     FROM deleted_steps`
 ];
 
 async function migrate() {

@@ -5,7 +5,7 @@ related_features: [analytics-overview, poll-results, end-user-management, end-us
 
 # Reports
 
-Reports provide detailed data exports and analysis tools for journey performance, participant engagement, and content effectiveness.
+Reports are PDF files about your journeys, participants, groups and engagement. You find them in Analytics, tab Reports.
 
 ![Reports in Analytics: choose a journey (1), Preview (2) and Download PDF (3)](images/reports/overview.en.webp)
 
@@ -22,7 +22,7 @@ Four report types are available:
 | Journey Performance | Analysis of a specific journey with completion funnel |
 | Periodic Overview | Summary of all activity over a time period |
 | Participant & Group Progress | Detailed report for an individual participant or group |
-| Engagement | Quiz, video, and AI Guide statistics |
+| Engagement | Quiz, video and AI guide statistics |
 
 [[goto:/dashboard/analytics#reports]]
 
@@ -33,10 +33,10 @@ Four report types are available:
 Generate a detailed analysis for a specific journey.
 
 **Report contents:**
-- Journey metadata (title, steps, participants)
+- Invitations, completed, completion rate and average time to complete
 - Completion funnel with step-by-step drop-off
-- Participant list with individual progress
-- Quiz performance summary
+- Poll results of the journey
+- Participant list with name, email, status and completion date
 
 **How to generate:**
 1. Go to Analytics → Reports
@@ -49,14 +49,15 @@ Generate a detailed analysis for a specific journey.
 Get a summary of all organizational activity over a selected period.
 
 **Report contents:**
-- Total journeys started and completed
-- Participant engagement trends
-- Completion rate over time
-- Top performing journeys
+- Invitations, completed, completion rate and average time
+- New participants, total participants and poll responses
+- Activity over time
+- Top journeys
+- A comparison with the previous period
 
 **How to generate:**
 1. Go to Analytics → Reports
-2. Select a period (Week, Month, Quarter, Year)
+2. Select a period: Last 7 days, Last 30 days, Last 90 days or Last 365 days
 3. Click "Preview" to see how the report will look
 4. Click "Download PDF" to save the report
 
@@ -72,9 +73,8 @@ Track progress for individual participants or entire groups.
 
 **Report contents for groups:**
 - Group information and member count
-- Group performance metrics
-- Top performing members
-- Comparison to organization benchmarks
+- Journeys started, journeys completed, completion rate and average quiz score
+- Top performers
 
 **How to generate:**
 1. Go to Analytics → Reports
@@ -86,41 +86,38 @@ Track progress for individual participants or entire groups.
 
 ### Engagement Report
 
-Analyze content engagement across quizzes, videos, and AI Guides.
+See how participants use quizzes, videos and AI guides in all journeys.
 
 **Report contents:**
 - Quiz statistics (attempts, average score, pass rate)
-- Top performing quizzes by engagement
-- Video statistics (views, average watch percentage)
-- Top videos by view count
-- AI Guide chat statistics (sessions, messages, duration)
-- Top steps where AI Guide is used most
+- Most attempted quizzes
+- Video statistics (views, average watched)
+- Most watched videos
+- AI guide statistics (chats, messages, average chat duration)
+- Most active AI guide steps
 
 **How to generate:**
 1. Go to Analytics → Reports
-2. Select a period (Week, Month, Quarter, Year)
+2. Select a period: Last 7 days, Last 30 days, Last 90 days or Last 365 days
 3. Click "Preview" to see how the report will look
 4. Click "Download PDF" to save the report
 
 ## Preview Function
 
-All reports include a preview function that shows exactly how the PDF will look before downloading. The preview includes:
+Every report has a **Preview** button. The preview shows the figures, charts and tables of the report on screen. Click **Download PDF** in the preview window to save the report.
 
-- Report header with organization logo
-- All data visualizations and tables
-- Footer with page numbers and date
-
-Click "Preview" on any report to open the preview modal, then click "Download PDF" to save.
+The PDF can look slightly different from the preview. The PDF uses the logo and colors of your active theme and has page numbers. The preview always shows the Gryffi logo.
 
 ## Quick Export Buttons
 
-In addition to the Reports tab, you can generate PDFs directly from other analytics tabs:
+You can also download a PDF from two other tabs in Analytics:
 
 | Location | Action |
 |----------|--------|
-| Journeys tab | "Export PDF" button exports current journey |
-| Participants tab | "Export PDF" in participant detail modal |
-| Groups tab | "Export PDF" in group detail modal |
+| Journeys tab | **Export PDF** next to the journey selector exports the selected journey |
+| Participants tab | **Export PDF** in the participant details window exports the progress of that participant |
+
+For a group report, use the Participant & Group Progress card on the Reports tab.
 
 ## PDF Customization
 

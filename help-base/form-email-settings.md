@@ -1,50 +1,63 @@
 ---
 feature_id: form-email-settings
-related_features: [form-step, form-submissions, form-file-uploads, email-templates, journey-wizard]
+related_features: [form-step, form-submissions, form-file-uploads, journey-wizard]
 ---
 
 # Form Email Settings
 
-Form Email Settings determine where the notification email for a Form Step is sent. Every time a participant submits the form, Gryffi sends the responses to the recipient email address configured here.
+Form Email Settings decide where the notification email of a Form Step goes. Every time a participant submits the form, Gryffi sends the answers to the email address you set here.
 
 ## Configuration
 
-### Step 1: Access Settings
+### Step 1: Set the recipient
 
-1. Open Form Step
-2. Go to the What they see tab
-3. Find "Send form to"
-4. Type the email address
+1. Open the Form Step.
+2. Go to the **What they see** tab.
+3. Find **Send form to**.
+4. Type the email address.
 
 ### Step 2: Email subject
 
-You can change the email subject. You can use the variable '{{journey_title}}' here.
+You can change the text in **Email subject**. You can use these variables:
+
+- `{{journey_title}}`: the title of the journey
+- `{{step_title}}`: the title of the Form Step
+
+Gryffi fills them in for private journeys, public journeys and the preview. The default subject is "Form submission: {{journey_title}}".
 
 ### No recipient
 
-Leave **Send form to** empty if you only want to see the responses in Analytics. Participants can still submit the form and continue the journey. The submission is saved in Analytics → Forms, and no email is sent. See: form-submissions
+Leave **Send form to** empty if you only want to see the answers in Analytics. Participants can still submit the form and continue the journey. The submission is saved on the Forms tab in Analytics, and no email is sent.
+
+See: form-submissions
 
 ## Notification Email Contents
 
 The notification email contains:
 
-- All form responses
-- The name and email address of the submitter
-- Secure download links for any uploaded files
+- All answers
+- The name and email address of the participant who submitted the form
+- A download link for each uploaded file
 
-Uploaded files are never attached to the email itself. Instead, each file is stored securely on the Gryffi platform and the email contains a unique, unguessable download link per file. Download links are valid for **30 days**. After they expire, admins and journey managers can still download the files from the Analytics Forms tab. See: form-file-uploads, form-submissions
+Uploaded files are never attached to the email. Each file is stored in Gryffi, and the email has a unique download link per file. Download links work for **30 days**. After that, makers can still download the files on the Forms tab in Analytics.
+
+See: form-file-uploads, form-submissions
 
 ### Email Language
 
-The notification email is sent in your organization's default language. All 14 journey player languages are supported (English, Dutch, German, French, Spanish, Italian, Portuguese, Danish, Norwegian, Finnish, Swedish, Polish, Romanian and Turkish). See: language-settings
+The notification email is in the **Default organization language**. You set it on the Organization page: English, Dutch, German, French or Spanish. If it is set to **Use each maker's browser language**, the email is in English.
+
+See: language-settings
 
 ### Delivery Reliability
 
-The submission is always saved before the email is sent. If the notification email cannot be delivered, the submission is not lost. It remains available in Analytics → Forms. See: form-submissions
+The submission is always saved before the email is sent. If the email cannot be delivered, the submission is not lost. It stays on the Forms tab in Analytics, marked "Email not sent".
+
+See: form-submissions
 
 ## Default Recipient for Wizard-Generated Forms
 
-When a Form Step is created through the Journey Wizard, the **Send form to** field is automatically pre-filled with the email address of the maker who ran the wizard. This way you get the responses by email right away, also when you test the journey in preview. You can change the recipient at any time through the steps above. The wizard only fills in a default.
+When the Journey Wizard creates a Form Step, **Send form to** is filled in with the email address of the maker who ran the wizard. So you get the answers by email right away, also when you test the journey in the preview. You can change the address at any time with the steps above.
 
 See: journey-wizard, form-step
 

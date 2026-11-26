@@ -1,11 +1,11 @@
 ---
 feature_id: ai-guides-overview
-related_features: [guide-step, guide-knowledge-base, guide-personality, guide-identity, guide-ai-instructions, language-settings, journey-settings, copy-translate, journey-wizard]
+related_features: [guide-step, guide-knowledge-base, step-assistant, language-settings, journey-settings, copy-translate, journey-wizard]
 ---
 
 # AI Guides Overview
 
-AI Guides are intelligent conversational assistants powered by AI that can answer questions, provide help, and guide participants through your content.
+AI guides are chat assistants that answer questions from participants. A guide answers from the documents and texts you add to its knowledge base.
 
 ![The AI Guides page: Create Guide (1), a guide (2) and its menu (3)](images/ai-guides-overview/list.en.webp)
 
@@ -15,104 +15,95 @@ AI Guides are intelligent conversational assistants powered by AI that can answe
 
 ## Overview
 
-AI Guides enable:
+With AI guides you can:
 
-- Conversational Q&A with your content
-- Smart assistance within journeys
-- Knowledge-based answers with source citations
-- Customizable personality and behavior
-- Integration into AI guide steps
+- Let participants ask questions about your content
+- Give answers with the sources they come from
+- Set the personality and language of each guide
+- Add a guide to a journey as an AI guide step, or as the guide in any other step
 
 [[goto:/dashboard/guides]]
 
 ## What is an AI Guide?
 
-An AI Guide is a chatbot trained on your specific content:
+An AI guide is a chatbot that answers from your own content:
 
-- Upload documents, FAQs, and information
-- The AI learns from your content
-- Participants can ask questions naturally
-- Answers are based on your knowledge base
-- Sources are cited for transparency
+- You upload documents or type texts in its knowledge base.
+- When a participant asks a question, Gryffi looks up the pieces of text that fit the question best.
+- The guide answers from those pieces of text.
+- The answer shows which sources it used.
 
-## Creating an AI Guide
-
-There are two ways to create an AI Guide:
-
-1. **Manually** from the Guides page (the classic flow, described below). You fully control name, role, personality, knowledge base and extra instructions for the guide from the start.
-2. **Via the Journey Wizard** when creating a new journey. The wizard can create a new Guide for you (with a name you choose) and optionally seed its knowledge base with the document you uploaded in step 1. It can also attach an existing Guide to the generated journey without creating a new one. This is the fastest way to get a journey + Guide combination running. See: journey-wizard.
-
-### Step 1: Create New Guide
-
-1. Go to Guides
-2. Click "Create Guide" (1)
-3. Enter a name and description
-
-To edit an existing guide, click it in the list (2). Its menu (3) lets you make a copy or delete it.
-
-### Step 2: Build Knowledge Base
-
-Add content the AI should know:
-- Upload documents (PDF, Word, etc.)
-- Write text manually
+The guide is not trained on your content. It looks things up every time a question is asked. When you change the knowledge base, the guide uses the new content right away.
 
 See: guide-knowledge-base
 
-### Step 3: Configure Personality
+## Creating an AI Guide
 
-Set how the AI should communicate:
-- Tone (formal, friendly, professional)
-- Language style
-- Persona name
-- Default response language
+There are two ways to create an AI guide:
 
-See: guide-personality
+1. **Manually** on the AI guides page, as described below. You set the name, role, personality, knowledge base and extra instructions yourself.
+2. **With the Journey Wizard** when you create a new journey. The wizard can create a new guide with a name you choose. It can fill the knowledge base of that guide with the document you uploaded in the first step. It can also add an existing guide to the new journey.
+
+See: journey-wizard
+
+### Step 1: Create a new guide
+
+1. Go to AI guides.
+2. Click **Create Guide** (1).
+3. Enter a **Name**. This is the only required field.
+4. Optional: fill in **Role**, **Personality**, **Greeting Message** and **Extra instructions for the guide**.
+
+To edit an existing guide, click it in the list (2). Its menu (3) lets you make a copy or delete it.
+
+### Step 2: Build the knowledge base
+
+Add the content the guide should know:
+
+- Upload documents (PDF, Word, PowerPoint, text, Markdown, CSV or images)
+- Type or paste text with **Add Text**
+
+See: guide-knowledge-base
+
+### Step 3: Identity
+
+In the **Identity** section of the guide's page you set:
+
+- **Name** (for example "Sarah")
+- **Role** (for example "HR Assistant")
+- **Avatar**: an image that gives the guide a face
+
+### Step 4: Personality
+
+In the **Personality** section you set how the guide talks to participants:
+
+- **Personality Type**: Friendly, Professional, Helpful, Cheerful or Wise
+- **Language**: the language the guide answers in. You can choose from 14 languages.
+- **Greeting Message**: the first message participants see when they open the chat
+- **Extra instructions for the guide**: optional rules for how the guide behaves, for example which topics to focus on, what to avoid, or how to handle certain questions
 
 ### Language Settings for AI Guides
 
-AI Guides can respond in multiple languages:
-
 **Default behavior:**
-- A new guide gets the organization's default language. You can change it on the page of the guide.
-- A guide always answers in its own language, also when someone asks a question in another language
-- The greeting message is shown as configured in the Guide settings
+- A new guide gets the default language of your organization. You can change it on the page of the guide.
+- A guide always answers in its own language, also when someone asks a question in another language.
+- The greeting message is shown as you wrote it in the guide settings.
 
-**Journey-level override:**
-- Each journey can specify a different language for AI Guide responses
-- Enable "Override AI Guide language" in Journey Settings
-- Select from base languages (English, Dutch, German, French, Spanish) or extended languages (Italian, Portuguese, Danish, Norwegian, Finnish, Swedish, Polish, Romanian, Turkish)
-- The AI will generate greetings and respond in the selected language
+**Different language per journey:**
+- Each journey can use a different language for its guide.
+- In the journey settings, turn on **Use a different language for the guide**.
+- Choose the **Guide language** from the base languages (English, Dutch, German, French, Spanish) or the extended languages (Italian, Portuguese, Danish, Norwegian, Finnish, Swedish, Polish, Romanian, Turkish).
+- The guide then writes its greeting and answers in that language.
 
-**Opening Sentence Override:**
-When using AI Guide language override, you can also set a static translated opening sentence:
-- Appears in Journey Settings when AI Guide language override is enabled
-- Loads instantly without AI generation delay
-- Automatically filled when using Copy & Translate feature
-- Can be manually edited for fine-tuning
+**Fixed opening sentence:**
+When the guide uses a different language, you can also enter a **Fixed opening sentence**:
+- The guide starts with this sentence instead of writing its own.
+- It shows right away, without waiting for the AI.
+- Copy & Translate fills it in for you.
+- You can edit it yourself.
 
 See: journey-settings, language-settings, copy-translate
 
-### Step 4: Set Identity
-
-Define who the AI represents:
-- Name (e.g., "Gryffi Assistant")
-- Role (e.g., "HR Helper")
-- Avatar image
-- Introduction message
-
-See: guide-identity
-
-### Step 5: Add Extra instructions for the guide
-
-Fine-tune behavior in the field Extra instructions for the guide:
-- What topics to focus on
-- What to avoid discussing
-- How to handle certain questions
-- Custom responses for specific queries
-
-See: guide-ai-instructions
-
-### Step 6: Test the Guide
+### Step 5: Test the guide
 
 Click **Test this guide** at the top of the guide's page. A panel opens on the right where you chat with the guide, the same way a participant would:
 - The panel starts with the greeting participants see.
@@ -120,69 +111,73 @@ Click **Test this guide** at the top of the guide's page. A panel opens on the r
 - Under each answer you see the sources it used.
 - Click **Start over** to begin a new conversation.
 
-Each answer counts as one AI question. When a guide answers something wrong, check its knowledge base and its extra instructions, then test again.
+When a guide gives a wrong answer, check its knowledge base and its extra instructions. Then test again.
 
 ## Using AI Guides
 
-### In AI guide steps
+### In an AI guide step
 
-Embed guides in journeys:
-1. Add an AI guide step to your journey
-2. Select which AI Guide to use
-3. Add optional context for this step
-4. Participants chat with the guide during the journey
+1. Add an AI guide step to your journey.
+2. Select which AI guide to use.
+3. Optional: on the How it works tab, add context for this step.
+4. Participants chat with the guide during the journey.
 
 See: guide-step
 
-### AI guide step
+### In any other step
 
-Use guides as independent step:
-- Chat with your AI Guide in the journey
+You can also add a guide to other steps with **Guide in this step**. Participants can then ask questions about what they see, without leaving the step.
+
+See: step-assistant
+
+## Deleting a Guide
+
+When you delete a guide, it moves to the trash. You can restore it from there. You cannot delete a guide that is used in a journey. Remove it from those journeys first.
+
+See: trash
 
 ## Knowledge Base Sources
 
-| Source Type | Description |
+| Source type | Description |
 |-------------|-------------|
-| **Documents** | PDF, DOC, DOCX, TXT, MD, CSV, PPTX, Images |
-| **Text** | Manually entered content |
+| **Documents** | PDF, DOC, DOCX, TXT, MD, CSV, PPTX, images |
+| **Text** | Text you type or paste |
 
 ## Answer Quality
 
-### Source Citations
+### Source citations
+
 When an answer uses the knowledge base, a small number appears after the sentence that comes from a source, for example [1]. The sources are listed below the answer. Participants can click a number or a source to read the passage the answer comes from. The test chat in the guide settings shows sources the same way.
 
-When the guide is not sure, it says it does not know.
+### Unknown topics
 
-### Handling Unknown Topics
-When the AI doesn't have information:
-- Refers to human support
+When the knowledge base has no answer, the guide says it does not know. It suggests asking a colleague or a manager. The guide is told never to make up company information.
 
 ## Best Practices
 
-### Knowledge Base
+### Knowledge base
 - Keep content up to date
-- Cover common questions
-- Review and refine regularly
+- Cover the questions participants ask most
+- Check and improve it regularly
 
 ### Personality
-- Match your brand voice
-- Don't pretend to be human
-- Set appropriate expectations
+- Match the way your organization talks
+- Do not let the guide pretend to be human
+- Tell participants what the guide can and cannot help with
 
 ### Maintenance
-- Identify knowledge gaps
-- Update based on questions from participants
-- Test regularly
+- Look for questions the guide could not answer
+- Add content based on questions from participants
+- Test the guide regularly
 
 ## Limitations
 
-- AI may occasionally give incorrect answers
-- Cannot access external systems in real-time
-- Limited to trained knowledge
-- No access to personal data of participants (by design)
+- The AI can sometimes give a wrong answer
+- The guide cannot look things up in other systems
+- Facts about your organization only come from the knowledge base. What is not in there, the guide does not know.
+- The guide has no access to personal data of participants
 
 ## Related Features
 
-- [[goto:/dashboard/guides]] - Manage guides
-- [[goto:/dashboard/guides]] - Create new guide
-- See: guide-knowledge-base, guide-step, language-settings, journey-settings, copy-translate, journey-wizard
+- [[goto:/dashboard/guides]] - Manage AI guides
+- See: guide-knowledge-base, guide-step, step-assistant, language-settings, journey-settings, copy-translate, journey-wizard

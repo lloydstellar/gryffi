@@ -5,7 +5,7 @@ related_features: [organization-settings, user-settings, end-user-management]
 
 # Organization
 
-The Organization page has the settings for your Gryffi organization: general organization settings, the Gryffi API for automating participant management, and Custom Themes.
+The Organization page has the settings for your Gryffi organization: general settings, a download of all your data, the Gryffi API for managing participants automatically, and themes for your journeys. Only admins can open this page.
 
 Participants, groups and the sync with Microsoft 365 or Google Workspace have their own page: Participants in the menu. See: end-user-management
 
@@ -19,9 +19,10 @@ Participants, groups and the sync with Microsoft 365 or Google Workspace have th
 
 The Organization page includes:
 
-- General Organization settings
-- API settings and examples
-- Custom Theme builder
+- General organization settings
+- Data Export
+- API key and examples
+- Themes
 
 [[goto:/dashboard/system-settings]]
 
@@ -29,19 +30,30 @@ The Organization page includes:
 
 On the **General** tab (1) you set:
 
-- Company name: The name of the organization for everyone in your organization
-- Default organization language: The organization default language that is used in the journey interface and company automated emails
-- Country: Useful for currency and dates
+- Company name: the name of your organization, used across Gryffi and in emails.
+- Default organization language: the language for makers who did not choose their own, for system emails and for journeys without their own language.
+- Country.
 
-## Integration Settings
+See: organization-settings
 
-### API Configuration
+### Data Export
 
-Use the API to integrate Gryffi with your automation workflows. Generate an API key on the **API** tab (2) to get started.
+Click **Download Organization Data** to download a ZIP file with all data of your organization:
 
-See: api-access
+- Organization settings, journeys, steps, guides, polls and rewards
+- Makers with names and roles (spreadsheet)
+- Participants (spreadsheet)
+- Analytics data, form submissions and quiz results
+- All uploaded media files (images, videos, documents)
+- Files your AI guides learn from
 
-### Directory Sync
+## API
+
+Use the API to connect Gryffi to other systems, for example to invite new employees automatically. Generate an API key on the **API** tab (2) to get started.
+
+See: api-access, api-keys
+
+## Directory Sync
 
 The sync with Microsoft 365 or Google Workspace is on the Participants page.
 
@@ -49,9 +61,11 @@ See: microsoft-365-sync, google-workspace-sync
 
 ## Themes
 
-On the **Themes** tab (3) you create custom themes for your organization to use in Journeys, emails and PDFs.
+On the **Themes** tab (3) you create themes with your colors and logo. The active theme is used in journeys, emails and PDF reports.
+
+See: custom-themes
 
 ## Related Features
 
 - [[goto:/dashboard/settings]] - My account
-- See: organization-settings, api-access
+- See: organization-settings, api-access, custom-themes

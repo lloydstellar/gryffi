@@ -66,7 +66,7 @@
         "maxSize": "Max {{size}} MB",
         "invalidType": "Tipo di file non valido. Consentiti: {{types}}",
         "fileTooLarge": "File troppo grande. Dimensione massima: {{size}} MB",
-        "totalTooLarge": "La dimensione totale degli allegati supera il limite (38 MB)",
+        "totalTooLarge": "I file sono troppo grandi insieme. Il massimo è {{size}} MB in totale. Rimuovi un file o scegline uno più piccolo.",
         "removeFile": "Rimuovi file",
         "subtypes": {
           "image": "Immagine",
@@ -122,6 +122,7 @@
       "panoramaKeyboardHint": "Usa i tasti freccia per guardarti intorno. Usa + e - per lo zoom.",
       "zoomIn": "Ingrandisci",
       "zoomOut": "Riduci",
+      "centerOnMarker": "Mostra dove sei",
       "panoramaLoadFailed": "Impossibile caricare la foto a 360°. Ricarica la pagina per riprovare."
     },
     "stepTypes": {

@@ -1,6 +1,6 @@
 ---
 feature_id: step-pacing
-related_features: [journey-builder, entry-exit-messages]
+related_features: [journey-builder, journey-preview]
 ---
 
 # Step Pacing
@@ -36,7 +36,7 @@ Quiz and poll steps have no pacing option. A quiz has to be finished first, and 
 
 ## What participants see
 
-- With a time option, the step counts down: "Take your time... 25s". For a video the countdown starts when the video starts playing, and says "Keep watching... 25s".
+- With a time option, the step counts down: "Take your time... 25s". For a wait of a minute or more it first says how many minutes to take. For a video the step first says "Click Play video to start watching". The countdown starts when the video starts playing, and says "Keep watching... 25s".
 - With a message option on a guide step, the step shows how many messages are still needed: "Chat with the guide (1/4 messages)".
 - When the wait is over, the step says "You can now continue" and the Continue buttons appear. Screen readers announce this too.
 
@@ -48,5 +48,5 @@ Quiz and poll steps have no pacing option. A quiz has to be finished first, and 
 
 ## Related Features
 
-- [[goto:/dashboard/journeys]] - Journey settings
-- See: entry-exit-messages, journey-flow
+- [[goto:/dashboard/journeys]] - Journey list
+- See: journey-builder, journey-preview

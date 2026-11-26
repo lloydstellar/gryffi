@@ -27,6 +27,32 @@
       --gryffi-primary: #0b4b34;
       --gryffi-accent: #78c503;
     }
+
+    /* "Show deleted journeys and steps" */
+    .deleted-toggle-row { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 20px; }
+    .deleted-toggle-row .toggle-switch { position: relative; display: inline-block; flex-shrink: 0; width: 44px; height: 24px; cursor: pointer; }
+    .deleted-toggle-row .toggle-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 2; }
+    .deleted-toggle-row .toggle-slider { position: absolute; inset: 0; background: #d1ddd0; border-radius: 24px; pointer-events: none; transition: background-color 0.2s; }
+    .deleted-toggle-row .toggle-slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .deleted-toggle-row input:checked + .toggle-slider { background: var(--gryffi-primary); }
+    .deleted-toggle-row input:checked + .toggle-slider::before { transform: translateX(20px); }
+    .deleted-toggle-row input:focus-visible + .toggle-slider { outline: 3px solid var(--gryffi-accent); outline-offset: 2px; }
+    .deleted-toggle-text label { font-size: 14px; font-weight: 600; color: #1f2937; cursor: pointer; }
+    .deleted-toggle-text p { font-size: 13px; color: #5b6b80; margin-top: 2px; line-height: 1.5; }
+    .deleted-badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; font-size: 11px; font-weight: 600; vertical-align: middle; white-space: nowrap; }
+    .deleted-results-card { padding: 20px 24px; }
+    .deleted-results-card .deleted-intro { margin-top: 4px; }
+    .deleted-results-card h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin: 16px 0 8px; }
+    .deleted-results-card .deleted-intro { font-size: 13px; color: #5b6b80; line-height: 1.5; }
+    .deleted-results-list { list-style: none; padding: 0; margin: 0; }
+    .deleted-results-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .deleted-results-list .deleted-item-title { font-size: 14px; font-weight: 500; color: #1f2937; }
+    .deleted-results-list .deleted-item-meta { font-size: 12px; color: #5b6b80; margin-top: 2px; }
+    .deleted-results-list button { padding: 6px 12px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .deleted-results-list button:focus-visible { outline: 3px solid var(--gryffi-accent); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) {
+      .deleted-toggle-row .toggle-slider, .deleted-toggle-row .toggle-slider::before { transition: none; }
+    }
     
     /* Analytics Tabs - Consistent with System Settings */
     .analytics-tabs {
@@ -2216,6 +2242,18 @@
       <h1 class="page-title"><%= t('analytics.title') %></h1>
       <p class="page-subtitle"><%= t('analytics.subtitle') %></p>
     </div>
+
+    <!-- Results of deleted journeys and steps: off by default -->
+    <div class="deleted-toggle-row">
+      <span class="toggle-switch">
+        <input type="checkbox" id="showDeletedToggle" aria-describedby="showDeletedHint" <%= showDeleted ? 'checked' : '' %>>
+        <span class="toggle-slider"></span>
+      </span>
+      <div class="deleted-toggle-text">
+        <label for="showDeletedToggle"><%= t('analytics.deleted.toggleLabel') %></label>
+        <p id="showDeletedHint"><%= t('analytics.deleted.toggleHint') %></p>
+      </div>
+    </div>
     
     <!-- Analytics Tabs Navigation -->
     <div class="analytics-tabs">
@@ -2257,7 +2295,6 @@
         <%= t('analytics.tabs.rewards') %>
         <% if (rewards && rewards.length > 0) { %><span class="tab-count"><%= rewards.length %></span><% } %>
       </button>
-      <% if (user && (user.role === 'admin' || user.role === 'manager')) { %>
       <button type="button" class="analytics-tab" data-tab="forms">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -2265,7 +2302,6 @@
         <%= t('analytics.tabs.forms') %>
         <span class="tab-count" id="formsTabCount" style="display: none;"></span>
       </button>
-      <% } %>
       <button type="button" class="analytics-tab" data-tab="reports">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -2277,6 +2313,13 @@
     <div class="content-body">
       <!-- Tab Panel: Overview -->
       <div class="analytics-tab-panel active" id="tab-overview">
+        <% if (showDeleted) { %>
+        <div class="card deleted-results-card" id="deletedResultsCard" style="margin-bottom: 24px;">
+          <h2 style="font-size: 16px; font-weight: 600; color: #1f2937;"><%= t('analytics.deleted.sectionTitle') %></h2>
+          <p class="deleted-intro"><%= t('analytics.deleted.sectionIntro') %></p>
+          <div id="deletedResultsBody" aria-live="polite"></div>
+        </div>
+        <% } %>
         <!-- Journey Analytics KPIs -->
         <div class="analytics-kpi-section" id="journeyKpiSection">
           <div class="analytics-section-header">
@@ -2418,7 +2461,7 @@
               <option value=""><%= t('analytics.journeys.selectJourney') %></option>
               <% if (journeys && journeys.length > 0) { %>
                 <% journeys.forEach(j => { %>
-                <option value="<%= j.id %>"><%= j.title %></option>
+                <option value="<%= j.id %>"><%= j.title %><%= j.is_deleted ? ' (' + t('analytics.deleted.badge') + ')' : '' %></option>
                 <% }); %>
               <% } %>
             </select>
@@ -2786,6 +2829,8 @@
                       <p style="font-size: 12px; color: #5b6b80;"><%= t('analytics.polls.archivedDescription') %></p>
                     </div>
                   </div>
+                  <% if (user && user.role === 'admin') { %>
+                  <!-- Only admins delete results of deleted journeys and steps -->
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5b6b80; cursor: pointer;">
                       <input type="checkbox" id="selectAllArchivedPolls" style="accent-color: var(--gryffi-primary);">
@@ -2798,6 +2843,7 @@
                       <%= t('analytics.polls.deleteSelected') %>
                     </button>
                   </div>
+                  <% } %>
                 </div>
                 
                 <% archivedPolls.forEach(function(poll) { %>
@@ -2805,12 +2851,14 @@
                     const archivedOptions = poll.basic_props?.options || [];
                     const archivedTotalVotes = parseInt(poll.total_votes) || 0;
                     const isRestorable = poll.is_restorable;
-                    const displayJourneyTitle = poll.linked_journey_title || poll.journey_title || poll.archived_journey_title || 'Deleted Journey';
+                    const displayJourneyTitle = poll.linked_journey_title || poll.journey_title || poll.archived_journey_title || t('analytics.deleted.journeyFallback');
                   %>
                   <div class="archived-poll-card" data-poll-id="<%= poll.poll_id %>" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 12px; overflow: hidden;">
                     <div style="padding: 12px 16px; background: #f1f5f9; border-bottom: 1px solid #e5e7eb;">
                       <div style="display: flex; align-items: center; gap: 12px;">
-                        <input type="checkbox" class="archived-poll-checkbox" data-poll-id="<%= poll.poll_id %>" style="accent-color: var(--gryffi-primary);">
+                        <% if (user && user.role === 'admin') { %>
+                        <input type="checkbox" class="archived-poll-checkbox" data-poll-id="<%= poll.poll_id %>" aria-label="<%= poll.archived_question || poll.basic_props?.question || '' %>" style="accent-color: var(--gryffi-primary);">
+                        <% } %>
                         <div style="flex: 1;">
                           <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px;">
                             <% if (isRestorable) { %>
@@ -2905,9 +2953,9 @@
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                       </svg>
-                      <%= reward.journey_title %>
+                      <%= reward.journey_title || t('analytics.deleted.journeyFallback') %>
                     </span>
-                    <h3 class="poll-question" style="color: var(--gryffi-primary);"><%= reward.title || reward.step_title %></h3>
+                    <h3 class="poll-question" style="color: var(--gryffi-primary);"><%= reward.title || reward.step_title || t('analytics.deleted.stepFallback') %></h3>
                     <% if (reward.description) { %>
                       <p style="color: #5b6b80; font-size: 14px; margin-top: 4px;"><%= reward.description %></p>
                     <% } %>
@@ -3001,9 +3049,9 @@
                             <%= t('analytics.rewards.permanent') %>
                           </span>
                         <% } %>
-                        <span style="font-size: 11px; color: #5b6b80;"><%= reward.journey_title %></span>
+                        <span style="font-size: 11px; color: #5b6b80;"><%= reward.journey_title || t('analytics.deleted.journeyFallback') %></span>
                       </div>
-                      <h3 style="font-size: 15px; font-weight: 600; color: #5b6b80;"><%= reward.title || reward.step_title %></h3>
+                      <h3 style="font-size: 15px; font-weight: 600; color: #5b6b80;"><%= reward.title || reward.step_title || t('analytics.deleted.stepFallback') %></h3>
                       <% if (reward.archived_at) { %>
                         <p style="font-size: 11px; color: #5b6b80; margin-top: 4px;">
                           <%= t('analytics.rewards.archivedOn') %> <%= new Date(reward.archived_at).toLocaleDateString(language) %>
@@ -3050,8 +3098,7 @@
         </div>
       </div><!-- End Tab Panel: Rewards -->
       
-      <% if (user && (user.role === 'admin' || user.role === 'manager')) { %>
-      <!-- Tab Panel: Form Submissions (admin/manager only) -->
+      <!-- Tab Panel: Form Submissions -->
       <div class="analytics-tab-panel" id="tab-forms">
         <div class="card">
           <div class="card-header">
@@ -3100,7 +3147,6 @@
           </div>
         </div>
       </div><!-- End Tab Panel: Forms -->
-      <% } %>
       
       <!-- Tab Panel: Reports -->
       <div class="analytics-tab-panel" id="tab-reports">
@@ -3325,6 +3371,21 @@
   </div>
   
   <script>
+    // "Show deleted journeys and steps" (?deleted=1): Analytics API calls ask
+    // for the results of deleted journeys and steps too
+    const SHOW_DELETED = <%- safeJson(!!showDeleted) %>;
+    const DELETED_T = <%- safeJson(t('analytics.deleted', { returnObjects: true })) %>;
+    function withDeleted(url) {
+      if (!SHOW_DELETED) return url;
+      return url + (url.includes('?') ? '&' : '?') + 'include_deleted=1';
+    }
+    function deletedBadge(isDeleted) {
+      return isDeleted ? `<span class="deleted-badge">${escapeHtml(DELETED_T.badge)}</span>` : '';
+    }
+    function deletedSuffix(isDeleted) {
+      return isDeleted ? ` (${DELETED_T.badge})` : '';
+    }
+
     // i18n translations for JavaScript
     const translations = {
       journeyPerformance: <%-safeJson(t("analytics.reports.journeyPerformance.title"))%>,
@@ -3605,7 +3666,7 @@
       
       try {
         // Load summary data
-        const summaryRes = await fetch(`/api/analytics/summary?days=${days}`);
+        const summaryRes = await fetch(withDeleted(`/api/analytics/summary?days=${days}`));
         const summaryData = await summaryRes.json();
         console.log('[Analytics] Summary response:', summaryData);
         
@@ -3621,7 +3682,7 @@
         }
         
         // Load top journeys
-        const journeysRes = await fetch(`/api/analytics/top-journeys?days=${days}&limit=5`);
+        const journeysRes = await fetch(withDeleted(`/api/analytics/top-journeys?days=${days}&limit=5`));
         const journeysData = await journeysRes.json();
         
         if (journeysData.success) {
@@ -3735,7 +3796,7 @@
       
       tbody.innerHTML = journeys.map(j => `
         <tr>
-          <td><strong>${escapeHtml(j.title)}</strong></td>
+          <td><strong>${escapeHtml(j.title)}</strong>${deletedBadge(j.is_deleted)}</td>
           <td>${j.started}</td>
           <td>${j.completed}</td>
           <td>
@@ -3779,7 +3840,7 @@
       emptyEl.style.display = 'none';
       
       try {
-        const res = await fetch(`/api/analytics/journey-funnel/${journeyId}?days=${days}`);
+        const res = await fetch(withDeleted(`/api/analytics/journey-funnel/${journeyId}?days=${days}`));
         const data = await res.json();
         console.log('[Analytics] Journey funnel response:', data);
         
@@ -3816,7 +3877,7 @@
         const percentage = maxUsers > 0 ? Math.round((step.users_reached / maxUsers) * 100) : 0;
         return `
           <div class="funnel-step">
-            <div class="funnel-label" title="${escapeHtml(step.step_title)}">${escapeHtml(step.step_title)}</div>
+            <div class="funnel-label" title="${escapeHtml(step.step_title + deletedSuffix(step.step_deleted))}">${escapeHtml(step.step_title)}${deletedBadge(step.step_deleted)}</div>
             <div class="funnel-bar-container">
               <div class="funnel-bar" style="width: ${percentage}%">
                 <span>${percentage}%</span>
@@ -3843,7 +3904,7 @@
         
         return `
           <tr>
-            <td><strong>${escapeHtml(step.step_title)}</strong></td>
+            <td><strong>${escapeHtml(step.step_title)}</strong>${deletedBadge(step.step_deleted)}</td>
             <td><span class="badge badge-info">${escapeHtml(step.step_type)}</span></td>
             <td>${step.users_reached}</td>
             <td><span class="heatmap-cell ${completionClass}">${step.users_completed}</span></td>
@@ -3920,7 +3981,7 @@
         if (search) params.append('search', search);
         if (groupId) params.append('group_id', groupId);
         
-        const res = await fetch(`/api/analytics/users-overview?${params}`);
+        const res = await fetch(withDeleted(`/api/analytics/users-overview?${params}`));
         const data = await res.json();
         
         if (data.success) {
@@ -3967,14 +4028,14 @@
           if (journeys.length === 1) {
             replayButton = `<button class="table-action-btn" data-action="view-replay-direct" data-user-id="${u.id}" data-journey-id="${firstJourney.id}" data-journey-title="${escapeHtml(firstJourney.title)}">
               <svg style="width:14px;height:14px;margin-right:4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              Replay
+              <%= t('analytics.replay.viewReplay') %>
             </button>`;
           } else {
             const journeyOptions = journeys.map(j => 
-              `<option value="${j.id}" data-title="${escapeHtml(j.title)}">${escapeHtml(j.title)}</option>`
+              `<option value="${j.id}" data-title="${escapeHtml(j.title)}">${escapeHtml(j.title + deletedSuffix(j.deleted))}</option>`
             ).join('');
-            replayButton = `<select class="replay-select" data-action="replay-select" data-user-id="${u.id}">
-              <option value="">Replay...</option>
+            replayButton = `<select class="replay-select" data-action="replay-select" data-user-id="${u.id}" aria-label="<%= t('analytics.replay.chooseJourney') %>">
+              <option value=""><%= t('analytics.replay.chooseJourney') %></option>
               ${journeyOptions}
             </select>`;
           }
@@ -4037,7 +4098,7 @@
       document.getElementById('userDetailContent').innerHTML = '<div class="loading-spinner"></div>';
       
       try {
-        const res = await fetch(`/api/analytics/user/${userId}`);
+        const res = await fetch(withDeleted(`/api/analytics/user/${userId}`));
         const data = await res.json();
         
         if (data.success) {
@@ -4113,7 +4174,7 @@
         analytics.quiz_performance.forEach(q => {
           html += `
             <tr>
-              <td>${escapeHtml(q.step_title)}</td>
+              <td>${escapeHtml(q.step_title)}${deletedBadge(q.step_deleted)}</td>
               <td>${q.attempts}</td>
               <td>${q.best_score ? Math.round(q.best_score) + '%' : '-'}</td>
               <td>${q.avg_score ? Math.round(q.avg_score) + '%' : '-'}</td>
@@ -4137,7 +4198,7 @@
       document.getElementById('journeyReplayContent').innerHTML = '<div class="loading-spinner"></div>';
       
       try {
-        const res = await fetch(`/api/analytics/user/${userId}/journey/${journeyId}/replay`);
+        const res = await fetch(withDeleted(`/api/analytics/user/${userId}/journey/${journeyId}/replay`));
         const data = await res.json();
         
         if (data.success) {
@@ -4236,7 +4297,7 @@
                 <div class="step-info">
                   <div class="step-type-icon ${escapeHtml(step.step_type)}">${icon}</div>
                   <div class="step-title-area">
-                    <h4>${escapeHtml(step.step_title || 'Step ' + (index + 1))}</h4>
+                    <h4>${escapeHtml(step.step_title || 'Step ' + (index + 1))}${deletedBadge(step.step_deleted)}</h4>
                     <span>${escapeHtml(step.step_type)} • ${formatTime(step.entered_at)}</span>
                   </div>
                 </div>
@@ -4430,7 +4491,7 @@
       const days = document.getElementById('groupsDateRange')?.value || 30;
       
       try {
-        const res = await fetch(`/api/analytics/groups-overview?days=${days}`);
+        const res = await fetch(withDeleted(`/api/analytics/groups-overview?days=${days}`));
         const data = await res.json();
         
         if (data.success) {
@@ -4560,7 +4621,7 @@
       const days = document.getElementById('groupsDateRange')?.value || 30;
       
       try {
-        const res = await fetch(`/api/analytics/group/${groupId}?days=${days}`);
+        const res = await fetch(withDeleted(`/api/analytics/group/${groupId}?days=${days}`));
         const data = await res.json();
         
         if (data.success) {
@@ -4674,7 +4735,7 @@
       const loading = document.getElementById('formSubmissionsLoading');
       
       try {
-        const res = await fetch('/api/analytics/form-submissions');
+        const res = await fetch(withDeleted('/api/analytics/form-submissions'));
         const data = await res.json();
         
         if (!data.success) {
@@ -4866,7 +4927,7 @@
                 </svg>
                 ${escapeHtml(s.journey_title || '-')}
               </span>
-              <div class="form-submission-title">${escapeHtml(s.step_title || '<%= t("analytics.forms.untitledForm") %>')}</div>
+              <div class="form-submission-title">${escapeHtml(s.step_title || '<%= t("analytics.forms.untitledForm") %>')}${deletedBadge(s.is_deleted)}</div>
             </div>
             ${sourceBadge}
           </div>
@@ -5211,7 +5272,7 @@
     // Load journeys for dropdown
     async function loadJourneysList() {
       try {
-        const response = await fetch('/api/reports/journeys');
+        const response = await fetch(withDeleted('/api/reports/journeys'));
         const data = await response.json();
         
         if (data.success && data.journeys) {
@@ -5219,7 +5280,7 @@
           data.journeys.forEach(j => {
             const option = document.createElement('option');
             option.value = j.id;
-            option.textContent = `${j.title} (${j.completedCount}/${j.invitationCount})`;
+            option.textContent = `${j.title}${deletedSuffix(j.isDeleted)} (${j.completedCount}/${j.invitationCount})`;
             select.appendChild(option);
           });
         }
@@ -5235,7 +5296,7 @@
     async function loadUsersAndGroups() {
       try {
         const [usersRes, groupsRes] = await Promise.all([
-          fetch('/api/analytics/users-overview'),
+          fetch(withDeleted('/api/analytics/users-overview')),
           fetch('/api/groups')
         ]);
         
@@ -5348,7 +5409,7 @@
       showReportModal(translations.journeyPerformance);
       
       try {
-        const response = await fetch(`/api/reports/journey/${journeyId}`);
+        const response = await fetch(withDeleted(`/api/reports/journey/${journeyId}`));
         const data = await response.json();
         
         if (data.success) {
@@ -5371,7 +5432,7 @@
       showReportModal(translations.periodOverview);
       
       try {
-        const response = await fetch(`/api/reports/overview?period=${period}`);
+        const response = await fetch(withDeleted(`/api/reports/overview?period=${period}`));
         const data = await response.json();
         
         if (data.success) {
@@ -5861,7 +5922,7 @@
       // Fetch data if not already loaded
       if (!currentReportData || currentReportType !== 'journey') {
         try {
-          const response = await fetch(`/api/reports/journey/${journeyId}`);
+          const response = await fetch(withDeleted(`/api/reports/journey/${journeyId}`));
           const data = await response.json();
           if (data.success) {
             currentReportData = data.report;
@@ -5882,7 +5943,7 @@
       // Fetch data if not already loaded
       if (!currentReportData || currentReportType !== 'overview') {
         try {
-          const response = await fetch(`/api/reports/overview?period=${period}`);
+          const response = await fetch(withDeleted(`/api/reports/overview?period=${period}`));
           const data = await response.json();
           if (data.success) {
             currentReportData = data.report;
@@ -5913,7 +5974,7 @@
           ? `/api/analytics/user/${id}`
           : `/api/analytics/group/${id}`;
         
-        const response = await fetch(endpoint);
+        const response = await fetch(withDeleted(endpoint));
         const data = await response.json();
         
         if (data.success) {
@@ -6174,9 +6235,9 @@
       
       try {
         const [quizRes, videoRes, chatRes] = await Promise.all([
-          fetch(`/api/analytics/quiz-stats?days=${days}`),
-          fetch(`/api/analytics/video-stats?days=${days}`),
-          fetch(`/api/analytics/guide-chat-stats?days=${days}`)
+          fetch(withDeleted(`/api/analytics/quiz-stats?days=${days}`)),
+          fetch(withDeleted(`/api/analytics/video-stats?days=${days}`)),
+          fetch(withDeleted(`/api/analytics/guide-chat-stats?days=${days}`))
         ]);
         
         const [quizData, videoData, chatData] = await Promise.all([
@@ -6291,7 +6352,7 @@
             const width = maxAttempts > 0 ? ((parseInt(q.attempts) || 0) / maxAttempts) * 100 : 0;
             html += `
               <div class="report-bar-row">
-                <span class="report-bar-label">${escapeHtml(q.step_title || 'Quiz')}</span>
+                <span class="report-bar-label">${escapeHtml((q.step_title || 'Quiz') + deletedSuffix(q.step_deleted))}</span>
                 <div class="report-bar-track">
                   <div class="report-bar-fill" style="width: ${width}%;"></div>
                 </div>
@@ -6341,7 +6402,7 @@
             const width = maxViews > 0 ? ((parseInt(v.views) || 0) / maxViews) * 100 : 0;
             html += `
               <div class="report-bar-row">
-                <span class="report-bar-label">${escapeHtml(v.step_title || 'Video')}</span>
+                <span class="report-bar-label">${escapeHtml((v.step_title || 'Video') + deletedSuffix(v.step_deleted))}</span>
                 <div class="report-bar-track">
                   <div class="report-bar-fill" style="width: ${width}%;"></div>
                 </div>
@@ -6444,16 +6505,16 @@
       if (!journeyId) return;
       
       try {
-        const response = await fetch(`/api/reports/journey/${journeyId}`);
+        const response = await fetch(withDeleted(`/api/reports/journey/${journeyId}`));
         const data = await response.json();
         if (data.success) {
           await generateJourneyPDF(data.report);
         } else {
-          showToast(translations.reports?.exportError || 'Failed to export report', 'error');
+          window.gryffi.toast.show(translations.reports?.exportError || 'Failed to export report', 'error');
         }
       } catch (err) {
         console.error('Failed to export journey PDF:', err);
-        showToast(translations.reports?.exportError || 'Failed to export report', 'error');
+        window.gryffi.toast.show(translations.reports?.exportError || 'Failed to export report', 'error');
       }
     }
     
@@ -7489,11 +7550,11 @@
       const logoDimensions = logoBase64 ? await getImageDimensions(logoBase64) : null;
       
       // Fetch user data
-      const res = await fetch(`/api/analytics/user/${userId}`);
+      const res = await fetch(withDeleted(`/api/analytics/user/${userId}`));
       const data = await res.json();
       
       if (!data.success) {
-        showToast(translations.reports?.exportError || 'Failed to export user report', 'error');
+        window.gryffi.toast.show(translations.reports?.exportError || 'Failed to export user report', 'error');
         return;
       }
       
@@ -7584,11 +7645,11 @@
       const logoDimensions = logoBase64 ? await getImageDimensions(logoBase64) : null;
       
       // Fetch group data
-      const res = await fetch(`/api/analytics/group/${groupId}`);
+      const res = await fetch(withDeleted(`/api/analytics/group/${groupId}`));
       const data = await res.json();
       
       if (!data.success) {
-        showToast(translations.reports?.exportError || 'Failed to export group report', 'error');
+        window.gryffi.toast.show(translations.reports?.exportError || 'Failed to export group report', 'error');
         return;
       }
       
@@ -7658,9 +7719,9 @@
       
       // Fetch engagement data from multiple endpoints
       const [quizRes, videoRes, chatRes] = await Promise.all([
-        fetch(`/api/analytics/quiz-stats?days=${days}`),
-        fetch(`/api/analytics/video-stats?days=${days}`),
-        fetch(`/api/analytics/guide-chat-stats?days=${days}`)
+        fetch(withDeleted(`/api/analytics/quiz-stats?days=${days}`)),
+        fetch(withDeleted(`/api/analytics/video-stats?days=${days}`)),
+        fetch(withDeleted(`/api/analytics/guide-chat-stats?days=${days}`))
       ]);
       
       const quizData = await quizRes.json();
@@ -7714,7 +7775,7 @@
         if (quizData.topQuizzes && quizData.topQuizzes.length > 0) {
           pdf.addSectionTitle(translations.reports?.topQuizzes || 'Most Attempted Quizzes');
           pdf.addBarChart(quizData.topQuizzes.map(q => ({
-            label: q.step_title || 'Quiz',
+            label: (q.step_title || 'Quiz') + deletedSuffix(q.step_deleted),
             value: q.attempts
           })), { labelWidth: 80, maxItems: 5 });
         }
@@ -7735,7 +7796,7 @@
         if (videoData.topVideos && videoData.topVideos.length > 0) {
           pdf.addSectionTitle(translations.reports?.topVideos || 'Most Watched Videos');
           pdf.addBarChart(videoData.topVideos.map(v => ({
-            label: v.step_title || 'Video',
+            label: (v.step_title || 'Video') + deletedSuffix(v.step_deleted),
             value: v.views
           })), { labelWidth: 80, maxItems: 5 });
         }
@@ -8051,7 +8112,107 @@
         console.error('Error generating reward codes PDF:', err);
       }
     }
-    
+
+  </script>
+  <script>
+    // "Show deleted journeys and steps": reload with or without ?deleted=1,
+    // on the same tab
+    (function () {
+      const toggle = document.getElementById('showDeletedToggle');
+      if (toggle) {
+        toggle.addEventListener('change', () => {
+          const url = new URL(window.location.href);
+          if (toggle.checked) url.searchParams.set('deleted', '1');
+          else url.searchParams.delete('deleted');
+          window.location.assign(url.toString());
+        });
+      }
+      if (!SHOW_DELETED) return;
+
+      const body = document.getElementById('deletedResultsBody');
+      const language = <%- safeJson(typeof language !== 'undefined' ? language : 'en') %>;
+      const fill = (text, values) => String(text).replace(/\{\{(\w+)\}\}/g, (match, key) => (key in values ? values[key] : match));
+      const formatDate = (value) => (value ? new Date(value).toLocaleDateString(language) : '');
+
+      function itemHtml(kind, item, meta, canDelete) {
+        const title = item.title || (kind === 'journey' ? DELETED_T.journeyFallback : DELETED_T.stepFallback);
+        const button = canDelete
+          ? `<button type="button" data-delete-kind="${kind}" data-delete-id="${escapeHtml(item.id)}" data-delete-title="${escapeHtml(title)}" aria-label="${escapeHtml(fill(DELETED_T.deleteButtonLabel, { title }))}">${escapeHtml(DELETED_T.deleteButton)}</button>`
+          : '';
+        return `<li>
+          <div>
+            <div class="deleted-item-title">${escapeHtml(title)}</div>
+            <div class="deleted-item-meta">${escapeHtml(meta)}</div>
+          </div>
+          ${button}
+        </li>`;
+      }
+
+      async function load() {
+        if (!body) return;
+        try {
+          const res = await fetch('/api/analytics/deleted');
+          const data = await res.json();
+          if (!data.success) throw new Error(data.error || 'load failed');
+          if (data.journeys.length === 0 && data.steps.length === 0) {
+            body.innerHTML = `<p class="deleted-intro" style="margin-top: 12px;">${escapeHtml(DELETED_T.empty)}</p>`;
+            return;
+          }
+          let html = '';
+          if (data.journeys.length > 0) {
+            html += `<h3>${escapeHtml(DELETED_T.journeysHeading)}</h3><ul class="deleted-results-list">`;
+            html += data.journeys.map((j) => {
+              const people = fill(j.participant_count === 1 ? DELETED_T.participants_one : DELETED_T.participants_other, { count: j.participant_count });
+              return itemHtml('journey', j, `${people} · ${fill(DELETED_T.deletedOn, { date: formatDate(j.purged_at) })}`, data.canDelete);
+            }).join('');
+            html += '</ul>';
+          }
+          if (data.steps.length > 0) {
+            html += `<h3>${escapeHtml(DELETED_T.stepsHeading)}</h3><ul class="deleted-results-list">`;
+            html += data.steps.map((st) => itemHtml('step', st,
+              `${fill(DELETED_T.stepIn, { journey: st.journey_title || '' })} · ${fill(DELETED_T.deletedOn, { date: formatDate(st.deleted_at) })}`,
+              data.canDelete)).join('');
+            html += '</ul>';
+          }
+          if (!data.canDelete) {
+            html += `<p class="deleted-intro" style="margin-top: 8px;">${escapeHtml(DELETED_T.onlyAdmins)}</p>`;
+          }
+          body.innerHTML = html;
+        } catch (err) {
+          console.error('[Analytics] Deleted results:', err);
+          body.innerHTML = `<p class="deleted-intro" style="margin-top: 12px;">${escapeHtml(DELETED_T.loadError)}</p>`;
+        }
+      }
+
+      body?.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-delete-kind]');
+        if (!button) return;
+        const kind = button.dataset.deleteKind;
+        const title = button.dataset.deleteTitle;
+        const message = fill(kind === 'journey' ? DELETED_T.confirmJourney : DELETED_T.confirmStep, { title });
+        const confirmed = await window.gryffi.modal.confirm(message, { confirmText: DELETED_T.confirmButton });
+        if (!confirmed) return;
+        button.disabled = true;
+        try {
+          const res = await fetch(`/api/analytics/deleted/${kind === 'journey' ? 'journeys' : 'steps'}/${encodeURIComponent(button.dataset.deleteId)}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (!data.success) {
+            window.gryffi.toast.show(data.error || DELETED_T.deleteError, 'error');
+            button.disabled = false;
+            return;
+          }
+          window.gryffi.toast.show(DELETED_T.deletedSuccess, 'success');
+          // The numbers on the page include these results: start fresh
+          window.location.reload();
+        } catch (err) {
+          console.error('[Analytics] Delete results:', err);
+          window.gryffi.toast.show(DELETED_T.deleteError, 'error');
+          button.disabled = false;
+        }
+      });
+
+      load();
+    })();
   </script>
 </body>
 </html>

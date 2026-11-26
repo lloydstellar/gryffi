@@ -1,11 +1,11 @@
 ---
 feature_id: space-step
-related_features: [journey-builder, panorama-images, floor-plans, image-library, journey-wizard]
+related_features: [journey-builder, floor-plans, image-library, step-pacing, step-assistant, journey-wizard]
 ---
 
 # Space Step
 
-The Space Step represents a physical or virtual location in your journey. It's ideal for creating immersive experiences with images, panoramas, or floor plans.
+The Space Step represents a physical or virtual location in your journey. Use it to show a room, a building or a venue with a photo or a 360° panorama. You can add a floor plan that shows where the location is.
 
 ![The settings of a Space step: description (2), image type (3), image (4) and floor plan (5)](images/space-step/properties.en.webp)
 
@@ -17,11 +17,12 @@ The Space Step represents a physical or virtual location in your journey. It's i
 
 ## Overview
 
-Space Steps are the foundation of location-based journeys. They can display:
+A Space step shows one of two image types:
 
-- **Regular Images**: Photos or illustrations of locations
-- **360° Panoramas**: Immersive spherical images participants can explore
-- **Floor Plans**: Interactive maps with hotspot
+- **Normal image**: a photo or illustration of the location
+- **360° Panorama**: a spherical image that participants can drag to look around
+
+On top of that, you can show a **floor plan** with a marker on the location of this step.
 
 ## Properties
 
@@ -31,49 +32,69 @@ Select the Space step (1) on the canvas to open its settings.
 
 | Property | Description |
 |----------|-------------|
-| **Title** | The name of the location (e.g., "Reception Area") |
-| **Description** (2) | Additional context about this space |
-| **Image** (4) | The visual representation of the space |
-| **Floor plan** (5) | The map of a place where you can place the space in |
+| **Title** | The name of the location (for example "Reception") |
+| **Description** (2) | The text participants read with the image |
+| **Image type** (3) | Normal image or 360° Panorama |
+| **Image** (4) | The photo of the location. Click **Change** to choose another image. |
+| **Floor plan** (5) | Optional: a map with a marker on the location of this step |
 
-### Image Types
+### Image type
 
-Choose the image type (3) that best suits your content:
+Choose the image type (3) that fits your photo:
 
-1. **Standard Image**: A regular photo or illustration
-2. **Panorama (360°)**: A spherical image that participants can pan around
+1. **Normal image**: a regular photo or illustration. You choose it in the Choose Image window.
+2. **360° Panorama**: click **Upload 360° photo** and choose a JPEG or PNG file from your computer.
 
-### Floor Plan Options
+See: image-library
 
-When using Floor Plan mode:
+### Floor plan
 
-- **Show floor plan** (5): tick it to show a floor plan with the location of this step
-- **Upload new floor plan**: Upload your floor plan/map
-- **Select floor plan**: Select a floor plan that was already uploaded in your organization
+The floor plan is an extra on top of the image:
 
+- Tick **Show floor plan** (5) to show a map with the location of this step.
+- **Select floor plan**: choose a floor plan that was already uploaded in your organization.
+- **Upload new floor plan**: upload a new map.
+- Click on the floor plan to place the marker. The hint under the map says **Click to place marker**.
 
-### For Panoramas
-- Use equirectangular projection 
-- Ensure good lighting and minimal stitching artifacts
-- Most smartphones can capture 360° photos. On iPhone use 'Panorama' mode, on Android use 'Photo Sphere' or '360°' mode in your camera app
+See: floor-plans
 
-### For Floor Plans
-- Keep the floor plan simple and easy to understand
-- Use clear labels for different areas
-- Place a hotspot by clicking on the floor plan at the location your space step is
+### How it works
+
+On the **How it works** tab you set:
+
+- **Pacing**: when participants can continue. Choose Immediately, After 10 seconds, After 30 seconds or After 1 minute.
+- **Guide in this step**: an AI guide that helps participants while they are on this step.
+
+See: step-pacing, step-assistant
+
+## Tips
+
+### For panoramas
+
+- Use an equirectangular 360° photo.
+- Make sure the photo has good lighting and few stitching errors.
+- Most smartphones can take 360° photos. On iPhone, use the 'Panorama' mode. On Android, use the 'Photo Sphere' or '360°' mode in your camera app.
+
+### For floor plans
+
+- Keep the floor plan simple and easy to read.
+- Use clear labels for the different areas.
+- Place the marker on the spot where this Space step is.
 
 ## Use Cases
 
-- **Office Tours**: Show different departments and facilities
-- **Museum Exhibits**: Guide visitors through galleries
-- **Real Estate**: Virtual property walkthroughs
-- **Training**: Familiarize employees with workspaces
+- **Office tours**: show departments and facilities
+- **Museum exhibits**: guide visitors through galleries
+- **Real estate**: virtual property walkthroughs
+- **Training**: show new colleagues around their workplace
 
-## Not Generated by the Journey Wizard
+## Generated by the Journey Wizard
 
-Space Steps are **not** produced by the Journey Wizard. They rely on imagery you need to supply yourself (panoramic photos, uploaded floor plans or images with hotspots), which cannot be inferred from a text prompt or document. If you want a Space Step in a wizard-generated journey, open the journey in the builder after the wizard finishes and add the Space Step manually. See: journey-wizard.
+The Journey Wizard can add Space steps when you tick **Location step**. The wizard writes a short description of the place. When you also tick **Image**, the Space step gets a placeholder image. Replace it with your own photo or panorama in the builder, and add a floor plan if you want one.
+
+See: journey-wizard
 
 ## Related Features
 
 - [[goto:/dashboard/journeys]] - Create a journey with Space Steps
-- See: panorama-images, floor-plans, image-library, journey-wizard
+- See: floor-plans, image-library, step-pacing, journey-wizard

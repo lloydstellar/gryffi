@@ -1,6 +1,6 @@
 ---
 feature_id: end-user-management
-related_features: [end-user-groups, csv-import, microsoft-365-sync, google-workspace-sync, invitations-overview]
+related_features: [end-user-groups, csv-import, manual-user-entry, microsoft-365-sync, google-workspace-sync, invitations-overview]
 ---
 
 # Participant Management
@@ -21,6 +21,8 @@ Participants are the people who follow your journeys. You can:
 - Add participants manually, via spreadsheet import or sync with Microsoft 365 or Google Workspace
 - Organize participants into groups
 
+Only admins see Participants in the menu and can open this page.
+
 [[goto:/dashboard/participants#users]]
 
 ## Participants vs Makers
@@ -30,8 +32,8 @@ Participants are the people who follow your journeys. You can:
 | Experience journeys | Create journeys |
 | Complete steps and quizzes | Build and edit content |
 | Receive rewards | Manage participants and settings |
-| No access to builder | Full dashboard access |
-| No login but magic-link | Needs to login the Gryffi webapp |
+| No access to builder | Access to the dashboard, depending on their role |
+| No password: they open a journey with the magic link in their email | Log in to Gryffi with email and password |
 
 ## Adding Participants
 
@@ -39,25 +41,25 @@ Participants are the people who follow your journeys. You can:
 
 1. Go to Participants in the menu
 2. Click "Manual Entry" (1)
-3. Enter the participant's details (2):
+3. Enter the participant's details (2). All three fields are required:
    - First Name
    - Last Name
-   - Email (required)
+   - Email Address
 4. Click "Add participant"
+
+See: manual-user-entry
 
 ### Bulk Import (CSV)
 
-Upload multiple participants at once:
+Upload many participants at once with a spreadsheet file. The file has three columns: first name, last name and email address.
 
-[[goto:/dashboard/participants#users]]
+[[goto:/dashboard/participants#users/csv]]
 
-- You can upload a spreadsheet file with firstname, lastname and email address.
-
-See: csv-import for detailed instructions
+See: csv-import
 
 ### Directory Sync
 
-Automatically sync from:
+Import participants automatically from:
 - Microsoft 365
 - Google Workspace
 
@@ -69,27 +71,34 @@ See: microsoft-365-sync, google-workspace-sync
 
 | Field | Description |
 |-------|-------------|
-| **First Name** | The participant's first name |
-| **Last Name** | The participant's last name |
-| **Email** | Primary identifier (required) |
+| **First Name** | The participant's first name (required) |
+| **Last Name** | The participant's last name (required) |
+| **Email Address** | Identifies the participant. Each email address can be used once in your organization (required) |
 
-In the list, each participant (4) shows their groups and where they come from (Source). Use search (3) to find a participant by name or email address.
+In the list, each participant (4) shows their groups and where they come from (Source): Manual, CSV Import, Microsoft, Google or API. Use search (3) to find a participant by name or email address.
 
 [[goto:/dashboard/participants#users]]
 
+## Editing and Deleting Participants
+
+You can edit or delete participants with the source Manual or CSV Import. Use the pencil or trash icon in their row.
+
+Participants from Microsoft 365 or Google Workspace cannot be edited or deleted here. Change them in your directory. The next sync updates Gryffi.
+
+### What deleting removes
+
+Deleting a participant also deletes their invitations, their progress in journeys and their form submissions. Their results are no longer in Analytics. This cannot be undone. The same happens when a directory sync removes a participant.
+
 ## Groups
 
-Organize participants into groups for:
-
-- Targeted journey assignments
+Put participants in groups so you can invite them together.
 
 See: end-user-groups
 
 ## Privacy & Compliance
 
 ### Data Handling
-- Participant data is encrypted at rest
-- GDPR compliance features available
+- Admins can download all organization data, including a spreadsheet of participants, under Organization, tab General, Data Export.
 
 ## Related Features
 
@@ -97,4 +106,5 @@ See: end-user-groups
 - [[goto:/dashboard/participants#users/csv]] - CSV import
 - [[goto:/dashboard/participants#users/microsoft]] - Directory sync Microsoft
 - [[goto:/dashboard/participants#users/google]] - Directory sync Google
-- See: end-user-groups, csv-import
+
+See: end-user-groups, csv-import, manual-user-entry

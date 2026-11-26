@@ -1,25 +1,25 @@
 ---
 feature_id: content-step
-related_features: [journey-builder, image-library, journey-wizard]
+related_features: [journey-builder, image-library, step-pacing, step-assistant, journey-wizard]
 ---
 
 # Content Step
 
-The Content Step displays text, videos, or an image to participants. It's perfect for sharing information, instructions, or multimedia content within your journey.
+The Content Step shows text, a YouTube video or an image to participants. Use it to share information, instructions or media in your journey.
 
 ![The settings of a Content step: the type of content (2) and the text editor (3)](images/content-step/properties.en.webp)
 
 1. The Content step on the canvas.
-2. What would you like to share: Text, Video or Image.
+2. What would you like to share: Text only, Video or Image.
 3. The text editor, with bold, italic, lists and text size.
 
 ## Overview
 
-Content Steps are versatile building blocks for delivering information. They support:
+A Content step shows one of three kinds of content:
 
-- **Text Content**: Rich formatted text with headings, lists, and links
-- **Video Content**: Embedded YouTube videos
-- **Image Content**: Add an image
+- **Text only**: formatted text
+- **Video**: an embedded YouTube video
+- **Image**: one image
 
 ## Properties
 
@@ -29,80 +29,102 @@ Click the Content step on the canvas (1) to open its settings.
 
 | Property | Description |
 |----------|-------------|
-| **Title** | The heading for this content section |
-| **Description** | Brief summary shown below the title |
-| **Content Type** (2) | Choose between Text, Video or Image |
+| **Title** | The heading of the step |
+| **What would you like to share?** (2) | Choose Text only, Video or Image |
 
-### Text Content
+### Text only
 
-When using text mode:
+Write your text under **Your content**, in the text editor (3). The toolbar has:
 
-- Write your content in the text editor (3)
-- Use formatting options for headings, bold, italic
+- Bold and italic
+- A bullet list
+- Large text and normal text
 
-### Video Content
+Keep it short: one topic per step is easier to follow.
 
-When using video mode:
+### Video
 
 | Property | Description |
 |----------|-------------|
-| **YouTube URL** | Paste a YouTube video link |
-| **Video Preview** | Shows thumbnail of the selected video |
+| **YouTube video** | Paste a YouTube link to embed the video |
+| **Description (optional)** | Text that participants read with the video |
+| **Text position** | Show the description above or below the video |
 
-Supported formats:
+After you paste a link, the builder shows the video so you can check it.
+
+Supported links:
 - `https://www.youtube.com/watch?v=VIDEO_ID`
 - `https://youtu.be/VIDEO_ID`
+- `https://www.youtube.com/embed/VIDEO_ID`
 
 ### What participants see
 
 A video step does not load the video straight away. Participants first see a dark block with a **Play video** button and a short note: the video is on YouTube, and clicking the button connects their browser to YouTube (Google). Nothing is loaded from YouTube before that click. After the click, the video starts playing.
 
-Google only receives a participant's IP address once they choose to watch. If your organization has a privacy notice for employees, mention there that video steps use YouTube.
+Google only receives a participant's IP address once they choose to watch. If your organization has a privacy notice for its staff, mention there that video steps use YouTube.
 
-With **After Delay** pacing, the timer starts when the video starts playing.
+With timed pacing on a video step, the timer starts when the video starts playing.
 
 ### Image
 
-Pick an image from the Pexels database or upload your own image
+| Property | Description |
+|----------|-------------|
+| **Image** | Click **Choose an image** to open the Choose Image window |
+| **Description (optional)** | Text that participants read with the image |
+| **Text position** | Show the description above or below the image |
 
+In the Choose Image window you pick a suggested photo, search free photos from Pexels, reuse an image from your organization's library or upload your own file.
+
+See: image-library
 
 ## How it works
 
-### Step Pacing
+On the **How it works** tab you set:
 
-Control when participants can continue:
+- **Pacing**: when participants can continue. The choices depend on the content:
+  - Text only: Immediately, After 30 seconds, After 1 minute or After 2 minutes
+  - Image: Immediately, After 10 seconds or After 30 seconds
+  - Video: Immediately, After 1 minute, After 2 minutes or After 5 minutes
+- **Guide in this step**: an AI guide that helps participants while they are on this step.
 
-- **Immediate**: Participants can continue anytime
-- **After Delay**: Wait X seconds before allowing progression
+See: step-pacing, step-assistant
 
+## Tips
 
-## Best Practices
+### For text
 
-### For Text Content
+- Keep paragraphs short and easy to scan.
+- Make key points bold.
 
-- Keep paragraphs short and scannable
-- Highlight key points with bold text
+### For video
 
-### For Video Content
-
-- Choose videos under 5 minutes for better engagement
-- Ensure videos are relevant to the journey context
-- Consider adding text summary below the video
-- Use step pacing to make sure participants watch important videos
+- Choose short videos.
+- Make sure the video fits the topic of the journey.
+- Add a short description with the main points of the video.
+- Use pacing to make sure participants take time to watch important videos.
 
 ## Use Cases
 
-- **Instructions**: Explain how to complete a task
-- **Welcome Messages**: Introduce a section of the journey
-- **Educational Content**: Share learning materials
-- **Announcements**: Communicate important information
-- **Video Tutorials**: Embed how-to videos
+- **Instructions**: explain how to do a task
+- **Welcome messages**: introduce a part of the journey
+- **Learning material**: share what participants need to know
+- **Announcements**: share news or changes
+- **Video tutorials**: embed how-to videos
 
 ## Generated by the Journey Wizard
 
-When you use the Journey Wizard, most of the stepping stones of a generated journey are Content Steps in **Text** mode. The wizard fills in the title, description and a short body of text based on your uploaded document or the topic you described. It does **not** automatically add images or videos; that's intentionally left for you to do afterwards. If the wizard decided to include a branching question, it will also produce a Content Step with two buttons whose button texts reflect the answer choices. See: journey-wizard.
+When you use the Journey Wizard, most steps of a generated journey are Content steps with **Text only**. The wizard fills in the title and a short text based on your uploaded document or the topic you described.
+
+The wizard can also add media steps:
+
+- Tick **Video** to get one Content step set to Video. Paste your own YouTube link in the builder afterwards.
+- Tick **Image** to get at least one Content step set to Image, with a "Coming soon" placeholder image. Replace it with your own image.
+
+If you let the wizard add a choice moment, it makes a Content step with a short question and two buttons. The button texts are the answer choices.
+
+See: journey-wizard
 
 ## Related Features
 
 - [[goto:/dashboard/journeys]] - Create journeys with Content Steps
-- See: journey-builder, image-library, journey-wizard
+- See: journey-builder, image-library, step-pacing, journey-wizard

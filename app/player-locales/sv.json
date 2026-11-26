@@ -66,7 +66,7 @@
         "maxSize": "Max {{size}} MB",
         "invalidType": "Ogiltig filtyp. Tillåtet: {{types}}",
         "fileTooLarge": "Filen är för stor. Maxstorlek: {{size}} MB",
-        "totalTooLarge": "Totala bilagsstorleken överskrider gränsen (38 MB)",
+        "totalTooLarge": "Filerna är för stora tillsammans. Maxstorleken är {{size}} MB totalt. Ta bort en fil eller välj en mindre fil.",
         "removeFile": "Ta bort fil",
         "subtypes": {
           "image": "Bild",
@@ -122,6 +122,7 @@
       "panoramaKeyboardHint": "Använd piltangenterna för att titta runt. Använd + och - för att zooma.",
       "zoomIn": "Zooma in",
       "zoomOut": "Zooma ut",
+      "centerOnMarker": "Visa var du är",
       "panoramaLoadFailed": "360°-fotot kunde inte laddas. Ladda om sidan för att försöka igen."
     },
     "stepTypes": {

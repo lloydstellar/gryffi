@@ -1,11 +1,11 @@
 ---
 feature_id: maker-invitations
-related_features: [team-management, maker-roles]
+related_features: [makers-management, maker-roles]
 ---
 
 # Maker Invitations
 
-Maker Invitations allow administrators to invite new makers to join your organization in Gryffi.
+Admins invite new makers to your organization in Gryffi. Only admins can send, resend or revoke maker invitations.
 
 ![Invite a maker: email (1), role (2), Send invite (3) and pending invitations (4)](images/maker-invitations/invite.en.webp)
 
@@ -16,12 +16,13 @@ Maker Invitations allow administrators to invite new makers to join your organiz
 
 ## Overview
 
-Invite makers to:
+Invite makers so they can:
 
-- Create journeys
-- Manage content
-- Access dashboard
-- Collaborate
+- Build journeys and AI guides
+- Work in the Gryffi dashboard
+- Work together with you
+
+Want to invite participants to a journey? Use **Invitations** in the sidebar instead.
 
 [[goto:/dashboard/team]]
 
@@ -29,75 +30,74 @@ Invite makers to:
 
 ### Step 1: Open Makers
 
-Go to Makers → Invite maker
+Go to **Makers** in the sidebar. Find **Invite maker**.
 
 ### Step 2: Enter Details
 
-Enter the email address of your colleague (1) and choose a role (2).
+Enter the email address of your colleague (1) and choose a role (2). Below the role you see what that role can do.
 
 | Field | Description |
 |-------|-------------|
-| Email | Invitee's email address |
-| Role | Permission level |
+| Email | The email address of your colleague |
+| Role | What your colleague can do in Gryffi |
 
 ### Step 3: Send
 
-1. Review details
-2. Click "Send Invite" (3)
+Click **Send invite** (3).
 
 ## Invitation Email
 
-### Contents
+The email contains:
+- The name of your organization
+- Who invited them
+- The role
+- The button **Accept invitation**
 
-Email includes:
-- Organization name
-- Role assigned
-- Accept link
+The new maker clicks the button, enters their first name, last name and a password, and clicks **Create account**.
 
 ## Managing Invitations
 
 ### View Pending
 
-See all pending invitations (4):
-- Invitee email
-- Role assigned
-- Expire date
-- Actions - Resend and Revoke buttons
+Under **Pending invitations** (4) you see:
+- The email address
+- The role
+- The expiry date
+- The buttons **Resend** and **Revoke**
 
 ### Actions
 
 | Action | Description |
 |--------|-------------|
-| Resend | Send again |
-| Rovoke | Revoke invitation |
+| Resend | Sends a new email with a new link. The link works for 7 more days. |
+| Revoke | Cancels the invitation. The link stops working. |
+
+To give a pending invitation another role, invite the same email address again with the new role.
 
 ### Validity Period
 
-Invitations expire after:
-- Default: 7 days
+An invitation is valid for 7 days.
 
 ### Expired Invitations
 
-- Link stops working
-- Must resend invitation
-- Previous invitation invalid
+- The link no longer works.
+- The invitation stays in the list, with "Expired on" and the date.
+- Click **Resend** to send a new link. The old link stays invalid.
 
 ## Troubleshooting
 
 ### Not Received
 
-- Check spam folder
-- Verify email address
-- Resend invitation
+- Check the spam folder.
+- Check the email address.
+- Click **Resend**.
 
 ### Can't Accept
 
-- Check link validity
-- Check if invite is older than 7 days
-- Request new invitation
-- Contact admin
+- Check if the invitation is older than 7 days. Then ask an admin to click **Resend**.
+- Check if the invitation was revoked. Then ask an admin for a new invitation.
 
 ## Related Features
 
-- [[goto:/dashboard/team]] - Team management
-- See: team-management, maker-roles
+- [[goto:/dashboard/team]] - Makers
+- See: makers-management, maker-roles

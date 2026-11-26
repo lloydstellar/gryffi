@@ -1,11 +1,11 @@
 ---
 feature_id: subjourney-step
-related_features: [journey-builder, journey-settings, public-journeys]
+related_features: [journey-builder, journey-settings, public-journeys, step-assistant]
 ---
 
 # Sub-Journey Step
 
-The Sub-Journey Step allows you to embed an entire published journey within another journey. This is perfect for creating modular, reusable content and reducing complexity in large journeys.
+The Sub-Journey Step puts a complete published journey inside another journey. Use it to reuse content and to keep large journeys easy to manage.
 
 ![The settings of a Sub-Journey step: Select journey to embed (2) and the embedded journey (3)](images/subjourney-step/properties.en.webp)
 
@@ -19,12 +19,12 @@ In the column of step types on the left side of the builder, click **Sub-Journey
 
 ## Overview
 
-Sub-Journey Steps enable you to:
+With Sub-Journey Steps you can:
 
-- **Modular Content**: Break large journeys into smaller, manageable pieces
-- **Reusability**: Use the same journey content in multiple parent journeys
-- **Simplified Design**: Keep your journey canvas clean by nesting complex sections
-- **Language Flexibility**: Sub-journeys can have their own language settings
+- **Split content**: break a large journey into smaller journeys
+- **Reuse content**: use the same journey in several other journeys
+- **Keep the canvas clear**: put a long section in its own journey
+- **Use another language**: a sub-journey can have its own language
 
 ## Properties
 
@@ -32,83 +32,89 @@ Sub-Journey Steps enable you to:
 
 | Property | Description |
 |----------|-------------|
-| **Title** | The title of this step (for maker reference only) |
-| **Select Sub-Journey** | Choose which published journey to embed |
+| **Title** | The title of this step (for makers only) |
+| **Select journey to embed** | Choose which published journey to show in this step |
 
-### Sub-Journey Selection
+### Choosing the sub-journey
 
-Choose the journey in **Select journey to embed** (2). Only **published** journeys from your organization can be selected as sub-journeys. The dropdown shows:
+Choose the journey in **Select journey to embed** (2). Only **published** journeys of your organization can be chosen. Each option shows:
 
-- Journey title
-- Number of steps
-- Cover image (if available)
+- The journey title
+- The language, when the journey uses a different language than your organization
+- The number of steps
 
-The selected journey (3) is shown with its number of steps. It must stay published.
+Below the dropdown, the selected journey (3) is shown with its cover image, number of steps and the start of its description. It must stay published.
 
-## How It Works
+### How it works
 
-1. Participant reaches the Sub-Journey Step
-2. They seamlessly enter the selected sub-journey
-3. The interface language switches if the sub-journey has different language settings
-4. The participant completes all steps in the sub-journey
-5. Upon completion, they automatically return to the parent journey
-6. Navigation continues to the next step after the Sub-Journey Step
+On the **How it works** tab you can add a **Guide in this step**.
 
-**Note**: Participants experience this as one continuous journey - they don't see any transition screens or notices about entering/exiting sub-journeys.
+See: step-assistant
+
+## How It Works for participants
+
+1. The participant reaches the Sub-Journey Step.
+2. They go straight into the selected sub-journey.
+3. The language switches if the sub-journey uses a different language.
+4. The participant completes all steps in the sub-journey.
+5. When the sub-journey is done, they return to the parent journey.
+6. The journey continues with the next step after the Sub-Journey Step.
+
+**Note**: Participants experience this as one journey. They see no extra screen or message when they enter or leave a sub-journey.
 
 ## Progress Tracking
 
-The progress bar shows combined progress across both the parent journey and any active sub-journey. This gives participants an accurate sense of their overall progress.
+The progress bar shows the combined progress of the parent journey and the sub-journey. Participants see how far they are in the whole journey.
 
 ## Restrictions
 
-### For Public Journeys
+### For public journeys
 
 Public journeys can **only** use sub-journeys that are:
 - Published
 - Also public
 
-This prevents private information from accidentally being exposed through a public journey.
+This keeps private information out of a public journey. For the same reason, you cannot make a journey public while it uses private sub-journeys. Make those sub-journeys public first, or remove them.
 
-### For Private Journeys
+### For private journeys
 
-Private journeys can use any published journey as a sub-journey, whether public or private. Since the parent journey is private, all content remains protected.
+Private journeys can use any published journey as a sub-journey, public or private. The parent journey is private, so all content stays protected.
 
-### Protected Sub-Journeys
+### Protected sub-journeys
 
-When a journey is used as a sub-journey in another journey, it becomes protected:
+When a journey is used as a sub-journey, some actions are blocked:
 
 | Action | Allowed? |
 |--------|----------|
-| **Take offline** | No - must remove from parent journey first |
-| **Move to Trash** | No - must remove from parent journey first |
-| **Make Private** | No - must remove from parent journey first |
-| **Edit Content** | Yes - changes reflect immediately |
+| **Take offline** | No, while a published journey uses it. Remove it from that journey first. |
+| **Move to Trash** | No, while another journey uses it. Remove it from that journey first. A published journey must also be taken offline first. |
+| **Make private** | No, while a public journey uses it. Remove it from that journey first, or make that journey private. |
+| **Edit content** | Yes. Changes show in the parent journey right away. |
 
-This protection ensures participants don't encounter broken journeys.
+This makes sure participants never end up in a broken journey.
 
-## Best Practices
+## Tips
 
-### When to Use Sub-Journeys
+### When to use sub-journeys
 
-- **Onboarding modules**: Company policies, IT setup, team introductions as separate journeys
-- **Certification paths**: Prerequisites as sub-journeys before main certification
-- **Multi-language content**: Same journey structure, different language versions
-- **Seasonal updates**: Embed time-sensitive content that can be easily swapped
+- **Onboarding modules**: company policies, IT setup and team introductions as separate journeys
+- **Certification paths**: required modules as sub-journeys before the main part
+- **Multi-language content**: the same structure, with a sub-journey per language
+- **Changing content**: put content that changes often in a sub-journey, so you can swap it easily
 
-### Design Tips
+### Design tips
 
-- Keep sub-journeys focused on a single topic
-- Consider the combined length - don't overwhelm participants
-- Test the full flow including all sub-journeys
-- Document which journeys use which sub-journeys
+- Keep each sub-journey on one topic.
+- Think about the combined length. Too many steps can overwhelm participants.
+- Test the full journey, including all sub-journeys.
+- Keep track of which journeys use which sub-journeys.
 
 ## Circular Reference Prevention
 
-Gryffi automatically prevents circular references. For example:
+Gryffi prevents journeys from using each other in a loop. For example:
 
-- Journey A cannot use Journey B as a sub-journey if Journey B already uses Journey A
-- This check works through any depth of nesting
+- Journey A cannot use Journey B as a sub-journey if Journey B already uses Journey A.
+- This check works through any number of levels.
 
 ## Related Features
 

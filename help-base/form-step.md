@@ -5,7 +5,7 @@ related_features: [journey-builder, form-submissions, form-email-settings, form-
 
 # Form Step
 
-The Form Step collects data from participants through customizable input fields. Use it for registrations, feedback, surveys, or any data collection needs. When a participant submits a form, the responses are emailed to the recipient configured in the step, and the submission is stored securely on the Gryffi platform so admins and journey managers can review it later in the Analytics dashboard.
+The Form Step collects answers and files from participants. Use it for registrations, feedback, requests or any other information you need from them. Every submission is saved in Gryffi, so makers can read it later in Analytics. If you fill in **Send form to**, the answers are also emailed to that address.
 
 ![The settings of a Form step: the description (2) and the form fields (3)](images/form-step/properties.en.webp)
 
@@ -15,11 +15,12 @@ The Form Step collects data from participants through customizable input fields.
 
 ## Overview
 
-Form Steps allow you to:
+With a Form Step you can:
 
-- Create custom forms with multiple field types
-- Collect answers from participants
+- Build a form with up to 5 fields
+- Collect answers and files from participants
 - Make fields required or optional
+- Get the answers by email, or only in Analytics
 
 ## Properties
 
@@ -29,57 +30,82 @@ Click the Form step on the canvas (1) to open its settings.
 
 | Property | Description |
 |----------|-------------|
-| **Title** | The form name (e.g., "Registration Form") |
-| **Description** (2) | Instructions for filling out the form |
+| **Title** | The form name (for example "Registration form") |
+| **Description** (2) | Tells participants what the form is for |
 | **Form Fields** | The fields that make up the form |
+| **Send form to** | Optional. The email address that gets the answers. |
+| **Email subject** | The subject of that email |
 
 ### Form Fields
 
-Each form can contain multiple fields (3):
+A form has at most 5 fields (3). The counter above the fields shows how many you use.
 
-| Field Type | Description | Use Case |
-|------------|-------------|----------|
-| **Short Text** | Single line text input | Name, email, phone |
-| **Long Text** | Multi-line text input | Comments, feedback |
-| **Dropdown** | Dropdown selection with multiple options | Choose from options |
-| **Yes No** | Single choice from options | Yes/No questions |
-| **File upload** | File upload | Documents, images, audio |
+| Field type | What the participant does | Use case |
+|------------|---------------------------|----------|
+| **Short text** | Types one line | Name, phone number |
+| **Long text** | Types several lines | Comments, feedback |
+| **Dropdown** | Picks one option from a list you enter | Department, shirt size |
+| **Yes / No** | Picks Yes or No | "Do you need a parking spot?" |
+| **File upload** | Uploads one file | A photo, a document, an audio file |
+
+A form can have at most 2 File upload fields. For each File upload field you choose the **File type**: Image, Document or Audio (MP3).
+
+See: form-file-uploads
 
 ### Adding Fields
 
-1. Click "Add Field" button
-2. Choose the field type
-3. Enter the field question
-4. Set whether it's required
-5. Configure field-specific options
+1. Click **+ Add Field**.
+2. Type the question in the field label.
+3. Choose the field type.
+4. Tick **Required** if participants must answer it.
+5. For a Dropdown, enter the options. Click **Add option** for another option.
+6. For a File upload, choose the **File type**.
+
+### How it works
+
+On the **How it works** tab you set:
+
+| Setting | Description |
+|---------|-------------|
+| **Form Requirement** | **After submitting** (default): participants must fill in and submit the form first. **Always**: participants can skip the form. |
+| **Confirmation Message** | Shown after the form is submitted |
+
+You can also add a guide to this step.
+
+See: step-assistant
 
 ## What Happens After Submission
 
 When a participant submits the form:
 
-1. The submission is saved securely on the Gryffi platform. Submissions are strictly organization-scoped: only your own organization can ever access them.
-2. A notification email with all responses is sent to the recipient configured in the step. See: form-email-settings
-3. Uploaded files are stored on the platform and included in the email as secure download links. Files are never attached to the email itself. See: form-file-uploads
-4. Admins and journey managers can review the submission in Analytics → Forms. See: form-submissions
+1. The submission is saved in Gryffi. Only your own organization can see it.
+2. If **Send form to** is filled in, an email with all answers goes to that address.
+3. Uploaded files are stored in Gryffi. The email has a download link for each file. Files are never attached to the email.
+4. Makers can read the submission in Analytics, on the **Forms** tab.
 
-If the notification email cannot be delivered, the submission is still saved and remains available in the Analytics Forms tab.
+See: form-email-settings, form-file-uploads, form-submissions
+
+If the email cannot be delivered, the submission is still saved. It stays available on the Forms tab.
+
+A participant who opens the form again sees that they already submitted it. They can submit it again, or click **Continue without submitting**.
 
 ### Testing a form in the preview
 
-When you submit a form in the builder preview, the notification email goes to you, the maker who is testing, with "[Preview]" in the subject. The recipient configured in the step gets nothing. A preview submission is not saved in Analytics.
+When you submit a form in the builder preview and **Send form to** is filled in, the email goes to you, the maker who is testing. The subject starts with "[Preview]". The address in the step gets nothing. Without an address in **Send form to**, nothing is sent. A preview submission is not saved in Analytics.
 
 ## Use Case examples
 
-- **Event Registration**: Collect attendee information
-- **Feedback Forms**: Gather opinions from participants
-- **Contact Forms**: Let participants ask questions
-- **Applications**: Collect detailed information from participants
-- **Surveys**: Multi-question data collection
-- **Check-in Forms**: Track attendance
+- **Event registration**: collect attendee information
+- **Feedback**: gather opinions from participants
+- **Questions**: let participants ask something
+- **Requests**: let new colleagues order a laptop or a parking spot
+- **Check-in**: track attendance
 
 ## Generated by the Journey Wizard
 
-The Journey Wizard can include a Form Step when you choose the **Extended (7 steps)** length. The generated form contains a few short-text fields relevant to your topic, and its **Send form to** recipient is pre-filled with your own maker email so submissions work immediately in preview. Review the fields and change the recipient address on the form's What they see tab before publishing. See: journey-wizard, form-email-settings.
+On the page "What goes in your journey?" of the Journey Wizard, tick **Form** to add a Form Step. The wizard makes a form with 1 to 3 short fields that fit your topic. **Send form to** is filled in with your own email address, so you get the answers right away, also in the preview. Check the fields and change the address on the What they see tab before you publish.
+
+See: journey-wizard, form-email-settings
 
 ## Related Features
 

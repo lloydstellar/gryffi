@@ -1,11 +1,11 @@
 ---
 feature_id: analytics-overview
-related_features: [dashboard, reports, poll-results, form-submissions, end-user-management, end-user-groups]
+related_features: [dashboard, reports, poll-results, reward-tracking, form-submissions, end-user-management, end-user-groups, trash]
 ---
 
 # Analytics Overview
 
-The Analytics dashboard provides comprehensive insights into journey performance, participant engagement, and content effectiveness across your organization.
+Analytics shows how your journeys perform, how participants progress and what they answered.
 
 ![Analytics: the tabs (1), the period (2), the key figures (3) and the completion trend (4)](images/analytics-overview/analytics.en.webp)
 
@@ -14,195 +14,223 @@ The Analytics dashboard provides comprehensive insights into journey performance
 3. Journeys started, completion rate, average time per step and active participants.
 4. How many journeys were started and completed per day.
 
+## Who can open Analytics
+
+Every maker role can open Analytics: Admin, Journey Manager, Editor and Viewer. All roles see all tabs, including Forms. Only an admin can delete results (see "Results of deleted journeys and steps" below) and archived polls.
+
 ## Overview
 
-The Analytics page consists of eight tabs (1):
+The Analytics page has eight tabs (1):
 
 | Tab | Description |
 |-----|-------------|
-| Overview | High-level KPIs and trends |
-| Journeys | Funnel visualization and step analysis |
-| Participants | Individual participant progress and activity |
-| Groups | Group performance comparison |
-| Polls | Poll voting results |
-| Forms | Form submissions and uploaded files (admins and journey managers only) |
-| Rewards | Reward code tracking |
-| Reports | PDF report generation |
+| Overview | Key figures and trends |
+| Journeys | Funnel and step performance of one journey |
+| Participants | Progress and activity per participant |
+| Groups | Comparison between groups |
+| Polls | Poll results |
+| Rewards | Reward codes and claims |
+| Forms | Form submissions and uploaded files |
+| Reports | PDF reports |
 
 [[goto:/dashboard/analytics]]
 
 ## Overview Tab
 
-The Overview tab displays key performance indicators (3) for the selected time period (2).
+The Overview tab shows key figures (3) for the selected period (2).
 
-### KPI Cards
+### Key figures
 
-| Metric | Description |
+| Figure | Description |
 |--------|-------------|
-| Journeys Started | Total journey starts in period |
-| Completion Rate | Percentage of completed journeys |
-| Avg. Duration | Average time spent per step |
-| Active Participants | Unique participants with activity |
+| Journeys Started | Journey starts in the period |
+| Completion Rate | Of all journeys that participants started in the period, the share they finished |
+| Avg. time per step | Average time participants spend on a step |
+| Active Participants | Different participants who started a journey in the period |
 
 ### Completion Trend
 
-A line chart (4) showing daily journey starts and completions over the selected period.
+A line chart (4) with the journeys started and completed per day in the selected period.
 
 ### Top Performing Journeys
 
-A table ranking journeys by completion count, showing:
+A table of journeys, ranked by the number of completions:
 - Journey title
-- Started count
-- Completed count
-- Completion rate percentage
+- Started
+- Completed
+- Rate (completion rate)
+
+### Usage
+
+At the bottom of the Overview tab, **Your Usage** shows how much your organization uses: journeys, AI guides, makers, participants, AI knowledge and AI credits.
 
 ## Journeys Tab
 
-Analyze individual journey performance with detailed funnel visualization.
+See how one journey performs, step by step.
 
 [[goto:/dashboard/analytics#journeys]]
 
-### Funnel Visualization
+1. Select a journey from the dropdown.
+2. Choose the period: Last 7 days, Last 30 days or Last 90 days.
 
-1. Select a journey from the dropdown
-2. View the step-by-step funnel showing:
-   - Step title
-   - Participants who reached each step
-   - Drop-off percentage between steps
+You then see:
+- Started, Completed and the completion rate of the journey
+- The **Participant Progression Funnel**: how many participants reached each step
+- **Step Performance**: a table per step
+- **Daily Activity**: a chart of the activity per day
 
-### Step Analysis
+### Step Performance
 
-| Data Point | Description |
-|------------|-------------|
-| Reached | Number of participants who reached the step |
-| Drop-off | Percentage who didn't continue |
-| Avg Time | Average time spent on step |
+| Column | Description |
+|--------|-------------|
+| Step | The step title |
+| Type | The step type |
+| Reached | Participants who reached the step |
+| Completed | Participants who completed the step |
+| Avg. Time | Average time spent on the step |
+| Drop-off | Percentage who did not continue |
 
-### Quick Export
+### Export PDF
 
-Click "Export PDF" next to the journey selector to download a Journey Performance Report for the selected journey.
+Click **Export PDF** next to the journey selector to download a Journey Performance Report for the selected journey.
 
 ## Participants Tab
 
-Track individual participant progress and engagement.
+Follow the progress of each participant.
 
 [[goto:/dashboard/analytics#users]]
 
-### Participant Overview
+Search by name or email, or pick a group in the **All Groups** dropdown.
 
-The participants table shows:
+The table shows:
 - Participant name and email
-- Group membership (supports multiple groups)
+- Groups (a participant can be in more than one group)
 - Journeys completed
-- Average quiz score
-- Last activity date
+- Quiz score (average)
+- Last activity
 
 ### Participant Details
 
-Click "View Details" on any participant to see:
-- Personal information
-- Journey activity timeline
-- Quiz performance statistics
-- Video engagement metrics
+Click **View Details** on a participant to see:
+- Name, email and groups
+- Journey Activity: each journey with the number of steps completed
+- Quiz Performance: attempts, best score and average score per quiz
+
+Click **Export PDF** in this window to download a progress report of the participant.
 
 ### Journey Replay
 
-View a detailed timeline of a participant's journey experience:
+A replay shows a timeline of one journey of one participant:
+- Each step visited, with the time spent
+- Quiz attempts and scores
+- Form submissions
+- Video watch progress
+- AI guide chats
+- Poll votes
 
-1. Go to Analytics - Participants (tab)
-2. Search for a specific participant
-3. If a participant has finished a journey, there is a Replay button in the Actions column
-4. Click the Replay button next to View Details
-5. View the waterfall timeline showing:
-   - Each step visited with duration
-   - Quiz attempts and scores
-   - Form submissions
-   - Video watch progress
-   - AI Guide chat sessions
+To open a replay:
+1. Go to Analytics, tab **Participants**.
+2. Search for the participant.
+3. Click **View Replay** in the Actions column. Did the participant start more than one journey? Then choose the journey in the dropdown **Replay: choose a journey**.
 
-[[goto:/dashboard/analytics#users]]
-
+You can also click **View Replay** next to a journey in **View Details**. A replay is available for every journey the participant started, also when they did not finish it.
 
 ## Groups Tab
 
-Compare performance across participant groups.
+Compare participant groups.
 
 [[goto:/dashboard/analytics#groups]]
 
-### Group Statistics
+At the top, **Organization Benchmarks** shows the average quiz score and the completion rate of your whole organization.
 
-| Metric | Description |
+### Group table
+
+| Column | Description |
 |--------|-------------|
-| Members | Total participants in group |
-| Active | Participants with recent activity |
-| Completed | Participants who finished journeys |
-| Completion Rate | Group completion percentage |
-| Avg Quiz Score | Group average on quizzes |
+| Group | The group name |
+| Members | Participants in the group |
+| Active | Participants with activity in the period |
+| Rate | Completion rate of the group |
+| Quiz Score | Average quiz score of the group |
+| vs Benchmark | How the group compares to the organization |
 
 ### Group Details
 
-Click "View Details" on any group to see:
-- Member list
-- Group performance metrics
-- Comparison to organization benchmarks
+Click **View Details** on a group to see:
+- The number of members
+- Active participants and journeys completed
+- Quiz statistics: average score, pass rate and total attempts
+- Top Performers: the 10 members with the best results
+
+### Group Comparison
+
+Under the table, choose two groups to compare them in one chart.
 
 ## Polls Tab
 
-View poll results from Poll Steps in your journeys.
+See the results of the Poll steps in your journeys.
 
 [[goto:/dashboard/analytics#polls]]
 
 See: poll-results
 
+## Rewards Tab
+
+See which reward codes were claimed and how many are left.
+
+[[goto:/dashboard/analytics#rewards]]
+
+See: reward-tracking
+
 ## Forms Tab
 
-View form submissions from Form Steps in your journeys, including all responses, submitter details and uploaded files. Because submissions may contain personal data, this tab is only visible to admins and journey managers.
+See the form submissions from Form steps in your journeys, with all answers, who sent them and the uploaded files. You can download the files.
 
 [[goto:/dashboard/analytics#forms]]
 
 See: form-submissions
 
-## Rewards Tab
-
-Track reward code distribution and claims.
-
-[[goto:/dashboard/analytics#rewards]]
-
-### Reward Cards
-
-Each reward shows:
-- Reward title and journey
-- Total claimed count
-- Validity period (if set)
-- Archive status
-
-### View Codes
-
-Click "View codes" to see all generated codes and their claim status.
-
-### Download PDF
-
-Click "Download PDF" to export a list of all codes for a specific reward.
-
 ## Reports Tab
 
-Generate and download PDF reports.
+Preview and download PDF reports.
 
 [[goto:/dashboard/analytics#reports]]
 
 See: reports
 
-## Date Range Filter
+## Period
 
-Most tabs support a date range filter:
+The tabs Overview, Journeys and Groups each have their own period selector:
 - Last 7 days
-- Last 30 days
+- Last 30 days (default)
 - Last 90 days
 
-Select the period from the dropdown (2) to update all displayed data.
+The period (2) only changes the figures on that tab.
+
+## Results of deleted journeys and steps
+
+Results stay in Analytics when a journey is deleted for good from the trash, or when a step is deleted in the builder. This covers progress, quiz scores, poll votes, form submissions and their files, rewards and video statistics.
+
+At the top of Analytics there is a switch **Show deleted journeys and steps**. It is off by default.
+
+- **Off**: Analytics looks as if the deleted journeys and steps are gone.
+- **On**: deleted journeys show in the journey lists and selectors, and deleted steps show in the step lists. Both are marked **Deleted**. The sections **Archived Polls** and **Archived Rewards** also only show with the switch on.
+
+With the switch on, the Overview tab shows the card **Deleted journeys and steps**. It has two lists:
+- **Journeys deleted for good**, with the number of participants
+- **Deleted steps**, with the journey they were in
+
+Only an admin sees the button **Delete results** in this card. Gryffi asks for confirmation first. The results are then removed for good, uploaded files included. You cannot undo this.
+
+Good to know:
+- A journey that is deleted for good cannot be restored. Its results only stay in Analytics.
+- A journey without any results is removed completely.
+- Undo in the builder brings a deleted step back, with its results.
+- When you delete a participant, their results are deleted too.
+- Completed and expired invitations, with their progress, are still removed after 1 year.
 
 ## Related Features
 
 - [[goto:/dashboard/analytics]] - View analytics dashboard
 - [[goto:/dashboard/analytics#reports]] - Generate reports
-- See: reports, poll-results, form-submissions, end-user-management, end-user-groups
+- See: reports, poll-results, reward-tracking, form-submissions, end-user-management, end-user-groups, trash

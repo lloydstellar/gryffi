@@ -992,8 +992,6 @@
         
         // Determine if we need to show modal
         const hasImpact = impactItems.length > 0 || impact.hasActiveRewards || impact.hasPolls;
-        let archivePolls = false;
-        
         // Show impact modal if there's any impact
         if (hasImpact) {
           const confirmMsgTemplate = <%-safeJson(t('journeys.delete.confirm'))%>;
@@ -1015,7 +1013,6 @@
           });
           
           if (!result) return false;
-          archivePolls = result.archivePolls || false;
         } else {
           // Simple confirmation for journeys without impact
           const confirmTemplate = <%-safeJson(t('journeys.delete.confirm'))%>;
@@ -1027,10 +1024,7 @@
         const response = await fetch(`/api/journeys/${journeyId}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            confirmRewardsArchive: true,
-            archivePolls: archivePolls
-          })
+          body: JSON.stringify({ confirmRewardsArchive: true })
         });
 
         const data = await response.json();
@@ -1107,7 +1101,7 @@
           `;
         }
         
-        // Polls section with archive choice
+        // Polls section (their results stay in Analytics)
         let pollsHtml = '';
         if (options.hasPolls && options.polls && options.polls.length > 0) {
           pollsHtml = `
@@ -1119,24 +1113,7 @@
                   <span style="color: #5b6b80;">${p.responseCount} <%= t('journeys.delete.responses') %></span>
                 </div>
               `).join('')}
-              
-              <div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-                <p style="font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 8px;"><%= t('journeys.delete.pollDataQuestion') %></p>
-                <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin-bottom: 8px;">
-                  <input type="radio" name="pollChoice" value="archive" checked style="margin-top: 3px; accent-color: var(--gryffi-primary, #0b4b34);">
-                  <div>
-                    <span style="font-size: 13px; font-weight: 500; color: #374151;"><%= t('journeys.delete.archivePolls') %></span>
-                    <p style="font-size: 12px; color: #5b6b80; margin-top: 2px;"><%= t('journeys.delete.archivePollsDesc') %></p>
-                  </div>
-                </label>
-                <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
-                  <input type="radio" name="pollChoice" value="delete" style="margin-top: 3px; accent-color: var(--gryffi-primary, #0b4b34);">
-                  <div>
-                    <span style="font-size: 13px; font-weight: 500; color: #374151;"><%= t('journeys.delete.deletePolls') %></span>
-                    <p style="font-size: 12px; color: #5b6b80; margin-top: 2px;"><%= t('journeys.delete.deletePollsDesc') %></p>
-                  </div>
-                </label>
-              </div>
+              <p style="font-size: 12px; color: #5b6b80; margin-top: 8px;"><%= t('journeys.delete.archivePollsDesc') %></p>
             </div>
           `;
         }
@@ -1191,13 +1168,8 @@
         });
         
         document.getElementById('impactModalConfirm')?.addEventListener('click', () => {
-          // Get poll choice if polls exist
-          const pollChoice = modal.querySelector('input[name="pollChoice"]:checked')?.value;
           modal.remove();
-          resolve({ 
-            confirmed: true, 
-            archivePolls: pollChoice === 'archive' 
-          });
+          resolve({ confirmed: true });
         });
         
         document.getElementById('impactModalClose')?.addEventListener('click', () => {

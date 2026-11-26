@@ -1,11 +1,11 @@
 ---
 feature_id: password-management
-related_features: [authentication, password-reset, user-settings]
+related_features: [authentication, login, user-settings]
 ---
 
 # Password Management
 
-Password Management covers creating, changing, and securing your Gryffi account password.
+Password Management covers changing your Gryffi password and setting a new one when you forgot it.
 
 ![Change your password: current password (1), new password (2), confirm (3) and Update password (4)](images/password-management/change.en.webp)
 
@@ -16,76 +16,60 @@ Password Management covers creating, changing, and securing your Gryffi account 
 
 ## Overview
 
-Manage your password:
-
-- Create strong passwords
-- Change password regularly
-- Reset if forgotten
-- Security best practices
+- Change your password in My account.
+- Forgot your password? Ask for a reset link on the login page.
 
 [[goto:/dashboard/settings]]
 
 ## Password Requirements
 
-### Minimum Requirements
-
-| Requirement | Standard |
-|-------------|----------|
-| Length | 8+ characters |
-| Uppercase | At least 1 |
-| Lowercase | At least 1 |
-| Number | At least 1 |
-| Special Character | At least 1 |
+A password has at least 8 characters.
 
 ### Strong Password Tips
 
-- Use 12+ characters
-- Mix all character types
-- Avoid common words
-- Don't reuse passwords
-- Use passphrase method
+- Use 12 or more characters.
+- Use a sentence of several words that is easy for you to remember.
+- Mix letters, numbers and other characters.
+- Do not use a password that you use elsewhere.
 
 ## Changing Password
 
-### Steps
+1. Go to My account and scroll down to the Security section.
+2. Under **Change password**, enter your current password (1).
+3. Enter the new password (2).
+4. Enter the new password again in **Confirm new password** (3).
+5. Click **Update password** (4).
 
-1. Go to My account → scroll down to the Security section
-2. Click "Change Password"
-3. Enter current password (1)
-4. Enter new password (2)
-5. Confirm new password (3)
-6. Click **Update password** (4)
+Your other devices are signed out within a minute. This device stays signed in.
 
 ## Password Reset
 
 ### Forgotten Password
 
-1. Go to login page
-2. Click "Forgot Password"
-3. Enter email
-4. Check inbox
-5. Click reset link
-6. Create new password
+1. Go to the login page.
+2. Click **Forgot password?**.
+3. Enter your email address.
+4. Open the email from Gryffi.
+5. Click the link in the email.
+6. Enter a new password twice and save it.
 
-See: password-reset
+The link works for 1 hour. After that, ask for a new link. Gryffi always shows the same message, also when the email address is not known. This way nobody can find out which addresses have an account.
+
+After the reset, you sign in with the new password. Your other devices are signed out.
 
 ## Password Storage
 
-### Security
-
-- Passwords are hashed
-- Never stored in plain text
-- Cannot be retrieved
-- Only reset available
+- Gryffi stores your password encrypted, never as plain text.
+- Nobody can look up your password, not even an admin.
+- Forgot it? Set a new one with **Forgot password?**.
 
 ### Your Responsibility
 
-- Don't share passwords
-- Don't write down
-- Use password manager
-- Unique per service
+- Do not share your password.
+- Use a password manager.
+- Use a different password for every service.
 
 ## Related Features
 
-- [[goto:/dashboard/settings]] - Security settings
-- See: authentication, password-reset, two-factor-authentication
+- [[goto:/dashboard/settings]] - My account
+- See: authentication, login, two-factor-authentication

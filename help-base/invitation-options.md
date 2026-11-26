@@ -1,6 +1,6 @@
 ---
 feature_id: invitation-options
-related_features: [invitations-overview, invitation-reminders]
+related_features: [invitations-overview, magic-links]
 ---
 
 # Invitation Options
@@ -18,7 +18,7 @@ Invitation Options provide settings for customizing how journey invitations are 
 ### How long is the link valid?
 Choose how long the link is valid (1). After this period, the link expires and can no longer be used
 - 1 week
-- 2 weeks
+- 2 weeks (default)
 - 1 month
 - 3 months
 
@@ -31,10 +31,16 @@ Set how often a participant can go through the journey (2)
 ### Send reminder email?
 Send a reminder (3) to participants who haven't completed the journey. Gryffi sends it halfway through the period you set. So if the magic link expires in 2 weeks, then the reminder is sent after 1 week.
 
-- Yes, send reminder
+- Yes, send reminder (default)
 - No reminder
+
+Gryffi sends one reminder per invitation. No reminder goes out when:
+- The participant has already reached the end of the journey
+- The invitation has expired or was revoked
+- The journey is in the trash
 
 ## Related Features
 
 - [[goto:/dashboard/invitations]] - Send invitations
-- See: invitations-overview, invitation-reminders
+
+See: invitations-overview, magic-links

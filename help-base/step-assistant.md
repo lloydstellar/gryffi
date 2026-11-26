@@ -27,7 +27,7 @@ You can add a guide to Space, Content, Quiz, Form, Poll, Reward and Sub-Journey 
 ### What participants see
 
 1. The participant reaches the step
-2. They see the Ask John button (John is the name of the guide)
+2. They see a button such as Ask Robin (Robin is the name of the guide)
 3. They click it to open the guide
 4. They ask questions
 5. They get answers that fit the step

@@ -2544,7 +2544,9 @@
                 <% }) %>
               </optgroup>
             </select>
+            <% if (!locals.isCommunity) { %>
             <p class="text-xs text-zen-500 mt-1"><%= t('settings.organization.country.hint') %></p>
+            <% } %>
           </div>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">

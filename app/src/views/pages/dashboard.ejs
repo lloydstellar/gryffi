@@ -984,7 +984,7 @@
         <% const hasDashboardTip = typeof dashboardTip !== 'undefined' && !!dashboardTip; %>
         <% const lowReward = (typeof rewardStats !== 'undefined' && rewardStats) ? rewardStats.lowStockReward : null; %>
         <% const emptyGuides = (typeof guides !== 'undefined' && Array.isArray(guides)) ? guides.filter(g => (parseInt(g.chunks_count) || 0) === 0 && g.journeys_using && g.journeys_using.length > 0) : []; %>
-        <% const todoCount = (typeof expiringCount !== 'undefined' && expiringCount > 0 ? 1 : 0) + ((userRole === 'admin' || userRole === 'manager') && typeof formResponseCount !== 'undefined' && formResponseCount > 0 ? 1 : 0) + (typeof staleDrafts !== 'undefined' && staleDrafts.length > 0 ? 1 : 0) + (lowReward ? 1 : 0) + emptyGuides.length; %>
+        <% const todoCount = (typeof expiringCount !== 'undefined' && expiringCount > 0 ? 1 : 0) + (typeof formResponseCount !== 'undefined' && formResponseCount > 0 ? 1 : 0) + (typeof staleDrafts !== 'undefined' && staleDrafts.length > 0 ? 1 : 0) + (lowReward ? 1 : 0) + emptyGuides.length; %>
         <% if (userRole !== 'viewer' && (hasDashboardTip || todoCount > 0)) { %>
         <div class="dashboard-alerts">
           <%- include('../partials/dashboard-tip') %>
@@ -1002,7 +1002,7 @@
           </a>
           <% } %>
           
-          <% if ((userRole === 'admin' || userRole === 'manager') && typeof formResponseCount !== 'undefined' && formResponseCount > 0) { %>
+          <% if (typeof formResponseCount !== 'undefined' && formResponseCount > 0) { %>
           <a href="/dashboard/analytics#forms" class="dashboard-alert info">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>

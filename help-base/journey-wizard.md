@@ -25,268 +25,281 @@ A first version from the wizard is enough to test with. Send it to yourself and 
 The Journey Wizard:
 
 - Asks you a few simple questions, one per page
-- Generates a complete journey draft (steps, links, texts) using AI
-- Optionally creates or attaches an AI Guide
-- Optionally seeds that AI Guide's knowledge base with your uploaded document
-- Lets you resume where you left off if you close the modal by accident
-- Always saves the result as a **draft**, so nothing is visible to participants until you publish
+- Generates a journey draft (steps, links, texts) using AI
+- Optionally creates or attaches an AI guide
+- Optionally fills that AI guide's knowledge base with your uploaded document
+- Lets you pick up your answers again if you close it by accident
+- Saves the result as a **draft**, so nothing is visible to participants until you publish
 
 [[goto:/dashboard/journeys]]
 
 ## How to Start the Wizard
 
 1. Go to the Journeys list
-2. Click **Create journey**
+2. Click **Create Journey**
 3. A choice modal appears with two cards:
-   - **Start with the Wizard** (2) (recommended): opens the wizard
+   - **Start with the Wizard** (2): opens the wizard
    - **Start with a blank canvas** (1): goes straight to an empty journey
 4. Pick **Start with the Wizard**
 
 The wizard opens as a modal on top of the journeys page.
 
-> Viewers cannot create journeys, so the **Create journey** button is hidden for viewer role. If your organization is at its journey limit, the button is also disabled and explains why.
+Viewers cannot create journeys. For them the **Create Journey** button is greyed out.
 
-## Resuming a Wizard Session
+## Picking Up Your Answers Again
 
-If you close the wizard halfway (accidentally or on purpose), your answers are saved in the browser for 6 hours. The next time you open the wizard, it asks whether you want to:
+If you close the wizard halfway, your answers are kept in this browser tab for 6 hours. When you open the wizard again, it asks "Continue where you left off?":
 
-- **Continue** where you left off
-- **Start fresh** and discard the previous answers
+- **Continue**: the wizard opens at the first question, with your earlier answers filled in
+- **Start fresh**: the wizard discards the previous answers
 
-If your session has expired, the wizard just opens at the first question.
+The answers are gone when you close the browser tab. An uploaded document is kept for 2 hours. After that, upload it again.
 
 ## The Wizard Pages
 
-The wizard always asks the same questions in the same order, one per page. The step counter (3) shows where you are, for example Step 1 of 6. Click **Next** (5) to go to the next question. You can go back to change an earlier answer at any time, and every question is reachable from the final summary via a **Change** link.
+The wizard asks its questions in a fixed order, one per page. The step counter (3) shows where you are, for example Step 1 of 6. When you describe the journey yourself, there is one extra page. Click **Next** (5) to go to the next question, or **Back** to change an earlier answer. On the summary page every answer has a **Change** link.
 
-### 1. Source: "Where does your journey start from?"
+### 1. Starting point: "Do you have a document, or do you want to start from scratch?"
 
 Choose one of two starting points (4):
 
 - **I have a document**: Upload a file and Gryffi reads it to build the journey around its content. Supported formats: PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx), Excel (.xls/.xlsx), plain text (.txt), Markdown (.md), CSV, and images (.png, .jpg, .webp, .gif). Limits: **50 MB** per file, **60 pages**. If your document is longer than 60 pages, only the first 60 pages are used and the wizard warns you.
-- **I'll describe it myself**: No document needed. You type a short description on the next page.
+- **I describe it briefly myself**: No document needed. You type a short description on the next page.
 
-If the document parser is temporarily unavailable (which can happen on smaller dev environments), the upload returns a clear "parser unavailable" message. Try again in a minute or switch to the "describe" path.
+If the document reader is temporarily unavailable, the upload shows a message about it. Try again in a minute or describe the journey yourself.
 
-### 2. Topic: "What is your journey about?" *(only shown when "describe" was chosen)*
+### 2. Topic: "What should your journey be about?" *(only when you describe it yourself)*
 
-A free-text box where you describe, in a few sentences, what the journey should cover. The wizard requires at least 30 characters so the AI has something to work with.
+A text box where you describe, in a few sentences, what the journey should cover. Type at least 30 characters so the AI has something to work with.
 
-### 3. Purpose: "What is this journey for?"
+### 3. Purpose: "What will this journey be used for?"
 
-A single-choice list of six purposes. This steers tone, depth and the types of steps the AI picks:
+Pick one of six purposes. The purpose steers the tone and the focus of the journey:
 
 | Purpose | When to pick it |
 |---------|-----------------|
-| Onboarding | Welcoming new employees, first-week journeys |
-| Compliance | Safety, policy or compliance training. Always includes a knowledge check. |
-| Product | Product or procedure training with step-by-step explanations |
-| Tour | Location or facility introduction, prefers Space steps |
-| Knowledge | Internal knowledge sharing or reference material |
-| Welcoming guests or visitors | Hospitality journeys for hotel guests, campsite visitors, holiday-park residents, conference attendees, attraction visitors and other people you host on location. Switches to a friendly second-person tone, focuses on practical on-site info (arrival, facilities, Wi-Fi, rules, opening hours), keeps quizzes light and may end with a feedback poll. |
+| Onboarding new employees | Welcome, team info, first-week to-do's |
+| Compliance or safety training | Rules, protocols and a knowledge check |
+| Product or procedure training | Explain how a product or process works |
+| Tour or location introduction | Show a workspace, office or facility |
+| Knowledge sharing | Share internal know-how or customer information |
+| Welcoming guests or visitors | Hotel guests, campsite visitors, event attendees or other people you host on location. The texts speak to the guest directly and focus on practical on-site information. |
 
-### 4. Audience: "Who is this journey for?" *(optional)*
+On the same page you can fill in **Who is this journey for? (optional)**, for example "new warehouse staff" or "customers of our SaaS". It helps Gryffi match the tone of voice to your audience.
 
-A free-text hint about the target audience, for example "new warehouse staff" or "SaaS customers". It influences the tone of voice and the difficulty of quiz questions. You can leave this empty.
+### 4. Length: "How long should your journey feel?"
 
-### 5. AI Guide: "Do you want an AI Guide in this journey?"
+Drag the slider. It has five stops: Very compact, Compact, Balanced (the default), Extensive and Very extensive. Gryffi picks the number of steps within a range that fits the stop and how much there is to cover in your material:
 
-Four options. Some may be disabled based on earlier answers.
+| Stop | Steps |
+|------|-------|
+| Very compact | 3 to 4 |
+| Compact | 4 to 5 |
+| Balanced | 5 to 7 |
+| Extensive | 7 to 9 |
+| Very extensive | 9 to 12 |
 
-| Option | What it does | Notes |
-|--------|--------------|-------|
-| Use an existing AI Guide | Pick an AI Guide that already exists in your organization. | Shown only if you have at least one active AI Guide. |
-| Create a new Guide with my document as knowledge base | Creates a brand-new AI Guide and loads your uploaded document into its knowledge base. | Only available when you uploaded a document in step 1. Disabled when the organization is at the AI Guide limit. |
-| Create a new Guide (I'll add the knowledge later) | Creates an empty AI Guide that you can fill with documents later. | Disabled when the organization is at the AI Guide limit. |
-| No AI Guide | Skips adding an AI guide step. | Always available. |
+A long document can add one step to the range.
 
-When you create a new Guide you are asked for a **name** (e.g. "Willempie", "Sara", "Coach Max"). The field starts empty so you can pick a name that fits your organization's tone. The AI Guide's greeting will always use exactly the name you provided.
+### 5. Building blocks: "What goes in your journey?"
 
-### 6. Length: "How long should the journey be?"
+Reading sections (content steps) are always added. Tick the extras you want:
 
-Three options map directly to the number of generated steps:
+- **Video**: a content step for a video. Paste your own YouTube link in the builder afterwards.
+- **Image**: a content step with an image. Gryffi uses a free "Coming soon" placeholder you can swap out. Space steps also get this placeholder.
+- **Knowledge check**: a quiz step.
+- **Poll**: one opinion question, with no right or wrong answer.
+- **Form**: a small form to collect a name, email or short answer.
+- **AI guide**: a chat panel where participants can ask questions.
+- **Location step**: a space step that introduces a place, room or venue.
+- **Reward**: a closing gift.
+- **Choice moment**: a question with two choices, so participants can take different routes.
 
-- **Short**: 3 steps (intro, core content, closing)
-- **Medium**: 5 steps (default for most use cases)
-- **Long**: 7 steps, usually with at least one quiz
+You can leave everything unticked. Then the journey only has reading sections.
 
-The AI still picks the best types (content, quiz, form, poll, guide) based on the purpose. The length only caps the total.
+#### AI guide
 
-### 7. Branching: "Should the journey have a choice moment?"
+When you tick **AI guide**, pick one of three options:
 
-- **No** (default): a linear flow, every step leads to the next.
-- **Yes**: The AI places one branching moment in the middle. A content step asks a short question, and the participant picks the answer by clicking on one of two buttons. The button texts spell out the answers, so the participant sees what they are choosing.
+| Option | What it does |
+|--------|--------------|
+| Use one of my existing AI guides | Pick an AI guide you already set up. Greyed out when your organization has no AI guides yet. |
+| Create a new AI guide from my document | Creates a new AI guide and loads your uploaded document into its knowledge base. Only available when you uploaded a document on the first page. |
+| Create a new AI guide (I'll add documents later) | Creates an empty AI guide. You can add documents afterwards. This option is selected by default. |
 
-Branching is limited to **one** fork in the wizard output to keep the starting point simple. You can always add more branches manually in the builder afterwards.
+For a new AI guide you type a name under **What should your new AI guide be called?**. The guide's greeting always uses exactly that name. **Next** stays greyed out until you picked a guide or typed a name.
 
-### 8. Reward: "How do you want to end?"
+#### Reward
 
-Five closing options:
+When you tick **Reward**, pick one of four types:
 
 | Option | What happens |
 |--------|--------------|
-| Voucher / discount code | Adds a closing reward step framed as a voucher. You still need to configure actual codes in the builder. |
-| Completion certificate | Adds a closing reward step framed as a certificate. |
-| Warm thank-you | Adds a closing reward step with a thank-you tone. |
-| I'll set this up later | Adds an empty reward step for you to fill in later. |
-| No reward | Ends with a regular closing content step. |
+| A voucher or discount code | Adds a closing reward step framed as a voucher. You add the code in the builder. |
+| A completion certificate | Adds a closing reward step framed as a certificate. |
+| A simple thank-you message | Adds a closing reward step with a thank-you tone. |
+| Add a reward step (I'll fill it in later) | Adds an empty reward step for you to fill in later. |
 
-For the first three options you can optionally type extra context (e.g. "10% off our store"). The AI uses it to phrase the reward step. It never invents real codes, dates or URLs.
+Without a reward, the journey ends with a simple closing step. Under **Anything to add about the reward? (optional)** you can type extra context, for example "a 10% discount for our own webshop". The AI uses it to phrase the reward step. It never invents real codes, dates or URLs.
 
-### 9. Language: "In which language should the journey be written?"
+#### Choice moment
 
-Defaults to the interface language of the maker. You can pick any of the 14 languages Gryffi supports:
+When you tick **Choice moment**, a slider asks "How adventurous may the routes be?":
+
+| Stop | What you get |
+|------|--------------|
+| Subtle | One choice moment, paths merge again right away |
+| Variation | One choice moment, each path gets a step or two of its own before merging |
+| Separate routes (default) | One choice moment with different routes a few steps long. Routes merge at the end. |
+| Adventure | Two choice moments spread through the journey. Routes stay largely separate. |
+| Open ending | Several choice moments. Routes don't have to merge. Different endings are fine. |
+
+At a choice moment, a content step asks a short question. The participant picks an answer by clicking one of the buttons. The button texts spell out the answers.
+
+### 6. Language: "In which language should the journey be written?"
+
+Defaults to your own interface language. You can pick any of the 14 languages Gryffi supports for participants:
 
 English, Dutch, German, French, Spanish, Italian, Portuguese, Danish, Norwegian, Finnish, Swedish, Polish, Romanian, Turkish.
 
 All generated step content, titles, the guide greeting, button texts and the journey title are written in this language. You can translate the result later with Copy & Translate.
 
-### 10. Summary
+### 7. Summary: "Ready to build your journey?"
 
-Before the journey is generated, a summary page lists every answer. Each row except the journey name has a **Change** link that jumps back to that question. The summary also shows:
+Before the journey is generated, a summary page lists every answer. Each answer except the name has a **Change** link that jumps back to that question. The summary also shows:
 
-- The **journey name**: Gryffi picks this itself; you do not enter a title. The wizard tells you clearly that you can rename the journey later in the builder.
-- A soft **disclaimer** that the result is a starting point, not a finished journey.
+- The **name**: Gryffi picks a fitting name itself. You can rename it later in the builder.
+- A note that the result is a starting point, not a finished journey.
 
-Click **Build my journey** to launch generation.
+Click **Build my journey** to start.
 
 ## The Journey Name
 
-The wizard deliberately does **not** ask you to name the journey. A short, fitting title and a one-sentence description are generated by the AI, in the language you picked. This keeps the wizard one step shorter and avoids naming something before you have seen the content. You can rename the journey at any time in the Journey Settings.
+The wizard does not ask you to name the journey. The AI writes a short title and a one-sentence description, in the language you picked. You can rename the journey at any time in the Journey Settings.
 
 ## Progress and Completion
 
-While generating, a progress modal shows a status line that updates in real time through these stages:
+While generating, a progress window shows a status line that changes as Gryffi works:
 
-1. **Reading**: Reading your document (skipped if you chose "describe")
+1. **Reading**: Reading your document
 2. **Thinking**: Designing the steps
-3. **Creating**: Building the journey record
-4. **Steps**: Saving the individual steps
-5. **Paths**: Connecting the steps
-6. **Guide**: Creating or linking the AI Guide (if chosen)
-7. **Knowledge**: Indexing your uploaded document into the guide's knowledge base (if chosen)
-8. **Finishing**: Final cleanup
+3. **Creating**: Creating the journey
+4. **Guide**: Creating or linking the AI guide (if chosen)
+5. **Knowledge**: Reading your document into the new guide's knowledge base (if chosen)
+6. **Steps**: Adding the steps
+7. **Paths**: Linking the steps
+8. **Finishing**: Almost done
 
-Do not close the modal while the progress bar is running. Generation typically takes 20–60 seconds, longer for large documents.
+Do not close the window while Gryffi is working. If you close it, Gryffi asks you to confirm first.
 
 ### Success
 
-When the journey is ready, you see a green check and the message that a first version is enough to test. You then have three options:
+When the journey is ready, you see a green check and the message that a first version is enough to test. You then have these options:
 
 - **View it as a participant**: opens the preview, so you see the journey the way a colleague will. Try **Listen** (read aloud) and the dyslexia-friendly font there as well.
-- **Send it to yourself**: publishes the journey and emails you an invitation with a personal link, the same email a colleague gets. Only people you invite can open a published journey. This button is only there for admins and journey managers. See Invitations for the details.
+- **Send it to yourself**: publishes the journey and emails you an invitation with a personal link, the same email a colleague gets. Only people you invite can open a published journey. This button is only there for makers with the role Admin or Journey Manager. See Invitations for the details.
 - **Edit it in the builder first**: opens the new journey as a draft in the Journey Builder.
 
 ### Errors
 
 If anything fails, the wizard shows an error page with two actions:
 
-- **Try again**: Returns you to the summary so you can tweak an answer and retry.
-- **Create a blank journey instead**: Abandons the wizard and opens a fresh empty journey with the defaults, so your time is not wasted.
+- **Try again**: Returns you to the summary so you can change an answer and retry.
+- **Create a blank journey with this name instead**: Leaves the wizard and opens a new empty journey.
 
-Common failure causes: network hiccups, AI service rate limits, unreadable document (scanned PDF with no text layer), or the AI returning invalid JSON. In all cases retrying usually works.
+Common causes: network problems, a busy AI service, a document without readable text (a scanned PDF with no text layer), or the AI returning output Gryffi cannot use. Retrying usually works.
 
 ## What the Wizard Generates
 
 The wizard produces a draft journey containing:
 
-- **Exactly** the number of steps chosen in step 6 (3, 5 or 7)
-- A **content intro** as the first step
-- An optional **AI AI guide step** if you asked for one
-- One or more **content** and **quiz** steps based on the purpose
-- Occasionally a **form** or **poll** step where it makes sense
-- An optional **reward** step as the closing step
-- **Links** between all steps, including a branching fork if you asked for it
+- A number of steps within the range of the length you picked
+- Content steps as the backbone of the journey
+- The extras you ticked: video, image, quiz, poll, form, AI guide, location or reward steps
+- **Links** between all steps, including the choice moments if you asked for them
 - A **title** and a one-sentence **description**
 
 Defaults for specific step types the wizard creates:
 
-- **Content steps** are created with media type `text` so the builder shows the generated HTML body immediately in preview.
-- **Poll steps** get options as proper objects (id + text) so they render correctly.
+- **Content steps** with a video have no video link yet. Content steps with an image get the "Coming soon" placeholder.
 - **Form steps** are pre-filled with your own email address as the recipient, so you get the responses by email right away. You can change the recipient in the step settings.
-- **Guide steps** copy the real Guide's name, role and greeting into the step so nothing can go out of sync.
+- **AI guide steps** copy the real guide's name, role and greeting into the step so nothing can go out of sync.
 - **Reward steps** give every participant a random code. Terms and validity are yours to fill in. Want to hand out your own codes? Switch the step to custom codes and add them.
 
 ## What the Wizard Does NOT Do
 
-The wizard intentionally leaves a lot of things up to the maker:
+The wizard leaves a lot of things up to the maker:
 
-- It does **not** upload or insert custom images. Add your own images to content, space and reward steps in the builder.
+- It does **not** upload your own images or videos. Replace the placeholders in the builder.
 - It does **not** invent real discount codes, certificate URLs, voucher values or dates.
-- It does **not** publish the journey. The result is always a draft.
+- It does **not** publish the journey, unless you click **Send it to yourself** at the end.
 - It does **not** send invitations to participants.
 - It does **not** create Space steps with a floor plan or 360° panorama. Add those manually.
-- It does **not** create multiple branches. Only one fork is allowed, in the middle.
-- It does **not** replace the existing AI Guide's knowledge base when you pick "Use an existing AI Guide". The document, if uploaded, is only used to generate the journey content in that case, not to seed the existing guide.
+- It does **not** add your document to an existing AI guide's knowledge base when you pick "Use one of my existing AI guides". In that case the document is only used to write the journey.
 
 ## Role Limits
 
-The wizard respects the same limits as the rest of the app:
+- Viewers cannot create journeys, so the **Create Journey** button is greyed out for them.
+- Only makers with the role Admin or Journey Manager see **Send it to yourself**.
 
-- **Maker role**: viewers do not see the **Create journey** button at all.
+## Document Reading Notes
 
-## Document Parsing Notes
+The document you upload is sent to Gryffi's document reader to get the text out:
 
-The document you upload is sent to Gryffi's parser service to extract plain text:
-
-- PDF, Word and PowerPoint are processed with the **fast** parsing strategy, which avoids heavy OCR and keeps memory use low.
-- Scanned PDFs with no embedded text layer may return very little text. If you see a "we could not read any text from this file" error, try re-exporting the document or switch to the "describe" path.
-- The file is deleted after the journey is generated, unless you chose "Create a new Guide with my document as knowledge base". In that case the file is kept as a knowledge source on the new AI Guide and can be managed from the Guide's knowledge base page.
+- PDF, Word and PowerPoint are read with a fast method that skips text recognition on images (OCR).
+- Scanned PDFs with no text layer may give very little text. If you see "We couldn't read any text from this document", export the document again or describe the journey yourself.
+- The file is deleted after the journey is generated, unless you chose "Create a new AI guide from my document". In that case the file is kept as a knowledge source on the new AI guide and can be managed from the guide's knowledge base page.
 
 ## After the Wizard: Editing the Result
 
 Once you are in the builder:
 
 1. **Review every step**: The AI is good, but not perfect. Read the generated text and adjust facts, tone and length.
-2. **Rename the journey** if the AI's suggestion does not fit. Click empty canvas → Journey Settings → Title.
-3. **Add images and media**: Content steps only have text until you add images or videos.
-4. **Configure reward details**: Add your own voucher codes if you have them, certificate text or redemption instructions in the reward step.
-5. **Check form recipients**: The wizard defaults form submissions to your own email address. Change this in the form step settings if another person should receive the responses.
+2. **Rename the journey** if the AI's suggestion does not fit. Click empty canvas → Journey Settings → Journey Title.
+3. **Replace placeholders**: Add your own YouTube link to video steps and your own images to image and space steps.
+4. **Set up reward details**: Add your own voucher codes if you have them, certificate text or redemption instructions in the reward step.
+5. **Check form recipients**: The wizard sends form responses to your own email address. Change this in the form step settings if another person should receive them.
 6. **Publish** the journey when everything looks right.
 
 ## Tips
 
-- **Short documents work best**: A focused 5–20 page document produces a tighter journey than a 60-page monster handbook.
+- **Short documents work best**: A focused 5 to 20 page document gives a tighter journey than a 60-page handbook.
 - **Be specific in the audience field**: "newly hired warehouse operators" leads to different wording than "our customers".
-- **Use the describe path for abstract topics**: If your content is not really in a document yet, typing a description often produces a cleaner outcome than uploading an unrelated file.
-- **Keep the Guide name short and human**: It appears in the chat bubble; long names make it look awkward.
-- **Use Copy & Translate after**: Build one journey with the wizard in your main language, then translate the polished version into other languages with Copy & Translate.
+- **Describe abstract topics yourself**: If your content is not really in a document yet, typing a description often gives a cleaner result than uploading an unrelated file.
+- **Keep the guide name short and human**: It appears in the chat bubble. Long names look awkward.
+- **Use Copy & Translate after**: Build one journey with the wizard in your main language, then translate the finished version into other languages with Copy & Translate.
 
 ## Troubleshooting
 
 ### The Next button stays greyed out
 
-Each page has at least one required answer. On the source page you need to either upload a document successfully or pick the "describe" card. On the guide page you need a name for a new Guide or a selected existing Guide.
+Each page has at least one required answer. On the first page you need to either upload a document successfully or pick "I describe it briefly myself". On the building blocks page, a ticked AI guide needs a name for a new guide or a selected existing guide.
 
-### My document was uploaded but the Next button stays disabled
+### My document was uploaded but the Next button stays greyed out
 
-Wait for the "Document ready" confirmation with the file name and page count before clicking Next. If the upload appears to complete but the button stays disabled, click the **Change file** link and try again.
+Wait for the "Document ready" confirmation before clicking Next. If the button stays greyed out, click **Choose a different file** and try again.
 
-### We could not read this file
+### We couldn't read this file
 
-The parser service could not extract any text. Most common causes:
+The document reader could not get any text out of the file. Most common causes:
 
-- The PDF is an image scan without an OCR text layer
+- The PDF is an image scan without a text layer
 - The file is password-protected
-- The parser service is down on a small environment: try again in a minute
+- The document reader is temporarily unavailable: try again in a minute
 
 ### Generation fails halfway
 
-The AI sometimes returns malformed output or times out. Click **Try again** on the error screen. If it keeps failing, use **Create a blank journey instead** and add a few steps manually. Usually the wizard works again a little later.
+The AI sometimes returns output Gryffi cannot use, or takes too long. Click **Try again** on the error screen. A less extensive length can help. If it keeps failing, use **Create a blank journey with this name instead** and add a few steps yourself.
 
-### I opened the builder and the server froze
+### The AI guide's greeting mentions a different name than the one I gave
 
-This is an infrastructure issue, not a wizard bug. The generation uses a fair amount of memory. Make sure the host has swap or at least 4 GB of RAM available.
+The wizard corrects the name in the greeting to the name you typed. If you still see another name, reload the journey. The builder may be showing an older version.
 
-### The AI Guide's greeting mentions a different name than the one I gave
+### I want more choice moments
 
-The wizard actively reconciles the name in the greeting with the name you provided. If you still see a mismatch, reload the journey. The builder may be showing a cached version.
-
-### I want more branches than one
-
-The wizard only creates one fork by design. Open the journey in the builder and draw more links yourself. The builder supports any graph shape.
+Pick Adventure or Open ending on the choice moment slider. Or open the journey in the builder and add more links yourself. The builder supports any shape.
 
 ## Related Features
 
 - [[goto:/dashboard/journeys]] - Journey list
-- See: journey-builder, journey-settings, ai-guides-overview, guide-knowledge-base, guide-step, content-step, challenge-step, form-step, poll-step, reward-step, copy-translate, language-settings
+- See: journey-builder, journey-settings, journey-preview, invitations-overview, ai-guides-overview, guide-knowledge-base, guide-step, content-step, challenge-step, form-step, poll-step, reward-step, copy-translate, language-settings

@@ -912,6 +912,7 @@
       resources: <%- safeJson(resources || []) %>,
       guides: <%- safeJson(typeof guides !== 'undefined' ? guides : []) %>,
       readOnly: <%- safeJson(!!readOnly) %>,
+      isCommunity: <%- safeJson(!!locals.isCommunity) %>,
       // Viewers may preview but not send automation emails (api.js viewer rule)
       isViewer: <%- safeJson(locals.user?.role === 'viewer') %>,
       isDemoJourney: <%- safeJson(typeof isDemoJourney !== 'undefined' && isDemoJourney) %>,

@@ -171,16 +171,15 @@ router.get('/', async (req, res) => {
           AND expires_at > NOW()
       `, [orgId]);
       
-      // Recent poll responses (last 7 days) - using poll_responses as proxy for form activity
+      // Form submissions (private and public) from the last 7 days
       const formResponseStats = await query(`
         SELECT COUNT(*) as count
-        FROM poll_responses pr
-        JOIN polls p ON pr.poll_id = p.id
-        JOIN steps s ON p.step_id = s.id
-        JOIN journeys j ON s.journey_id = j.id
-        WHERE j.organization_id = $1 
-          AND j.deleted_at IS NULL
-          AND pr.created_at >= NOW() - INTERVAL '7 days'
+        FROM (
+          SELECT created_at FROM private_form_submissions WHERE organization_id = $1
+          UNION ALL
+          SELECT created_at FROM public_form_submissions WHERE organization_id = $1
+        ) s
+        WHERE s.created_at >= NOW() - INTERVAL '7 days'
       `, [orgId]);
       
       // Journey completion rate (from invitations)
@@ -384,68 +383,6 @@ router.get('/', async (req, res) => {
           hasKey: apiKeyStatus.rows[0]?.has_api_key || false,
           lastUsed: apiKeyStatus.rows[0]?.api_key_last_used_at
         }
-      };
-      
-      // Form submissions widget (admin/manager only - submissions may contain
-      // personal data, same restriction as the Analytics Forms tab).
-      // Private (magic link) and public journey submissions combined.
-      const formSubmissionStats = await query(`
-        SELECT 
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') as last_week
-        FROM (
-          SELECT created_at FROM private_form_submissions WHERE organization_id = $1
-          UNION ALL
-          SELECT created_at FROM public_form_submissions WHERE organization_id = $1
-        ) s
-      `, [orgId]);
-      
-      // Submissions from the last 7 days that include at least one uploaded file
-      const formSubmissionsWithFiles = await query(`
-        SELECT COUNT(DISTINCT COALESCE(private_submission_id, public_submission_id)) as count
-        FROM form_submission_files
-        WHERE organization_id = $1
-          AND created_at >= NOW() - INTERVAL '7 days'
-      `, [orgId]);
-      
-      // Most recent submissions for the compact list. COALESCE keeps archived
-      // titles visible after journey/step deletion.
-      const recentFormSubmissions = await query(`
-        SELECT s.id,
-               COALESCE(j.title, s.journey_title) AS journey_title,
-               COALESCE(st.title, s.step_title) AS step_title,
-               TRIM(COALESCE(eu.first_name, '') || ' ' || COALESCE(eu.last_name, '')) AS submitter_name,
-               s.created_at,
-               (SELECT COUNT(*) FROM form_submission_files f WHERE f.private_submission_id = s.id) AS file_count
-        FROM private_form_submissions s
-        LEFT JOIN journeys j ON s.journey_id = j.id
-        LEFT JOIN steps st ON s.step_id = st.id
-        LEFT JOIN end_users eu ON s.end_user_id = eu.id
-        WHERE s.organization_id = $1
-        
-        UNION ALL
-        
-        SELECT p.id,
-               COALESCE(j.title, p.journey_title) AS journey_title,
-               COALESCE(st.title, p.step_title) AS step_title,
-               TRIM(COALESCE(pp.first_name, '') || ' ' || COALESCE(pp.last_name, '')) AS submitter_name,
-               p.created_at,
-               (SELECT COUNT(*) FROM form_submission_files f WHERE f.public_submission_id = p.id) AS file_count
-        FROM public_form_submissions p
-        LEFT JOIN journeys j ON p.journey_id = j.id
-        LEFT JOIN steps st ON p.step_id = st.id
-        LEFT JOIN public_participants pp ON p.participant_id = pp.id
-        WHERE p.organization_id = $1
-        
-        ORDER BY created_at DESC
-        LIMIT 4
-      `, [orgId]);
-      
-      dashboardData.formSubmissions = {
-        total: parseInt(formSubmissionStats.rows[0]?.total || 0),
-        lastWeek: parseInt(formSubmissionStats.rows[0]?.last_week || 0),
-        withFilesLastWeek: parseInt(formSubmissionsWithFiles.rows[0]?.count || 0),
-        recent: recentFormSubmissions.rows
       };
     }
     
@@ -1067,7 +1004,7 @@ router.get('/journeys/trash', async (req, res) => {
         (SELECT COUNT(*) FROM steps WHERE journey_id = j.id) as step_count
       FROM journeys j
       LEFT JOIN users u ON j.created_by = u.id
-      WHERE j.organization_id = $1 AND j.deleted_at IS NOT NULL
+      WHERE j.organization_id = $1 AND j.deleted_at IS NOT NULL AND j.purged_at IS NULL
       ORDER BY j.deleted_at DESC
     `, [orgId]);
 
@@ -1538,6 +1475,8 @@ router.get('/participants', requireAdmin, (req, res) => renderSystemSettings(req
 router.get('/analytics', async (req, res) => {
   try {
     const orgId = req.session.organization.id;
+    // "Show deleted journeys and steps": off unless ?deleted=1
+    const showDeleted = req.query.deleted === '1';
     
     // Get all polls with their step and journey info (newest first)
     const pollsResult = await query(`
@@ -1601,7 +1540,7 @@ router.get('/analytics', async (req, res) => {
           WHEN p.step_id IS NOT NULL AND EXISTS (
             SELECT 1 FROM steps st 
             JOIN journeys jn ON st.journey_id = jn.id 
-            WHERE st.id = p.step_id AND jn.deleted_at IS NOT NULL
+            WHERE st.id = p.step_id AND jn.deleted_at IS NOT NULL AND jn.purged_at IS NULL
           ) THEN true
           ELSE false
         END as is_restorable,
@@ -1698,18 +1637,18 @@ router.get('/analytics', async (req, res) => {
         r.is_archived,
         r.archived_at,
         r.created_at,
-        COALESCE(j.title, 'Deleted Journey') as journey_title,
-        COALESCE(s.title, 'Deleted Step') as step_title,
+        j.title as journey_title,
+        s.title as step_title,
         (SELECT COUNT(*) FROM reward_codes WHERE reward_id = r.id) as total_codes,
         (SELECT COUNT(*) FROM reward_codes WHERE reward_id = r.id AND is_claimed = true) as claimed_count,
         -- Check if restorable: journey_id exists AND journey is in trash (not permanently deleted)
         CASE 
-          WHEN r.journey_id IS NOT NULL AND j.deleted_at IS NOT NULL THEN true
+          WHEN r.journey_id IS NOT NULL AND j.deleted_at IS NOT NULL AND j.purged_at IS NULL THEN true
           ELSE false
         END as is_restorable
       FROM rewards r
       LEFT JOIN journeys j ON r.journey_id = j.id
-      LEFT JOIN steps s ON r.step_id = s.id
+      LEFT JOIN analytics_steps s ON r.step_id = s.id AND s.journey_id = r.journey_id
       WHERE r.organization_id = $1 
         AND r.is_archived = true
       ORDER BY r.archived_at DESC
@@ -1727,21 +1666,24 @@ router.get('/analytics', async (req, res) => {
       claimed_count: parseInt(r.claimed_count) || 0
     }));
     
-    // Get journeys for the journey selector dropdown
+    // Get journeys for the journey selector dropdown (deleted ones only with
+    // "Show deleted journeys and steps" on)
     const journeysResult = await query(`
-      SELECT id, title, status
+      SELECT id, title, status, (deleted_at IS NOT NULL) AS is_deleted
       FROM journeys
-      WHERE organization_id = $1 AND deleted_at IS NULL
-      ORDER BY title ASC
-    `, [orgId]);
-    
+      WHERE organization_id = $1 AND ($2::boolean OR deleted_at IS NULL)
+      ORDER BY (deleted_at IS NOT NULL), title ASC
+    `, [orgId, showDeleted]);
+
     res.render('pages/analytics', {
       polls,
-      archivedPolls,
+      // Archived polls and rewards belong to deleted journeys and steps
+      archivedPolls: showDeleted ? archivedPolls : [],
       rewards,
-      archivedRewards,
+      archivedRewards: showDeleted ? archivedRewards : [],
       usageData,
-      journeys: journeysResult.rows
+      journeys: journeysResult.rows,
+      showDeleted
     });
     
   } catch (err) {

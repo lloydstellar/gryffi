@@ -1,6 +1,6 @@
 ---
 feature_id: invitations-overview
-related_features: [end-user-management, end-user-groups]
+related_features: [invitation-options, magic-links, end-user-management, end-user-groups]
 ---
 
 # Invitations Overview
@@ -24,8 +24,8 @@ Invitations help you:
 
 - Tell participants about available journeys
 - Track who has been invited
-- Monitor invitation acceptance rates
-- Send reminders to non-responders
+- See the status of each invitation
+- Send an automatic reminder to participants who have not finished
 
 [[goto:/dashboard/invitations]]
 
@@ -40,6 +40,10 @@ The wizard has four steps (1):
 3. Select participants: Select one or more participants or one or more groups.
 4. Review & Send: Review what invitation emails you are sending and to who.
 
+Only Admins and Journey Managers can send invitations. Other makers can view the list of sent invitations.
+
+Each participant can have one open invitation per journey. If a participant already has a Pending or Active invitation for the journey, Gryffi skips them and sends no second invitation.
+
 ### Send it to yourself
 
 Before you invite colleagues, you can send a journey to yourself. You find **Send it to yourself** on the last screen of the Journey Wizard and in the **Get started** card on the Dashboard.
@@ -50,18 +54,25 @@ One click does three things:
 2. You are added as a participant, with your own email address.
 3. You get the invitation email with a personal link, in the language of the journey. The link works for 14 days and you can use it more than once, for example after you change something.
 
-If you already have an open invitation for that journey, Gryffi does not send a new one and tells you to look in your inbox. Only admins and journey managers can use **Send it to yourself**, because it publishes the journey.
+If you already have an open invitation for that journey, Gryffi does not send a new one and tells you to look in your inbox. Only Admins and Journey Managers can use **Send it to yourself**, because it publishes the journey.
 
 ### Send invitation through the API
 
-You can also use our Gryffi API to send invitations. Set up the API on the Organization page, tab API. 
+You can also use our Gryffi API to send invitations. Set up the API on the Organization page, tab API.
 
 ### Sent Invitations
 
-The list of sent invitations shows the status of each invitation (5). Use the status filter (4) to show only Pending, Active, Completed or Expired invitations. For an invitation that is not completed, **Send again** (6) emails the invitation to the participant once more. **Revoke** next to it makes the link stop working.
+The list of sent invitations shows the status of each invitation (5). Use the status filter (4) to show only Pending, Active, Completed or Expired invitations. A revoked invitation has the status Revoked.
+
+For an invitation that is not completed, **Send again** (6) emails the invitation to the participant once more. It is the same link, and it stays valid until the original end date. You can send an invitation again at most once every 10 minutes.
+
+**Revoke** makes the link stop working. The participant then sees a message that the invitation is no longer valid. Only Admins and Journey Managers can send again or revoke.
+
+Completed and expired invitations are removed after 1 year, together with the progress made with them.
 
 ## Related Features
 
 - [[goto:/dashboard/invitations]] - Manage invitations
 - [[goto:/dashboard/invitations]] - Send new invitation
-- See: end-user-management, end-user-groups
+
+See: invitation-options, magic-links, end-user-management, end-user-groups

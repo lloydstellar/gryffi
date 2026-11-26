@@ -1,69 +1,69 @@
 ---
 feature_id: admin-role
-related_features: [maker-roles, manager-role, editor-role, viewer-role, team-management]
+related_features: [maker-roles, journeymanager-role, editor-role, viewer-role, makers-management]
 ---
 
 # Admin Role
 
-The Admin role has full access to all features in Gryffi, including organization settings, and team management.
+The Admin role has full access to Gryffi. Admins also manage makers, participants and the settings of the organization.
 
 ## Overview
 
 Admins can:
 
-- Access all journeys and guides
-- Manage all makers
-- Configure organization settings
-- Access all analytics and reports
-- Configure integrations like participant syncs and Gryffi API
+- Build, publish and delete all journeys and AI guides
+- Invite makers, change their role and delete their accounts
+- Add participants and groups, and link Microsoft 365 or Google Workspace
+- Change the settings on the **Organization** page, such as the API key and themes
+- Open Analytics and download reports
+- Delete the results of deleted journeys and steps, and archived polls
 
 ## Permissions
 
-### Content Management
+### Journeys and AI guides
 
 | Permission | Admin |
 |------------|:-----:|
-| Create journeys | Yes |
-| Edit any journey | Yes |
-| Delete any journey | Yes |
-| Publish journeys | Yes |
-| Create AI guides | Yes |
-| Edit any guide | Yes |
-| Delete any guide | Yes |
+| Create and edit journeys | Yes |
+| Publish journeys and take them offline | Yes |
+| Move journeys to the trash, restore them, delete them for good | Yes |
+| Create and edit AI guides | Yes |
+| Move AI guides to the trash, restore them, delete them for good | Yes |
 
-### Managing Makers and Participants
+### Makers and participants
 
 | Permission | Admin |
 |------------|:-----:|
-| Invite team members | Yes |
-| Remove team members | Yes |
-| Change member roles | Yes |
-| Manage participants | Yes |
+| Invite makers | Yes |
+| Delete maker accounts | Yes |
+| Change the role of makers | Yes |
+| Add, edit and delete participants | Yes |
 | Manage groups | Yes |
-| Send invitations | Yes |
+| Link Microsoft 365 or Google Workspace | Yes |
+| Send invitations to participants | Yes |
 
-### Settings & Configuration
+Only admins see **Participants** in the sidebar.
+
+### Organization page
 
 | Permission | Admin |
 |------------|:-----:|
 | Organization settings | Yes |
-| API keys | Yes |
-| Integrations | Yes |
-| Custom themes | Yes |
-| Email templates | Yes |
+| API key | Yes |
+| Create, edit, activate and delete themes | Yes |
 
-### Analytics & Reports
+### Analytics and reports
 
 | Permission | Admin |
 |------------|:-----:|
-| View all analytics | Yes |
-| Export PDF raports | Yes |
-| View audit logs | Yes |
-| Access all reports | Yes |
+| Open Analytics, including Forms | Yes |
+| Preview and download PDF reports | Yes |
+| Delete results of deleted journeys and steps | Yes |
+| Delete archived polls | Yes |
 
-## When to Assign Admin Role
+## When to Give the Admin Role
 
-Assign Admin role to:
+Give the Admin role to:
 
 - Organization owners
 - IT administrators
@@ -72,26 +72,30 @@ Assign Admin role to:
 ## Best Practices
 
 ### Security
-- Limit number of admins
-- Require 2FA for all admins
-- Review admin list regularly
-- Audit admin actions periodically
+- Keep the number of admins small.
+- Ask every admin to turn on two-factor authentication in **My account**.
+- Check the list of admins regularly.
 
 ### Delegation
-- Use Manager role for content oversight
-- Use Editor role for content creation
-- Only use Admin for those needing full access
+- Use the Journey Manager role for people who publish journeys and invite participants.
+- Use the Editor role for people who build journeys.
+- Only give the Admin role to people who need full access.
+
+An organization always keeps at least one admin.
 
 ## Comparison with Other Roles
 
-| Capability | Admin | Manager | Editor | Viewer |
-|------------|:-----:|:-------:|:------:|:------:|
-| Full settings access | Yes | No | No | No |
-| Makers management | Yes | Limited | No | No |
-| Create content | Yes | Yes | Yes | No |
-| View analytics | Yes | Yes | Own | Limited |
+| Capability | Admin | Journey Manager | Editor | Viewer |
+|------------|:-----:|:---------------:|:------:|:------:|
+| Organization page | Yes | No | No | No |
+| Manage makers | Yes | View the list | View the list | No |
+| Manage participants and groups | Yes | No | No | No |
+| Publish and send invitations | Yes | Yes | No | No |
+| Create and edit content | Yes | Yes | Yes | No |
+| Open Analytics | Yes | Yes | Yes | Yes |
+| Delete results of deleted journeys and steps | Yes | No | No | No |
 
 ## Related Features
 
 - [[goto:/dashboard/team]] - Makers management
-- See: maker-roles, manager-role, editor-role, viewer-role
+- See: maker-roles, journeymanager-role, editor-role, viewer-role, two-factor-authentication
