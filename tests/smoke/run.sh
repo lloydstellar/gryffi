@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Smoke test: install Gryffi from its images on this machine and walk through
-# setup, a journey and the player in a browser (smoke.mjs).
+# setup, a journey, the player and Analytics in a browser (smoke.mjs).
 #
 #   tests/smoke/run.sh
 #

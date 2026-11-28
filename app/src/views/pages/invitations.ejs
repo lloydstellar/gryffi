@@ -1452,7 +1452,7 @@
       
       // Format date
       function formatDate(dateStr) {
-        return new Date(dateStr).toLocaleDateString(language, { 
+        return new Date(dateStr).toLocaleDateString(language === 'en' ? 'en-GB' : language, { 
           day: 'numeric', 
           month: 'short', 
           year: 'numeric' 

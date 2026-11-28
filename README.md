@@ -58,7 +58,7 @@ Not sure where to start? Upload a document and the journey wizard drafts a journ
 - **Public journeys**: share a journey with a link, for visitors or applicants without an invitation.
 - **API**: manage participants, groups and invitations from your own systems.
 
-![The funnel of a journey in Analytics: how many participants reached each step, from the welcome step to the reward](docs/public/images/analytics-funnel.png)
+![The funnel of a journey in Analytics: how many participants reached each step, from the welcome step to the reward, with the two routes participants could choose after the first step](docs/public/images/analytics-funnel.png)
 
 ## AI on your terms
 

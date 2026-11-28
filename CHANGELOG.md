@@ -3,6 +3,103 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.13.0] - 2026-11-28
+
+This release changes how the participant player and Analytics look. It
+does not change the database. You do not need to do anything.
+
+Player:
+
+- Every step type uses the same layout. Above the card: "Step X of Y"
+  with one block per step. On the card: a label with the kind of step
+  (Reading, Quiz, Conversation, ...), and one way on: a single button,
+  or a list of choices after a branch.
+- On a phone, the Next button sits in a bar at the bottom of the screen.
+  On a computer, a photo, 360 photo or video sits next to the text when
+  the journey is wide enough. Makers build one version; the player
+  adapts.
+- In the preview, makers switch between Phone and Computer.
+- Quiz, form, poll, guide and reward have the new style. Form errors
+  show next to the field, optional fields are marked, and a reward code
+  has a Copy code button.
+- When a maker sets a minimum time on a step, the player no longer
+  counts down the seconds. It shows one calm line, and the button
+  appears when the time is up.
+- The send button of the guide chat works on phones. The floor plan
+  closes with Escape and its buttons have labels.
+- On a phone the card uses less padding at the sides, so text gets more
+  room. A button or field that gets keyboard focus no longer hides
+  under the button bar at the bottom.
+- Copy code also works when Gryffi runs over plain HTTP: browsers only
+  offer the clipboard API over HTTPS.
+- The Card Border color of a custom theme applies to answers, choices
+  and form fields again.
+- The notice "continue where you were" of a public journey sits above
+  the step, also when the step shows a photo or video next to the text.
+- In the preview, a 360 photo resizes when you switch between Phone and
+  Computer.
+- A form field without a valid type (from old data or the API) no longer
+  blocks sending the form.
+
+Analytics:
+
+- One period for the whole page (7, 30, 90 or 365 days, or all time),
+  in one bar with Show deleted and Download PDF.
+- Five tabs: Overview, Journeys, Participants, Groups and Responses.
+  Polls, forms and rewards are under Responses. Old links still open the
+  right tab.
+- The Reports tab is gone. Download PDF makes a report of what the tab
+  shows, for the same period. The reports for one participant and one
+  group are in their windows. The window shows the PDF itself; on a
+  phone it downloads.
+- Calmer charts: completed drawn inside started, whole numbers, per day,
+  week or month, with a sentence that gives the totals. The PDF uses the
+  same chart.
+- The funnel shows the routes after a choice indented, and a step table
+  with the step names from the builder and how many people stopped
+  there.
+- Groups has a "Whole organization" row instead of a comparison chart.
+  Forms shows one table per form, with a column per question.
+- The usage bars moved out of Analytics. In the Community Edition there
+  are no limits, so they showed nothing useful there.
+
+Analytics numbers that were wrong:
+
+- A sub-journey step counted as reached by nobody (100% drop-off).
+- Drop-off per step could be negative when a journey branches. It is now
+  the number of people who reached the step and did not complete it.
+- The journey report counted the completion rate against all
+  invitations, and listed steps by their position on the canvas. It now
+  uses the participants who started, and the order of the journey, as
+  the Journeys tab does.
+- The overview report counted invitations created in the period, which
+  gave results like "0 invitations, -100%". It now counts started
+  journeys, like the Overview tab, and shows no trend when the previous
+  period had nothing.
+- The group report PDF was empty.
+- The score distribution in the engagement report was always 0.
+- The participant report counts a completed sub-journey as completed,
+  shows a completion date only for completed journeys, and "First seen"
+  is the first activity.
+- Downloading a report after choosing another journey or period gave the
+  old report.
+- The journey report now uses the chosen period everywhere: invitations,
+  poll votes and the participant list too, not only the funnel. Its
+  funnel is the one on the Journeys tab, including deleted steps when
+  Show deleted is on.
+- The overview report showed other monthly bars than the screen for 365
+  days and all time, and ranked the top journeys differently. Both now
+  match the Overview tab.
+- The filter "Show polls of" under Responses did nothing.
+- Form tables put the questions in a random order. They now follow the
+  order of the form. Two forms with the same name no longer end up in
+  one table.
+
+Maker interface:
+
+- English dates use the British format (30 Oct 2026) in Analytics,
+  Makers, Invitations, the trash and the organization settings.
+
 ## [0.12.0] - 2026-11-26
 
 Before you update: this release changes the database when Gryffi starts.

@@ -1499,12 +1499,11 @@
       "maxRecipientsMinDesc": "Ne peut pas être inférieur à {{min}} (codes déjà réclamés)",
       "preview": {
         "congratulations": "Félicitations !",
-        "youAreNumber": "Vous êtes le #{{position}} à réclamer cette récompense !",
         "yourCode": "Votre code de récompense",
         "redeemAt": "À échanger chez",
         "terms": "Conditions",
         "validUntil": "Valable jusqu'au",
-        "downloadCoupon": "Télécharger le coupon",
+        "downloadCoupon": "Télécharger en PDF",
         "emailSent": "Une copie a été envoyée à votre adresse e-mail",
         "alreadyClaimed": "Vous avez déjà réclamé une récompense pour ce parcours",
         "noMoreRewards": "Désolé, toutes les récompenses ont été réclamées",
@@ -1734,6 +1733,11 @@
         "text": "C'était le parcours de démonstration. Voulez-vous voir comment il est construit, ou créer le vôtre ?",
         "viewInBuilder": "Voir ce parcours dans l'éditeur",
         "createFirst": "Créer votre premier parcours"
+      },
+      "device": {
+        "label": "Afficher sur",
+        "phone": "Téléphone",
+        "desktop": "Ordinateur"
       }
     },
     "mobileWarning": {
@@ -2804,13 +2808,16 @@
       "polls": "Sondages",
       "rewards": "Récompenses",
       "reports": "Rapports",
-      "forms": "Formulaires"
+      "forms": "Formulaires",
+      "answers": "Réponses"
     },
     "dateRange": {
       "last7days": "7 derniers jours",
       "last30days": "30 derniers jours",
       "last90days": "90 derniers jours",
-      "label": "Période"
+      "label": "Période",
+      "last365days": "365 derniers jours",
+      "allTime": "Toute la période"
     },
     "kpi": {
       "journeysStarted": "Parcours démarrés",
@@ -2818,7 +2825,9 @@
       "avgDuration": "Temps moyen par étape",
       "activeUsers": "Participants actifs",
       "started": "Démarrés",
-      "completed": "Terminés"
+      "completed": "Terminés",
+      "completedOf": "{{completed}} sur {{started}} terminés",
+      "byParticipants": "par {{count}} participants"
     },
     "chart": {
       "started": "Démarrés",
@@ -2828,7 +2837,11 @@
       "journeyPerformance": "Résultats des parcours",
       "completionTrend": "Tendance d'achèvement",
       "topJourneys": "Meilleurs parcours",
-      "noJourneyData": "Aucune donnée de parcours disponible pour cette période"
+      "noJourneyData": "Aucune donnée de parcours disponible pour cette période",
+      "trendTitle": "Commencés et terminés",
+      "trendSentence": "Sur cette période : {{started}} commencés, {{completed}} terminés.",
+      "trendEmpty": "Personne n'a commencé de parcours sur cette période.",
+      "weekOf": "Semaine du {{date}}"
     },
     "journeys": {
       "title": "Analyse des parcours",
@@ -2838,7 +2851,9 @@
       "funnel": "Entonnoir de progression",
       "stepPerformance": "Résultats par étape",
       "dailyTrend": "Activité quotidienne",
-      "noStepData": "Aucune donnée d'étape disponible"
+      "noStepData": "Aucune donnée d'étape disponible",
+      "funnelSentence": "{{started}} ont commencé. {{completed}} sont allés jusqu'au bout.",
+      "branchNote": "Embranchement : les participants choisissent un chemin"
     },
     "users": {
       "title": "Analyse par participant",
@@ -2851,7 +2866,8 @@
       "stepsCompleted": "étapes terminées",
       "completed": "Terminé",
       "quizPerformance": "Résultats aux quiz",
-      "lastActivity": "Dernière activité"
+      "lastActivity": "Dernière activité",
+      "openDetails": "Ouvrir le détail de {{name}}"
     },
     "replay": {
       "title": "Déroulé du parcours",
@@ -2865,6 +2881,8 @@
       "quizzes": "Quiz",
       "chats": "Discussions avec le guide",
       "status": "Statut",
+      "statusCompleted": "Terminé",
+      "statusNotCompleted": "Non terminé",
       "timing": "Temps",
       "started": "Commencé",
       "completed": "Terminé",
@@ -2912,7 +2930,8 @@
       "passRate": "Taux de réussite",
       "totalAttempts": "Total des tentatives",
       "topPerformers": "Meilleurs résultats",
-      "journeysStarted": "Parcours commencés"
+      "journeysStarted": "Parcours commencés",
+      "wholeOrganization": "Toute l'organisation"
     },
     "table": {
       "journey": "Parcours",
@@ -2927,7 +2946,7 @@
       "dropOff": "Abandon",
       "user": "Participant",
       "group": "Groupe",
-      "journeysCompleted": "Parcours",
+      "journeysCompleted": "Parcours terminés",
       "avgQuizScore": "Score aux quiz",
       "lastActivity": "Dernière activité",
       "members": "Membres",
@@ -2936,7 +2955,8 @@
       "quiz": "Quiz",
       "attempts": "Tentatives",
       "bestScore": "Meilleur",
-      "avgScore": "Moyenne"
+      "avgScore": "Moyenne",
+      "stoppedHere": "Arrêtés ici"
     },
     "actions": {
       "viewDetails": "Voir les détails"
@@ -3069,7 +3089,9 @@
       "videosWatched": "Vidéos vues",
       "videoViews": "Vues des vidéos",
       "inProgress": "En cours",
-      "createdAt": "Créé"
+      "createdAt": "Créé",
+      "organisation": "Rapport de l'organisation",
+      "close": "Fermer"
     },
     "polls": {
       "title": "Résultats des sondages",
@@ -3137,7 +3159,8 @@
       "sortOldest": "Les plus anciennes d'abord",
       "sortBySubmitter": "Par personne (A-Z)",
       "sortByForm": "Par formulaire (A-Z)",
-      "noFilterResults": "Aucun formulaire envoyé ne correspond aux filtres choisis."
+      "noFilterResults": "Aucun formulaire envoyé ne correspond aux filtres choisis.",
+      "submittedAt": "Envoyé le"
     },
     "filters": {
       "journey": "Parcours",
@@ -3185,6 +3208,14 @@
       "notFound": "Ces résultats ont déjà été supprimés. Rechargez la page.",
       "journeyFallback": "Parcours supprimé",
       "stepFallback": "Étape supprimée"
+    },
+    "toolbar": {
+      "allResults": "Tous les résultats",
+      "showDeleted": "Afficher les supprimés",
+      "downloadPdf": "Télécharger le PDF"
+    },
+    "answers": {
+      "label": "Type de réponses"
     }
   },
   "subscription": {

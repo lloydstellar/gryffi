@@ -434,7 +434,7 @@
     }
 
     function formatDate(d) {
-      try { return new Date(d).toLocaleDateString('<%= language %>'); } catch (e) { return ''; }
+      try { return new Date(d).toLocaleDateString(<%- safeJson(language === 'en' ? 'en-GB' : language) %>, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; }
     }
 
     function renderMembers(members) {

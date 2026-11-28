@@ -116,7 +116,8 @@ app.use((req, res, next) => {
     fontSrc: ["'self'"],
     imgSrc: ["'self'", "data:", "blob:", "https://images.pexels.com", "https://i.ytimg.com", "https://img.youtube.com", "https://api.dicebear.com"],
     scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", ...cloudCsp.script],
-    frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://youtube-nocookie.com", ...cloudCsp.frame],
+    // blob: shows a PDF report that the page made itself (Analytics)
+    frameSrc: ["'self'", "blob:", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://youtube-nocookie.com", ...cloudCsp.frame],
     connectSrc: ["'self'", ...cloudCsp.connect],
     objectSrc: ["'self'"],
     // Listen (TTS): the player primes audio with a silent data: WAV inside the
@@ -302,6 +303,10 @@ app.use((req, res, next) => {
 // Re-check role and active status of the logged-in maker (deactivated or
 // demoted makers lose their rights within 30 seconds, not when the session ends)
 app.use(refreshSessionUser);
+
+// Gryffi Cloud: an admin who opened a partner's link and then logged in gets
+// the organization linked to that partner (src/cloud/routes/via.js)
+if (cloud) app.use(cloud.linkPendingReferral);
 
 // Apply tenant filter (sets req.organizationId from session)
 app.use(tenantFilter);

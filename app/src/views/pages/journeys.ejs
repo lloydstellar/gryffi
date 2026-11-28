@@ -568,7 +568,7 @@
                   <%# No "by Unknown" when the maker no longer exists %>
                   <% if (journey.created_by_name) { %><%= t('common.by') %> <%= journey.created_by_name %><% } %>
                   <% if (typeof isTrash !== 'undefined' && isTrash && journey.deleted_at) { %>
-                    <%= journey.created_by_name ? '·' : '' %> <%= t('journeys.trash.deleted') %> <%= new Date(journey.deleted_at).toLocaleDateString(language) %>
+                    <%= journey.created_by_name ? '·' : '' %> <%= t('journeys.trash.deleted') %> <%= new Date(journey.deleted_at).toLocaleDateString((language === 'en' ? 'en-GB' : language), { day: 'numeric', month: 'short', year: 'numeric' }) %>
                   <% } %>
                 </span>
                 <% if (typeof isTrash !== 'undefined' && isTrash && journey.deleted_at && trashRetentionDays > 0) { %>
@@ -579,7 +579,7 @@
                     const isUrgent = daysRemaining <= 3;
                   %>
                   <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-500' %>">
-                    <%= t('journeys.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString(language) %>
+                    <%= t('journeys.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString((language === 'en' ? 'en-GB' : language), { day: 'numeric', month: 'short', year: 'numeric' }) %>
                     <% if (daysRemaining > 0) { %>
                       (<%= daysRemaining %> <%= t('subscription.days') %>)
                     <% } %>

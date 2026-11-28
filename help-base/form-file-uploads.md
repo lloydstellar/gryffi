@@ -40,7 +40,7 @@ Uploaded files are never attached to the notification email. Instead:
 - Files are stored in Gryffi. Only your own organization can reach them.
 - The notification email has a unique download link for each file. Nobody can guess the link.
 - Download links work for **30 days** after the submission.
-- After a link has expired, makers can still download the file on the Forms tab in Analytics.
+- After a link has expired, makers can still download the file in Analytics, tab Responses, under Forms.
 
 See: form-submissions
 

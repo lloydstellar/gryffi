@@ -115,7 +115,7 @@ Analytics PDF reports use the colors and logo of the active theme.
 
 - Use the official colors of your organization.
 - Check that text is easy to read on its background. Good contrast helps everyone, also people with low vision or dyslexia.
-- Preview the journey on a phone.
+- Check the journey in the preview with **Phone** and **Computer**. See: journey-preview
 
 ## Related Features
 

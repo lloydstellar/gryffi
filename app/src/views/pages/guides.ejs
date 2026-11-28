@@ -487,7 +487,7 @@
             <div class="mt-4 pt-4 border-t border-zen-100 flex items-center justify-between">
               <% if (typeof isTrash !== 'undefined' && isTrash && guide.deleted_at) { %>
                 <span class="text-xs text-zen-500">
-                  <%= t('guides.trash.deleted') %> <%= new Date(guide.deleted_at).toLocaleDateString(language) %>
+                  <%= t('guides.trash.deleted') %> <%= new Date(guide.deleted_at).toLocaleDateString((language === 'en' ? 'en-GB' : language), { day: 'numeric', month: 'short', year: 'numeric' }) %>
                 </span>
                 <% if (trashRetentionDays > 0) { %>
                   <% 
@@ -497,7 +497,7 @@
                     const isUrgent = daysRemaining <= 3;
                   %>
                   <span class="text-xs <%= isUrgent ? 'text-red-500 font-medium' : 'text-zen-500' %>">
-                    <%= t('guides.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString(language) %>
+                    <%= t('guides.trash.permanentDeleteOn') %> <%= permanentDeleteDate.toLocaleDateString((language === 'en' ? 'en-GB' : language), { day: 'numeric', month: 'short', year: 'numeric' }) %>
                     <% if (daysRemaining > 0) { %>
                       (<%= daysRemaining %> <%= t('subscription.days') %>)
                     <% } %>

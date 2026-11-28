@@ -7,11 +7,12 @@ related_features: [journey-builder, journey-settings, language-settings, step-pa
 
 Journey Preview allows you to experience your journey exactly as participants will see it before publishing.
 
-![The preview of a journey: the progress bar (1), the path buttons (2) and close (3)](images/journey-preview/preview.en.webp)
+![The preview of a journey: where you are (1), the path buttons (2), close (3) and Phone or Computer (4)](images/journey-preview/preview.en.webp)
 
-1. The progress bar shows how far you are in the journey.
+1. Step X of Y and the blocks above the step show how far you are in the journey.
 2. The buttons take you to the next step, as they would for a participant.
 3. Close the preview and go back to the builder.
+4. **Phone** and **Computer**: see the journey as participants see it on that device.
 
 ## Overview
 
@@ -20,7 +21,7 @@ Preview enables:
 - Testing journey flow
 - Verifying content display
 - Checking step behavior
-- Testing on different devices
+- Checking the layout on a phone and on a computer
 - Checking what participants experience
 
 ## Starting Preview
@@ -43,9 +44,17 @@ You can also start a preview from the Journeys page. Click the three dots on the
 
 - Navigate through steps with the buttons (2)
 - Access all paths
-- See how far you are in the progress bar (1)
-- Each step shows "Step X of about Y" and about how many minutes are left, as participants see it
+- Above each step you see "Step X of about Y" with one block per step, as participants see it. On the first step it also says about how many minutes the journey takes.
 - Click close (3) to leave the preview and go back to the builder
+
+### Phone or computer
+
+At the top of the preview, choose **Phone** or **Computer** (4) to see the journey as participants see it on that device. You build each step once: Gryffi picks the layout from the width of the screen.
+
+- **Phone**: everything is below each other. The button to go to the next step stays at the bottom of the screen, also when a step is longer than the screen.
+- **Computer**: a photo, 360° photo or video sits next to the text, so the step fits on one screen. Steps with only text, a quiz, a form or a poll stay in one column.
+
+Gryffi remembers your choice on this device. When you open the preview on a phone, you already see the phone layout and the buttons are hidden.
 
 ### Interactions
 
@@ -85,7 +94,7 @@ See: journey-settings, language-settings
 | Form notification email sent | Yes | Yes |
 | Automation emails sent | Yes, to you | Yes, to the participant |
 
-When you submit a Form Step in preview, the notification email is sent to the configured recipient so you can check it. Preview submissions are not stored in the Analytics Forms tab.
+When you submit a Form Step in preview, the notification email is sent to the configured recipient so you can check it. Preview submissions are not stored in Analytics.
 
 When you click **Preview**, the journey's email automations run as they would for a participant, and the emails go to you. **Preview from this step** skips the "When journey starts" automations. Viewers get no automation emails from the preview.
 

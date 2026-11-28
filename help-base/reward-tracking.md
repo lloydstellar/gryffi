@@ -5,7 +5,7 @@ related_features: [reward-step, analytics-overview, dashboard]
 
 # Reward Tracking
 
-In Analytics, the tab **Rewards** shows the rewards of your Reward steps. You see how many codes participants claimed and how many are left.
+In Analytics, tab **Responses**, the button **Rewards** shows the rewards of your Reward steps. You see how many codes participants claimed and how many are left.
 
 [[goto:/dashboard/analytics#rewards]]
 
@@ -45,7 +45,7 @@ Click **Download PDF** to save a list of all codes of the reward. The PDF also s
 
 A reward is archived when its journey goes to the trash. It is also archived when you delete a Reward step whose codes were already claimed. Claimed codes stay valid.
 
-The section **Archived Rewards** only shows when the switch **Show deleted journeys and steps** at the top of Analytics is on. Each archived reward shows **Total claimed** and, if set, **Was valid until**. It is marked:
+The section **Archived Rewards** only shows when **Show deleted** above the tabs in Analytics is on. Each archived reward shows **Total claimed** and, if set, **Was valid until**. It is marked:
 
 - **Restorable**: the journey is still in the trash. The reward comes back when you restore the journey.
 - **Permanent**: the journey or the step is gone for good. Only the results are left.

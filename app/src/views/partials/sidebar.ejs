@@ -28,6 +28,7 @@
       else if (currentPath.startsWith('/dashboard/system-settings')) mobileTitle = t('nav.systemSettings');
       else if (currentPath.startsWith('/dashboard/analytics')) mobileTitle = t('nav.analytics');
       else if (currentPath.startsWith('/dashboard/subscription')) mobileTitle = t('subscription.title');
+      else if (currentPath.startsWith('/dashboard/partner')) mobileTitle = t('partner.nav');
       else if (currentPath === '/dashboard/settings') mobileTitle = t('nav.settings');
       else if (currentPath.startsWith('/dashboard/installation')) mobileTitle = t('installation.nav');
     }
@@ -152,6 +153,15 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
         </svg>
         <%= t('subscription.title') %>
+      </a>
+    <% } %>
+
+    <% if (user && !locals.isCommunity && locals.subscriptionTier && locals.subscriptionTier.name === 'partner') { %>
+      <a href="/dashboard/partner" class="sidebar-link <%= navCurrent('/dashboard/partner') ? 'active' : '' %>"<%- navCurrent('/dashboard/partner') ? ' aria-current="page"' : '' %>>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+        </svg>
+        <%= t('partner.nav') %>
       </a>
     <% } %>
   </nav>

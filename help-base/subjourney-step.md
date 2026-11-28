@@ -64,7 +64,7 @@ See: step-assistant
 
 ## Progress Tracking
 
-The progress bar shows the combined progress of the parent journey and the sub-journey. Participants see how far they are in the whole journey.
+"Step X of Y" above each step counts the steps of the parent journey and the sub-journey together. Participants see how far they are in the whole journey.
 
 ## Restrictions
 

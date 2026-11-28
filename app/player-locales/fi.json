@@ -18,7 +18,9 @@
       "connectionError": "Minulla on yhteysongelmia. Yritä uudelleen.",
       "guideUnavailable": "En pysty vastaamaan kysymyksiin juuri nyt. Voit jatkaa seuraavaan vaiheeseen.",
       "sources": "Lähteet",
-      "showSource": "Näytä lähde {{number}}"
+      "showSource": "Näytä lähde {{number}}",
+      "askLabel": "Kysymyksesi ({{name}})",
+      "optionalHint": "Kysymysten esittäminen on vapaaehtoista."
     },
     "content": {
       "invalidVideoUrl": "Virheellinen video-URL",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Googlen tietosuojakäytäntö"
     },
     "navigation": {
-      "whenReady": "Kun olet valmis:",
       "journeyComplete": "Tutkimusretki suoritettu!",
       "leaveJourney": "Poistu retkeltä?",
       "leaveJourneyMessage": "Haluatko varmasti poistua tältä retkeltä? Edistymisesi on tallennettu.",
       "leaveConfirm": "Poistu",
       "stayContinue": "Jää",
-      "doAgain": "Haluatko suorittaa tämän tutkimusretken uudelleen?"
+      "doAgain": "Haluatko suorittaa tämän tutkimusretken uudelleen?",
+      "chooseRoute": "Valitse, miten haluat jatkaa",
+      "canClose": "Voit nyt sulkea tämän sivun."
     },
     "pacing": {
       "readyToContinue": "Voit nyt jatkaa",
       "takeYourTimeMinutes": "Käytä {{minutes}} minuutti tutkimiseen",
-      "takeYourTimeSeconds": "Ota aikaa... {{seconds}}s",
-      "keepWatching": "Jatka katsomista... {{seconds}}s",
-      "chatWithGuide": "Keskustele oppaan kanssa ({{count}}/{{total}} viestiä)"
+      "chatWithGuide": "Keskustele oppaan kanssa ({{count}}/{{total}} viestiä)",
+      "wait": "Voit jatkaa hetken kuluttua.",
+      "keepWatchingCalm": "Jatka videon katsomista. Painike tulee näkyviin hetken kuluttua."
     },
     "form": {
       "title": "Lomake",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "Vain MP3"
-        }
+        },
+        "choose": "Valitse tiedosto"
       },
       "imageRejected": "Tätä kuvaa ei voi ladata. Valitse toinen kuva.",
       "imageCheckUnavailable": "Emme voineet tarkistaa kuvaasi juuri nyt. Yritä uudelleen muutaman minuutin kuluttua.",
       "fieldRequired": "Täytä tämä kenttä.",
       "invalidEmail": "Anna kelvollinen sähköpostiosoite, esimerkiksi nimi@yritys.fi.",
-      "fileRequired": "Valitse tiedosto kenttään \"{{field}}\"."
+      "fileRequired": "Valitse tiedosto kenttään \"{{field}}\".",
+      "optional": "vapaaehtoinen",
+      "chooseOne": "Valitse yksi vaihtoehdoista."
     },
     "quiz": {
       "title": "Tietovisa",
@@ -93,12 +99,10 @@
       "finish": "Lähetä vastaukset",
       "correct": "Oikein!",
       "incorrect": "Ei aivan oikein",
-      "score": "Pisteesi",
       "passed": "Tietovisa läpäisty!",
       "completed": "Tietovisa suoritettu",
       "allCorrect": "Kaikki oikein!",
       "singleCorrect": "Oikea vastaus!",
-      "nextStepHint": "Matka jatkuu. Valitse seuraava vaihe alta.",
       "failed": "Tarvitset {{required}} oikeaa vastausta jatkaaksesi",
       "questionsCorrect": "{{correct}} / {{total}} oikein",
       "retake": "Tee tietovisa uudelleen",
@@ -112,7 +116,8 @@
       "voteRecorded": "Äänesi on kirjattu",
       "respondents": "{{count}} osallistuja",
       "respondentsPlural": "{{count}} osallistujaa",
-      "chooseFirst": "Valitse ensin vastaus ja napsauta sitten \"Äänestä\"."
+      "chooseFirst": "Valitse ensin vastaus ja napsauta sitten \"Äänestä\".",
+      "yourChoice": "sinun valintasi"
     },
     "space": {
       "dragHint": "Vedä katsoaksesi ympärillesi",
@@ -123,29 +128,31 @@
       "zoomIn": "Lähennä",
       "zoomOut": "Loitonna",
       "centerOnMarker": "Näytä, missä olet",
-      "panoramaLoadFailed": "360°-kuvaa ei voitu ladata. Lataa sivu uudelleen ja yritä uudestaan."
+      "panoramaLoadFailed": "360°-kuvaa ei voitu ladata. Lataa sivu uudelleen ja yritä uudestaan.",
+      "closeFloorplan": "Sulje pohjapiirros"
     },
     "stepTypes": {
       "reward": "Palkinto"
     },
     "reward": {
       "congratulations": "Onnittelut!",
-      "youAreNumber": "Olet #{{position}} lunastamaan tämän palkinnon!",
       "yourCode": "Palkintokoodi",
       "redeemAt": "Lunasta",
       "terms": "Ehdot",
       "validUntil": "Voimassa",
-      "downloadCoupon": "Lataa kuponki",
+      "downloadCoupon": "Lataa PDF-tiedostona",
       "emailSent": "Kopio on lähetetty sähköpostiisi",
       "alreadyClaimed": "Olet jo lunastanut palkinnon tältä tutkimusretkeltä",
       "noMoreRewards": "Pahoittelut, kaikki palkinnot on jaettu",
       "claimFailed": "Palkintoasi ei voitu noutaa. Lataa sivu uudelleen ja yritä uudestaan.",
-      "previewMode": "Esikatselu - Ei oikeaa koodia luotu",
+      "previewMode": "Esikatselu: oikeaa koodia ei luoda",
       "claimed": "Palkinto lunastettu",
       "soldOut": {
         "title": "Harmi!",
         "message": "Valitettavasti tulit liian myöhään saadaksesi palkinnon. Kaikki palkinnot on jo jaettu."
-      }
+      },
+      "copyCode": "Kopioi koodi",
+      "codeCopied": "Koodi kopioitu"
     },
     "tts": {
       "listen": "Kuuntele",
@@ -247,6 +254,15 @@
       "message": "Olet ollut täällä aiemmin. Haluatko jatkaa siitä, mihin jäit?",
       "continue": "Jatka siitä, mihin jäin",
       "restart": "Aloita alusta"
+    },
+    "kind": {
+      "read": "Lukeminen",
+      "video": "Video",
+      "space": "Tila",
+      "guide": "Keskustelu",
+      "poll": "Kysely",
+      "questionsOne": "1 kysymys",
+      "questionsOther": "{{count}} kysymystä"
     }
   }
 }

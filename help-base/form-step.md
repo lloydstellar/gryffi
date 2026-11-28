@@ -57,7 +57,7 @@ See: form-file-uploads
 1. Click **+ Add Field**.
 2. Type the question in the field label.
 3. Choose the field type.
-4. Tick **Required** if participants must answer it.
+4. Tick **Required** if participants must answer it. Participants see "(optional)" after the fields that are not required. When they send the form with a required field empty, a message under that field says what to fill in.
 5. For a Dropdown, enter the options. Click **Add option** for another option.
 6. For a File upload, choose the **File type**.
 
@@ -85,7 +85,7 @@ When a participant submits the form:
 
 See: form-email-settings, form-file-uploads, form-submissions
 
-If the email cannot be delivered, the submission is still saved. It stays available on the Forms tab.
+If the email cannot be delivered, the submission is still saved. It stays available in Analytics, tab Responses, under Forms.
 
 A participant who opens the form again sees that they already submitted it. They can submit it again, or click **Continue without submitting**.
 

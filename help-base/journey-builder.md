@@ -95,7 +95,7 @@ The toolbar at the top provides:
 - **Journey Settings** (gear icon): Set the title, description, flow, language and automations
 - **Undo/Redo**: Revert or restore changes. You can also press Ctrl+Z (Cmd+Z on a Mac) to undo, and Ctrl+Shift+Z or Ctrl+Y to redo.
 - **Save status** (5): Shows when your changes are saved
-- **Preview** (4): Test your journey before publishing
+- **Preview** (4): Test your journey before publishing, on a phone or a computer (see journey-preview)
 - **Publish** or **Take offline**: Only for makers with the role Admin or Journey Manager
 - **Public Link**: Only on a public journey. Copy the link you can share.
 

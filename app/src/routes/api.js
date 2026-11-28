@@ -3967,10 +3967,13 @@ router.get('/analytics/form-submissions', async (req, res) => {
              (st.id IS NULL OR j.deleted_at IS NOT NULL) AS is_deleted,
              TRIM(COALESCE(eu.first_name, '') || ' ' || COALESCE(eu.last_name, '')) AS submitter_name,
              eu.email AS submitter_email,
-             s.responses, s.email_sent, s.created_at
+             s.responses, s.email_sent, s.created_at,
+             s.journey_id, s.step_id,
+             COALESCE(st.basic_props->'fields', ds.basic_props->'fields') AS form_fields
       FROM private_form_submissions s
       LEFT JOIN journeys j ON s.journey_id = j.id
       LEFT JOIN steps st ON s.step_id = st.id AND st.journey_id = s.journey_id
+      LEFT JOIN deleted_steps ds ON s.step_id = ds.id AND ds.journey_id = s.journey_id AND st.id IS NULL
       LEFT JOIN end_users eu ON s.end_user_id = eu.id
       WHERE s.organization_id = $1
         AND ${liveResultsSql('s', '$2')}
@@ -3983,10 +3986,13 @@ router.get('/analytics/form-submissions', async (req, res) => {
              (st.id IS NULL OR j.deleted_at IS NOT NULL) AS is_deleted,
              TRIM(COALESCE(pp.first_name, '') || ' ' || COALESCE(pp.last_name, '')) AS submitter_name,
              pp.email AS submitter_email,
-             p.responses, p.email_sent, p.created_at
+             p.responses, p.email_sent, p.created_at,
+             p.journey_id, p.step_id,
+             COALESCE(st.basic_props->'fields', ds.basic_props->'fields') AS form_fields
       FROM public_form_submissions p
       LEFT JOIN journeys j ON p.journey_id = j.id
       LEFT JOIN steps st ON p.step_id = st.id AND st.journey_id = p.journey_id
+      LEFT JOIN deleted_steps ds ON p.step_id = ds.id AND ds.journey_id = p.journey_id AND st.id IS NULL
       LEFT JOIN public_participants pp ON p.participant_id = pp.id
       WHERE p.organization_id = $1
         AND ${liveResultsSql('p', '$2')}
@@ -4023,8 +4029,13 @@ router.get('/analytics/form-submissions', async (req, res) => {
       }
     }
     
-    const submissions = submissionsResult.rows.map(row => ({
+    // The questions of the form in the maker's order (responses are keyed by
+    // label, and JSONB does not keep the order of its keys)
+    const submissions = submissionsResult.rows.map(({ form_fields: formFields, ...row }) => ({
       ...row,
+      fields: Array.isArray(formFields)
+        ? formFields.map(field => ({ label: String(field?.label ?? ''), type: field?.type || null }))
+        : [],
       files: filesBySubmission[row.id] || []
     }));
     
@@ -9221,6 +9232,89 @@ router.delete('/analytics/deleted/steps/:id', async (req, res) => {
 // ============================================
 
 /**
+ * Started, completed and the step funnel of one journey since a date, for
+ * the Journeys tab and its PDF report (one calculation, so both agree).
+ * Entering a step also counts as a start: the player did not send
+ * journey_started for invited end users before 31 October 2026.
+ */
+async function journeyFunnelStats(orgId, journeyId, sinceDate, showDeleted) {
+  const overallStats = await query(`
+    SELECT 
+      COUNT(DISTINCT CASE WHEN event_type IN ('journey_started', 'step_entered') THEN COALESCE(end_user_id::text, session_id) END) as started,
+      COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN COALESCE(end_user_id::text, session_id) END) as completed
+    FROM journey_events je
+    WHERE je.journey_id = $1 AND je.organization_id = $2 AND je.created_at >= $3
+      AND ${liveResultsSql('je', '$4')}
+  `, [journeyId, orgId, sinceDate, showDeleted]);
+
+  const started = parseInt(overallStats.rows[0].started) || 0;
+  const completed = parseInt(overallStats.rows[0].completed) || 0;
+
+  const funnelData = await query(`
+    SELECT 
+      je.step_id,
+      s.title as step_title,
+      s.type as step_type,
+      s.is_start,
+      s.is_deleted,
+      -- Completing a step means reaching it: a sub-journey step only records step_completed
+      COUNT(DISTINCT CASE WHEN je.event_type IN ('step_entered', 'step_completed') THEN COALESCE(je.end_user_id::text, je.session_id) END) as users_reached,
+      COUNT(DISTINCT CASE WHEN je.event_type = 'step_completed' THEN COALESCE(je.end_user_id::text, je.session_id) END) as users_completed,
+      AVG(CASE WHEN je.event_type = 'step_completed' AND je.duration_ms IS NOT NULL THEN je.duration_ms END) as avg_duration_ms,
+      MIN(CASE WHEN je.event_type IN ('step_entered', 'step_completed') THEN je.created_at END) as first_reached
+    FROM journey_events je
+    JOIN analytics_steps s ON je.step_id = s.id AND s.journey_id = je.journey_id
+    WHERE je.journey_id = $1
+      AND je.organization_id = $2
+      AND je.created_at >= $3
+      AND je.step_id IS NOT NULL
+      AND ($4::boolean OR NOT s.is_deleted)
+    GROUP BY je.step_id, s.title, s.type, s.is_start, s.is_deleted
+    ORDER BY s.is_start DESC, first_reached ASC NULLS LAST
+  `, [journeyId, orgId, sinceDate, showDeleted]);
+
+  // Put the steps in the order of the journey itself: breadth-first from
+  // the start step along the paths (branches top to bottom on the canvas).
+  // Ordering by "first reached" mixed up branches and participants.
+  const [flowSteps, flowPaths] = await Promise.all([
+    query('SELECT id, is_start, position_x, position_y FROM steps WHERE journey_id = $1', [journeyId]),
+    query('SELECT from_step_id, to_step_id FROM paths WHERE journey_id = $1', [journeyId])
+  ]);
+  const flowOrder = orderStepsByFlow(flowSteps.rows, flowPaths.rows);
+  funnelData.rows.sort((a, b) => (flowOrder.get(a.step_id) ?? Infinity) - (flowOrder.get(b.step_id) ?? Infinity));
+  // A step right after a choice is one of the routes: only the participants
+  // who chose it reach it, so the funnel shows it as a route
+  const outgoing = {};
+  flowPaths.rows.forEach(path => { outgoing[path.from_step_id] = (outgoing[path.from_step_id] || 0) + 1; });
+  const routeSteps = new Set(flowPaths.rows.filter(path => outgoing[path.from_step_id] > 1).map(path => path.to_step_id));
+
+  // Drop-off is per step: who reached it and did not complete it (stopped
+  // there). Comparing with the previous row gave negative numbers when a
+  // journey branches.
+  const funnel = funnelData.rows.map((stepData, index) => {
+    const usersReached = parseInt(stepData.users_reached) || 0;
+    const usersCompleted = Math.min(parseInt(stepData.users_completed) || 0, usersReached);
+    const droppedOff = usersReached - usersCompleted;
+    return {
+      step_id: stepData.step_id,
+      step_title: stepData.step_title,
+      step_type: stepData.step_type,
+      step_deleted: stepData.is_deleted === true,
+      step_order: index + 1,
+      users_reached: usersReached,
+      users_completed: usersCompleted,
+      avg_duration_ms: stepData.avg_duration_ms ? Math.round(stepData.avg_duration_ms) : null,
+      is_route: routeSteps.has(stepData.step_id),
+      drop_off_count: droppedOff,
+      drop_off_rate: usersReached > 0 ? Math.round((droppedOff / usersReached) * 100) : 0,
+      completion_rate: usersReached > 0 ? Math.round((usersCompleted / usersReached) * 100) : 0
+    };
+  });
+
+  return { started, completed, funnel };
+}
+
+/**
  * GET /api/reports/journey/:journeyId - Journey Performance Report data
  * Returns completion funnel, timing stats, poll results for a specific journey
  */
@@ -9228,16 +9322,21 @@ router.get('/reports/journey/:journeyId', async (req, res) => {
   try {
     const orgId = req.organizationId;
     const journeyId = req.params.journeyId;
+    // The period of the Analytics page (days); without it all time
+    const days = parseInt(req.query.days, 10);
+    const sinceDate = days > 0 ? new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString() : '1970-01-01T00:00:00.000Z';
     
-    // Verify journey belongs to organization
+    const showDeleted = wantsDeleted(req);
+
+    // Verify journey belongs to organization. As on the Journeys tab: a
+    // journey in the trash yes, one deleted for good only with "Show deleted"
     const journeyResult = await query(`
       SELECT j.id, j.title, j.status, j.created_at, j.published_at,
              (SELECT COUNT(*) FROM steps WHERE journey_id = j.id) as step_count
       FROM journeys j
       WHERE j.id = $1 AND j.organization_id = $2
-        -- A deleted journey only with "Show deleted journeys and steps" on
-        AND ($3::boolean OR j.deleted_at IS NULL)
-    `, [journeyId, orgId, wantsDeleted(req)]);
+        AND ($3::boolean OR j.purged_at IS NULL)
+    `, [journeyId, orgId, showDeleted]);
     
     if (journeyResult.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Journey not found' });
@@ -9255,30 +9354,11 @@ router.get('/reports/journey/:journeyId', async (req, res) => {
         COUNT(*) FILTER (WHERE status = 'expired') as expired,
         AVG(EXTRACT(EPOCH FROM (completed_at - first_accessed_at)) / 3600) FILTER (WHERE completed_at IS NOT NULL) as avg_hours_to_complete
       FROM invitations
-      WHERE journey_id = $1 AND organization_id = $2
-    `, [journeyId, orgId]);
+      WHERE journey_id = $1 AND organization_id = $2 AND created_at >= $3
+    `, [journeyId, orgId, sinceDate]);
     
-    // Get step-by-step funnel data using journey_events (consistent with analytics funnel).
-    // This correctly counts end steps that are auto-completed (reward, content, space, etc.)
-    const funnelResult = await query(`
-      SELECT 
-        s.id as step_id,
-        s.title as step_title,
-        s.position_x,
-        s.position_y,
-        s.is_start,
-        s.is_end,
-        s.type,
-        COUNT(DISTINCT CASE WHEN je.event_type = 'step_entered' THEN COALESCE(je.end_user_id::text, je.session_id) END) as reached_count,
-        COUNT(DISTINCT CASE WHEN je.event_type = 'step_completed' THEN COALESCE(je.end_user_id::text, je.session_id) END) as completed_count
-      FROM steps s
-      LEFT JOIN journey_events je ON je.step_id = s.id
-        AND je.journey_id = $1
-        AND je.organization_id = $2
-      WHERE s.journey_id = $1
-      GROUP BY s.id, s.title, s.position_x, s.position_y, s.is_start, s.is_end, s.type
-      ORDER BY s.is_start DESC, s.position_y ASC, s.position_x ASC
-    `, [journeyId, orgId]);
+    // Started, completed and the funnel exactly as on the Journeys tab
+    const { started, completed, funnel } = await journeyFunnelStats(orgId, journeyId, sinceDate, showDeleted);
     
     // Get poll results for this journey
     const pollsResult = await query(`
@@ -9287,12 +9367,12 @@ router.get('/reports/journey/:journeyId', async (req, res) => {
         s.title as step_title,
         s.basic_props,
         s.position_y,
-        (SELECT COUNT(*) FROM poll_responses WHERE poll_id = p.id) as total_votes
+        (SELECT COUNT(*) FROM poll_responses WHERE poll_id = p.id AND created_at >= $3) as total_votes
       FROM polls p
       JOIN steps s ON p.step_id = s.id
       WHERE s.journey_id = $1 AND p.organization_id = $2
       ORDER BY s.position_y ASC, s.position_x ASC
-    `, [journeyId, orgId]);
+    `, [journeyId, orgId, sinceDate]);
     
     // Batch fetch vote breakdowns for all polls in this journey (avoids N+1)
     const journeyPollIds = pollsResult.rows.map(p => p.poll_id);
@@ -9304,10 +9384,10 @@ router.get('/reports/journey/:journeyId', async (req, res) => {
           unnest(selected_options) as option_index,
           COUNT(*) as vote_count
         FROM poll_responses
-        WHERE poll_id = ANY($1)
+        WHERE poll_id = ANY($1) AND created_at >= $2
         GROUP BY poll_id, option_index
         ORDER BY poll_id, option_index
-      `, [journeyPollIds]);
+      `, [journeyPollIds, sinceDate]);
       
       for (const row of allVotes.rows) {
         if (!journeyVotesByPoll[row.poll_id]) journeyVotesByPoll[row.poll_id] = {};
@@ -9335,13 +9415,14 @@ router.get('/reports/journey/:journeyId', async (req, res) => {
       FROM invitations i
       JOIN end_users eu ON i.end_user_id = eu.id
       WHERE i.journey_id = $1 AND i.organization_id = $2
+        -- Invited, started or completed in the period
+        AND (i.created_at >= $3 OR i.first_accessed_at >= $3 OR i.completed_at >= $3)
       ORDER BY i.created_at DESC
       LIMIT 100
-    `, [journeyId, orgId]);
+    `, [journeyId, orgId, sinceDate]);
     
     const stats = invitationStats.rows[0];
     const totalInvitations = parseInt(stats.total_invitations) || 0;
-    const completed = parseInt(stats.completed) || 0;
     
     res.json({
       success: true,
@@ -9356,28 +9437,27 @@ router.get('/reports/journey/:journeyId', async (req, res) => {
         },
         statistics: {
           totalInvitations,
+          started,
           pending: parseInt(stats.pending) || 0,
           active: parseInt(stats.active) || 0,
           completed,
           expired: parseInt(stats.expired) || 0,
-          completionRate: totalInvitations > 0 ? Math.round((completed / totalInvitations) * 100) : 0,
+          // Of the participants who started, as on the Journeys tab
+          completionRate: started > 0 ? Math.round((completed / started) * 100) : 0,
           avgHoursToComplete: stats.avg_hours_to_complete ? parseFloat(stats.avg_hours_to_complete) : null
         },
-        funnel: funnelResult.rows.map((step, idx) => {
-          const reached = parseInt(step.reached_count) || 0;
-          const completed = parseInt(step.completed_count) || 0;
-          return {
-            stepId: step.step_id,
-            title: step.step_title,
-            position: idx + 1,
-            type: step.type,
-            isEnd: step.is_end || false,
-            reachedCount: reached,
-            reachedPercent: totalInvitations > 0 ? Math.round((reached / totalInvitations) * 100) : 0,
-            completedCount: completed,
-            completedPercent: reached > 0 ? Math.round((completed / reached) * 100) : 0
-          };
-        }),
+        funnel: funnel.map(step => ({
+          stepId: step.step_id,
+          title: step.step_title,
+          position: step.step_order,
+          type: step.step_type,
+          isRoute: step.is_route,
+          isDeleted: step.step_deleted,
+          reachedCount: step.users_reached,
+          reachedPercent: started > 0 ? Math.min(100, Math.round((step.users_reached / started) * 100)) : 0,
+          completedCount: step.users_completed,
+          completedPercent: step.completion_rate
+        })),
         polls,
         participants: participantsResult.rows
       },
@@ -9407,58 +9487,57 @@ router.get('/reports/overview', async (req, res) => {
     // Results of journeys deleted for good only with "Show deleted" on
     const showDeleted = wantsDeleted(req);
 
-    // Current period stats
-    const currentStats = await query(`
-      SELECT 
-        COUNT(*) as total_invitations,
-        COUNT(*) FILTER (WHERE completions_count > 0) as completed,
-        COUNT(*) FILTER (WHERE first_accessed_at IS NOT NULL) as engaged,
-        AVG(EXTRACT(EPOCH FROM (completed_at - first_accessed_at)) / 86400) FILTER (WHERE completed_at IS NOT NULL) as avg_days_to_complete
-      FROM invitations i
-      WHERE organization_id = $1 AND created_at >= $2
-        AND ${liveResultsSql('i', '$3', { hasStep: false })}
-    `, [orgId, periodStart.toISOString(), showDeleted]);
+    // Started and completed journeys in the period, counted the same way as
+    // the Overview tab (end_user_progress by start date), so the report and
+    // the screen give the same numbers
+    const progressStatsSql = (range) => `
+      SELECT
+        COUNT(*) as started,
+        COUNT(*) FILTER (WHERE eup.completed_at IS NOT NULL) as completed,
+        COUNT(DISTINCT eup.end_user_id) as participants,
+        AVG(EXTRACT(EPOCH FROM (eup.completed_at - eup.started_at)) / 86400) FILTER (WHERE eup.completed_at IS NOT NULL) as avg_days_to_complete
+      FROM end_user_progress eup
+      JOIN invitations i ON eup.invitation_id = i.id
+      WHERE i.organization_id = $1 AND ${range}
+        AND ${liveResultsSql('eup', '$4', { hasStep: false })}
+    `;
+    const currentStats = await query(progressStatsSql('eup.started_at >= $2 AND eup.started_at <= $3'),
+      [orgId, periodStart.toISOString(), new Date().toISOString(), showDeleted]);
+    const previousStats = await query(progressStatsSql('eup.started_at >= $2 AND eup.started_at < $3'),
+      [orgId, previousPeriodStart.toISOString(), periodStart.toISOString(), showDeleted]);
     
-    // Previous period stats (for comparison)
-    const previousStats = await query(`
-      SELECT 
-        COUNT(*) as total_invitations,
-        COUNT(*) FILTER (WHERE completions_count > 0) as completed,
-        COUNT(*) FILTER (WHERE first_accessed_at IS NOT NULL) as engaged
-      FROM invitations i
-      WHERE organization_id = $1 AND created_at >= $2 AND created_at < $3
-        AND ${liveResultsSql('i', '$4', { hasStep: false })}
-    `, [orgId, previousPeriodStart.toISOString(), periodStart.toISOString(), showDeleted]);
-    
-    // Activity over time (grouped by day/week depending on period)
-    const groupBy = period <= 30 ? 'day' : 'week';
+    // Activity per day, as /analytics/summary sends it: the page groups the
+    // days into weeks or months itself, so the PDF chart matches the screen
     const activityResult = await query(`
       SELECT 
-        date_trunc($3, created_at) as period_date,
-        COUNT(*) as invitations_sent,
-        COUNT(*) FILTER (WHERE completions_count > 0) as completed
-      FROM invitations i
-      WHERE organization_id = $1 AND created_at >= $2
-        AND ${liveResultsSql('i', '$4', { hasStep: false })}
-      GROUP BY date_trunc($3, created_at)
+        DATE(eup.started_at) as period_date,
+        COUNT(*) as started,
+        COUNT(*) FILTER (WHERE eup.completed_at IS NOT NULL) as completed
+      FROM end_user_progress eup
+      JOIN invitations i ON eup.invitation_id = i.id
+      WHERE i.organization_id = $1 AND eup.started_at >= $2
+        AND ${liveResultsSql('eup', '$3', { hasStep: false })}
+      GROUP BY DATE(eup.started_at)
       ORDER BY period_date ASC
-    `, [orgId, periodStart.toISOString(), groupBy, showDeleted]);
+    `, [orgId, periodStart.toISOString(), showDeleted]);
     
-    // Top journeys by engagement
+    // Top journeys, ranked as on the Overview tab (/analytics/top-journeys):
+    // most completions first, deleted journeys only with "Show deleted"
     const topJourneysResult = await query(`
       SELECT 
         j.id,
         j.title,
-        COUNT(i.id) as invitation_count,
-        COUNT(i.id) FILTER (WHERE i.completions_count > 0) as completed_count
-      FROM journeys j
-      LEFT JOIN invitations i ON j.id = i.journey_id AND i.created_at >= $2
-      WHERE j.organization_id = $1 AND j.deleted_at IS NULL
+        COUNT(eup.id) as started_count,
+        COUNT(eup.id) FILTER (WHERE eup.completed_at IS NOT NULL) as completed_count
+      FROM end_user_progress eup
+      JOIN invitations i ON eup.invitation_id = i.id
+      JOIN journeys j ON j.id = i.journey_id
+      WHERE i.organization_id = $1 AND eup.started_at >= $2
+        AND ($3::boolean OR j.deleted_at IS NULL)
       GROUP BY j.id, j.title
-      HAVING COUNT(i.id) > 0
-      ORDER BY COUNT(i.id) DESC
+      ORDER BY COUNT(eup.id) FILTER (WHERE eup.completed_at IS NOT NULL) DESC, COUNT(eup.id) DESC
       LIMIT 5
-    `, [orgId, periodStart.toISOString()]);
+    `, [orgId, periodStart.toISOString(), showDeleted]);
     
     // End user growth
     const endUserStats = await query(`
@@ -9480,16 +9559,13 @@ router.get('/reports/overview', async (req, res) => {
     const current = currentStats.rows[0];
     const previous = previousStats.rows[0];
     
-    const currentTotal = parseInt(current.total_invitations) || 0;
-    const previousTotal = parseInt(previous.total_invitations) || 0;
+    const currentStarted = parseInt(current.started) || 0;
+    const previousStarted = parseInt(previous.started) || 0;
     const currentCompleted = parseInt(current.completed) || 0;
     const previousCompleted = parseInt(previous.completed) || 0;
     
-    // Calculate trends
-    const calcTrend = (curr, prev) => {
-      if (prev === 0) return curr > 0 ? 100 : 0;
-      return Math.round(((curr - prev) / prev) * 100);
-    };
+    // A change only means something when there was something before
+    const calcTrend = (curr, prev) => (prev > 0 ? Math.round(((curr - prev) / prev) * 100) : null);
     
     res.json({
       success: true,
@@ -9500,10 +9576,10 @@ router.get('/reports/overview', async (req, res) => {
           endDate: new Date().toISOString()
         },
         kpis: {
-          invitations: {
-            current: currentTotal,
-            previous: previousTotal,
-            trend: calcTrend(currentTotal, previousTotal)
+          started: {
+            current: currentStarted,
+            previous: previousStarted,
+            trend: calcTrend(currentStarted, previousStarted)
           },
           completed: {
             current: currentCompleted,
@@ -9511,29 +9587,29 @@ router.get('/reports/overview', async (req, res) => {
             trend: calcTrend(currentCompleted, previousCompleted)
           },
           completionRate: {
-            current: currentTotal > 0 ? Math.round((currentCompleted / currentTotal) * 100) : 0,
-            previous: previousTotal > 0 ? Math.round((previousCompleted / previousTotal) * 100) : 0,
-            trend: null // Calculate separately
+            current: currentStarted > 0 ? Math.round((currentCompleted / currentStarted) * 100) : 0,
+            previous: previousStarted > 0 ? Math.round((previousCompleted / previousStarted) * 100) : 0,
+            trend: null
           },
           avgDaysToComplete: {
             current: current.avg_days_to_complete ? parseFloat(current.avg_days_to_complete) : null
           },
           engaged: {
-            current: parseInt(current.engaged) || 0
+            current: parseInt(current.participants) || 0
           }
         },
         activity: activityResult.rows.map(row => ({
           date: row.period_date,
-          invitations: parseInt(row.invitations_sent) || 0,
+          started: parseInt(row.started) || 0,
           completed: parseInt(row.completed) || 0
         })),
         topJourneys: topJourneysResult.rows.map(j => ({
           id: j.id,
           title: j.title,
-          invitations: parseInt(j.invitation_count) || 0,
+          started: parseInt(j.started_count) || 0,
           completed: parseInt(j.completed_count) || 0,
-          completionRate: parseInt(j.invitation_count) > 0 
-            ? Math.round((parseInt(j.completed_count) / parseInt(j.invitation_count)) * 100) 
+          completionRate: parseInt(j.started_count) > 0 
+            ? Math.round((parseInt(j.completed_count) / parseInt(j.started_count)) * 100) 
             : 0
         })),
         endUsers: {
@@ -10998,7 +11074,8 @@ router.get('/analytics/quiz-stats', async (req, res) => {
           WHEN score_percentage >= 90 THEN '90-100%'
           WHEN score_percentage >= 70 THEN '70-89%'
           WHEN score_percentage >= 50 THEN '50-69%'
-          ELSE '0-49%'
+          WHEN score_percentage >= 30 THEN '30-49%'
+          ELSE '0-29%'
         END as score_range,
         COUNT(*) as count
       FROM quiz_attempts qa
@@ -11203,7 +11280,9 @@ router.get('/analytics/user/:userId', async (req, res) => {
         MAX(je.created_at) as last_activity,
         COUNT(*) as total_events,
         COUNT(CASE WHEN je.event_type = 'step_completed' THEN 1 END) as steps_completed,
-        COUNT(CASE WHEN je.event_type = 'journey_completed' THEN 1 END) as completions
+        -- A journey played inside another journey ends with nested_journey_completed
+        COUNT(CASE WHEN je.event_type IN ('journey_completed', 'nested_journey_completed') THEN 1 END) as completions,
+        MAX(CASE WHEN je.event_type IN ('journey_completed', 'nested_journey_completed') THEN je.created_at END) as completed_at
       FROM journey_events je
       JOIN journeys j ON je.journey_id = j.id
       WHERE je.end_user_id = $1 AND je.organization_id = $2 ${journeyFilter('je')}
@@ -11298,9 +11377,15 @@ router.get('/analytics/user/:userId', async (req, res) => {
     const journeys = journeyActivity.rows.map(j => ({
       title: j.journey_title,
       completed: j.completions > 0,
-      completed_at: j.last_activity,
+      // Only a finished journey has a completion date
+      completed_at: j.completions > 0 ? j.completed_at : null,
+      last_activity: j.last_activity,
       score: null // Would need quiz data per journey
     }));
+    // "First seen" is the first activity, not when the participant was added
+    const firstActivity = journeyActivity.rows.reduce((first, j) => (
+      j.first_activity && (!first || new Date(j.first_activity) < new Date(first)) ? j.first_activity : first
+    ), null);
     
     res.json({
       success: true,
@@ -11312,6 +11397,7 @@ router.get('/analytics/user/:userId', async (req, res) => {
         email: endUser.email,
         groups: endUser.groups || [],
         created_at: endUser.created_at,
+        first_activity: firstActivity,
         journey_stats: {
           total_journeys: totalJourneys,
           completed_journeys: completedJourneys,
@@ -11640,7 +11726,8 @@ router.get('/analytics/user/:userId/journey/:journeyId/replay', async (req, res)
     
     // Calculate journey totals
     const journeyStarted = eventsResult.rows.find(e => e.event_type === 'journey_started');
-    const journeyCompleted = eventsResult.rows.find(e => e.event_type === 'journey_completed');
+    // A journey played inside another journey ends with nested_journey_completed
+    const journeyCompleted = eventsResult.rows.find(e => e.event_type === 'journey_completed' || e.event_type === 'nested_journey_completed');
     const totalDuration = timeline.reduce((sum, s) => sum + (s.duration_ms || 0), 0);
     const maxStepDuration = Math.max(...timeline.map(s => s.duration_ms || 0));
     
@@ -12001,75 +12088,8 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
     
     const journey = journeyResult.rows[0];
     
-    // Get overall journey stats. Entering a step also counts as a start: the
-    // player did not send journey_started for invited end users before 31 October 2026.
-    const overallStats = await query(`
-      SELECT 
-        COUNT(DISTINCT CASE WHEN event_type IN ('journey_started', 'step_entered') THEN COALESCE(end_user_id::text, session_id) END) as started,
-        COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN COALESCE(end_user_id::text, session_id) END) as completed
-      FROM journey_events je
-      WHERE je.journey_id = $1 AND je.organization_id = $2 AND je.created_at >= $3
-        AND ${liveResultsSql('je', '$4')}
-    `, [journeyId, orgId, sinceDate, showDeleted]);
-
-    const started = parseInt(overallStats.rows[0].started) || 0;
-    const completed = parseInt(overallStats.rows[0].completed) || 0;
+    const { started, completed, funnel } = await journeyFunnelStats(orgId, journeyId, sinceDate, showDeleted);
     const completionRate = started > 0 ? Math.round((completed / started) * 100) : 0;
-    
-    // Get per-step funnel data, ordered by average time users reach each step
-    const funnelData = await query(`
-      SELECT 
-        je.step_id,
-        s.title as step_title,
-        s.type as step_type,
-        s.is_start,
-        s.is_deleted,
-        COUNT(DISTINCT CASE WHEN je.event_type = 'step_entered' THEN COALESCE(je.end_user_id::text, je.session_id) END) as users_reached,
-        COUNT(DISTINCT CASE WHEN je.event_type = 'step_completed' THEN COALESCE(je.end_user_id::text, je.session_id) END) as users_completed,
-        AVG(CASE WHEN je.event_type = 'step_completed' AND je.duration_ms IS NOT NULL THEN je.duration_ms END) as avg_duration_ms,
-        MIN(CASE WHEN je.event_type = 'step_entered' THEN je.created_at END) as first_reached
-      FROM journey_events je
-      JOIN analytics_steps s ON je.step_id = s.id AND s.journey_id = je.journey_id
-      WHERE je.journey_id = $1
-        AND je.organization_id = $2
-        AND je.created_at >= $3
-        AND je.step_id IS NOT NULL
-        AND ($4::boolean OR NOT s.is_deleted)
-      GROUP BY je.step_id, s.title, s.type, s.is_start, s.is_deleted
-      ORDER BY s.is_start DESC, first_reached ASC NULLS LAST
-    `, [journeyId, orgId, sinceDate, showDeleted]);
-    
-    // Put the steps in the order of the journey itself: breadth-first from
-    // the start step along the paths (branches top to bottom on the canvas).
-    // Ordering by "first reached" mixed up branches and participants.
-    const [flowSteps, flowPaths] = await Promise.all([
-      query('SELECT id, is_start, position_x, position_y FROM steps WHERE journey_id = $1', [journeyId]),
-      query('SELECT from_step_id, to_step_id FROM paths WHERE journey_id = $1', [journeyId])
-    ]);
-    const flowOrder = orderStepsByFlow(flowSteps.rows, flowPaths.rows);
-    funnelData.rows.sort((a, b) => (flowOrder.get(a.step_id) ?? Infinity) - (flowOrder.get(b.step_id) ?? Infinity));
-
-    // Build funnel with drop-off rates
-    const funnel = [];
-    for (let index = 0; index < funnelData.rows.length; index++) {
-      const stepData = funnelData.rows[index];
-      const usersReached = parseInt(stepData.users_reached) || 0;
-      const usersCompleted = parseInt(stepData.users_completed) || 0;
-      const previousReached = index === 0 ? started : (funnel[index - 1]?.users_reached || started);
-      
-      funnel.push({
-        step_id: stepData.step_id,
-        step_title: stepData.step_title,
-        step_type: stepData.step_type,
-        step_deleted: stepData.is_deleted === true,
-        step_order: index + 1,
-        users_reached: usersReached,
-        users_completed: usersCompleted,
-        avg_duration_ms: stepData.avg_duration_ms ? Math.round(stepData.avg_duration_ms) : null,
-        drop_off_rate: previousReached > 0 ? Math.round(((previousReached - usersReached) / previousReached) * 100) : 0,
-        completion_rate: usersReached > 0 ? Math.round((usersCompleted / usersReached) * 100) : 0
-      });
-    }
     
     // Get quiz performance per step (if any quiz steps)
     const quizStats = await query(`
@@ -12301,7 +12321,11 @@ router.get('/analytics/groups-overview', async (req, res) => {
         (SELECT COUNT(DISTINCT CASE WHEN event_type = 'journey_completed' THEN end_user_id END)::float / NULLIF(COUNT(DISTINCT end_user_id), 0) * 100
          FROM journey_events je
          WHERE je.organization_id = $1 AND je.created_at >= $2
-           AND ${liveResultsSql('je', '$3')}) as org_completion_rate
+           AND ${liveResultsSql('je', '$3')}) as org_completion_rate,
+        (SELECT COUNT(*) FROM end_users WHERE organization_id = $1) as org_members,
+        (SELECT COUNT(DISTINCT end_user_id) FROM journey_events je
+         WHERE je.organization_id = $1 AND je.created_at >= $2 AND je.end_user_id IS NOT NULL
+           AND ${liveResultsSql('je', '$3')}) as org_active
     `, [orgId, sinceDate, wantsDeleted(req)]);
     
     res.json({
@@ -12309,7 +12333,10 @@ router.get('/analytics/groups-overview', async (req, res) => {
       groups,
       org_benchmarks: {
         avg_quiz_score: orgAverages.rows[0].org_avg_quiz_score ? Math.round(orgAverages.rows[0].org_avg_quiz_score) : null,
-        completion_rate: orgAverages.rows[0].org_completion_rate !== null ? Math.round(orgAverages.rows[0].org_completion_rate) : null
+        completion_rate: orgAverages.rows[0].org_completion_rate !== null ? Math.round(orgAverages.rows[0].org_completion_rate) : null,
+        // For the "Whole organization" row under the groups
+        member_count: parseInt(orgAverages.rows[0].org_members) || 0,
+        active_users: parseInt(orgAverages.rows[0].org_active) || 0
       }
     });
     
@@ -13059,6 +13086,7 @@ router.post('/wizard/generate', async (req, res) => {
 if (isCloud()) {
   const cloud = await import('../cloud/index.js');
   cloud.registerBillingRoutes(router);
+  cloud.registerPartnerRoutes(router);
   cloud.registerPlatformAdminRoutes(router);
 }
 

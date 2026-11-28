@@ -6732,7 +6732,7 @@
     function formatApiDate(dateString) {
       if (!dateString) return '-';
       const date = new Date(dateString);
-      return date.toLocaleDateString('<%= language %>', { 
+      return date.toLocaleDateString(<%- safeJson(language === 'en' ? 'en-GB' : language) %>, { 
         year: 'numeric', 
         month: 'short', 
         day: 'numeric',

@@ -1589,9 +1589,6 @@ router.get('/analytics', async (req, res) => {
       };
     }));
     
-    // Get usage data for analytics page
-    const usageData = await getOrganizationUsageWithLimits(orgId);
-    
     // Get active rewards data
     const activeRewardsResult = await query(`
       SELECT 
@@ -1681,7 +1678,6 @@ router.get('/analytics', async (req, res) => {
       archivedPolls: showDeleted ? archivedPolls : [],
       rewards,
       archivedRewards: showDeleted ? archivedRewards : [],
-      usageData,
       journeys: journeysResult.rows,
       showDeleted
     });

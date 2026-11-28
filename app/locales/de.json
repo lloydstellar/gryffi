@@ -1499,12 +1499,11 @@
       "maxRecipientsMinDesc": "Kann nicht niedriger als {{min}} sein (Codes bereits eingelöst)",
       "preview": {
         "congratulations": "Herzlichen Glückwunsch!",
-        "youAreNumber": "Sie sind Nummer #{{position}}, die diese Belohnung beansprucht!",
         "yourCode": "Ihr Belohnungscode",
         "redeemAt": "Einzulösen bei",
         "terms": "Bedingungen",
         "validUntil": "Gültig bis",
-        "downloadCoupon": "Gutschein herunterladen",
+        "downloadCoupon": "Als PDF herunterladen",
         "emailSent": "Eine Kopie wurde an Ihre E-Mail gesendet",
         "alreadyClaimed": "Sie haben bereits eine Belohnung für diese Expedition beansprucht",
         "noMoreRewards": "Leider sind alle Belohnungen vergeben",
@@ -1734,6 +1733,11 @@
         "text": "Das war die Demo-Expedition. Möchten Sie sehen, wie sie aufgebaut ist, oder selbst anfangen?",
         "viewInBuilder": "Diese Expedition im Editor ansehen",
         "createFirst": "Erste Expedition erstellen"
+      },
+      "device": {
+        "label": "Ansicht",
+        "phone": "Smartphone",
+        "desktop": "Computer"
       }
     },
     "mobileWarning": {
@@ -2804,13 +2808,16 @@
       "polls": "Umfragen",
       "rewards": "Belohnungen",
       "reports": "Berichte",
-      "forms": "Formulare"
+      "forms": "Formulare",
+      "answers": "Antworten"
     },
     "dateRange": {
       "last7days": "Letzte 7 Tage",
       "last30days": "Letzte 30 Tage",
       "last90days": "Letzte 90 Tage",
-      "label": "Zeitraum"
+      "label": "Zeitraum",
+      "last365days": "Letzte 365 Tage",
+      "allTime": "Gesamter Zeitraum"
     },
     "kpi": {
       "journeysStarted": "Gestartete Expeditionen",
@@ -2818,7 +2825,9 @@
       "avgDuration": "Ø Zeit pro Schritt",
       "activeUsers": "Aktive Teilnehmer",
       "started": "Gestartet",
-      "completed": "Abgeschlossen"
+      "completed": "Abgeschlossen",
+      "completedOf": "{{completed}} von {{started}} abgeschlossen",
+      "byParticipants": "von {{count}} Teilnehmern"
     },
     "chart": {
       "started": "Gestartet",
@@ -2828,7 +2837,11 @@
       "journeyPerformance": "Expeditionsleistung",
       "completionTrend": "Abschlusstrend",
       "topJourneys": "Meistgenutzte Expeditionen",
-      "noJourneyData": "Keine Expeditionsdaten für diesen Zeitraum verfügbar"
+      "noJourneyData": "Keine Expeditionsdaten für diesen Zeitraum verfügbar",
+      "trendTitle": "Begonnen und abgeschlossen",
+      "trendSentence": "In diesem Zeitraum: {{started}} begonnen, {{completed}} abgeschlossen.",
+      "trendEmpty": "In diesem Zeitraum hat niemand eine Expedition begonnen.",
+      "weekOf": "Woche ab {{date}}"
     },
     "journeys": {
       "title": "Expeditionsanalyse",
@@ -2838,7 +2851,9 @@
       "funnel": "Fortschritt der Teilnehmer (Funnel)",
       "stepPerformance": "Schrittleistung",
       "dailyTrend": "Tägliche Aktivität",
-      "noStepData": "Keine Schrittdaten verfügbar"
+      "noStepData": "Keine Schrittdaten verfügbar",
+      "funnelSentence": "{{started}} begonnen. {{completed}} haben das Ende erreicht.",
+      "branchNote": "Verzweigung: Teilnehmer wählen einen Weg"
     },
     "users": {
       "title": "Analyse pro Teilnehmer",
@@ -2851,7 +2866,8 @@
       "stepsCompleted": "Schritte abgeschlossen",
       "completed": "Abgeschlossen",
       "quizPerformance": "Quiz-Leistung",
-      "lastActivity": "Letzte Aktivität"
+      "lastActivity": "Letzte Aktivität",
+      "openDetails": "Details von {{name}} öffnen"
     },
     "replay": {
       "title": "Ablauf der Expedition",
@@ -2865,6 +2881,8 @@
       "quizzes": "Quizze",
       "chats": "KI-Chats",
       "status": "Status",
+      "statusCompleted": "Abgeschlossen",
+      "statusNotCompleted": "Nicht abgeschlossen",
       "timing": "Zeiten",
       "started": "Gestartet",
       "completed": "Abgeschlossen",
@@ -2912,7 +2930,8 @@
       "passRate": "Erfolgsrate",
       "totalAttempts": "Gesamte Versuche",
       "topPerformers": "Beste Teilnehmer",
-      "journeysStarted": "Gestartete Expeditionen"
+      "journeysStarted": "Gestartete Expeditionen",
+      "wholeOrganization": "Gesamte Organisation"
     },
     "table": {
       "journey": "Expedition",
@@ -2927,7 +2946,7 @@
       "dropOff": "Absprung",
       "user": "Teilnehmer",
       "group": "Gruppe",
-      "journeysCompleted": "Expeditionen",
+      "journeysCompleted": "Abgeschlossene Expeditionen",
       "avgQuizScore": "Quiz-Ergebnis",
       "lastActivity": "Letzte Aktivität",
       "members": "Mitglieder",
@@ -2936,7 +2955,8 @@
       "quiz": "Quiz",
       "attempts": "Versuche",
       "bestScore": "Beste",
-      "avgScore": "Durchschn."
+      "avgScore": "Durchschn.",
+      "stoppedHere": "Hier aufgehört"
     },
     "actions": {
       "viewDetails": "Details anzeigen"
@@ -3069,7 +3089,9 @@
       "videosWatched": "Angesehene Videos",
       "videoViews": "Videoaufrufe",
       "inProgress": "In Bearbeitung",
-      "createdAt": "Erstellt"
+      "createdAt": "Erstellt",
+      "organisation": "Bericht der Organisation",
+      "close": "Schließen"
     },
     "polls": {
       "title": "Umfrageergebnisse",
@@ -3137,7 +3159,8 @@
       "sortOldest": "Älteste zuerst",
       "sortBySubmitter": "Nach Person (A-Z)",
       "sortByForm": "Nach Formular (A-Z)",
-      "noFilterResults": "Keine Einreichungen für die gewählten Filter."
+      "noFilterResults": "Keine Einreichungen für die gewählten Filter.",
+      "submittedAt": "Gesendet am"
     },
     "filters": {
       "journey": "Expedition",
@@ -3185,6 +3208,14 @@
       "notFound": "Diese Ergebnisse wurden bereits gelöscht. Laden Sie die Seite neu.",
       "journeyFallback": "Gelöschte Expedition",
       "stepFallback": "Gelöschter Schritt"
+    },
+    "toolbar": {
+      "allResults": "Alle Ergebnisse",
+      "showDeleted": "Gelöschte anzeigen",
+      "downloadPdf": "PDF herunterladen"
+    },
+    "answers": {
+      "label": "Art der Antworten"
     }
   },
   "subscription": {

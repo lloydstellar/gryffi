@@ -1098,7 +1098,9 @@
               </svg>
               <%= t('dashboard.usage.title') %>
             </h2>
-            <a href="/dashboard/analytics#usageSection" class="dashboard-card-link"><%= t('common.details') %> →</a>
+            <% if (!locals.isCommunity) { %>
+            <a href="/dashboard/subscription" class="dashboard-card-link"><%= t('common.details') %> →</a>
+            <% } %>
           </div>
           <div class="dashboard-card-body">
             <div class="usage-meters">

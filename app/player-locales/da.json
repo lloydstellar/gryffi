@@ -18,7 +18,9 @@
       "connectionError": "Jeg har forbindelsesproblemer lige nu. Prøv venligst igen.",
       "guideUnavailable": "Jeg kan ikke besvare spørgsmål lige nu. Du kan fortsætte med næste trin.",
       "sources": "Kilder",
-      "showSource": "Vis kilde {{number}}"
+      "showSource": "Vis kilde {{number}}",
+      "askLabel": "Dit spørgsmål til {{name}}",
+      "optionalHint": "Det er valgfrit at stille spørgsmål."
     },
     "content": {
       "invalidVideoUrl": "Ugyldig video-URL",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Googles privatlivspolitik"
     },
     "navigation": {
-      "whenReady": "Når du er klar:",
       "journeyComplete": "Ekspedition fuldført!",
       "leaveJourney": "Forlad ekspedition?",
       "leaveJourneyMessage": "Er du sikker på, at du vil forlade denne ekspedition? Din fremgang er gemt.",
       "leaveConfirm": "Forlad",
       "stayContinue": "Bliv",
-      "doAgain": "Vil du gennemføre denne ekspedition igen?"
+      "doAgain": "Vil du gennemføre denne ekspedition igen?",
+      "chooseRoute": "Vælg, hvordan du vil fortsætte",
+      "canClose": "Du kan lukke siden nu."
     },
     "pacing": {
       "readyToContinue": "Du kan nu fortsætte",
       "takeYourTimeMinutes": "Tag {{minutes}} minut til at udforske",
-      "takeYourTimeSeconds": "Tag dig tid... {{seconds}}s",
-      "keepWatching": "Fortsæt med at se... {{seconds}}s",
-      "chatWithGuide": "Chat med guiden ({{count}}/{{total}} beskeder)"
+      "chatWithGuide": "Chat med guiden ({{count}}/{{total}} beskeder)",
+      "wait": "Du kan fortsætte om et øjeblik.",
+      "keepWatchingCalm": "Bliv ved med at se videoen. Knappen vises om et øjeblik."
     },
     "form": {
       "title": "Formular",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "Kun MP3"
-        }
+        },
+        "choose": "Vælg en fil"
       },
       "imageRejected": "Dette billede kan ikke uploades. Vælg et andet billede.",
       "imageCheckUnavailable": "Vi kunne ikke kontrollere dit billede lige nu. Prøv igen om et par minutter.",
       "fieldRequired": "Udfyld dette felt.",
       "invalidEmail": "Indtast en gyldig e-mailadresse, for eksempel navn@firma.dk.",
-      "fileRequired": "Vælg en fil til \"{{field}}\"."
+      "fileRequired": "Vælg en fil til \"{{field}}\".",
+      "optional": "valgfrit",
+      "chooseOne": "Vælg en af mulighederne."
     },
     "quiz": {
       "title": "Quiz",
@@ -93,12 +99,10 @@
       "finish": "Send svar",
       "correct": "Korrekt!",
       "incorrect": "Ikke helt rigtigt",
-      "score": "Din score",
       "passed": "Quiz bestået!",
       "completed": "Quiz gennemført",
       "allCorrect": "Alt rigtigt!",
       "singleCorrect": "Rigtigt svar!",
-      "nextStepHint": "Rejsen fortsætter. Vælg det næste trin nedenfor.",
       "failed": "Du skal have {{required}} rigtige svar for at fortsætte",
       "questionsCorrect": "{{correct}} af {{total}} rigtige",
       "retake": "Tag quiz igen",
@@ -112,7 +116,8 @@
       "voteRecorded": "Din stemme er registreret",
       "respondents": "{{count}} deltager",
       "respondentsPlural": "{{count}} deltagere",
-      "chooseFirst": "Vælg først et svar, og klik derefter på \"Afgiv stemme\"."
+      "chooseFirst": "Vælg først et svar, og klik derefter på \"Afgiv stemme\".",
+      "yourChoice": "dit valg"
     },
     "space": {
       "dragHint": "Træk for at se dig omkring",
@@ -123,29 +128,31 @@
       "zoomIn": "Zoom ind",
       "zoomOut": "Zoom ud",
       "centerOnMarker": "Vis hvor du er",
-      "panoramaLoadFailed": "360°-fotoet kunne ikke indlæses. Genindlæs siden for at prøve igen."
+      "panoramaLoadFailed": "360°-fotoet kunne ikke indlæses. Genindlæs siden for at prøve igen.",
+      "closeFloorplan": "Luk plantegningen"
     },
     "stepTypes": {
       "reward": "Belønning"
     },
     "reward": {
       "congratulations": "Tillykke!",
-      "youAreNumber": "Du er nummer #{{position}} til at få denne belønning!",
       "yourCode": "Din belønningskode",
       "redeemAt": "Indløs hos",
       "terms": "Vilkår og betingelser",
       "validUntil": "Gyldig til",
-      "downloadCoupon": "Download kupon",
+      "downloadCoupon": "Download som PDF",
       "emailSent": "En kopi er sendt til din e-mail",
       "alreadyClaimed": "Du har allerede fået en belønning for denne ekspedition",
       "noMoreRewards": "Beklager, alle belønninger er uddelt",
       "claimFailed": "Din belønning kunne ikke hentes. Genindlæs siden, og prøv igen.",
-      "previewMode": "Forhåndsvisning - Ingen rigtig kode genereret",
+      "previewMode": "Forhåndsvisning: der oprettes ingen rigtig kode",
       "claimed": "Belønning modtaget",
       "soldOut": {
         "title": "Hvor ærgerligt!",
         "message": "Desværre kom du for sent til at modtage en belønning. Alle belønninger er allerede uddelt."
-      }
+      },
+      "copyCode": "Kopiér kode",
+      "codeCopied": "Kode kopieret"
     },
     "tts": {
       "listen": "Lyt",
@@ -247,6 +254,15 @@
       "message": "Du har været her før. Vil du fortsætte, hvor du slap?",
       "continue": "Fortsæt, hvor jeg var",
       "restart": "Start forfra"
+    },
+    "kind": {
+      "read": "Læsning",
+      "video": "Video",
+      "space": "Rum",
+      "guide": "Samtale",
+      "poll": "Afstemning",
+      "questionsOne": "1 spørgsmål",
+      "questionsOther": "{{count}} spørgsmål"
     }
   }
 }

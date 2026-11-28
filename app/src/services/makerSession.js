@@ -9,6 +9,31 @@
 const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es'];
 
 /**
+ * A dashboard page to go back to after the login, or null. Only paths inside
+ * this site's dashboard: never another site (no "//host" or "/\\host").
+ * @param {unknown} value
+ * @returns {string|null}
+ */
+export function safeReturnTo(value) {
+  if (typeof value !== 'string' || value.length > 500) return null;
+  if (!/^\/dashboard(?:[/?#]|$)/.test(value)) return null;
+  if (/[\\\s]/.test(value) || value.includes('//')) return null;
+  return value;
+}
+
+/**
+ * Where a maker goes right after logging in: the page that asked for the
+ * login, else the dashboard. Reads the value once.
+ * @param {import('express').Request} req
+ * @returns {string}
+ */
+export function takeReturnTo(req) {
+  const target = safeReturnTo(req.session?.returnTo) || '/dashboard';
+  if (req.session) delete req.session.returnTo;
+  return target;
+}
+
+/**
  * Regenerate the session and put dataToSet in the new one.
  * @param {import('express').Request} req
  * @param {Object} dataToSet
@@ -69,6 +94,14 @@ export async function startMakerSession(req, user, { firstLogin, method }) {
   if (!hasI18nCookie && mode === 'fixed' && SUPPORTED_LANGUAGES.includes(lang)) {
     sessionData.language = lang;
   }
+
+  // The page that sent the maker to the login (requireAuth) stays in the new session
+  const returnTo = safeReturnTo(req.session?.returnTo);
+  if (returnTo) sessionData.returnTo = returnTo;
+
+  // A recommendation link opened before this login stays in the new session
+  // (Gryffi Cloud: src/cloud/routes/via.js links the organization)
+  if (req.session?.pendingReferral) sessionData.pendingReferral = req.session.pendingReferral;
 
   await regenerateSession(req, sessionData);
   // Read once by server.js for a single login-complete event (no personal data)

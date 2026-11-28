@@ -1158,8 +1158,15 @@ class FlowBuilder {
       ? primaryColor 
       : tokens.headerBackground;
     
+    // The player draws answers, choices and fields with its own border
+    // color; a Card Border the maker changed from the default replaces it
+    const customCardBorder = tokens.cardBorder && tokens.cardBorder.toLowerCase() !== '#e5e7eb'
+      ? `--theme-card-border-custom: ${tokens.cardBorder};`
+      : '';
+
     const cssVars = `
       :root {
+        ${customCardBorder}
         --theme-primary: ${primaryColor};
         --theme-accent: ${tokens.accent || '#78c503'};
         --theme-background: ${tokens.background || '#ecf2eb'};
@@ -1443,24 +1450,12 @@ class FlowBuilder {
    * 3. Otherwise: calculates based on position in the journey path
    */
   updatePlayerProgress() {
-    // Update progress bar for both player mode and builder preview mode
-    const playerProgressBar = document.getElementById('playerProgressBar');
-    const previewProgressBar = document.getElementById('previewProgressBar');
-    
     const pos = this.computeJourneyPosition();
     if (!pos) return;
     
-    // Update both progress bars if they exist
-    if (playerProgressBar) {
-      playerProgressBar.style.width = `${pos.percentage}%`;
-    }
-    if (previewProgressBar) {
-      previewProgressBar.style.width = `${pos.percentage}%`;
-    }
-    
-    // Keep the step indicator on the card in sync with the bar
-    const indicator = document.querySelector('.journey-step-indicator');
-    if (indicator) this.fillStepIndicator(indicator, pos);
+    // Keep the step bar above the card in sync (player and every preview)
+    const stepBar = document.querySelector('#previewContent .journey-stepbar');
+    if (stepBar) this.fillStepBar(stepBar, pos);
   }
   
   /**
@@ -1950,7 +1945,13 @@ class FlowBuilder {
    * Idempotent: uses a flag to prevent duplicate events.
    */
   trackEndStepCompletion(step) {
-    if (step?.is_end) document.getElementById('journeyCompleteBlock')?.classList.remove('hidden');
+    const completeBlock = step?.is_end ? document.getElementById('journeyCompleteBlock') : null;
+    if (completeBlock?.classList.contains('hidden')) {
+      completeBlock.classList.remove('hidden');
+      // It sits at the top of the step: bring it into view after a quiz or form
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      completeBlock.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+    }
     if (!step?.is_end || !this.playerMode) return;
     if (this.previewState._endStepCompleted) return;
     this.previewState._endStepCompleted = true;
@@ -6433,6 +6434,8 @@ class FlowBuilder {
       zone.dataset.fileName = file.name;
       zone.dataset.fileType = file.type;
       zone.dataset.fileSize = file.size;
+      // Lets the form clear a "choose a file" message under this field
+      zone.dispatchEvent(new CustomEvent('journey-file-added', { bubbles: true }));
       
       // Update preview
       if (previewName) previewName.textContent = file.name;
@@ -9339,7 +9342,7 @@ class FlowBuilder {
         <div class="floorplan-overlay-content">
           <div class="floorplan-overlay-header">
             <h3 class="text-lg font-semibold text-zen-800">${escapeHtml(floorplan.name)}</h3>
-            <button class="floorplan-overlay-close" id="closeFloorplanOverlay">
+            <button type="button" class="floorplan-overlay-close" id="closeFloorplanOverlay" aria-label="${escapeHtml(window.tPlayer('player.space.closeFloorplan'))}">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
@@ -9354,7 +9357,7 @@ class FlowBuilder {
                     <div class="floorplan-viewer-marker-inner">
                       <div class="floorplan-viewer-marker-dot"></div>
                       <div class="floorplan-viewer-marker-pulse"></div>
-                      <div class="floorplan-viewer-marker-label">${window.tPlayer('player.space.youAreHere')}</div>
+                      <div class="floorplan-viewer-marker-label${Number(markerX) < 25 ? ' is-start' : (Number(markerX) > 75 ? ' is-end' : '')}">${window.tPlayer('player.space.youAreHere')}</div>
                     </div>
                   </div>
                 ` : ''}
@@ -9598,11 +9601,11 @@ class FlowBuilder {
     // Create bottom sheet HTML
     const sheetHtml = `
       <div class="floorplan-sheet-backdrop" id="floorplanSheetBackdrop"></div>
-      <div class="floorplan-sheet" id="floorplanSheet">
+      <div class="floorplan-sheet" id="floorplanSheet" role="dialog" aria-modal="true" aria-labelledby="floorplanSheetTitle">
         <div class="floorplan-sheet-header" id="floorplanSheetHeader">
           <div class="floorplan-sheet-handle"></div>
-          <h3 class="floorplan-sheet-title">${escapeHtml(floorplan.name)}</h3>
-          <button class="floorplan-sheet-close" id="closeFloorplanSheet">
+          <h3 class="floorplan-sheet-title" id="floorplanSheetTitle">${escapeHtml(floorplan.name)}</h3>
+          <button type="button" class="floorplan-sheet-close" id="closeFloorplanSheet" aria-label="${escapeHtml(window.tPlayer('player.space.closeFloorplan'))}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -9617,7 +9620,7 @@ class FlowBuilder {
                   <div class="floorplan-viewer-marker-inner">
                     <div class="floorplan-viewer-marker-dot"></div>
                     <div class="floorplan-viewer-marker-pulse"></div>
-                    <div class="floorplan-viewer-marker-label">${window.tPlayer('player.space.youAreHere')}</div>
+                    <div class="floorplan-viewer-marker-label${Number(markerX) < 25 ? ' is-start' : (Number(markerX) > 75 ? ' is-end' : '')}">${window.tPlayer('player.space.youAreHere')}</div>
                   </div>
                 </div>
               ` : ''}
@@ -9672,19 +9675,28 @@ class FlowBuilder {
     const maxZoom = 2;
     const zoomStep = 0.15;
     
-    // Close function
+    // Close function: Escape closes it too, and the focus goes back to the
+    // button that opened it
+    const opener = document.activeElement;
+    const onKeydown = (e) => {
+      if (e.key === 'Escape') closeSheet();
+    };
     const closeSheet = () => {
+      document.removeEventListener('keydown', onKeydown);
       sheet.classList.add('closing');
       backdrop.classList.add('closing');
       setTimeout(() => {
         sheet?.remove();
         backdrop?.remove();
+        if (opener && document.contains(opener)) opener.focus();
       }, 300);
     };
     
     // Close handlers
     closeBtn?.addEventListener('click', closeSheet);
     backdrop?.addEventListener('click', closeSheet);
+    document.addEventListener('keydown', onKeydown);
+    closeBtn?.focus();
     
     // Update marker scale
     const updateMarkerScale = () => {
@@ -11127,9 +11139,13 @@ class FlowBuilder {
         count.classList.remove('hidden');
       }
       
-      // Mark user's vote
+      // Mark user's vote, in words as well as in color
       if (userVotes.includes(i)) {
         option.classList.add('user-vote');
+        const text = option.querySelector('.option-text');
+        if (text && !text.querySelector('.journey-poll-mine')) {
+          text.insertAdjacentHTML('beforeend', ` <span class="journey-poll-mine">(${escapeHtml(window.tPlayer('player.poll.yourChoice'))})</span>`);
+        }
       }
       
       option.classList.add('showing-results');
@@ -11281,7 +11297,7 @@ class FlowBuilder {
             codeElement.textContent = 'PREVIEW-CODE-1234';
           }
           if (positionElement) {
-            positionElement.textContent = window.t('builder.reward.preview.youAreNumber', { position: 1 });
+            positionElement.textContent = '';
           }
           // A preview sends no email, so it does not say it did
           if (emailSentElement) emailSentElement.textContent = '';
@@ -11308,9 +11324,7 @@ class FlowBuilder {
             codeElement.textContent = data.code;
           }
           if (positionElement) {
-            positionElement.textContent = data.position
-              ? window.t('builder.reward.preview.youAreNumber', { position: data.position })
-              : '';
+            positionElement.textContent = '';
           }
           if (emailSentElement) {
             emailSentElement.textContent = window.t('builder.reward.preview.emailSent');
@@ -11353,7 +11367,8 @@ class FlowBuilder {
           if (data.alreadyClaimed) {
             positionElement.textContent = window.t('builder.reward.preview.alreadyClaimed');
           } else {
-            positionElement.textContent = window.t('builder.reward.preview.youAreNumber', { position: data.position });
+            // No rank ("you are number 2"): a reward is not a race
+            positionElement.textContent = '';
           }
         }
         
@@ -12208,12 +12223,15 @@ class FlowBuilder {
     const row = document.createElement('div');
     row.className = 'journey-tts-row';
     
-    // Step orientation ("Step 3 of 8", plus "±6 min" on the start
-    // step): a quiet anchor for time perception. Left of the reading
-    // controls; excluded from the read-aloud text like the rest of
-    // this row.
-    const indicator = this.buildStepIndicator();
-    if (indicator) row.appendChild(indicator);
+    // What kind of step this is ("Quiz · 3 questions"), left of the reading
+    // controls. "Step 3 of 8" lives in the step bar above the card. The row
+    // is excluded from the read-aloud text.
+    const step = this.previewState.currentStep;
+    const kindLabel = this.getStepKindLabel(step);
+    const kind = document.createElement('div');
+    kind.className = 'journey-step-kind';
+    if (kindLabel) kind.innerHTML = `${this.getStepKindIcon(step.type)}<span>${escapeHtml(kindLabel)}</span>`;
+    row.appendChild(kind);
     
     // Listen button: only when TTS works and the step has readable text
     // (e.g. skip the empty nested-journey pass-through step).
@@ -12230,51 +12248,148 @@ class FlowBuilder {
     content.insertBefore(row, content.firstChild);
   }
   
+  /**
+   * The way on from a step, the same for every step type: one primary
+   * button when there is one way on, a short question with a list of
+   * choices when the participant picks a route (makers name the buttons).
+   * While a timer or a task holds the participant on the step, the
+   * buttons stay hidden: a task (quiz, form, poll) has its own button and
+   * only gets a line for screen readers; a timer shows one quiet line.
+   */
+  renderStepNavigation({ paths = [], nestedEndContinue = false, showNav = true, pacingMessage = '', taskGate = false, hint = '' }) {
+    const isChoice = paths.length > 1;
+    const arrow = `<svg class="journey-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6"></path>
+      </svg>`;
+    const chevron = `<svg class="journey-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 6l6 6-6 6"></path>
+      </svg>`;
+    const buttons = paths.map(p => `
+        <button type="button" class="preview-option ${isChoice ? 'journey-choice' : 'journey-next-btn'}" data-path="${escapeHtml(p.id)}" data-target="${escapeHtml(p.to_step_id)}">
+          <span class="journey-btn-label">${escapeHtml(p.label)}</span>${isChoice ? chevron : arrow}
+        </button>`).join('');
+    const continueBtn = nestedEndContinue ? `
+        <button type="button" class="preview-option journey-next-btn nested-journey-continue" id="nestedJourneyContinue">
+          <span class="journey-btn-label">${escapeHtml(window.tPlayer('player.quiz.continue'))}</span>${arrow}
+        </button>` : '';
+    const layout = isChoice ? 'is-choice' : 'is-single';
+    return `
+      <div class="preview-options journey-nav ${layout}" id="previewNavigation">
+        <div class="pacing-indicator journey-wait${showNav ? ' hidden' : ''}${taskGate ? ' journey-sr-only' : ''}" id="pacingIndicator">
+          <span id="pacingMessage">${escapeHtml(pacingMessage)}</span>
+        </div>
+        <div class="preview-nav-buttons ${layout}${showNav ? '' : ' hidden'}" id="navButtons">
+          ${isChoice ? `<p class="journey-choice-q">${escapeHtml(window.tPlayer('player.navigation.chooseRoute'))}</p>` : ''}
+          ${buttons}${continueBtn}
+          ${hint ? `<p class="journey-nav-hint">${escapeHtml(hint)}</p>` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  /**
+   * The short label above each step ("Reading", "Quiz · 3 questions"):
+   * the participant knows what kind of step this is before reading it.
+   */
+  getStepKindLabel(step) {
+    if (!step) return '';
+    const props = typeof step.basic_props === 'string' ? JSON.parse(step.basic_props) : (step.basic_props || {});
+    switch (step.type) {
+      case 'content':
+        return window.tPlayer(props.media_type === 'video' && props.video_url ? 'player.kind.video' : 'player.kind.read');
+      case 'space': return window.tPlayer('player.kind.space');
+      case 'guide': return window.tPlayer('player.kind.guide');
+      case 'challenge': {
+        const count = (props.questions || []).length || (props.question ? 1 : 0);
+        const base = window.tPlayer('player.quiz.title');
+        if (!count) return base;
+        return `${base} · ${window.tPlayer(count === 1 ? 'player.kind.questionsOne' : 'player.kind.questionsOther', { count })}`;
+      }
+      case 'form': return window.tPlayer('player.form.title');
+      case 'poll': return window.tPlayer('player.kind.poll');
+      case 'reward': return window.tPlayer('player.stepTypes.reward');
+      default: return '';
+    }
+  }
+  
+  getStepKindIcon(type) {
+    const paths = {
+      content: 'M4 6h16M4 11h16M4 16h10',
+      space: 'M12 21s-6-5.3-6-10a6 6 0 0112 0c0 4.7-6 10-6 10zm0-8a2 2 0 100-4 2 2 0 000 4z',
+      guide: 'M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z',
+      challenge: 'M9.5 9a2.5 2.5 0 113.5 2.3c-.6.3-1 .9-1 1.6V14m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+      form: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 7h6m-6 4h4',
+      poll: 'M5 20V10m7 10V4m7 16v-7',
+      reward: 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7'
+    };
+    const d = paths[type];
+    return d ? `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${d}"></path></svg>` : '';
+  }
+  
   /* ============================================
      STEP / TIME ORIENTATION
-     "Step 3 of 8" uses the same path estimate as the progress bar, so
-     the two can never contradict each other. In branching journeys the
-     total is the longest remaining route and gets a "±" prefix; on the
-     start step of the main journey a rough duration ("±6 min") is
-     added once. Inside nested journeys the parent journey's combined
-     count is shown, and the quiz's own question counter lives inside
-     the card, so the two never clash.
+     The step bar above the card: "Step 3 of 8" and one block per step,
+     from one path estimate, so the words and the blocks never disagree.
+     In branching journeys the total is the longest remaining route and
+     says "of about"; on the start step of the main journey a rough
+     duration is shown once. Inside nested journeys the parent journey's
+     combined count is shown; the quiz's own question counter lives
+     inside the card.
      ============================================ */
   
-  buildStepIndicator() {
+  /**
+   * "Step 3 of 10" with one block per step, above the card. Built from the
+   * same estimate as before (computeJourneyPosition), so the words and the
+   * blocks always agree. Very long journeys get one continuous bar.
+   */
+  injectStepBar(container) {
+    container.querySelector('.journey-stepbar')?.remove();
     const pos = this.computeJourneyPosition();
-    if (!pos) return null;
-    const el = document.createElement('div');
-    el.className = 'journey-step-indicator';
-    this.fillStepIndicator(el, pos);
-    return el;
+    const card = container.querySelector('.preview-card');
+    if (!pos || !card || this.previewState.currentStep?.type === 'nested_journey') return;
+    const bar = document.createElement('div');
+    bar.className = 'journey-stepbar';
+    bar.innerHTML = `
+      <div class="journey-stepbar-text">
+        <span class="journey-step-indicator"></span>
+        <span class="journey-stepbar-time"></span>
+      </div>
+      <div class="journey-stepbar-track" aria-hidden="true"></div>
+    `;
+    container.insertBefore(bar, card);
+    this.fillStepBar(bar, pos);
+  }
+  
+  fillStepBar(bar, pos) {
+    this.fillStepIndicator(bar.querySelector('.journey-step-indicator'), pos);
+    const time = bar.querySelector('.journey-stepbar-time');
+    const step = this.previewState.currentStep;
+    const minutes = step?.is_start && !this.previewState.isInNestedJourney ? this.estimateJourneyDuration() : 0;
+    time.textContent = minutes > 0 ? window.tPlayer('player.orientation.duration', { minutes }) : '';
+    const track = bar.querySelector('.journey-stepbar-track');
+    const total = Math.max(1, pos.total || 1);
+    if (total <= 20) {
+      track.classList.remove('is-continuous');
+      track.innerHTML = Array.from({ length: total }, (_, i) => {
+        const state = i < pos.current - 1 || pos.percentage >= 100 ? 'is-done' : (i === pos.current - 1 ? 'is-now' : '');
+        return `<i class="${state}"></i>`;
+      }).join('');
+    } else {
+      track.classList.add('is-continuous');
+      track.innerHTML = `<i class="is-done" style="width: ${Math.max(0, Math.min(100, pos.percentage))}%"></i>`;
+    }
   }
   
   fillStepIndicator(el, pos) {
     // Once the end step is reached the count is exact. An estimate says so in
     // words ("of about 11"): a ± sign is not plain language for everyone.
     const showApprox = pos.isApprox && pos.percentage < 100;
-    const parts = [window.tPlayer(showApprox ? 'player.orientation.stepApprox' : 'player.orientation.step', {
+    // The estimated duration on the first step sits next to it in the step
+    // bar (fillStepBar), as its own text
+    el.textContent = window.tPlayer(showApprox ? 'player.orientation.stepApprox' : 'player.orientation.step', {
       current: pos.current,
       total: pos.total
-    })];
-    
-    // Estimated duration: only on the very first step of the main
-    // journey, where it answers "how long will this take me?" without
-    // becoming a ticking clock during the journey itself.
-    const step = this.previewState.currentStep;
-    if (step?.is_start && !this.previewState.isInNestedJourney) {
-      const minutes = this.estimateJourneyDuration();
-      if (minutes > 0) {
-        parts.push(window.tPlayer('player.orientation.duration', { minutes }));
-      }
-    }
-    
-    // On a narrow screen, wrap after the " · " and never inside "±6 min"
-    // (the step part may still wrap if a language needs the room)
-    el.textContent = parts
-      .map((part, i) => (i === 0 ? part : part.replace(/ /g, ' ')))
-      .join(' · ');
+    });
   }
   
   buildTtsButton(card) {
@@ -12797,36 +12912,45 @@ class FlowBuilder {
     const paths = this.paths.filter(p => p.from_step_id === step.id);
     const container = document.getElementById('previewContent');
     
-    let html = `<div class="preview-card">`;
-    
+    // The card gets a modifier per layout: media steps (a photo, panorama or
+    // video) can sit next to their text on a wide screen. Decided here from
+    // the step itself, so makers never have to set up a desktop version.
+    const cardClasses = ['preview-card', `journey-card--${step.type}`];
+    let html = '';
+
     switch (step.type) {
-      case 'space':
+      case 'space': {
         const isPanoramaView = basicProps.is_panorama === true;
         const hasFloorplan = basicProps.floorplan?.enabled && basicProps.floorplan?.floorplan_id;
-        // Same layout as the other steps: step indicator, then the title in the card
+        if (basicProps.image_url) cardClasses.push('journey-card--media');
         html += `
           <div class="preview-content relative">
             <h2 class="journey-step-title">${escapeHtml(step.title)}</h2>
-            <p class="text-zen-700">${escapeHtml(basicProps.description)}</p>
-            ${basicProps.image_url ? (
-              isPanoramaView 
-                ? `<div class="panorama-container mt-4" id="panoramaViewerContainer" data-url="${escapeHtml(basicProps.image_url)}" data-title="${escapeHtml(step.title)}"></div>`
-                : `<img src="${escapeHtml(basicProps.image_url)}" alt="${escapeHtml(step.title || '')}" class="mt-4 rounded-lg w-full" />`
-            ) : ''}
-            ${hasFloorplan ? `
-              <button class="floorplan-pill" id="floorplanFab" 
+            ${basicProps.description ? `<p class="journey-step-intro">${escapeHtml(basicProps.description)}</p>` : ''}
+          </div>
+          ${basicProps.image_url ? `
+            <div class="journey-media">
+              ${isPanoramaView
+                ? `<div class="panorama-container" id="panoramaViewerContainer" data-url="${escapeHtml(basicProps.image_url)}" data-title="${escapeHtml(step.title)}"></div>`
+                : `<img src="${escapeHtml(basicProps.image_url)}" alt="${escapeHtml(step.title || '')}" class="journey-media-img" />`}
+            </div>
+          ` : ''}
+          ${hasFloorplan ? `
+            <div class="journey-media-actions">
+              <button type="button" class="floorplan-pill" id="floorplanFab"
                       data-floorplan-id="${escapeHtml(basicProps.floorplan.floorplan_id)}"
                       data-marker-x="${escapeHtml(basicProps.floorplan.marker_x)}"
                       data-marker-y="${escapeHtml(basicProps.floorplan.marker_y)}">
-                <svg class="floorplan-pill-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="floorplan-pill-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                 </svg>
                 <span class="floorplan-pill-text">${window.tPlayer('player.space.viewFloorplan')}</span>
               </button>
-            ` : ''}
-          </div>
+            </div>
+          ` : ''}
         `;
         break;
+      }
         
       case 'guide':
         // Get guide from central library
@@ -12850,16 +12974,17 @@ class FlowBuilder {
         const guideAvatarUrl = previewGuide?.avatar_url;
         html += `
           <div class="preview-content">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="journey-guide-avatar">
-                  ${guideAvatarUrl 
-                    ? `<img src="${escapeHtml(guideAvatarUrl)}" alt="${escapeHtml(guideName)}" class="journey-guide-avatar-img">`
-                    : guideName[0]
+            ${step.title ? `<h2 class="journey-step-title">${escapeHtml(step.title)}</h2>` : ''}
+            <div class="journey-guide-head">
+                <div class="journey-guide-avatar" aria-hidden="true">
+                  ${guideAvatarUrl
+                    ? `<img src="${escapeHtml(guideAvatarUrl)}" alt="" class="journey-guide-avatar-img">`
+                    : escapeHtml(guideName[0] || '')
                   }
                 </div>
-              <div>
-                  <h3 class="font-semibold text-zen-900">${escapeHtml(guideName)}</h3>
-                  <p class="text-sm text-zen-500">${escapeHtml(guideRole)}</p>
+              <div class="journey-guide-who">
+                  <p class="journey-guide-name">${escapeHtml(guideName)}</p>
+                  <p class="journey-guide-role">${escapeHtml(guideRole)}</p>
               </div>
             </div>
           </div>
@@ -12871,9 +12996,10 @@ class FlowBuilder {
                 </span>
               </div>
             </div>
+            <label class="journey-chat-label" for="chatInput">${escapeHtml(window.tPlayer('player.chat.askLabel', { name: guideName }))}</label>
             <div class="chat-input-wrapper">
-                <input type="text" class="chat-input" id="chatInput" placeholder="${window.tPlayer('player.chat.typeMessage')}" disabled />
-                <button class="chat-send" id="sendChatBtn" disabled>${window.tPlayer('player.chat.send')}</button>
+                <input type="text" class="chat-input" id="chatInput" placeholder="${escapeHtml(window.tPlayer('player.chat.typeQuestion'))}" autocomplete="off" disabled />
+                <button type="button" class="chat-send" id="sendChatBtn" disabled>${window.tPlayer('player.chat.send')}</button>
             </div>
           </div>
         `;
@@ -12894,8 +13020,20 @@ class FlowBuilder {
           ? `<div class="prose prose-zen">${autolinkHtml(sanitizeRichHtml(basicProps.body))}</div>`
           : '';
         const descriptionHtml = bodyText || captionHtml;
-        const withCaption = (media) => (bodyText && captionHtml ? `${media}<div class="mt-3 text-sm">${captionHtml}</div>` : media);
-        
+        const withCaption = (media) => (bodyText && captionHtml ? `${media}<div class="journey-media-caption">${captionHtml}</div>` : media);
+        // A photo or video sits in its own block, so a wide screen can put it
+        // next to the text. The text stays above or below it on a phone, as
+        // the maker chose.
+        const mediaLayout = (media) => {
+          cardClasses.push('journey-card--media');
+          const text = descriptionHtml ? `<div class="journey-step-text">${descriptionHtml}</div>` : '';
+          return {
+            inContent: textPosition === 'above' ? text : '',
+            after: `<div class="journey-media">${withCaption(media)}</div>${textPosition !== 'above' && text ? `<div class="journey-aside">${text}</div>` : ''}`
+          };
+        };
+        let afterContentHtml = '';
+
         if (mediaType === 'text') {
           // Display HTML content directly (from the simple editor). Plain
           // URLs and email addresses are auto-linked and forced to open in
@@ -12921,27 +13059,13 @@ class FlowBuilder {
                 </div>
               </div>
             `;
-            // Combine description and media based on position
-            if (descriptionHtml) {
-              contentHtml = textPosition === 'above' 
-                ? `<div class="mb-4">${descriptionHtml}</div>${withCaption(mediaHtml)}`
-                : `${withCaption(mediaHtml)}<div class="mt-4">${descriptionHtml}</div>`;
-            } else {
-              contentHtml = mediaHtml;
-            }
+            ({ inContent: contentHtml, after: afterContentHtml } = mediaLayout(mediaHtml));
           } else {
             contentHtml = `<p class="text-zen-500 italic">${window.t('builder.preview.invalidVideoUrl')}</p>`;
           }
         } else if (mediaType === 'image' && basicProps.image_url) {
-          mediaHtml = `<img src="${escapeHtml(basicProps.image_url)}" alt="${escapeHtml(step.title)}" class="rounded-lg w-full" />`;
-          // Combine description and media based on position
-          if (descriptionHtml) {
-            contentHtml = textPosition === 'above' 
-              ? `<div class="mb-4">${descriptionHtml}</div>${withCaption(mediaHtml)}`
-              : `${withCaption(mediaHtml)}<div class="mt-4">${descriptionHtml}</div>`;
-          } else {
-            contentHtml = mediaHtml;
-          }
+          mediaHtml = `<img src="${escapeHtml(basicProps.image_url)}" alt="${escapeHtml(step.title)}" class="journey-media-img" />`;
+          ({ inContent: contentHtml, after: afterContentHtml } = mediaLayout(mediaHtml));
         } else {
           // Video or image chosen but not added yet: show the text or the
           // description, if there is any
@@ -12953,9 +13077,10 @@ class FlowBuilder {
             <h2 class="journey-step-title">${escapeHtml(step.title)}</h2>
             ${contentHtml}
           </div>
+          ${afterContentHtml}
         `;
         break;
-        
+
       case 'challenge':
         // Get questions (support both old and new format)
         let quizQuestions = basicProps.questions || [];
@@ -13002,25 +13127,14 @@ class FlowBuilder {
                data-pass-message="${escapeHtmlAttr(advancedProps.pass_message || '')}"
                data-fail-message="${escapeHtmlAttr(advancedProps.fail_message || '')}">
             
-            <!-- Quiz Header -->
-            <div class="journey-step-badge">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-              </svg>
-              <span>${window.tPlayer('player.quiz.title')}</span>
-            </div>
-            
-            <!-- Progress Bar -->
-            <div class="mb-6">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm text-zen-600" id="quizProgress">
-                  ${window.tPlayer('player.quiz.questionOf', { current: 1, total: totalQuestions })}
-                </span>
-                <span class="text-xs text-zen-400" id="quizScore"></span>
-              </div>
-              <div class="h-2 bg-zen-100 rounded-full overflow-hidden">
-                <div class="h-full transition-all duration-300" id="quizProgressBar" style="background: var(--theme-progress-bar, var(--theme-accent, #78c503)); width: ${100 / totalQuestions}%"></div>
-              </div>
+            ${step.title ? `<h2 class="journey-step-title">${escapeHtml(step.title)}</h2>` : ''}
+
+            <!-- Which question: in words and as one block per question -->
+            <div class="journey-quiz-progress" id="quizProgressWrap">
+              <span id="quizProgress">${window.tPlayer('player.quiz.questionOf', { current: 1, total: totalQuestions })}</span>
+              <span class="journey-quiz-segments" aria-hidden="true">
+                ${quizQuestions.map((_, i) => `<i class="${i === 0 ? 'is-now' : ''}"></i>`).join('')}
+              </span>
             </div>
             
             <!-- Question Container -->
@@ -13056,19 +13170,13 @@ class FlowBuilder {
               </div>
             </div>
             
-            <div class="journey-step-badge">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-              </svg>
-              <span>${window.t('builder.preview.form')}</span>
-            </div>
             <h2 class="journey-step-title">${escapeHtml(step.title)}</h2>
-            ${basicProps.description ? `<p class="text-zen-600 mb-6">${escapeHtml(basicProps.description)}</p>` : ''}
+            ${basicProps.description ? `<p class="journey-step-intro">${escapeHtml(basicProps.description)}</p>` : ''}
             
-            <form class="preview-form space-y-4" id="previewForm">
+            <form class="preview-form" id="previewForm" novalidate>
               ${formFields.map((field, i) => this.renderFormFieldPreview(field, i)).join('')}
               
-              <div class="form-buttons-container mt-8 pt-4 flex flex-wrap items-center gap-3">
+              <div class="form-buttons-container">
                 <button type="submit" class="journey-poll-submit-btn" id="submitFormBtn">
                   ${window.t('builder.preview.submit')}
                 </button>
@@ -13081,13 +13189,13 @@ class FlowBuilder {
               </div>
             </form>
             
-            <div class="form-success-message hidden text-center py-8" id="formSuccessMessage">
-              <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background: color-mix(in srgb, var(--theme-accent, #78c503) 20%, transparent);">
-                <svg class="w-8 h-8" style="color: var(--theme-accent, #78c503);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            <div class="form-success-message journey-result journey-result--passed hidden" id="formSuccessMessage" role="status">
+              <span class="journey-result-icon" aria-hidden="true">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"></path>
                 </svg>
-              </div>
-              <p class="text-lg font-medium text-zen-900">${escapeHtml(advancedProps.confirmation_message || window.t('builder.preview.defaultConfirmation'))}</p>
+              </span>
+              <p class="journey-result-title">${escapeHtml(advancedProps.confirmation_message || window.t('builder.preview.defaultConfirmation'))}</p>
             </div>
           </div>
         `;
@@ -13101,25 +13209,19 @@ class FlowBuilder {
         
         html += `
           <div class="preview-content">
-            <div class="journey-poll" data-step-id="${step.id}" data-allow-multiple="${allowMultiple}" data-show-results="${showResults}" data-required="${isRequired}">
-              <p class="journey-poll-question">${escapeHtml(basicProps.question)}</p>
+            ${step.title ? `<h2 class="journey-step-title">${escapeHtml(step.title)}</h2>` : ''}
+            <div class="journey-poll${allowMultiple ? ' is-multiple' : ''}" data-step-id="${step.id}" data-allow-multiple="${allowMultiple}" data-show-results="${showResults}" data-required="${isRequired}">
+              <h3 class="journey-poll-question">${escapeHtml(basicProps.question)}</h3>
               <div class="journey-poll-options">
-                ${pollOptions.map((opt, i) => {
-                  const letter = String.fromCharCode(65 + i);
-                  return `
+                ${pollOptions.map((opt, i) => `
                   <div class="journey-poll-option" data-option-index="${i}" role="button" tabindex="0" aria-pressed="false">
                     <input type="hidden" name="poll_option" value="${i}" class="journey-poll-input">
-                    <span class="option-letter">${letter}</span>
+                    <span class="option-mark" aria-hidden="true"></span>
                     <span class="option-text">${this.escapeHtml(opt.text || '')}</span>
                     <span class="journey-poll-option-bar" style="width: 0%"></span>
                     <span class="journey-poll-option-count hidden">0</span>
-                    <span class="option-indicator">
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                      </svg>
-                    </span>
                   </div>
-                `}).join('')}
+                `).join('')}
               </div>
               <div class="journey-poll-footer">
                 <button type="button" class="journey-poll-submit-btn" id="pollSubmitBtn">${window.tPlayer('player.poll.submitVote')}</button>
@@ -13149,79 +13251,43 @@ class FlowBuilder {
         html += `
           <div class="preview-content">
             <div class="journey-reward" data-step-id="${step.id}">
-              <!-- Reward Header -->
-              <div class="journey-step-badge">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-                </svg>
-                <span>${window.t('builder.stepTypes.reward')}</span>
-              </div>
+              ${step.title ? `<h2 class="journey-step-title">${escapeHtml(step.title)}</h2>` : ''}
+              ${rewardDesc ? `<p class="journey-step-intro">${this.escapeHtml(rewardDesc)}</p>` : ''}
+              <p class="journey-reward-status" id="rewardPosition">${isPreviewMode ? window.t('builder.reward.preview.previewMode') : ''}</p>
               
-              <!-- Congratulations Message -->
-              <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-zen-900 mb-2">${window.t('builder.reward.preview.congratulations')}</h2>
-                <p class="text-zen-600" id="rewardPosition">${isPreviewMode ? window.t('builder.reward.preview.previewMode') : ''}</p>
-              </div>
-              
-              <!-- Reward Card -->
-              <div class="bg-white rounded-xl p-6 mb-6" style="border: 2px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 20%, transparent);">
-                <h3 class="text-lg font-bold mb-2" style="color: var(--theme-primary, #0b4b34);">${this.escapeHtml(rewardTitle)}</h3>
-                ${rewardDesc ? `<p class="text-zen-600 mb-4">${this.escapeHtml(rewardDesc)}</p>` : ''}
-                
-                <!-- Code Display -->
-                <div class="rounded-lg p-4 mb-4 text-center" style="background: var(--theme-background, #ecf2eb); border: 1px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 20%, transparent);">
-                  <p class="text-xs mb-1" style="color: var(--theme-primary, #0b4b34);">${window.t('builder.reward.preview.yourCode')}</p>
-                  <p class="text-3xl font-mono font-bold tracking-wider" style="color: var(--theme-primary, #0b4b34);" id="rewardCode">
-                    ${isPreviewMode ? 'PREVIEW-CODE' : '...'}
-                  </p>
+              <!-- The reward as a ticket: the code on top, where and until when below -->
+              <div class="journey-ticket">
+                <div class="journey-ticket-top">
+                  ${rewardTitle && rewardTitle !== step.title ? `<p class="journey-ticket-name">${this.escapeHtml(rewardTitle)}</p>` : ''}
+                  <p class="journey-ticket-label">${window.t('builder.reward.preview.yourCode')}</p>
+                  <p class="journey-ticket-code" id="rewardCode">${isPreviewMode ? 'PREVIEW-CODE' : '...'}</p>
+                  <button type="button" class="journey-ticket-copy" id="rewardCopyBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="2"></rect>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15V5a1 1 0 011-1h10"></path>
+                    </svg>
+                    <span>${escapeHtml(window.tPlayer('player.reward.copyCode'))}</span>
+                  </button>
                 </div>
-                
-                <!-- Redemption Info -->
-                ${redemptionLoc ? `
-                  <div class="flex items-start gap-2 mb-3">
-                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color: var(--theme-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    <div>
-                      <p class="text-xs font-medium" style="color: var(--theme-primary, #0b4b34);">${window.t('builder.reward.preview.redeemAt')}</p>
-                      <p class="text-zen-700">${this.escapeHtml(redemptionLoc)}</p>
-                    </div>
-                  </div>
-                ` : ''}
-                
-                ${validUntil ? `
-                  <div class="flex items-start gap-2 mb-3">
-                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color: var(--theme-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <div>
-                      <p class="text-xs font-medium" style="color: var(--theme-primary, #0b4b34);">${window.t('builder.reward.preview.validUntil')}</p>
-                      <p class="text-zen-700">${this.formatDate(validUntil)}</p>
-                    </div>
-                  </div>
-                ` : ''}
-                
-                ${termsConditions ? `
-                  <div class="mt-4 pt-4 border-t border-zen-200">
-                    <p class="text-xs font-medium mb-1" style="color: var(--theme-primary, #0b4b34);">${window.t('builder.reward.preview.terms')}</p>
-                    <p class="text-sm text-zen-600">${this.escapeHtml(termsConditions)}</p>
-                  </div>
+                ${redemptionLoc || validUntil || termsConditions ? `
+                  <dl class="journey-ticket-details">
+                    ${redemptionLoc ? `<div><dt>${window.t('builder.reward.preview.redeemAt')}</dt><dd>${this.escapeHtml(redemptionLoc)}</dd></div>` : ''}
+                    ${validUntil ? `<div><dt>${window.t('builder.reward.preview.validUntil')}</dt><dd>${this.formatDate(validUntil)}</dd></div>` : ''}
+                    ${termsConditions ? `<div><dt>${window.t('builder.reward.preview.terms')}</dt><dd>${this.escapeHtml(termsConditions)}</dd></div>` : ''}
+                  </dl>
                 ` : ''}
               </div>
               
-              <!-- Actions -->
-              <div class="flex gap-3">
-                <button type="button" class="journey-nav-btn journey-nav-btn-primary flex-1 flex items-center justify-center gap-2" id="downloadRewardPdfBtn">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              <div class="journey-reward-actions">
+                <button type="button" class="journey-nav-btn journey-nav-btn-primary" id="downloadRewardPdfBtn">
+                  <svg class="journey-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"></path>
                   </svg>
                   ${window.t('builder.reward.preview.downloadCoupon')}
                 </button>
+                <!-- Filled in by claimReward once a real claim sent the code by email -->
+                <p class="journey-reward-email" id="rewardEmailSent"></p>
               </div>
-              
-              <!-- Filled in by claimReward once a real claim sent the code by email -->
-              <p class="text-center text-xs text-zen-500 mt-4" id="rewardEmailSent"></p>
             </div>
           </div>
         `;
@@ -13278,40 +13344,14 @@ class FlowBuilder {
         pacingMessage = window.tPlayer('player.poll.completePollToContinue');
       }
       
-      html += `
-        <div class="preview-options" id="previewNavigation">
-          <!-- Pacing indicator (hidden when unlocked) -->
-          <div class="pacing-indicator ${shouldShowNav ? 'hidden' : ''}" id="pacingIndicator">
-            <svg class="w-4 h-4 text-zen-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span class="text-sm text-zen-500" id="pacingMessage">${escapeHtml(pacingMessage)}</span>
-          </div>
-          
-          <!-- Navigation buttons (hidden until pacing unlocked) -->
-          <div class="preview-nav-buttons ${shouldShowNav ? '' : 'hidden'}" id="navButtons">
-          ${paths.map(p => `
-            <button class="preview-option" data-path="${p.id}" data-target="${p.to_step_id}">
-              <svg class="w-5 h-5" style="color: var(--theme-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-              </svg>
-              <span class="flex-1">${escapeHtml(p.label)}</span>
-            </button>
-          `).join('')}
-          ${nestedEndContinue ? `
-            <button class="preview-option nested-journey-continue" id="nestedJourneyContinue">
-              <svg class="w-5 h-5" style="color: var(--theme-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-              </svg>
-              <span class="flex-1">${window.t('common.continue') || 'Continue'}</span>
-            </button>
-          ` : ''}
-          </div>
-        </div>
-      `;
+      // A quiz, form or poll has its own button (Check, Send, Vote): the way
+      // on appears once that is done, without a second grey "do this first" box
+      const taskGate = isChallenge || formRequiresSubmit || (pollIsRequired && !pollAlreadyVoted);
+      html += this.renderStepNavigation({ paths, nestedEndContinue, showNav: shouldShowNav, pacingMessage, taskGate });
     }
     
     // End step celebration (only show if NOT in a nested journey)
+    let completeHtml = '';
     // In nested journey, we auto-return to parent instead of showing "complete"
     if (step.is_end && !this.previewState.isInNestedJourney) {
       // Check if user can restart the journey (unlimited or has completions remaining)
@@ -13323,59 +13363,55 @@ class FlowBuilder {
       // A form, quiz or required poll completes the journey only once it is
       // done: until then the "complete" message waits (trackEndStepCompletion)
       const waitForCompletion = !this.isEndStepAutoComplete(step);
-      html += `
-        <div class="p-6 text-center border-t border-zen-200${waitForCompletion ? ' hidden' : ''}" id="journeyCompleteBlock" role="status">
-          ${canRestart ? `
-            <div class="mb-4">
-              <div class="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center" style="background: var(--theme-primary, #0b4b34)15;">
-                <svg class="w-8 h-8" style="color: var(--theme-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      // At the top of the last step, so "you are done" is the first thing
+      // the participant sees (it used to sit under the buttons, off screen
+      // on a phone)
+      completeHtml = `
+        <div class="journey-complete${waitForCompletion ? ' hidden' : ''}" id="journeyCompleteBlock" role="status">
+          <span class="journey-complete-icon" aria-hidden="true">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </span>
+          <div class="journey-complete-text">
+            <p class="journey-complete-title">${window.tPlayer('player.navigation.journeyComplete')}</p>
+            <p class="journey-complete-sub">${canRestart ? window.tPlayer('player.navigation.doAgain') : window.tPlayer('player.navigation.canClose')}</p>
+            ${canRestart ? `
+              <button type="button" id="restartJourneyBtn" class="journey-nav-btn journey-nav-btn-secondary journey-complete-restart">
+                <svg class="journey-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-              </div>
-              <p class="text-lg font-semibold" style="color: var(--theme-primary, #0b4b34);">${window.tPlayer('player.navigation.journeyComplete')}</p>
-              <p class="text-zen-500 mt-1">${window.tPlayer('player.navigation.doAgain')}</p>
-            </div>
-            <button type="button" id="restartJourneyBtn" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:opacity-90" style="background: var(--theme-primary, #0b4b34);">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              ${window.tPlayer('player.magicLink.welcomeBack.restartButton')}
-            </button>
-          ` : `
-            <p class="font-semibold" style="color: var(--theme-primary, #0b4b34);">${window.tPlayer('player.navigation.journeyComplete')}</p>
-          `}
+                ${window.tPlayer('player.magicLink.welcomeBack.restartButton')}
+              </button>
+            ` : ''}
           ${window.GRYFFI?.previewMode && window.GRYFFI?.isDemoJourney ? `
             <!-- End of the demo tour: what to do next -->
             <p class="text-zen-600 mt-4 mb-3">${escapeHtml(window.t('builder.preview.demoEnd.text'))}</p>
-            <div class="flex flex-wrap justify-center gap-3">
+            <div class="flex flex-wrap gap-3">
               <a href="/dashboard/builder/${encodeURIComponent(this.journey.id)}" class="inline-flex items-center px-5 py-2.5 rounded-xl font-medium border" style="border-color: var(--theme-primary, #0b4b34); color: var(--theme-primary, #0b4b34);">${escapeHtml(window.t('builder.preview.demoEnd.viewInBuilder'))}</a>
               ${window.GRYFFI?.canCreateJourney ? `<a href="/dashboard/journeys/new" class="inline-flex items-center px-5 py-2.5 rounded-xl font-medium text-white" style="background: var(--theme-primary, #0b4b34);">${escapeHtml(window.t('builder.preview.demoEnd.createFirst'))}</a>` : ''}
             </div>
           ` : ''}
+          </div>
         </div>
       `;
     } else if (nestedEndContinue && step.type === 'guide') {
       // A guide renders its own navigation; at the end of a sub-journey it
       // gets the Continue button here
-      html += `
-        <div class="preview-options" id="previewNavigation">
-          <div class="preview-nav-buttons" id="navButtons">
-            <button class="preview-option nested-journey-continue" id="nestedJourneyContinue">
-              <svg class="w-5 h-5" style="color: var(--theme-primary, #0b4b34);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-              </svg>
-              <span class="flex-1">${window.t('common.continue') || 'Continue'}</span>
-            </button>
-          </div>
-        </div>
-      `;
+      html += this.renderStepNavigation({ paths: [], nestedEndContinue: true });
     }
     
-    html += `</div>`;
+    html = `<div class="${cardClasses.join(' ')}">${completeHtml}${html}</div>`;
     container.innerHTML = html;
     
     // Add the text-to-speech "listen" control (identical in player and previews)
     this.injectTtsControl(container);
+    // "You are done" right under the reading aids, above the step itself
+    const completeBlock = container.querySelector('#journeyCompleteBlock');
+    const ttsRow = container.querySelector('.journey-tts-row');
+    if (completeBlock && ttsRow) ttsRow.after(completeBlock);
+    // Where am I: step X of Y and the progress blocks, above the card
+    this.injectStepBar(container);
     
     // Scroll to top of the step content (works for both mobile and desktop)
     // Reset scroll on the preview-content element (mobile scrollable area)
@@ -13628,32 +13664,26 @@ class FlowBuilder {
         journeyAnalytics.formStarted(step.id, basicProps.fields?.length || 0);
       }
       
-      // Validation messages in the language of the journey, not of the browser
-      const fieldsForValidation = basicProps.fields || [];
-      previewForm.querySelectorAll('input, select, textarea').forEach(el => {
-        el.addEventListener('invalid', () => {
-          if (el.type === 'file') {
-            // The file input itself is hidden, so the browser cannot point at it
-            const index = Number(String(el.name).replace('field_', ''));
-            const label = fieldsForValidation[index]?.label || '';
-            this.showToast(window.tPlayer('player.form.fileRequired', { field: label }), 'error');
-            el.closest('.file-upload-zone')?.scrollIntoView({ block: 'center' });
-            return;
-          }
-          if (el.validity.valueMissing) el.setCustomValidity(window.tPlayer('player.form.fieldRequired'));
-          else if (el.validity.typeMismatch && el.type === 'email') el.setCustomValidity(window.tPlayer('player.form.invalidEmail'));
-          else el.setCustomValidity('');
-        });
-        const clear = () => el.setCustomValidity('');
-        el.addEventListener('input', clear);
-        el.addEventListener('change', clear);
+      // Validation messages in the language of the journey, under the field
+      // (validatePlayerForm). They disappear as soon as the field is filled in.
+      previewForm.querySelectorAll('.journey-field').forEach(wrap => {
+        const clear = () => {
+          if (!wrap.classList.contains('has-error')) return;
+          wrap.classList.remove('has-error');
+          wrap.querySelector('.journey-field-error')?.classList.add('hidden');
+          wrap.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+        };
+        wrap.addEventListener('input', clear);
+        wrap.addEventListener('change', clear);
+        wrap.addEventListener('journey-file-added', clear);
       });
 
       previewForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData(previewForm);
         const fields = basicProps.fields || [];
+        if (!this.validatePlayerForm(previewForm, fields)) return;
+        const formData = new FormData(previewForm);
         const responses = {};
         const attachments = [];
         
@@ -14119,6 +14149,31 @@ class FlowBuilder {
       this.claimReward(step.id, rewardContainer, basicProps);
     }
     
+    // Copy the code: easier than retyping it, also for people with dyslexia
+    container.querySelector('#rewardCopyBtn')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const code = document.getElementById('rewardCode')?.textContent.trim() || '';
+      if (!code || code === '...') return;
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(code);
+        copied = true;
+      } catch {
+        // No clipboard API (plain HTTP on a self-hosted install): select the
+        // code and copy the selection; if even that fails, it stays selected
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('rewardCode'));
+        window.getSelection()?.removeAllRanges();
+        window.getSelection()?.addRange(range);
+        try { copied = document.execCommand('copy'); } catch { copied = false; }
+      }
+      if (!copied) return;
+      const label = btn.querySelector('span');
+      if (label) label.textContent = window.tPlayer('player.reward.codeCopied');
+      this.announce(window.tPlayer('player.reward.codeCopied'));
+      setTimeout(() => { if (label) label.textContent = window.tPlayer('player.reward.copyCode'); }, 2500);
+    });
+
     // Download reward PDF button
     if (downloadRewardPdfBtn) {
       downloadRewardPdfBtn.addEventListener('click', async () => {
@@ -14185,7 +14240,7 @@ class FlowBuilder {
         // If no guide selected, show a fallback message
         if (!centralGuide) {
           openingElement.classList.remove('typing');
-          openingElement.innerHTML = window.tPlayer ? window.tPlayer('player.chat.selectGuideForStep') : window.t('builder.preview.selectGuideForStep');
+          openingElement.innerHTML = window.tPlayer ? window.tPlayer('player.selectGuideForStep') : window.t('builder.preview.selectGuideForStep');
           return;
         }
         
@@ -14444,29 +14499,12 @@ class FlowBuilder {
         const guidePacing = advancedProps.pacing || 'immediately';
         const pacingInfo = this.getPacingInfo(guidePacing, 'guide', null);
         
-        const optionsHtml = `
-          <div class="preview-options mt-4" id="previewNavigation">
-            <!-- Pacing indicator for guide -->
-            <div class="pacing-indicator ${guidePacing === 'immediately' ? 'hidden' : ''}" id="pacingIndicator">
-              <svg class="w-4 h-4 text-zen-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-              </svg>
-              <span class="text-sm text-zen-500" id="pacingMessage">${escapeHtml(pacingInfo.message)}</span>
-            </div>
-            
-            <div class="preview-nav-buttons ${guidePacing === 'immediately' ? '' : 'hidden'}" id="navButtons">
-              <p class="text-sm text-zen-500 mb-2">${window.tPlayer('player.navigation.whenReady')}</p>
-            ${paths.map(p => `
-              <button class="preview-option" data-path="${p.id}" data-target="${p.to_step_id}">
-                <svg class="w-5 h-5 text-gryffi-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                </svg>
-                <span class="flex-1">${escapeHtml(p.label)}</span>
-              </button>
-            `).join('')}
-            </div>
-          </div>
-        `;
+        const optionsHtml = this.renderStepNavigation({
+          paths,
+          showNav: guidePacing === 'immediately',
+          pacingMessage: pacingInfo.message,
+          hint: window.tPlayer('player.chat.optionalHint')
+        });
         container.querySelector('.preview-chat').insertAdjacentHTML('afterend', optionsHtml);
         
         container.querySelectorAll('.preview-option').forEach(btn => {
@@ -15247,44 +15285,50 @@ class FlowBuilder {
   
   renderFormFieldPreview(field, index) {
     const required = field.required ? 'required' : '';
-    const requiredMark = field.required ? '<span class="text-red-500 ml-1">*</span>' : '';
+    // Mark the fields that may stay empty, not the required ones: usually
+    // almost every field is required, and a row of red asterisks is restless
+    const optionalMark = field.required ? '' : ` <span class="journey-field-optional">(${escapeHtml(window.tPlayer('player.form.optional'))})</span>`;
     // Ties the visible label to its input for screen readers (WCAG 1.3.1)
     const fieldId = `formField-${index}-${randomUuid().slice(0, 8)}`;
     const labelId = `${fieldId}-label`;
+    const errorId = `${fieldId}-error`;
+    const describedBy = `aria-describedby="${errorId}"`;
     
     let inputHtml = '';
     
     switch (field.type) {
       case 'text':
-        inputHtml = `<input type="text" id="${fieldId}" name="field_${index}" class="form-input w-full" ${required} />`;
+        inputHtml = `<input type="text" id="${fieldId}" name="field_${index}" class="form-input journey-input" ${describedBy} ${required} />`;
         break;
       case 'textarea':
-        inputHtml = `<textarea id="${fieldId}" name="field_${index}" class="form-textarea w-full" rows="3" ${required}></textarea>`;
+        inputHtml = `<textarea id="${fieldId}" name="field_${index}" class="form-textarea journey-input" rows="3" ${describedBy} ${required}></textarea>`;
         break;
-      case 'select':
+      case 'select': {
         const optionsList = (field.options || '').split(',').map(o => o.trim()).filter(o => o);
         inputHtml = `
-          <select id="${fieldId}" name="field_${index}" class="form-input w-full" ${required}>
+          <select id="${fieldId}" name="field_${index}" class="form-input journey-input" ${describedBy} ${required}>
             <option value="">${window.t('builder.preview.selectOption')}</option>
             ${optionsList.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
           </select>
         `;
         break;
+      }
       case 'yesno':
+        // Two large tiles instead of two small radio circles: easier to hit
         inputHtml = `
-          <div class="flex gap-4" role="radiogroup" aria-labelledby="${labelId}">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="field_${index}" value="yes" class="w-4 h-4" style="accent-color: var(--theme-primary, #0b4b34);" ${required} />
+          <div class="journey-yesno" role="radiogroup" aria-labelledby="${labelId}" ${describedBy}>
+            <label class="journey-yesno-option">
+              <input type="radio" name="field_${index}" value="yes" ${required} />
               <span>${window.t('builder.preview.yes')}</span>
             </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="field_${index}" value="no" class="w-4 h-4" style="accent-color: var(--theme-primary, #0b4b34);" />
+            <label class="journey-yesno-option">
+              <input type="radio" name="field_${index}" value="no" />
               <span>${window.t('builder.preview.no')}</span>
             </label>
           </div>
         `;
         break;
-      case 'file':
+      case 'file': {
         const fileSubtype = field.fileSubtype || 'image';
         const acceptMap = {
           image: 'image/jpeg,image/png,image/gif,image/webp',
@@ -15294,42 +15338,41 @@ class FlowBuilder {
         const acceptTypes = acceptMap[fileSubtype] || acceptMap.image;
         const formatLabel = window.tPlayer(`player.form.fileUpload.acceptedFormats.${fileSubtype}`) || '';
         const subtypeLabel = window.tPlayer(`player.form.fileUpload.subtypes.${fileSubtype}`) || fileSubtype;
+        const maxSize = window.tPlayer('player.form.fileUpload.maxSize', { size: '12' });
         
         // Icon based on file type
-        let fileIcon = '';
-        if (fileSubtype === 'image') {
-          fileIcon = `<svg class="w-10 h-10 mx-auto mb-3 text-zen-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        const iconPaths = {
+          image: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
+          document: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+          audio: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3'
+        };
+        const fileIcon = `<svg class="journey-file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="${iconPaths[fileSubtype] || iconPaths.image}"></path>
           </svg>`;
-        } else if (fileSubtype === 'document') {
-          fileIcon = `<svg class="w-10 h-10 mx-auto mb-3 text-zen-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>`;
-        } else {
-          fileIcon = `<svg class="w-10 h-10 mx-auto mb-3 text-zen-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-          </svg>`;
-        }
         
+        // One compact row. "Drag here" only shows where dragging is possible
+        // (a mouse); on a phone it says "Choose a file".
         inputHtml = `
           <div class="file-upload-zone" data-field-index="${index}" data-subtype="${escapeHtml(fileSubtype)}" data-accept="${acceptTypes}">
             <input type="file" name="field_${index}" class="file-input-hidden" accept="${acceptTypes}" ${required} style="display: none;" />
-            <div class="file-dropzone border-2 border-dashed border-zen-300 rounded-xl p-6 text-center cursor-pointer transition-all hover:border-gryffi-accent hover:bg-gryffi-accent/5" style="min-height: 120px;">
-              <div class="file-dropzone-content rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gryffi-accent" role="button" tabindex="0" aria-label="${escapeHtml(`${field.label || subtypeLabel}: ${window.tPlayer('player.form.fileUpload.dropzone')} (${formatLabel}, ${window.tPlayer('player.form.fileUpload.maxSize', { size: '12' })})`)}">
+            <div class="file-dropzone">
+              <div class="file-dropzone-content" role="button" tabindex="0" aria-describedby="${errorId}" aria-label="${escapeHtml(`${field.label || subtypeLabel}: ${window.tPlayer('player.form.fileUpload.choose')} (${formatLabel}, ${maxSize})`)}">
                 ${fileIcon}
-                <p class="text-sm text-zen-600 mb-1">${window.tPlayer('player.form.fileUpload.dropzone')}</p>
-                <p class="text-xs text-zen-400">${escapeHtml(subtypeLabel)} · ${escapeHtml(formatLabel)}</p>
-                <p class="text-xs text-zen-400 mt-1">${window.tPlayer('player.form.fileUpload.maxSize', { size: '12' })}</p>
+                <span class="journey-file-text">
+                  <span class="journey-file-cta journey-file-cta--tap">${escapeHtml(window.tPlayer('player.form.fileUpload.choose'))}</span>
+                  <span class="journey-file-cta journey-file-cta--drag">${window.tPlayer('player.form.fileUpload.dropzone')}</span>
+                  <span class="journey-file-meta">${escapeHtml(subtypeLabel)} · ${escapeHtml(formatLabel)} · ${escapeHtml(maxSize)}</span>
+                </span>
               </div>
               <div class="file-preview hidden">
-                <div class="file-preview-content flex items-center gap-3 py-2 px-2">
+                <div class="file-preview-content">
                   <div class="file-preview-icon flex-shrink-0"></div>
-                  <div class="file-preview-info text-left flex-1 min-w-0 overflow-hidden">
-                    <p class="file-preview-name text-sm font-medium text-zen-700 truncate"></p>
-                    <p class="file-preview-size text-xs text-zen-400"></p>
+                  <div class="file-preview-info">
+                    <p class="file-preview-name"></p>
+                    <p class="file-preview-size"></p>
                   </div>
-                  <button type="button" class="file-remove-btn flex-shrink-0 text-zen-400 hover:text-red-500 p-1" title="${window.tPlayer('player.form.fileUpload.removeFile')}" aria-label="${window.tPlayer('player.form.fileUpload.removeFile')}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <button type="button" class="file-remove-btn" title="${window.tPlayer('player.form.fileUpload.removeFile')}" aria-label="${window.tPlayer('player.form.fileUpload.removeFile')}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                   </button>
@@ -15339,14 +15382,62 @@ class FlowBuilder {
           </div>
         `;
         break;
+      }
     }
     
     return `
-      <div class="form-field-preview">
-        <label id="${labelId}" ${['text', 'textarea', 'select'].includes(field.type) ? `for="${fieldId}"` : ''} class="block text-sm font-medium text-zen-700 mb-1.5">${escapeHtml(field.label || window.t('builder.preview.field'))}${requiredMark}</label>
+      <div class="form-field-preview journey-field" data-field-index="${index}">
+        <label id="${labelId}" ${['text', 'textarea', 'select'].includes(field.type) ? `for="${fieldId}"` : ''} class="journey-field-label">${escapeHtml(field.label || window.t('builder.preview.field'))}${optionalMark}</label>
         ${inputHtml}
+        <p class="journey-field-error hidden" id="${errorId}"></p>
       </div>
     `;
+  }
+  
+  /**
+   * Check the participant's form before sending. The messages sit under the
+   * field, in the language of the journey, and stay until the field is
+   * filled in (the browser's own bubble shows one error at a time and
+   * disappears after a few seconds). Returns true when everything is fine.
+   */
+  validatePlayerForm(form, fields) {
+    let firstInvalid = null;
+    fields.forEach((field, i) => {
+      const wrap = form.querySelector(`.journey-field[data-field-index="${i}"]`);
+      const errorEl = wrap?.querySelector('.journey-field-error');
+      if (!wrap || !errorEl) return;
+      let message = '';
+      if (field.type === 'file') {
+        const zone = wrap.querySelector('.file-upload-zone');
+        if (field.required && !zone?.dataset.fileData) message = window.tPlayer('player.form.fileRequired', { field: field.label || '' });
+      } else if (field.type === 'yesno') {
+        if (field.required && !wrap.querySelector('input[type="radio"]:checked')) message = window.tPlayer('player.form.chooseOne');
+      } else {
+        const input = wrap.querySelector('input, select, textarea');
+        // A field the player could not draw (no or an unknown type, from old
+        // data or the API) gets no input: it must not block the form
+        if (!input) return;
+        const value = (input.value || '').trim();
+        if (field.required && !value) message = window.tPlayer(field.type === 'select' ? 'player.form.chooseOne' : 'player.form.fieldRequired');
+        else if (input?.type === 'email' && value && input.validity.typeMismatch) message = window.tPlayer('player.form.invalidEmail');
+      }
+      errorEl.textContent = message;
+      errorEl.classList.toggle('hidden', !message);
+      wrap.classList.toggle('has-error', !!message);
+      wrap.querySelectorAll('input, select, textarea, [role="radiogroup"], .file-dropzone-content').forEach(el => {
+        if (message) el.setAttribute('aria-invalid', 'true');
+        else el.removeAttribute('aria-invalid');
+      });
+      if (message && !firstInvalid) firstInvalid = wrap;
+    });
+    if (firstInvalid) {
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      firstInvalid.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      const target = firstInvalid.querySelector('input:not([type="file"]), select, textarea, .file-dropzone-content');
+      target?.focus({ preventScroll: true });
+      return false;
+    }
+    return true;
   }
   
   // ============================================
@@ -15359,52 +15450,37 @@ class FlowBuilder {
     return `
       <div class="quiz-question-slide" data-question-index="${index}" style="display: flex; flex-direction: column; min-height: 0;">
         <div style="flex: 1; min-height: 0;">
-          <h3 class="text-lg font-semibold text-zen-900 mb-6">${escapeHtml(question.question || window.t('builder.quiz.questionPlaceholder'))}</h3>
-          
-          <div class="space-y-4 mb-8" id="quizOptionsContainer">
+          <h3 class="journey-question">${escapeHtml(question.question || window.t('builder.quiz.questionPlaceholder'))}</h3>
+
+          <div class="journey-answers" id="quizOptionsContainer">
             ${options.map((opt, i) => `
-              <button type="button" class="quiz-wizard-option" 
+              <button type="button" class="quiz-wizard-option"
                       data-option-index="${i}"${opt.correct !== undefined ? ` data-correct="${opt.correct === true}"` : ''}>
-                <span class="option-letter">${String.fromCharCode(65 + i)}</span>
+                <span class="option-mark" aria-hidden="true"></span>
                 <span class="option-text">${escapeHtml(opt.text || window.t('builder.quiz.optionPlaceholder'))}</span>
-                <span class="option-indicator">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </span>
+                <span class="option-indicator" aria-hidden="true"></span>
               </button>
             `).join('')}
           </div>
-          
+
           <!-- Feedback Area (hidden initially) -->
-          <div id="quizFeedback" class="mt-4 mb-6 hidden"></div>
+          <div id="quizFeedback" class="journey-feedback-wrap hidden" role="status"></div>
         </div>
-        
-        <!-- Navigation Buttons - Always visible at bottom -->
-        <div class="flex items-center gap-4 mt-6 ${index === 0 ? 'justify-end' : 'justify-between'}" style="flex-shrink: 0; padding-top: 16px;">
+
+        <!-- Previous and next question -->
+        <div class="journey-quiz-nav${index === 0 ? ' is-first' : ''}">
           ${index === 0 ? '' : `
-            <button
-              type="button"
-              id="quizPrevBtn"
-              class="journey-nav-btn inline-flex items-center"
-              style="border: 2px solid var(--theme-primary, #0b4b34); color: var(--theme-primary, #0b4b34); background: white;"
-            >
-              <svg class="w-5 h-5 flex-shrink-0" style="margin-right: 10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" id="quizPrevBtn" class="journey-nav-btn journey-nav-btn-secondary">
+              <svg class="journey-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
               ${window.tPlayer('player.quiz.previous')}
             </button>
           `}
-          <button
-            type="button"
-            id="quizNextBtn"
-            class="journey-nav-btn journey-nav-btn-primary inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            style="min-width: 160px;"
-            disabled
-          >
-            <span style="margin-right: 12px;">${index === total - 1 ? window.tPlayer('player.quiz.finish') : window.tPlayer('player.quiz.next')}</span>
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          <button type="button" id="quizNextBtn" class="journey-nav-btn journey-nav-btn-primary" disabled>
+            <span>${index === total - 1 ? window.tPlayer('player.quiz.finish') : window.tPlayer('player.quiz.next')}</span>
+            <svg class="journey-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6"></path>
             </svg>
           </button>
         </div>
@@ -15428,19 +15504,10 @@ class FlowBuilder {
     const hasThreshold = passingScore > 0;
     const isPerfect = totalCount > 0 && correctCount === totalCount;
     const passed = !hasThreshold || correctCount >= passingScore;
-    const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
 
     let resultStyle;
     if (hasThreshold) resultStyle = passed ? 'passed' : 'failed';
     else resultStyle = isPerfect ? 'perfect' : 'completed';
-
-    const successColor = 'var(--theme-accent, #78c503)';
-    const failColor = '#ef4444';
-    const neutralColor = 'var(--theme-primary, #0b4b34)';
-
-    const strokeColor = (resultStyle === 'passed' || resultStyle === 'perfect')
-      ? successColor
-      : (resultStyle === 'failed' ? failColor : neutralColor);
 
     let resultLabel;
     if (resultStyle === 'passed') {
@@ -15458,7 +15525,6 @@ class FlowBuilder {
 
     const isPositive = resultStyle === 'passed' || resultStyle === 'perfect';
     const isNegative = resultStyle === 'failed';
-    const labelColor = isPositive ? successColor : (isNegative ? failColor : neutralColor);
 
     // Maker-supplied messages: only surface pass_message when we frame the
     // result as a success. The 'completed' state explicitly suppresses
@@ -15467,68 +15533,32 @@ class FlowBuilder {
     let makerMessage = '';
     // The messages are plain text; older wizard journeys stored them as HTML
     if (isPositive && passMessage) {
-      makerMessage = `<p class="text-zen-600 mt-2">${escapeHtml(htmlToText(passMessage))}</p>`;
+      makerMessage = `<p class="journey-result-message">${escapeHtml(htmlToText(passMessage))}</p>`;
     } else if (isNegative && failMessage) {
-      makerMessage = `<p class="text-zen-600">${escapeHtml(htmlToText(failMessage))}</p>`;
+      makerMessage = `<p class="journey-result-message">${escapeHtml(htmlToText(failMessage))}</p>`;
     }
 
-    // Show the "journey continues" hint everywhere except on a failure,
-    // where we want the participant to focus on retrying instead.
-    const continueHint = !isNegative
-      ? `<p class="text-zen-500 text-sm">${window.tPlayer('player.quiz.nextStepHint')}</p>`
-      : '';
-
-    // Positive/neutral states get the check-in-circle icon (color makes the
-    // distinction between celebration and neutral acknowledgement); the
-    // failed state gets the X-in-circle icon.
-    const positiveIconPath = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
-    const negativeIconPath = 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z';
-    const iconPath = isNegative ? negativeIconPath : positiveIconPath;
+    // One calm result: an icon, what it means and the count. The button to
+    // go on sits in the step navigation below, like on every other step.
+    const iconPath = isNegative ? 'M12 8v5m0 3h.01' : 'M5 13l4 4L19 7';
 
     return `
-      <div class="text-center py-6">
-        <!-- Score Circle -->
-        <div class="relative w-32 h-32 mx-auto mb-6">
-          <svg class="w-full h-full transform -rotate-90">
-            <circle cx="64" cy="64" r="56" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-            <circle cx="64" cy="64" r="56" fill="none" stroke="${escapeHtml(strokeColor)}" stroke-width="8" 
-                    stroke-dasharray="${2 * Math.PI * 56}" 
-                    stroke-dashoffset="${2 * Math.PI * 56 * (1 - percentage / 100)}"
-                    class="transition-all duration-1000"/>
+      <div class="journey-result journey-result--${resultStyle}" role="status">
+        <span class="journey-result-icon" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="${iconPath}"></path>
           </svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span class="text-3xl font-bold" style="color: ${escapeHtml(strokeColor)};">${percentage}%</span>
-            <span class="text-xs text-zen-400">${window.tPlayer('player.quiz.score')}</span>
-          </div>
-        </div>
-        
-        <!-- Result Message -->
-        <div class="mb-6">
-          <div class="flex items-center justify-center gap-2 mb-2" style="color: ${escapeHtml(labelColor)};">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path>
-            </svg>
-            <span class="font-semibold">${resultLabel}</span>
-          </div>
-          ${continueHint}
-          ${makerMessage}
-        </div>
-        
-        <!-- Score Details -->
-        <p class="text-zen-500 mb-6">
-          ${window.tPlayer('player.quiz.questionsCorrect', { correct: correctCount, total: totalCount })}
-        </p>
-        
-        <!-- Actions -->
+        </span>
+        <p class="journey-result-title">${resultLabel}</p>
+        <p class="journey-result-count">${window.tPlayer('player.quiz.questionsCorrect', { correct: correctCount, total: totalCount })}</p>
+        ${makerMessage}
         ${!passed && allowRetake ? `
-          <div class="flex justify-center gap-4 mt-8">
-            <button type="button" id="quizRetakeBtn" class="journey-nav-btn journey-nav-btn-primary">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              ${window.tPlayer('player.quiz.retake')}
-            </button>
-          </div>
+          <button type="button" id="quizRetakeBtn" class="journey-nav-btn journey-nav-btn-primary journey-result-retake">
+            <svg class="journey-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            ${window.tPlayer('player.quiz.retake')}
+          </button>
         ` : ''}
       </div>
     `;
@@ -15571,26 +15601,20 @@ class FlowBuilder {
     }
     
     const updateUI = () => {
-      // Update progress
+      // Update progress: "Question 2 of 3" and the blocks (done, now, to do).
+      // No running score: the result screen gives the one count that matters.
       const progress = container.querySelector('#quizProgress');
-      const progressBar = container.querySelector('#quizProgressBar');
-      const scoreSpan = container.querySelector('#quizScore');
-      
+
       if (progress) {
-        progress.textContent = window.tPlayer('player.quiz.questionOf', { 
-          current: currentQuestion + 1, 
-          total: questions.length 
+        progress.textContent = window.tPlayer('player.quiz.questionOf', {
+          current: currentQuestion + 1,
+          total: questions.length
         });
       }
-      if (progressBar) {
-        progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
-      }
-      // Running score in words ("1 of 2 correct"), only when the maker shows
-      // feedback: otherwise it would give away which answers were right
-      if (scoreSpan && answers.length > 0 && showFeedback) {
-        const correct = answers.filter(a => a.correct).length;
-        scoreSpan.textContent = window.tPlayer('player.quiz.questionsCorrect', { correct, total: answers.length });
-      }
+      container.querySelectorAll('.journey-quiz-segments i').forEach((seg, i) => {
+        seg.classList.toggle('is-done', i < currentQuestion);
+        seg.classList.toggle('is-now', i === currentQuestion);
+      });
     };
     
     const showQuestion = (index) => {
@@ -15622,6 +15646,7 @@ class FlowBuilder {
       const resultsContainer = container.querySelector('#quizResultsContainer');
       
       questionContainer.classList.add('hidden');
+      container.querySelector('#quizProgressWrap')?.classList.add('hidden');
       resultsContainer.classList.remove('hidden');
       resultsContainer.innerHTML = this.renderQuizResults(
         correctCount, 
@@ -15665,6 +15690,7 @@ class FlowBuilder {
         this.previewState.pacingUnlocked = false;
         resultsContainer.classList.add('hidden');
         questionContainer.classList.remove('hidden');
+        container.querySelector('#quizProgressWrap')?.classList.remove('hidden');
         
         // Increment attempt number for retake (new attempt key for the server)
         this.previewState.quizAttemptNumber = (this.previewState.quizAttemptNumber || 0) + 1;
@@ -15705,15 +15731,11 @@ class FlowBuilder {
     if (hasAnswered) {
       const previousAnswer = answers[currentIndex];
       optionBtns.forEach((btn, i) => {
+        // Same look as right after answering: the chosen answer marked, the others dimmed
         if (i === previousAnswer.selected) {
-          btn.classList.add('border-gryffi-primary', 'bg-gryffi-primary/10');
-          if (showFeedback) {
-            if (previousAnswer.correct) {
-              btn.classList.add('border-green-500', 'bg-green-50');
-            } else {
-              btn.classList.add('border-red-500', 'bg-red-50');
-            }
-          }
+          btn.classList.add(showFeedback ? (previousAnswer.correct ? 'correct' : 'incorrect') : 'selected');
+        } else {
+          btn.classList.add('disabled');
         }
         btn.style.pointerEvents = 'none';
       });
@@ -15727,11 +15749,11 @@ class FlowBuilder {
         
         // Clear previous selection
         optionBtns.forEach(b => {
-          b.classList.remove('border-gryffi-primary', 'bg-gryffi-primary/10', 'border-green-500', 'bg-green-50', 'border-red-500', 'bg-red-50');
+          b.classList.remove('selected', 'correct', 'incorrect');
         });
         
         // Select this option
-        btn.classList.add('border-gryffi-primary', 'bg-gryffi-primary/10');
+        btn.classList.add('selected');
         selectedOption = i;
         
         // Players do not have the answers: the server checks them. The maker
@@ -15770,7 +15792,7 @@ class FlowBuilder {
           const indicator = btn.querySelector('.option-indicator');
           
           if (isCorrect) {
-            btn.classList.remove('border-gryffi-primary', 'bg-gryffi-primary/10');
+            btn.classList.remove('selected');
             btn.classList.add('correct');
             // Replace arrow with checkmark
             if (indicator) {
@@ -15781,15 +15803,15 @@ class FlowBuilder {
               `;
             }
             feedbackArea.innerHTML = `
-              <div class="flex items-center gap-2 text-green-600 p-3 bg-green-50 rounded-lg">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              <div class="journey-feedback journey-feedback--ok">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"></path>
                 </svg>
-                <span class="font-medium">${window.tPlayer('player.quiz.correct')}</span>
+                <span>${window.tPlayer('player.quiz.correct')}</span>
               </div>
             `;
           } else {
-            btn.classList.remove('border-gryffi-primary', 'bg-gryffi-primary/10');
+            btn.classList.remove('selected');
             btn.classList.add('incorrect');
             // Replace arrow with X
             if (indicator) {
@@ -15800,11 +15822,11 @@ class FlowBuilder {
               `;
             }
             feedbackArea.innerHTML = `
-              <div class="flex items-center gap-2 text-red-600 p-3 bg-red-50 rounded-lg">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              <div class="journey-feedback journey-feedback--err">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
-                <span class="font-medium">${window.tPlayer('player.quiz.incorrect')}</span>
+                <span>${window.tPlayer('player.quiz.incorrect')}</span>
               </div>
             `;
           }
@@ -15916,7 +15938,7 @@ class FlowBuilder {
         message = message.replace(/\{\{plural\}\}/g, pluralText);
         info.message = message;
       } else {
-        info.message = window.tPlayer('player.pacing.takeYourTimeSeconds', { seconds });
+        info.message = window.tPlayer('player.pacing.wait');
       }
     } else if (pacing.startsWith('messages_')) {
       const count = parseInt(pacing.split('_')[1]);
@@ -16060,12 +16082,12 @@ class FlowBuilder {
               pacingMessage.textContent = window.tPlayer('player.pacing.readyToContinue');
             }
           } else {
-            if (pacingMessage) {
-              if (isVideo) {
-                pacingMessage.textContent = window.tPlayer('player.pacing.keepWatching', { seconds: secondsLeft });
-              } else {
-                pacingMessage.textContent = window.tPlayer('player.pacing.takeYourTimeSeconds', { seconds: secondsLeft });
-              }
+            // One calm line, no seconds ticking down: a countdown feels like
+            // time pressure. The button appears when the time is up. A video
+            // only swaps "press play" for "keep watching", once.
+            if (pacingMessage && isVideo) {
+              const calm = window.tPlayer('player.pacing.keepWatchingCalm');
+              if (pacingMessage.textContent !== calm) pacingMessage.textContent = calm;
             }
             secondsLeft--;
           }
@@ -16657,5 +16679,41 @@ class FlowBuilder {
   }
 }
 
+/**
+ * Maker previews: show the journey as on a phone or on a computer. Only the
+ * width changes; the participant layout follows the width of the journey
+ * itself, so there is nothing to set up twice. The choice is remembered on
+ * this device.
+ */
+function initPreviewDeviceToggle() {
+  const buttons = document.querySelectorAll('.preview-device-btn');
+  if (!buttons.length) return;
+  const STORAGE_KEY = 'gryffiPreviewDevice';
+  const apply = (device) => {
+    document.body.classList.toggle('preview-device-phone', device === 'phone');
+    buttons.forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.device === device)));
+  };
+  let saved = 'desktop';
+  try {
+    saved = localStorage.getItem(STORAGE_KEY) === 'phone' ? 'phone' : 'desktop';
+  } catch {
+    // No storage (private window): start with the computer view
+  }
+  apply(saved);
+  buttons.forEach(btn => btn.addEventListener('click', () => {
+    const device = btn.dataset.device === 'phone' ? 'phone' : 'desktop';
+    apply(device);
+    // The window keeps its size, so tell parts that size themselves to the
+    // window (the 360 photo canvas) that the journey got wider or narrower
+    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    try {
+      localStorage.setItem(STORAGE_KEY, device);
+    } catch {
+      // Not remembered, still applied
+    }
+  }));
+}
+
 // Initialize
+initPreviewDeviceToggle();
 const _builder = new FlowBuilder();

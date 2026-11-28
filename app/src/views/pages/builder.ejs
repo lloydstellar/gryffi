@@ -111,22 +111,6 @@
       padding-top: 56px;
       min-height: 100vh;
     }
-    /* Progress bar for player mode */
-    .player-progress-container {
-      height: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      position: fixed;
-      top: 56px;
-      left: 0;
-      right: 0;
-      z-index: 99;
-    }
-    .player-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--theme-accent, #78c503), color-mix(in srgb, var(--theme-accent, #78c503) 70%, white));
-      transition: width 0.3s ease;
-      width: 0%;
-    }
     
     /* Mobile responsive styles for player mode */
     @media (max-width: 640px) {
@@ -174,9 +158,6 @@
       .player-content {
         padding-top: 52px;
       }
-      .player-progress-container {
-        top: 52px;
-      }
     }
     
     /* No room for both the journey title and the greeting: the title wins */
@@ -221,6 +202,16 @@
         <span class="player-greeting"><%= playerGreeting ? playerGreeting.replace('{{firstName}}', () => player.endUser.firstName || '') : t('expedition.welcome.greeting', { firstName: player.endUser.firstName }) %></span>
       <% } %>
       <% if (typeof previewMode !== 'undefined' && previewMode) { %>
+        <div class="preview-device-toggle" role="group" aria-label="<%= t('builder.preview.device.label') %>">
+          <button type="button" class="preview-device-btn" data-device="phone" aria-pressed="false">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2" stroke-width="2"></rect><path stroke-linecap="round" stroke-width="2" d="M11 18h2"></path></svg>
+            <span><%= t('builder.preview.device.phone') %></span>
+          </button>
+          <button type="button" class="preview-device-btn" data-device="desktop" aria-pressed="true">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2" stroke-width="2"></rect><path stroke-linecap="round" stroke-width="2" d="M8 20h8M12 16v4"></path></svg>
+            <span><%= t('builder.preview.device.desktop') %></span>
+          </button>
+        </div>
         <a href="<%= typeof returnUrl !== 'undefined' ? returnUrl : '/dashboard/journeys' %>" class="preview-close-btn" title="<%= t('common.close') %>">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -238,10 +229,6 @@
     </div>
   </header>
   
-  <!-- Progress bar -->
-  <div class="player-progress-container">
-    <div class="player-progress-bar" id="playerProgressBar"></div>
-  </div>
   
   <!-- Main content area - preview will render here -->
   <main class="player-content">
@@ -796,22 +783,30 @@
           <img src="/images/logos/Logo---cropped-transparant.png" alt="" class="h-8 w-auto" data-theme-logo>
           <span class="font-medium" style="color: var(--theme-primary, #0b4b34);"><%= t('builder.preview.mode') %></span>
         </div>
-        <button id="closePreview" class="p-2 rounded-lg transition-colors preview-close-hover" style="background: var(--theme-primary, #0b4b34); color: white;">
+        <div class="flex items-center gap-3">
+        <div class="preview-device-toggle" role="group" aria-label="<%= t('builder.preview.device.label') %>">
+          <button type="button" class="preview-device-btn" data-device="phone" aria-pressed="false">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2" stroke-width="2"></rect><path stroke-linecap="round" stroke-width="2" d="M11 18h2"></path></svg>
+            <span><%= t('builder.preview.device.phone') %></span>
+          </button>
+          <button type="button" class="preview-device-btn" data-device="desktop" aria-pressed="true">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2" stroke-width="2"></rect><path stroke-linecap="round" stroke-width="2" d="M8 20h8M12 16v4"></path></svg>
+            <span><%= t('builder.preview.device.desktop') %></span>
+          </button>
+        </div>
+        <button type="button" id="closePreview" aria-label="<%= t('builder.preview.exit') %>" class="p-2 rounded-lg transition-colors preview-close-hover" style="background: var(--theme-primary, #0b4b34); color: white;">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
+        </div>
       </div>
       <!-- Started-from-step banner (shown when preview starts from a non-start step) -->
-      <div id="previewStartedFromBanner" class="hidden" style="background: rgba(11, 75, 52, 0.06); border-bottom: 1px solid rgba(0, 0, 0, 0.04); padding: 8px 24px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--theme-primary, #0b4b34);">
+      <div id="previewStartedFromBanner" class="hidden flex items-center gap-2" style="background: rgba(11, 75, 52, 0.06); border-bottom: 1px solid rgba(0, 0, 0, 0.04); padding: 8px 24px; font-size: 13px; color: var(--theme-primary, #0b4b34);">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <span id="previewStartedFromBannerText"></span>
-      </div>
-      <!-- Progress Bar -->
-      <div class="preview-modal-progress" style="height: 4px; background: rgba(0, 0, 0, 0.06);">
-        <div id="previewProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--theme-accent, #78c503), color-mix(in srgb, var(--theme-accent, #78c503) 70%, white)); transition: width 0.3s ease;"></div>
       </div>
       <!-- Content -->
       <div id="previewContent" class="flex-1 overflow-y-auto relative" style="background: var(--theme-background, #ecf2eb);">
@@ -1030,7 +1025,6 @@
           'builder.preview.chatWithGuide': 'player.pacing.chatWithGuide',
           'builder.reward.preview.congratulations': 'player.reward.congratulations',
           'builder.reward.preview.yourCode': 'player.reward.yourCode',
-          'builder.reward.preview.youAreNumber': 'player.reward.youAreNumber',
           'builder.reward.preview.redeemAt': 'player.reward.redeemAt',
           'builder.reward.preview.validUntil': 'player.reward.validUntil',
           'builder.reward.preview.terms': 'player.reward.terms',
@@ -3971,9 +3965,6 @@
       }
       .player-content {
         padding-top: 52px;
-      }
-      .player-progress-container {
-        top: 52px;
       }
       
       /* Preview Modal Header Logo - prevent stretching on mobile */

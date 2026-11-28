@@ -2060,3 +2060,1692 @@ body.journey-dyslexic-font .preview-content {
   line-height: 1.45;
   color: #6b4e16;
 }
+
+/* ============================================================
+   PARTICIPANT LAYOUT (November 2026)
+   One anatomy for every step type, sized by the width of the
+   journey itself (container queries on #previewContent), not of the
+   browser window. The maker's phone preview therefore shows exactly
+   what a phone shows, and makers never build a separate desktop
+   version: the wide layout follows from the step content.
+
+   Order on every step:
+     step bar (step X of Y, one block per step)    .journey-stepbar
+     card
+       kind label + reading aids                   .journey-tts-row
+       title, intro                                .journey-step-title / -intro
+       the step itself
+       the way on (one button, or a list of choices) .journey-nav
+   Phone: the single "next" button sits in a bar at the bottom of the
+   screen. Wide screen: a photo, panorama or video sits next to the text.
+
+   Every rule is scoped to #previewContent, so it wins over the older
+   class rules above and in builder.ejs without !important, and never
+   touches the builder itself.
+   ============================================================ */
+
+#previewContent {
+  container: journey / inline-size;
+  --j-primary: var(--theme-primary, #0b4b34);
+  --j-on-primary: var(--theme-button-text, #ffffff);
+  --j-accent: var(--theme-accent, #78c503);
+  /* "Now" in the step bar and the quiz: the progress bar color of the theme */
+  --j-progress: var(--theme-progress-bar, var(--j-accent));
+  --j-ink: var(--theme-text-primary, #1f2937);
+  --j-ink-2: var(--theme-text-secondary, #4b5563);
+  --j-card: var(--theme-card-background, #ffffff);
+  --j-radius: var(--theme-border-radius, 12px);
+  --j-line: #dbe3dc;
+  /* Borders of answers, choices and fields: the Card Border of a custom
+     theme when the maker chose one (set by applyTheme in builder.js) */
+  --j-line-strong: var(--theme-card-border-custom, #c3cdc5);
+  --j-well: #f4f7f3;
+  --j-ok: #166534;
+  --j-ok-bg: #ebf6e3;
+  --j-err: #b42318;
+  --j-err-bg: #fdf0ee;
+  /* Mixed with the card color, not white, so a dark card stays dark */
+  --j-tint: color-mix(in srgb, var(--j-primary) 6%, var(--j-card));
+  --j-focus: color-mix(in srgb, var(--j-primary) 60%, var(--j-card));
+  --j-card-max: 680px;
+  --j-card-wide-max: 1040px;
+  --j-pad: 28px;
+  /* No bottom padding: in a scrolling frame (builder preview, phone
+     preview) it would leave a strip under the phone action bar. The card
+     keeps its own margin below. */
+  padding-bottom: 0;
+}
+
+#previewContent .hidden {
+  display: none !important;
+}
+
+#previewContent .journey-sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+html:has(body.player-mode) {
+  scroll-padding-top: 72px;
+}
+
+/* On a phone the button bar sits at the bottom of the screen: keep what
+   gets keyboard focus above it (WCAG 2.4.11) */
+@media (max-width: 640px) {
+  html:has(body.player-mode #previewContent .journey-nav.is-single) {
+    scroll-padding-bottom: 96px;
+  }
+}
+
+/* ---------- Step bar ---------- */
+
+#previewContent .journey-stepbar {
+  max-width: var(--j-card-max);
+  margin: 28px auto 12px;
+  padding: 0 2px;
+  display: grid;
+  gap: 8px;
+}
+
+#previewContent .journey-stepbar-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-step-indicator {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--j-primary);
+  white-space: normal;
+  overflow: visible;
+}
+
+#previewContent .journey-stepbar-time {
+  text-align: right;
+}
+
+#previewContent .journey-stepbar-time:empty {
+  display: none;
+}
+
+#previewContent .journey-stepbar-track {
+  display: flex;
+  gap: 4px;
+}
+
+#previewContent .journey-stepbar-track i {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--j-line);
+}
+
+#previewContent .journey-stepbar-track i.is-done {
+  background: var(--j-primary);
+}
+
+#previewContent .journey-stepbar-track i.is-now {
+  background: var(--j-progress);
+}
+
+#previewContent .journey-stepbar-track.is-continuous {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--j-line);
+  overflow: hidden;
+}
+
+#previewContent .journey-stepbar-track.is-continuous i {
+  flex: none;
+  height: 100%;
+}
+
+/* ---------- Card ---------- */
+
+#previewContent .preview-card {
+  max-width: var(--j-card-max);
+  margin: 0 auto 32px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--j-card);
+  border-radius: calc(var(--j-radius) + 4px);
+  box-shadow: var(--theme-shadow, 0 1px 2px rgba(11, 42, 31, 0.06), 0 6px 24px rgba(11, 42, 31, 0.07));
+  /* clip, not hidden: hidden would stop the phone action bar from sticking */
+  overflow: clip;
+  animation: journeyCardFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#previewContent .preview-content {
+  padding: var(--j-pad) var(--j-pad) 8px;
+}
+
+#previewContent .preview-content p {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--j-ink);
+}
+
+#previewContent .prose {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--j-ink);
+  max-width: none;
+}
+
+#previewContent .prose p {
+  margin: 0 0 14px;
+}
+
+#previewContent .prose > :last-child {
+  margin-bottom: 0;
+}
+
+/* Kind label left, reading aids right */
+#previewContent .journey-tts-row {
+  justify-content: flex-start;
+  margin: 0 0 14px;
+  flex-wrap: wrap;
+}
+
+#previewContent .journey-step-kind {
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--j-primary);
+}
+
+#previewContent .journey-step-kind svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+#previewContent .journey-tts-btn {
+  min-height: 36px;
+  color: var(--j-primary);
+  border-color: color-mix(in srgb, var(--j-primary) 22%, transparent);
+}
+
+#previewContent .journey-tts-btn:focus-visible,
+#previewContent .journey-reading-option:focus-visible {
+  outline: 3px solid var(--j-focus);
+  outline-offset: 2px;
+}
+
+#previewContent .journey-step-title {
+  margin: 0 0 10px;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--j-primary);
+  text-wrap: balance;
+}
+
+#previewContent .preview-content p.journey-step-intro {
+  margin: 0 0 18px;
+  color: var(--j-ink-2);
+}
+
+/* ---------- Media (photo, panorama, video) ---------- */
+
+#previewContent .journey-media {
+  padding: 8px var(--j-pad) 0;
+}
+
+#previewContent .journey-media-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Never cropped: a tall photo or a diagram stays whole, with a quiet
+     background beside it, and the button below stays within reach */
+  max-height: min(56vh, 560px);
+  object-fit: contain;
+  background: var(--j-well);
+  border-radius: var(--j-radius);
+  margin: 0;
+}
+
+#previewContent .journey-media .panorama-container {
+  height: 280px;
+}
+
+#previewContent .journey-media-caption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-media-actions,
+#previewContent .journey-aside {
+  padding: 14px var(--j-pad) 0;
+}
+
+#previewContent .journey-step-text + * {
+  margin-top: 0;
+}
+
+#previewContent .journey-card--content .preview-content .journey-step-text {
+  margin-top: 4px;
+}
+
+/* Floor plan: a secondary button. Going on is the main action. */
+#previewContent .floorplan-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 18px;
+  background: var(--j-card);
+  color: var(--j-primary);
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: var(--j-radius);
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+#previewContent .floorplan-pill:focus-visible {
+  outline: 3px solid var(--j-focus);
+  outline-offset: 2px;
+}
+
+/* ---------- The way on ---------- */
+
+#previewContent .preview-options.journey-nav {
+  padding: 16px var(--j-pad) var(--j-pad);
+  display: block;
+}
+
+#previewContent .preview-nav-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+}
+
+#previewContent .preview-nav-buttons.is-single {
+  align-items: flex-end;
+}
+
+#previewContent .journey-next-btn,
+#previewContent .journey-nav-btn-primary,
+#previewContent .journey-poll-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  min-width: 200px;
+  padding: 0 24px;
+  background: var(--j-primary) !important;
+  color: var(--j-on-primary) !important;
+  border: 0;
+  border-radius: var(--j-radius);
+  box-shadow: 0 1px 2px rgba(11, 42, 31, 0.12);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transform: none;
+  transition: background-color 0.15s ease;
+}
+
+#previewContent .journey-next-btn span,
+#previewContent .journey-next-btn svg {
+  color: inherit !important;
+}
+
+#previewContent .journey-nav-btn-primary:disabled,
+#previewContent .journey-poll-submit-btn:disabled {
+  background: #e4e8e4 !important;
+  color: #5b6560 !important;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+#previewContent .journey-nav-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 20px;
+  background: var(--j-card);
+  color: var(--j-primary);
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: var(--j-radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#previewContent .journey-btn-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+#previewContent .journey-choice-q {
+  margin: 0 0 2px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--j-ink);
+}
+
+#previewContent .journey-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 16px 12px 18px;
+  background: var(--j-card);
+  color: var(--j-ink);
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: var(--j-radius);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+  transform: none;
+}
+
+#previewContent .journey-choice span {
+  color: inherit !important;
+}
+
+#previewContent .journey-choice svg {
+  color: var(--j-primary) !important;
+}
+
+#previewContent .journey-nav-hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--j-ink-2);
+}
+
+/* While a timer holds the participant: one quiet line where the button
+   will appear, no clock, no seconds ticking down */
+#previewContent .journey-wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 10px 16px;
+  background: var(--j-well);
+  border: 0;
+  border-radius: var(--j-radius);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--j-ink-2);
+  text-align: center;
+}
+
+#previewContent .journey-wait span {
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Nothing to show yet (the quiz, form or poll has its own button): no
+   empty space or empty bar */
+#previewContent .journey-nav:not(:has(> .preview-nav-buttons:not(.hidden))):not(:has(> .journey-wait:not(.hidden):not(.journey-sr-only))) {
+  padding: 0 !important;
+  border: 0 !important;
+  margin: 0 !important;
+  min-height: 0;
+}
+
+/* ---------- Questions and answers (quiz and poll) ---------- */
+
+#previewContent .journey-quiz-progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 18px;
+  font-size: 14px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-quiz-segments {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  max-width: 220px;
+}
+
+#previewContent .journey-quiz-segments i {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--j-line);
+}
+
+#previewContent .journey-quiz-segments i.is-done {
+  background: var(--j-primary);
+}
+
+#previewContent .journey-quiz-segments i.is-now {
+  background: var(--j-progress);
+}
+
+#previewContent .journey-question,
+#previewContent .journey-poll-question {
+  margin: 0 0 14px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--j-ink);
+}
+
+#previewContent .journey-answers,
+#previewContent .journey-poll-options {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+#previewContent .quiz-wizard-option,
+#previewContent .journey-poll-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 16px;
+  background: var(--j-card);
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: var(--j-radius);
+  box-shadow: none;
+  transform: none;
+  text-align: left;
+  cursor: pointer;
+  opacity: 1;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+#previewContent .quiz-wizard-option .option-text,
+#previewContent .journey-poll-option .option-text {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--j-ink);
+  z-index: 2;
+}
+
+/* The answer marker: a circle (one answer) or a square (more answers) */
+#previewContent .option-mark {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: 2px solid #8b978f;
+  border-radius: 50%;
+  background: var(--j-card);
+  z-index: 2;
+}
+
+#previewContent .journey-poll.is-multiple .option-mark {
+  border-radius: 6px;
+}
+
+#previewContent .quiz-wizard-option.selected,
+#previewContent .journey-poll-option.selected {
+  border-color: var(--j-primary);
+  background: var(--j-tint);
+}
+
+#previewContent .selected .option-mark {
+  border-color: var(--j-primary);
+}
+
+#previewContent .selected .option-mark::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: var(--j-primary);
+}
+
+#previewContent .journey-poll.is-multiple .selected .option-mark::after {
+  border-radius: 2px;
+}
+
+#previewContent .quiz-wizard-option .option-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+#previewContent .quiz-wizard-option .option-indicator:empty {
+  display: none;
+}
+
+#previewContent .quiz-wizard-option .option-indicator svg {
+  width: 15px;
+  height: 15px;
+  color: #ffffff;
+}
+
+#previewContent .quiz-wizard-option.correct {
+  border-color: var(--j-ok);
+  background: var(--j-ok-bg);
+}
+
+#previewContent .quiz-wizard-option.correct .option-mark {
+  border-color: var(--j-ok);
+}
+
+#previewContent .quiz-wizard-option.correct .option-mark::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--j-ok);
+}
+
+#previewContent .quiz-wizard-option.correct .option-indicator {
+  background: var(--j-ok);
+}
+
+#previewContent .quiz-wizard-option.incorrect {
+  border-color: var(--j-err);
+  background: var(--j-err-bg);
+}
+
+#previewContent .quiz-wizard-option.incorrect .option-mark {
+  border-color: var(--j-err);
+}
+
+#previewContent .quiz-wizard-option.incorrect .option-mark::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--j-err);
+}
+
+#previewContent .quiz-wizard-option.incorrect .option-indicator {
+  background: var(--j-err);
+}
+
+/* The other answers once one is chosen: quieter, still readable */
+#previewContent .quiz-wizard-option.disabled {
+  opacity: 1;
+  background: var(--j-card);
+  border-color: var(--j-line);
+}
+
+#previewContent .quiz-wizard-option.disabled .option-text {
+  color: var(--j-ink-2);
+}
+
+#previewContent .quiz-wizard-option.disabled .option-mark {
+  border-color: var(--j-line-strong);
+}
+
+#previewContent .journey-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: calc(var(--j-radius) - 2px);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+#previewContent .journey-feedback svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+#previewContent .journey-feedback--ok {
+  background: var(--j-ok-bg);
+  color: #14532d;
+}
+
+#previewContent .journey-feedback--err {
+  background: var(--j-err-bg);
+  color: #8a1c12;
+}
+
+#previewContent .journey-feedback-wrap {
+  margin: 0 0 4px;
+}
+
+#previewContent .journey-quiz-nav {
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+#previewContent .journey-quiz-nav.is-first {
+  justify-content: flex-end;
+}
+
+/* Result of a quiz, and the confirmation of a form */
+#previewContent .journey-result {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 0 8px;
+  text-align: center;
+}
+
+#previewContent .journey-result-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: var(--j-well);
+  color: var(--j-primary);
+}
+
+#previewContent .journey-result-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+#previewContent .journey-result--passed .journey-result-icon,
+#previewContent .journey-result--perfect .journey-result-icon {
+  background: var(--j-ok-bg);
+  color: var(--j-ok);
+}
+
+#previewContent .journey-result--failed .journey-result-icon {
+  background: var(--j-err-bg);
+  color: var(--j-err);
+}
+
+#previewContent .preview-content p.journey-result-title {
+  margin: 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--j-primary);
+  text-wrap: balance;
+}
+
+#previewContent .preview-content p.journey-result-count,
+#previewContent .preview-content p.journey-result-message {
+  margin: 0;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-result-retake {
+  margin-top: 14px;
+}
+
+/* ---------- Poll ---------- */
+
+#previewContent .journey-poll {
+  padding: 0;
+}
+
+#previewContent .journey-poll-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+#previewContent .journey-poll-status {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-poll-option.showing-results {
+  cursor: default;
+}
+
+#previewContent .journey-poll-option.showing-results .option-mark {
+  display: none;
+}
+
+#previewContent .journey-poll-option-bar {
+  background: color-mix(in srgb, var(--j-primary) 9%, transparent);
+  border-radius: 10px 0 0 10px;
+}
+
+#previewContent .journey-poll-option.user-vote {
+  border-color: var(--j-primary);
+  background: var(--j-card);
+}
+
+#previewContent .journey-poll-option.user-vote .journey-poll-option-bar {
+  background: color-mix(in srgb, var(--j-primary) 16%, transparent);
+}
+
+#previewContent .journey-poll-option.user-vote .option-text::after {
+  content: none;
+}
+
+#previewContent .journey-poll-mine {
+  font-weight: 600;
+  color: var(--j-primary);
+}
+
+#previewContent .journey-poll-option-count {
+  min-width: 0;
+  margin-left: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--j-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+#previewContent .journey-poll-results {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--j-line);
+}
+
+#previewContent .journey-poll-total {
+  font-size: 14px;
+  color: var(--j-ink-2);
+}
+
+/* ---------- Form ---------- */
+
+#previewContent .preview-form {
+  display: grid;
+  gap: 22px;
+}
+
+#previewContent .journey-field {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+#previewContent .journey-field-label {
+  display: block;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--j-ink);
+}
+
+#previewContent .journey-field-optional {
+  font-weight: 400;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  background: var(--j-card);
+  color: var(--j-ink);
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: calc(var(--j-radius) - 2px);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  box-shadow: none;
+}
+
+#previewContent textarea.journey-input {
+  min-height: 104px;
+  resize: vertical;
+}
+
+#previewContent .journey-input:focus {
+  border-color: var(--j-primary);
+  outline: 3px solid color-mix(in srgb, var(--j-primary) 22%, transparent);
+  outline-offset: 0;
+}
+
+#previewContent .journey-field.has-error .journey-input,
+#previewContent .journey-field.has-error .journey-yesno-option,
+#previewContent .journey-field.has-error .file-dropzone {
+  border-color: var(--j-err);
+}
+
+#previewContent .journey-field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--j-err);
+}
+
+#previewContent .journey-yesno {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 360px;
+}
+
+#previewContent .journey-yesno-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 8px 12px;
+  background: var(--j-card);
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: calc(var(--j-radius) - 2px);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--j-ink);
+  cursor: pointer;
+}
+
+#previewContent .journey-yesno-option input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+#previewContent .journey-yesno-option:has(input:checked) {
+  border-color: var(--j-primary);
+  background: var(--j-tint);
+  color: var(--j-primary);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--j-primary);
+}
+
+#previewContent .journey-yesno-option:has(input:focus-visible) {
+  outline: 3px solid var(--j-focus);
+  outline-offset: 2px;
+}
+
+#previewContent .file-dropzone {
+  min-height: 0;
+  padding: 12px 14px;
+  border: 1.5px dashed #a9b6ad;
+  border-radius: calc(var(--j-radius) - 2px);
+  background: var(--j-card);
+  cursor: pointer;
+  text-align: left;
+}
+
+#previewContent .file-dropzone-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 8px;
+}
+
+#previewContent .file-dropzone-content:focus-visible {
+  outline: 3px solid var(--j-focus);
+  outline-offset: 4px;
+}
+
+#previewContent .journey-file-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: var(--j-primary);
+}
+
+#previewContent .journey-file-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+#previewContent .journey-file-cta {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--j-primary);
+}
+
+#previewContent .journey-file-cta--drag {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #previewContent .journey-file-cta--tap {
+    display: none;
+  }
+
+  #previewContent .journey-file-cta--drag {
+    display: inline;
+  }
+}
+
+#previewContent .journey-file-meta {
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--j-ink-2);
+}
+
+#previewContent .file-preview-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#previewContent .file-preview-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+#previewContent .file-preview-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--j-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#previewContent .file-preview-size {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .file-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: calc(var(--j-radius) - 2px);
+  color: var(--j-ink-2);
+}
+
+#previewContent .form-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+#previewContent .journey-form-skip-btn {
+  min-height: 52px;
+  border-radius: var(--j-radius);
+  border-width: 1.5px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#previewContent .form-already-submitted-banner {
+  margin-bottom: 18px;
+}
+
+/* ---------- Guide ---------- */
+
+#previewContent .journey-guide-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#previewContent .journey-guide-avatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--j-primary);
+  color: var(--j-on-primary);
+  font-size: 17px;
+}
+
+#previewContent .preview-content p.journey-guide-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--j-ink);
+}
+
+#previewContent .preview-content p.journey-guide-role {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--j-ink-2);
+}
+
+#previewContent .preview-chat {
+  padding: 12px var(--j-pad) 0;
+  border-top: 0;
+}
+
+#previewContent .chat-messages {
+  min-height: 140px;
+  max-height: 360px;
+  margin: 0;
+  padding: 12px;
+  background: var(--j-card);
+  border: 1px solid var(--j-line);
+  border-radius: var(--j-radius);
+}
+
+#previewContent .chat-message {
+  max-width: 88%;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border-radius: var(--j-radius);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+#previewContent .chat-message:last-child {
+  margin-bottom: 0;
+}
+
+#previewContent .chat-message.guide {
+  background: var(--theme-chat-bubble-guide, #f3f4f6);
+  border: 0;
+  color: var(--j-ink);
+}
+
+#previewContent .journey-chat-label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--j-ink);
+}
+
+#previewContent .chat-input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+#previewContent .chat-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: calc(var(--j-radius) - 2px);
+  font-size: 16px;
+}
+
+#previewContent .chat-input:focus {
+  border-color: var(--j-primary);
+  outline: 3px solid color-mix(in srgb, var(--j-primary) 22%, transparent);
+}
+
+/* Keep the hint visible while typing starts: an empty field without a
+   hint gives no clue what to do */
+#previewContent .chat-input:focus::placeholder {
+  opacity: 1;
+}
+
+#previewContent .chat-input::placeholder {
+  color: #6b7280;
+}
+
+#previewContent .chat-send {
+  /* A text button: never the 44px icon size of the older phone rule */
+  flex-shrink: 0;
+  width: auto;
+  height: auto;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: calc(var(--j-radius) - 2px);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------- Reward ---------- */
+
+#previewContent .preview-content p.journey-reward-status {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .preview-content p.journey-reward-status:empty {
+  display: none;
+}
+
+#previewContent .journey-ticket {
+  margin: 4px 0 18px;
+  border: 1.5px solid var(--j-line-strong);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+#previewContent .journey-ticket-top {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 18px 16px 12px;
+  background: var(--j-well);
+  border-bottom: 1.5px dashed var(--j-line-strong);
+  text-align: center;
+}
+
+#previewContent .preview-content p.journey-ticket-name {
+  margin: 0 0 4px;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--j-primary);
+}
+
+#previewContent .preview-content p.journey-ticket-label {
+  margin: 0;
+  font-size: 14px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .preview-content p.journey-ticket-code {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  color: var(--j-primary);
+  overflow-wrap: anywhere;
+}
+
+#previewContent .journey-ticket-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--j-primary);
+  cursor: pointer;
+}
+
+#previewContent .journey-ticket-copy svg {
+  width: 17px;
+  height: 17px;
+}
+
+#previewContent .journey-ticket-copy:focus-visible {
+  outline: 3px solid var(--j-focus);
+  outline-offset: 2px;
+}
+
+#previewContent .journey-ticket-details {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 18px 16px;
+}
+
+#previewContent .journey-ticket-details div {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: 4px 14px;
+}
+
+#previewContent .journey-ticket-details dt {
+  font-size: 14.5px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-ticket-details dd {
+  margin: 0;
+  font-size: 15.5px;
+  color: var(--j-ink);
+}
+
+#previewContent .journey-reward-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+#previewContent .preview-content p.journey-reward-email {
+  margin: 0;
+  font-size: 14px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .preview-content p.journey-reward-email:empty {
+  display: none;
+}
+
+/* ---------- End of the journey ---------- */
+
+#previewContent .journey-complete {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 0 20px;
+  padding: 16px;
+  background: var(--j-tint);
+  border: 0;
+  border-radius: 14px;
+}
+
+#previewContent .journey-complete-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--j-primary);
+  color: var(--j-on-primary);
+}
+
+#previewContent .journey-complete-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+#previewContent .preview-content p.journey-complete-title {
+  margin: 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--j-primary);
+}
+
+#previewContent .preview-content p.journey-complete-sub {
+  margin: 2px 0 0;
+  font-size: 15px;
+  color: var(--j-ink-2);
+}
+
+#previewContent .journey-complete-restart {
+  margin-top: 12px;
+  min-height: 44px;
+  font-size: 15px;
+}
+
+/* ---------- Focus and hover ---------- */
+
+#previewContent .journey-next-btn:focus-visible,
+#previewContent .journey-nav-btn:focus-visible,
+#previewContent .journey-poll-submit-btn:focus-visible,
+#previewContent .journey-choice:focus-visible,
+#previewContent .quiz-wizard-option:focus-visible,
+#previewContent .journey-poll-option:focus-visible,
+#previewContent .chat-send:focus-visible {
+  outline: 3px solid var(--j-focus);
+  outline-offset: 2px;
+}
+
+/* Hover only where there is a mouse: on a touch screen the hover style
+   stays on the last tapped spot and looks like a choice */
+@media (hover: hover) and (pointer: fine) {
+  #previewContent .journey-next-btn:hover,
+  #previewContent .journey-nav-btn-primary:hover:not(:disabled),
+  #previewContent .journey-poll-submit-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--j-primary) 86%, #000000) !important;
+  }
+
+  #previewContent .journey-nav-btn-secondary:hover,
+  #previewContent .floorplan-pill:hover,
+  #previewContent .journey-choice:hover {
+    border-color: var(--j-primary);
+    background: var(--j-tint);
+  }
+
+  #previewContent .quiz-wizard-option:hover:not(.selected):not(.correct):not(.incorrect):not(.disabled),
+  #previewContent .journey-poll-option:hover:not(.selected):not(.showing-results) {
+    border-color: color-mix(in srgb, var(--j-primary) 55%, var(--j-line-strong));
+    background: #fafcfa;
+  }
+
+  #previewContent .journey-ticket-copy:hover {
+    background: var(--j-tint);
+  }
+}
+
+/* ---------- Phone width (also in the maker's phone preview) ---------- */
+
+@container journey (max-width: 640px) {
+  /* Not on #previewContent itself: a container query never styles the
+     container, so the children get the smaller padding */
+  #previewContent > * {
+    --j-pad: 20px;
+  }
+
+  #previewContent .journey-stepbar {
+    margin: 16px 14px 10px;
+  }
+
+  #previewContent .journey-stepbar-text {
+    font-size: 13.5px;
+  }
+
+  #previewContent .preview-card {
+    margin: 0 12px 20px;
+  }
+
+  #previewContent .journey-step-title {
+    font-size: 22px;
+  }
+
+  #previewContent .journey-media .panorama-container {
+    height: 240px;
+  }
+
+  #previewContent .floorplan-pill {
+    width: 100%;
+  }
+
+  #previewContent .preview-nav-buttons.is-single {
+    align-items: stretch;
+  }
+
+  #previewContent .journey-next-btn,
+  #previewContent .journey-nav-btn-primary,
+  #previewContent .journey-poll-submit-btn,
+  #previewContent .journey-form-skip-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #previewContent .journey-nav-hint {
+    text-align: center;
+  }
+
+  /* One way on: a bar at the bottom of the screen, always within reach
+     of the thumb, also when the step is longer than the screen */
+  #previewContent .preview-options.journey-nav.is-single {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin-top: 12px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--j-card);
+    border-top: 1px solid var(--j-line);
+  }
+
+  #previewContent .journey-quiz-nav #quizPrevBtn {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0 16px;
+  }
+
+  #previewContent .journey-quiz-nav #quizNextBtn {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  #previewContent .journey-poll-footer,
+  #previewContent .form-buttons-container,
+  #previewContent .journey-reward-actions {
+    align-items: stretch;
+  }
+
+  #previewContent .journey-reward-actions {
+    text-align: center;
+  }
+
+  #previewContent .journey-yesno {
+    max-width: none;
+  }
+
+  #previewContent .journey-ticket-details div {
+    grid-template-columns: 1fr;
+  }
+
+  #previewContent .chat-messages {
+    max-height: 300px;
+  }
+}
+
+/* ---------- Wide: photo, panorama or video next to the text ---------- */
+
+@container journey (min-width: 900px) {
+  #previewContent:has(.journey-card--media) .journey-stepbar {
+    max-width: var(--j-card-wide-max);
+  }
+
+  #previewContent .preview-card.journey-card--media {
+    max-width: var(--j-card-wide-max);
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "media content"
+      "media aside"
+      "media nav";
+    align-items: start;
+  }
+
+  /* The notice "continue where you were" of a public journey: a row of
+     its own above photo and text */
+  #previewContent .preview-card.journey-card--media:has(> .journey-resume-banner) {
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      "banner banner"
+      "media content"
+      "media aside"
+      "media nav";
+  }
+
+  #previewContent .journey-card--media > .journey-resume-banner {
+    grid-area: banner;
+    margin: var(--j-pad) var(--j-pad) 0;
+  }
+
+  #previewContent .journey-card--media .journey-media {
+    grid-area: media;
+    padding: 24px 0 24px 24px;
+  }
+
+  #previewContent .journey-card--media .journey-media-img {
+    max-height: min(70vh, 640px);
+  }
+
+  #previewContent .journey-card--media .journey-media .panorama-container {
+    height: 420px;
+  }
+
+  #previewContent .journey-card--media .preview-content {
+    grid-area: content;
+    padding-bottom: 0;
+  }
+
+  #previewContent .journey-card--media .journey-media-actions,
+  #previewContent .journey-card--media .journey-aside {
+    grid-area: aside;
+  }
+
+  #previewContent .journey-card--media .preview-options.journey-nav {
+    grid-area: nav;
+    align-self: end;
+  }
+
+  #previewContent .journey-card--media .preview-nav-buttons.is-single {
+    align-items: stretch;
+  }
+
+  #previewContent .journey-card--media .journey-next-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #previewContent .preview-card {
+    animation: none;
+  }
+
+  #previewContent .typing-dots span {
+    animation: none;
+    opacity: 0.7;
+  }
+
+  #previewContent * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The floating "Ask the guide" button on a phone: above the action bar */
+@media (max-width: 640px) {
+  body.player-mode:has(#previewContent .journey-nav.is-single) #guideChatWidget {
+    bottom: 96px;
+  }
+}
+
+/* ============================================================
+   MAKER PREVIEW: PHONE OR COMPUTER
+   The same journey, only the width changes. The layout above follows
+   the width of #previewContent, so the phone frame shows exactly what a
+   participant sees on a phone (390 px, the width of a common phone).
+   ============================================================ */
+
+.preview-device-toggle {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: #eef2ee;
+  border-radius: 10px;
+}
+
+.preview-device-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #3f4a44;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.preview-device-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.preview-device-btn[aria-pressed="true"] {
+  background: #ffffff;
+  color: var(--theme-primary, #0b4b34);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(11, 42, 31, 0.12);
+}
+
+.preview-device-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--theme-primary, #0b4b34) 60%, #ffffff);
+  outline-offset: 1px;
+}
+
+/* Builder preview window */
+body.preview-device-phone #previewModal #previewContent {
+  flex: 1 1 auto;
+  width: 390px;
+  max-width: calc(100% - 32px);
+  margin: 16px auto;
+  border: 1px solid rgba(11, 42, 31, 0.14);
+  border-radius: 28px;
+  box-shadow: 0 10px 40px rgba(11, 42, 31, 0.14);
+}
+
+/* Preview page (/dashboard/preview): the frame scrolls by itself, like a phone */
+body.player-mode.preview-device-phone .player-content {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+body.player-mode.preview-device-phone #previewContent {
+  width: 390px;
+  max-width: 100%;
+  height: calc(100vh - 56px - 32px);
+  min-height: 0;
+  margin: 16px auto;
+  overflow-y: auto;
+  border: 1px solid rgba(11, 42, 31, 0.14);
+  border-radius: 28px;
+  box-shadow: 0 10px 40px rgba(11, 42, 31, 0.14);
+}
+
+/* On a real phone the maker already sees the phone layout */
+@media (max-width: 700px) {
+  .preview-device-toggle {
+    display: none;
+  }
+}
+
+/* "You are here" near the edge of the floor plan: the label opens towards
+   the middle, so it is never cut off */
+.floorplan-viewer-marker-label.is-start {
+  left: -14px;
+  transform: none;
+}
+
+.floorplan-viewer-marker-label.is-end {
+  left: auto;
+  right: -14px;
+  transform: none;
+}

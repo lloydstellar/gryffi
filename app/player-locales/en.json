@@ -18,7 +18,9 @@
       "connectionError": "I'm having trouble connecting right now. Please try again.",
       "guideUnavailable": "I can't answer questions right now. You can continue with the next step.",
       "sources": "Sources",
-      "showSource": "Show source {{number}}"
+      "showSource": "Show source {{number}}",
+      "askLabel": "Your question for {{name}}",
+      "optionalHint": "Asking questions is optional."
     },
     "content": {
       "invalidVideoUrl": "Invalid video URL",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Google privacy policy"
     },
     "navigation": {
-      "whenReady": "When you're ready:",
-      "journeyComplete": "Journey Complete!",
+      "journeyComplete": "You have finished this journey",
       "leaveJourney": "Leave expedition?",
       "leaveJourneyMessage": "Are you sure you want to leave this expedition? Your progress has been saved.",
       "leaveConfirm": "Leave",
       "stayContinue": "Stay",
-      "doAgain": "Do you want to go through this journey again?"
+      "doAgain": "Do you want to go through this journey again?",
+      "chooseRoute": "Choose how you want to continue",
+      "canClose": "You can close this page now."
     },
     "pacing": {
       "readyToContinue": "You can now continue",
       "takeYourTimeMinutes": "Take {{minutes}} minute to explore",
-      "takeYourTimeSeconds": "Take your time... {{seconds}}s",
-      "keepWatching": "Keep watching... {{seconds}}s",
-      "chatWithGuide": "Chat with the guide ({{count}}/{{total}} messages)"
+      "chatWithGuide": "Chat with the guide ({{count}}/{{total}} messages)",
+      "wait": "You can continue in a moment.",
+      "keepWatchingCalm": "Keep watching the video. The button appears in a moment."
     },
     "form": {
       "title": "Form",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "MP3 only"
-        }
+        },
+        "choose": "Choose a file"
       },
       "imageRejected": "This image cannot be uploaded. Choose a different image.",
       "imageCheckUnavailable": "We could not check your image right now. Try again in a few minutes.",
       "fieldRequired": "Fill in this field.",
       "invalidEmail": "Enter a valid email address, for example name@company.com.",
-      "fileRequired": "Choose a file for \"{{field}}\"."
+      "fileRequired": "Choose a file for \"{{field}}\".",
+      "optional": "optional",
+      "chooseOne": "Choose one of the options."
     },
     "quiz": {
       "title": "Quiz",
@@ -93,12 +99,10 @@
       "finish": "Submit answers",
       "correct": "Correct!",
       "incorrect": "Not quite right",
-      "score": "Your score",
       "passed": "Quiz passed!",
       "completed": "Quiz completed",
       "allCorrect": "All correct!",
       "singleCorrect": "Correct answer!",
-      "nextStepHint": "The journey continues. Pick the next step below.",
       "failed": "You need {{required}} correct answers to continue",
       "questionsCorrect": "{{correct}} of {{total}} correct",
       "retake": "Retake Quiz",
@@ -112,7 +116,8 @@
       "voteRecorded": "Your vote has been recorded",
       "respondents": "{{count}} respondent",
       "respondentsPlural": "{{count}} respondents",
-      "chooseFirst": "Choose an answer first, then click \"Submit vote\"."
+      "chooseFirst": "Choose an answer first, then click \"Submit vote\".",
+      "yourChoice": "your choice"
     },
     "space": {
       "dragHint": "Drag to look around",
@@ -123,29 +128,31 @@
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
       "centerOnMarker": "Show where you are",
-      "panoramaLoadFailed": "The 360° photo could not be loaded. Reload the page to try again."
+      "panoramaLoadFailed": "The 360° photo could not be loaded. Reload the page to try again.",
+      "closeFloorplan": "Close floor plan"
     },
     "stepTypes": {
       "reward": "Reward"
     },
     "reward": {
       "congratulations": "Congratulations!",
-      "youAreNumber": "You are #{{position}} to claim this reward!",
       "yourCode": "Your reward code",
       "redeemAt": "Redeem at",
       "terms": "Terms & Conditions",
       "validUntil": "Valid until",
-      "downloadCoupon": "Download coupon",
+      "downloadCoupon": "Download as PDF",
       "emailSent": "A copy has been sent to your email",
       "alreadyClaimed": "You have already claimed a reward for this journey",
       "noMoreRewards": "Sorry, all rewards have been claimed",
       "claimFailed": "Your reward could not be claimed. Reload the page and try again.",
-      "previewMode": "Preview mode - No real code generated",
+      "previewMode": "Preview: no real code is created",
       "claimed": "Reward claimed",
       "soldOut": {
         "title": "What a pity!",
         "message": "Unfortunately, you were too late to receive a reward. All rewards have already been handed out."
-      }
+      },
+      "copyCode": "Copy code",
+      "codeCopied": "Code copied"
     },
     "tts": {
       "listen": "Listen",
@@ -247,6 +254,15 @@
       "message": "You were here before. Do you want to continue where you left off?",
       "continue": "Continue where I was",
       "restart": "Start again"
+    },
+    "kind": {
+      "read": "Reading",
+      "video": "Video",
+      "space": "Space",
+      "guide": "Conversation",
+      "poll": "Poll",
+      "questionsOne": "1 question",
+      "questionsOther": "{{count}} questions"
     }
   }
 }

@@ -36,7 +36,7 @@ Quiz and poll steps have no pacing option. A quiz has to be finished first, and 
 
 ## What participants see
 
-- With a time option, the step counts down: "Take your time... 25s". For a wait of a minute or more it first says how many minutes to take. For a video the step first says "Click Play video to start watching". The countdown starts when the video starts playing, and says "Keep watching... 25s".
+- With a time option, the place of the button says "You can continue in a moment." There is no countdown: seconds ticking down feel like time pressure. For a wait of a minute or more it says how many minutes to take. For a video the step first says "Click Play video to start watching". The wait starts when the video starts playing, and the step then says "Keep watching the video. The button appears in a moment."
 - With a message option on a guide step, the step shows how many messages are still needed: "Chat with the guide (1/4 messages)".
 - When the wait is over, the step says "You can now continue" and the Continue buttons appear. Screen readers announce this too.
 

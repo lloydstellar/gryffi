@@ -46,7 +46,7 @@ When codes have been claimed, some settings are locked. The maximum cannot be lo
 
 ### What participants get
 
-Gryffi sends a copy of the code to the participant's email address.
+Participants see the code on the step, with **Copy code** and **Download as PDF**. Gryffi also sends a copy of the code to the participant's email address.
 
 In a private journey, each participant gets one reward per journey. A participant who opens the step again sees the same code.
 
@@ -60,12 +60,12 @@ You cannot delete a Reward Step after participants have claimed codes from it. G
 
 ## Analytics Reward Reports
 
-![Rewards in Analytics: the Rewards tab (5) and a reward (6)](images/reward-step/analytics.en.webp)
+![Rewards in Analytics: Rewards on the Responses tab (5) and a reward (6)](images/reward-step/analytics.en.webp)
 
-5. The Rewards tab in Analytics.
+5. Rewards, on the Responses tab in Analytics.
 6. A reward with the number of claimed and remaining codes, View codes and Download PDF.
 
-In Analytics, open the Rewards tab (5). For each reward (6) you see the claimed and remaining codes. Click **View codes** to see who claimed which code, or **Download PDF** for a list.
+In Analytics, open the Responses tab and click Rewards (5). For each reward (6) you see the claimed and remaining codes. Click **View codes** to see who claimed which code, or **Download PDF** for a list.
 
 Example: you give codes for a free lunch in the staff canteen. Give the PDF, or a printed copy, to the canteen staff. Then they know who gets a free lunch.
 

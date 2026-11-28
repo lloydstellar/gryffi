@@ -1675,6 +1675,7 @@ window.closeHelpModal = closeHelpModal;
     else if (path.indexOf('/dashboard/system-settings') === 0) key = 'organization';
     else if (path.indexOf('/dashboard/settings') === 0) key = 'account';
     else if (path.indexOf('/dashboard/subscription') === 0) key = 'subscription';
+    else if (path.indexOf('/dashboard/partner') === 0) key = 'partner';
     var selection = key === 'builder' ? (window.gryffiHelpSelection || {}) : {};
     var stepType = SCREEN_HELP.steps[selection.stepType] ? selection.stepType : null;
     return { key: stepType ? 'builder.' + stepType : key, page: key, stepType: stepType, tab: stepType ? (selection.tab || null) : null };
@@ -1706,7 +1707,8 @@ window.closeHelpModal = closeHelpModal;
       team: ['maker-roles', 'maker-invitations', 'makers-management'],
       account: ['user-settings', 'password-management', 'two-factor-authentication', 'language-settings'],
       organization: ['organization-settings', 'system-settings', 'language-settings', 'api-keys'],
-      subscription: ['subscription-overview', 'usage-limits', 'ai-credits']
+      subscription: ['subscription-overview', 'usage-limits', 'ai-credits'],
+      partner: ['partner-program']
     },
     steps: {
       space: ['space-step', 'floor-plans', 'step-pacing'],

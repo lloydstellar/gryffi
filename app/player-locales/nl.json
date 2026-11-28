@@ -18,7 +18,9 @@
       "connectionError": "Ik heb momenteel problemen met de verbinding. Probeer het opnieuw.",
       "guideUnavailable": "Ik kan nu geen vragen beantwoorden. Je kunt verder met de volgende stap.",
       "sources": "Bronnen",
-      "showSource": "Bron {{number}} bekijken"
+      "showSource": "Bron {{number}} bekijken",
+      "askLabel": "Je vraag aan {{name}}",
+      "optionalHint": "Vragen stellen mag, het hoeft niet."
     },
     "content": {
       "invalidVideoUrl": "Ongeldige video URL",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Privacyverklaring van Google"
     },
     "navigation": {
-      "whenReady": "Als je klaar bent:",
-      "journeyComplete": "Expeditie voltooid!",
+      "journeyComplete": "Je hebt de expeditie afgerond",
       "leaveJourney": "Expeditie verlaten?",
       "leaveJourneyMessage": "Weet je zeker dat je deze expeditie wilt verlaten? Je voortgang is opgeslagen.",
       "leaveConfirm": "Verlaten",
       "stayContinue": "Blijven",
-      "doAgain": "Wil je deze expeditie nog een keer doorlopen?"
+      "doAgain": "Wil je deze expeditie nog een keer doorlopen?",
+      "chooseRoute": "Kies hoe je verder wilt",
+      "canClose": "Je kunt deze pagina nu sluiten."
     },
     "pacing": {
       "readyToContinue": "Je kunt nu doorgaan",
       "takeYourTimeMinutes": "Neem {{minutes}} minuut om te verkennen",
-      "takeYourTimeSeconds": "Neem je tijd... {{seconds}}s",
-      "keepWatching": "Blijf kijken... {{seconds}}s",
-      "chatWithGuide": "Chat met de gids ({{count}}/{{total}} berichten)"
+      "chatWithGuide": "Chat met de gids ({{count}}/{{total}} berichten)",
+      "wait": "Je kunt zo verder.",
+      "keepWatchingCalm": "Kijk de video verder. De knop verschijnt zo."
     },
     "form": {
       "title": "Formulier",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "Alleen MP3"
-        }
+        },
+        "choose": "Kies een bestand"
       },
       "imageRejected": "Deze afbeelding kan niet worden geüpload. Kies een andere afbeelding.",
       "imageCheckUnavailable": "We konden je afbeelding nu niet controleren. Probeer het over een paar minuten opnieuw.",
       "fieldRequired": "Vul dit veld in.",
       "invalidEmail": "Vul een geldig e-mailadres in, bijvoorbeeld naam@bedrijf.nl.",
-      "fileRequired": "Kies een bestand voor \"{{field}}\"."
+      "fileRequired": "Kies een bestand voor \"{{field}}\".",
+      "optional": "niet verplicht",
+      "chooseOne": "Kies een van de mogelijkheden."
     },
     "quiz": {
       "title": "Quiz",
@@ -91,16 +97,14 @@
       "next": "Volgende",
       "previous": "Vorige",
       "finish": "Antwoorden insturen",
-      "correct": "Correct!",
+      "correct": "Goed!",
       "incorrect": "Niet helemaal goed",
-      "score": "Je score",
       "passed": "Quiz behaald!",
       "completed": "Quiz voltooid",
       "allCorrect": "Alles goed!",
       "singleCorrect": "Goed beantwoord!",
-      "nextStepHint": "De expeditie gaat verder. Kies hieronder de volgende stap.",
       "failed": "Je hebt {{required}} goede antwoorden nodig om door te gaan",
-      "questionsCorrect": "{{correct}} van {{total}} correct",
+      "questionsCorrect": "{{correct}} van {{total}} goed",
       "retake": "Quiz opnieuw maken",
       "continue": "Doorgaan",
       "completeQuizToContinue": "Voltooi de quiz om door te gaan"
@@ -112,7 +116,8 @@
       "voteRecorded": "Je stem is geregistreerd",
       "respondents": "{{count}} deelnemer",
       "respondentsPlural": "{{count}} deelnemers",
-      "chooseFirst": "Kies eerst een antwoord en klik dan op \"Stem versturen\"."
+      "chooseFirst": "Kies eerst een antwoord en klik dan op \"Stem versturen\".",
+      "yourChoice": "jouw keuze"
     },
     "space": {
       "dragHint": "Sleep om rond te kijken",
@@ -123,29 +128,31 @@
       "zoomIn": "Inzoomen",
       "zoomOut": "Uitzoomen",
       "centerOnMarker": "Laat zien waar je bent",
-      "panoramaLoadFailed": "De 360°-foto kan niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen."
+      "panoramaLoadFailed": "De 360°-foto kan niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
+      "closeFloorplan": "Plattegrond sluiten"
     },
     "stepTypes": {
       "reward": "Beloning"
     },
     "reward": {
       "congratulations": "Gefeliciteerd!",
-      "youAreNumber": "Je bent nummer #{{position}} die deze beloning claimt!",
       "yourCode": "Je beloningscode",
       "redeemAt": "Inwisselen bij",
       "terms": "Voorwaarden",
       "validUntil": "Geldig tot",
-      "downloadCoupon": "Download coupon",
+      "downloadCoupon": "Download als pdf",
       "emailSent": "Een kopie is naar je e-mail verzonden",
       "alreadyClaimed": "Je hebt al een beloning geclaimd voor deze expeditie",
       "noMoreRewards": "Sorry, alle beloningen zijn geclaimd",
       "claimFailed": "Je beloning kon niet worden opgehaald. Laad de pagina opnieuw en probeer het nog eens.",
-      "previewMode": "Preview modus - Geen echte code gegenereerd",
+      "previewMode": "Voorbeeld: dit is geen echte code",
       "claimed": "Beloning geclaimd",
       "soldOut": {
         "title": "Wat jammer!",
         "message": "Helaas was je te laat om een beloning te ontvangen. Alle beloningen zijn al uitgedeeld."
-      }
+      },
+      "copyCode": "Kopieer code",
+      "codeCopied": "Code gekopieerd"
     },
     "tts": {
       "listen": "Voorlezen",
@@ -247,6 +254,15 @@
       "message": "Je was hier al eerder. Wil je verdergaan waar je was?",
       "continue": "Verder waar ik was",
       "restart": "Opnieuw beginnen"
+    },
+    "kind": {
+      "read": "Lezen",
+      "video": "Video",
+      "space": "Ruimte",
+      "guide": "Gesprek",
+      "poll": "Peiling",
+      "questionsOne": "1 vraag",
+      "questionsOther": "{{count}} vragen"
     }
   }
 }

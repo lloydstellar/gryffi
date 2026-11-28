@@ -1499,16 +1499,15 @@
       "maxRecipientsMinDesc": "Cannot be lower than {{min}} (codes already claimed)",
       "preview": {
         "congratulations": "Congratulations!",
-        "youAreNumber": "You are #{{position}} to claim this reward!",
         "yourCode": "Your reward code",
         "redeemAt": "Redeem at",
         "terms": "Terms & Conditions",
         "validUntil": "Valid until",
-        "downloadCoupon": "Download coupon",
+        "downloadCoupon": "Download as PDF",
         "emailSent": "A copy has been sent to your email",
         "alreadyClaimed": "You have already claimed a reward for this journey",
         "noMoreRewards": "Sorry, all rewards have been claimed",
-        "previewMode": "Preview mode - No real code generated"
+        "previewMode": "Preview: no real code is created"
       },
       "soldOut": {
         "title": "What a pity!",
@@ -1734,6 +1733,11 @@
         "text": "This was the demo journey. Want to see how it is built, or start your own?",
         "viewInBuilder": "View this journey in the builder",
         "createFirst": "Create your first journey"
+      },
+      "device": {
+        "label": "View as",
+        "phone": "Phone",
+        "desktop": "Computer"
       }
     },
     "mobileWarning": {
@@ -2804,13 +2808,16 @@
       "polls": "Polls",
       "rewards": "Rewards",
       "reports": "Reports",
-      "forms": "Forms"
+      "forms": "Forms",
+      "answers": "Responses"
     },
     "dateRange": {
       "last7days": "Last 7 days",
       "last30days": "Last 30 days",
       "last90days": "Last 90 days",
-      "label": "Period"
+      "label": "Period",
+      "last365days": "Last 365 days",
+      "allTime": "All time"
     },
     "kpi": {
       "journeysStarted": "Journeys Started",
@@ -2818,7 +2825,9 @@
       "avgDuration": "Avg. time per step",
       "activeUsers": "Active Participants",
       "started": "Started",
-      "completed": "Completed"
+      "completed": "Completed",
+      "completedOf": "{{completed}} of {{started}} completed",
+      "byParticipants": "by {{count}} participants"
     },
     "chart": {
       "started": "Started",
@@ -2828,7 +2837,11 @@
       "journeyPerformance": "Journey Performance",
       "completionTrend": "Completion Trend",
       "topJourneys": "Top Performing Journeys",
-      "noJourneyData": "No journey data available for this period"
+      "noJourneyData": "No journey data available for this period",
+      "trendTitle": "Started and completed",
+      "trendSentence": "In this period: {{started}} started, {{completed}} completed.",
+      "trendEmpty": "Nobody started a journey in this period.",
+      "weekOf": "Week of {{date}}"
     },
     "journeys": {
       "title": "Journey Analytics",
@@ -2838,7 +2851,9 @@
       "funnel": "Participant Progression Funnel",
       "stepPerformance": "Step Performance",
       "dailyTrend": "Daily Activity",
-      "noStepData": "No step data available"
+      "noStepData": "No step data available",
+      "funnelSentence": "{{started}} started. {{completed}} reached the end.",
+      "branchNote": "Branch: participants choose a route"
     },
     "users": {
       "title": "Participant Analytics",
@@ -2851,7 +2866,8 @@
       "stepsCompleted": "steps completed",
       "completed": "Completed",
       "quizPerformance": "Quiz Performance",
-      "lastActivity": "Last activity"
+      "lastActivity": "Last activity",
+      "openDetails": "Open the details of {{name}}"
     },
     "replay": {
       "title": "Journey Replay",
@@ -2865,6 +2881,8 @@
       "quizzes": "Quizzes",
       "chats": "AI Chats",
       "status": "Status",
+      "statusCompleted": "Completed",
+      "statusNotCompleted": "Not finished",
       "timing": "Timing",
       "started": "Started",
       "completed": "Completed",
@@ -2912,7 +2930,8 @@
       "passRate": "Pass Rate",
       "totalAttempts": "Total Attempts",
       "topPerformers": "Top Performers",
-      "journeysStarted": "Journeys started"
+      "journeysStarted": "Journeys started",
+      "wholeOrganization": "Whole organization"
     },
     "table": {
       "journey": "Journey",
@@ -2927,7 +2946,7 @@
       "dropOff": "Drop-off",
       "user": "Participant",
       "group": "Group",
-      "journeysCompleted": "Journeys",
+      "journeysCompleted": "Completed journeys",
       "avgQuizScore": "Quiz Score",
       "lastActivity": "Last Activity",
       "members": "Members",
@@ -2936,7 +2955,8 @@
       "quiz": "Quiz",
       "attempts": "Attempts",
       "bestScore": "Best",
-      "avgScore": "Avg"
+      "avgScore": "Avg",
+      "stoppedHere": "Stopped here"
     },
     "actions": {
       "viewDetails": "View Details"
@@ -3069,7 +3089,9 @@
       "videosWatched": "Videos Watched",
       "videoViews": "Video Views",
       "inProgress": "In Progress",
-      "createdAt": "Created"
+      "createdAt": "Created",
+      "organisation": "Organization report",
+      "close": "Close"
     },
     "polls": {
       "title": "Poll Results",
@@ -3137,7 +3159,8 @@
       "sortOldest": "Oldest first",
       "sortBySubmitter": "By person (A-Z)",
       "sortByForm": "By form (A-Z)",
-      "noFilterResults": "No submissions match the selected filters."
+      "noFilterResults": "No submissions match the selected filters.",
+      "submittedAt": "Sent on"
     },
     "filters": {
       "journey": "Journey",
@@ -3185,6 +3208,14 @@
       "notFound": "These results were already deleted. Reload the page.",
       "journeyFallback": "Deleted journey",
       "stepFallback": "Deleted step"
+    },
+    "toolbar": {
+      "allResults": "All results",
+      "showDeleted": "Show deleted",
+      "downloadPdf": "Download PDF"
+    },
+    "answers": {
+      "label": "Kind of responses"
     }
   },
   "subscription": {

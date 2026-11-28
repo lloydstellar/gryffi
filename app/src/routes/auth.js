@@ -29,7 +29,7 @@ import {
 } from '../services/formSubmissions.js';
 import path from 'path';
 import fs from 'fs';
-import { regenerateSession, startMakerSession } from '../services/makerSession.js';
+import { regenerateSession, startMakerSession, takeReturnTo } from '../services/makerSession.js';
 import { LOGIN_CODE_LENGTH, generateLoginCode } from '../utils/loginCode.js';
 import { syncRewardFromStep, claimRewardCode, rewardAvailability } from '../services/rewards.js';
 
@@ -737,7 +737,7 @@ router.post('/login', guestOnly, async (req, res) => {
     }
     
     await startMakerSession(req, user, { firstLogin: !user.last_login_at, method: 'password' });
-    res.redirect('/dashboard');
+    res.redirect(takeReturnTo(req));
     
   } catch (err) {
     console.error('Login error:', err);
@@ -864,7 +864,7 @@ router.post('/login/verify', guestOnly, async (req, res) => {
 
     console.log(`[Auth] Login verification successful for ${user.email}`);
     
-    return res.json({ success: true, redirect: '/dashboard' });
+    return res.json({ success: true, redirect: takeReturnTo(req) });
     
   } catch (err) {
     console.error('Login verification error:', err);
@@ -6030,11 +6030,12 @@ router.post('/p/:token/guide/opening', playerAiLimiter, async (req, res) => {
   }
 });
 
-// Gryffi Cloud routes (self signup) live in src/cloud/, which the Community Edition
-// does not ship
+// Gryffi Cloud routes (self signup, the partner pages /via/<slug>) live in
+// src/cloud/, which the Community Edition does not ship
 if (isCloud()) {
   const cloud = await import('../cloud/index.js');
   cloud.registerSignupRoutes(router);
+  cloud.registerViaRoutes(router);
 }
 
 export default router;

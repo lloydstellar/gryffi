@@ -18,7 +18,9 @@
       "connectionError": "J'ai des difficultés de connexion. Veuillez réessayer.",
       "guideUnavailable": "Je ne peux pas répondre aux questions pour le moment. Vous pouvez passer à l'étape suivante.",
       "sources": "Sources",
-      "showSource": "Afficher la source {{number}}"
+      "showSource": "Afficher la source {{number}}",
+      "askLabel": "Votre question pour {{name}}",
+      "optionalHint": "Poser des questions est facultatif."
     },
     "content": {
       "invalidVideoUrl": "URL vidéo invalide",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Politique de confidentialité de Google"
     },
     "navigation": {
-      "whenReady": "Quand vous êtes prêt :",
       "journeyComplete": "Parcours terminé !",
       "leaveJourney": "Quitter le parcours ?",
       "leaveJourneyMessage": "Êtes-vous sûr de vouloir quitter ce parcours ? Votre progression a été sauvegardée.",
       "leaveConfirm": "Quitter",
       "stayContinue": "Rester",
-      "doAgain": "Voulez-vous refaire ce parcours ?"
+      "doAgain": "Voulez-vous refaire ce parcours ?",
+      "chooseRoute": "Choisissez comment vous voulez continuer",
+      "canClose": "Vous pouvez maintenant fermer cette page."
     },
     "pacing": {
       "readyToContinue": "Vous pouvez maintenant continuer",
       "takeYourTimeMinutes": "Prenez {{minutes}} minute pour explorer",
-      "takeYourTimeSeconds": "Prenez votre temps... {{seconds}}s",
-      "keepWatching": "Continuez à regarder... {{seconds}}s",
-      "chatWithGuide": "Discutez avec le guide ({{count}}/{{total}} messages)"
+      "chatWithGuide": "Discutez avec le guide ({{count}}/{{total}} messages)",
+      "wait": "Vous pourrez continuer dans un instant.",
+      "keepWatchingCalm": "Continuez à regarder la vidéo. Le bouton apparaîtra dans un instant."
     },
     "form": {
       "title": "Formulaire",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "MP3 uniquement"
-        }
+        },
+        "choose": "Choisir un fichier"
       },
       "imageRejected": "Cette image ne peut pas être envoyée. Veuillez choisir une autre image.",
       "imageCheckUnavailable": "Nous n'avons pas pu vérifier votre image pour le moment. Veuillez réessayer dans quelques minutes.",
       "fieldRequired": "Remplissez ce champ.",
       "invalidEmail": "Saisissez une adresse e-mail valide, par exemple nom@entreprise.fr.",
-      "fileRequired": "Choisissez un fichier pour « {{field}} »."
+      "fileRequired": "Choisissez un fichier pour « {{field}} ».",
+      "optional": "facultatif",
+      "chooseOne": "Choisissez l'une des options."
     },
     "quiz": {
       "title": "Quiz",
@@ -93,12 +99,10 @@
       "finish": "Envoyer les réponses",
       "correct": "Correct !",
       "incorrect": "Pas tout à fait",
-      "score": "Votre score",
       "passed": "Quiz réussi !",
       "completed": "Quiz terminé",
       "allCorrect": "Tout est correct !",
       "singleCorrect": "Bonne réponse !",
-      "nextStepHint": "Le parcours continue. Choisissez l'étape suivante ci-dessous.",
       "failed": "Vous avez besoin de {{required}} bonnes réponses pour continuer",
       "questionsCorrect": "{{correct}} sur {{total}} correct",
       "retake": "Refaire le quiz",
@@ -112,7 +116,8 @@
       "voteRecorded": "Votre vote a été enregistré",
       "respondents": "{{count}} participant",
       "respondentsPlural": "{{count}} participants",
-      "chooseFirst": "Choisissez d'abord une réponse, puis cliquez sur « Voter »."
+      "chooseFirst": "Choisissez d'abord une réponse, puis cliquez sur « Voter ».",
+      "yourChoice": "votre choix"
     },
     "space": {
       "dragHint": "Glissez pour regarder autour",
@@ -123,29 +128,31 @@
       "zoomIn": "Zoom avant",
       "zoomOut": "Zoom arrière",
       "centerOnMarker": "Montrer où vous êtes",
-      "panoramaLoadFailed": "La photo 360° n'a pas pu être chargée. Rechargez la page pour réessayer."
+      "panoramaLoadFailed": "La photo 360° n'a pas pu être chargée. Rechargez la page pour réessayer.",
+      "closeFloorplan": "Fermer le plan"
     },
     "stepTypes": {
       "reward": "Récompense"
     },
     "reward": {
       "congratulations": "Félicitations !",
-      "youAreNumber": "Vous êtes le #{{position}} à réclamer cette récompense !",
       "yourCode": "Votre code de récompense",
       "redeemAt": "À échanger chez",
       "terms": "Conditions",
       "validUntil": "Valable jusqu'au",
-      "downloadCoupon": "Télécharger le coupon",
+      "downloadCoupon": "Télécharger en PDF",
       "emailSent": "Une copie a été envoyée à votre e-mail",
       "alreadyClaimed": "Vous avez déjà réclamé une récompense pour ce parcours",
       "noMoreRewards": "Désolé, toutes les récompenses ont été réclamées",
       "claimFailed": "Votre récompense n'a pas pu être obtenue. Rechargez la page et réessayez.",
-      "previewMode": "Mode aperçu - Aucun vrai code généré",
+      "previewMode": "Mode aperçu : aucun vrai code n'est créé",
       "claimed": "Récompense réclamée",
       "soldOut": {
         "title": "Quel dommage !",
         "message": "Malheureusement, vous êtes arrivé trop tard pour recevoir une récompense. Toutes les récompenses ont déjà été distribuées."
-      }
+      },
+      "copyCode": "Copier le code",
+      "codeCopied": "Code copié"
     },
     "tts": {
       "listen": "Écouter",
@@ -247,6 +254,15 @@
       "message": "Vous êtes déjà venu ici. Voulez-vous reprendre là où vous vous êtes arrêté ?",
       "continue": "Reprendre où j'en étais",
       "restart": "Recommencer"
+    },
+    "kind": {
+      "read": "Lecture",
+      "video": "Vidéo",
+      "space": "Espace",
+      "guide": "Conversation",
+      "poll": "Sondage",
+      "questionsOne": "1 question",
+      "questionsOther": "{{count}} questions"
     }
   }
 }

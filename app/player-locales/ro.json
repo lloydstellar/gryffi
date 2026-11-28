@@ -18,7 +18,9 @@
       "connectionError": "Am probleme de conexiune. Încercați din nou.",
       "guideUnavailable": "Momentan nu pot răspunde la întrebări. Puteți continua cu pasul următor.",
       "sources": "Surse",
-      "showSource": "Afișează sursa {{number}}"
+      "showSource": "Afișează sursa {{number}}",
+      "askLabel": "Întrebarea dumneavoastră pentru {{name}}",
+      "optionalHint": "Întrebările sunt opționale."
     },
     "content": {
       "invalidVideoUrl": "URL video invalid",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Politica de confidențialitate Google"
     },
     "navigation": {
-      "whenReady": "Când sunteți gata:",
       "journeyComplete": "Expediție finalizată!",
       "leaveJourney": "Părăsiți expediția?",
       "leaveJourneyMessage": "Sunteți sigur că doriți să părăsiți această expediție? Progresul dvs. a fost salvat.",
       "leaveConfirm": "Părăsește",
       "stayContinue": "Rămâne",
-      "doAgain": "Doriți să parcurgeți din nou această expediție?"
+      "doAgain": "Doriți să parcurgeți din nou această expediție?",
+      "chooseRoute": "Alegeți cum doriți să continuați",
+      "canClose": "Acum puteți închide această pagină."
     },
     "pacing": {
       "readyToContinue": "Puteți continua acum",
       "takeYourTimeMinutes": "Luați-vă {{minutes}} minut să explorați",
-      "takeYourTimeSeconds": "Luați-vă timp... {{seconds}}s",
-      "keepWatching": "Continuați să vizionați... {{seconds}}s",
-      "chatWithGuide": "Discutați cu ghidul ({{count}}/{{total}} mesaje)"
+      "chatWithGuide": "Discutați cu ghidul ({{count}}/{{total}} mesaje)",
+      "wait": "Veți putea continua în câteva momente.",
+      "keepWatchingCalm": "Continuați să urmăriți videoclipul. Butonul va apărea în câteva momente."
     },
     "form": {
       "title": "Formular",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "Doar MP3"
-        }
+        },
+        "choose": "Alegeți un fișier"
       },
       "imageRejected": "Această imagine nu poate fi încărcată. Alegeți o altă imagine.",
       "imageCheckUnavailable": "Nu am putut verifica imaginea dvs. acum. Încercați din nou peste câteva minute.",
       "fieldRequired": "Completați acest câmp.",
       "invalidEmail": "Introduceți o adresă de e-mail validă, de exemplu nume@firma.ro.",
-      "fileRequired": "Alegeți un fișier pentru „{{field}}”."
+      "fileRequired": "Alegeți un fișier pentru „{{field}}”.",
+      "optional": "opțional",
+      "chooseOne": "Alegeți una dintre opțiuni."
     },
     "quiz": {
       "title": "Test",
@@ -93,12 +99,10 @@
       "finish": "Trimite răspunsurile",
       "correct": "Corect!",
       "incorrect": "Nu chiar",
-      "score": "Scorul tău",
       "passed": "Quiz trecut!",
       "completed": "Test finalizat",
       "allCorrect": "Toate corecte!",
       "singleCorrect": "Răspuns corect!",
-      "nextStepHint": "Călătoria continuă. Alege pasul următor mai jos.",
       "failed": "Ai nevoie de {{required}} răspunsuri corecte pentru a continua",
       "questionsCorrect": "{{correct}} din {{total}} corecte",
       "retake": "Repetă quiz-ul",
@@ -112,7 +116,8 @@
       "voteRecorded": "Votul tău a fost înregistrat",
       "respondents": "{{count}} participant",
       "respondentsPlural": "{{count}} participanți",
-      "chooseFirst": "Alegeți mai întâi un răspuns, apoi apăsați „Votează”."
+      "chooseFirst": "Alegeți mai întâi un răspuns, apoi apăsați „Votează”.",
+      "yourChoice": "alegerea dumneavoastră"
     },
     "space": {
       "dragHint": "Trageți pentru a privi în jur",
@@ -123,29 +128,31 @@
       "zoomIn": "Mărire",
       "zoomOut": "Micșorare",
       "centerOnMarker": "Arată unde ești",
-      "panoramaLoadFailed": "Fotografia 360° nu a putut fi încărcată. Reîncărcați pagina pentru a încerca din nou."
+      "panoramaLoadFailed": "Fotografia 360° nu a putut fi încărcată. Reîncărcați pagina pentru a încerca din nou.",
+      "closeFloorplan": "Închideți planul etajului"
     },
     "stepTypes": {
       "reward": "Recompensă"
     },
     "reward": {
       "congratulations": "Felicitări!",
-      "youAreNumber": "Ești numărul #{{position}} care primește această recompensă!",
       "yourCode": "Codul tău de recompensă",
       "redeemAt": "Folosește la",
       "terms": "Termeni și condiții",
       "validUntil": "Valabil până la",
-      "downloadCoupon": "Descarcă cupon",
+      "downloadCoupon": "Descărcați ca PDF",
       "emailSent": "O copie a fost trimisă pe email",
       "alreadyClaimed": "Ai primit deja o recompensă pentru această expediție",
       "noMoreRewards": "Ne pare rău, toate recompensele au fost revendicate",
       "claimFailed": "Recompensa ta nu a putut fi primită. Reîncarcă pagina și încearcă din nou.",
-      "previewMode": "Mod previzualizare - Niciun cod real generat",
+      "previewMode": "Previzualizare: nu se creează un cod real",
       "claimed": "Recompensă primită",
       "soldOut": {
         "title": "Ce păcat!",
         "message": "Din păcate, ai ajuns prea târziu pentru a primi o recompensă. Toate recompensele au fost deja distribuite."
-      }
+      },
+      "copyCode": "Copiați codul",
+      "codeCopied": "Cod copiat"
     },
     "tts": {
       "listen": "Ascultă",
@@ -247,6 +254,15 @@
       "message": "Ai mai fost aici. Vrei să continui de unde ai rămas?",
       "continue": "Continuă de unde am rămas",
       "restart": "Începe din nou"
+    },
+    "kind": {
+      "read": "Lectură",
+      "video": "Video",
+      "space": "Spațiu",
+      "guide": "Conversație",
+      "poll": "Sondaj",
+      "questionsOne": "1 întrebare",
+      "questionsOther": "Întrebări: {{count}}"
     }
   }
 }

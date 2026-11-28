@@ -5,119 +5,70 @@ related_features: [analytics-overview, poll-results, end-user-management, end-us
 
 # Reports
 
-Reports are PDF files about your journeys, participants, groups and engagement. You find them in Analytics, tab Reports.
+Reports are PDF files about your journeys, participants and groups. You make them in Analytics, with **Download PDF**. A report shows what you see on screen, for the same period.
 
-![Reports in Analytics: choose a journey (1), Preview (2) and Download PDF (3)](images/reports/overview.en.webp)
+![Making a report on the Journeys tab: the period (1), Download PDF (2) and the journey (3)](images/reports/overview.en.webp)
 
-1. Choose the journey for the Journey Performance Report.
-2. Preview: see the report on screen.
-3. Download PDF: save the report as a PDF.
+1. The period of the report, the same as on screen.
+2. Download PDF: the report of what this tab shows.
+3. On the Journeys tab: the journey the report is about.
 
-## Overview
+## Where you make a report
 
-Four report types are available:
+| Report | Where | What it covers |
+|--------|-------|----------------|
+| Organization report | Overview tab, **Download PDF** above the tabs | All journeys in the period |
+| Journey Performance | Journeys tab, **Download PDF** above the tabs | The selected journey in the period |
+| Participant progress | Participants tab: click a participant, then **Download PDF** in the window | One participant |
+| Group progress | Groups tab: **View Details** on a group, then **Download PDF** in the window | One group in the period |
+| Reward codes | Responses tab, Rewards: **Download PDF** on a reward | All codes of one reward |
 
-| Report | Description |
-|--------|-------------|
-| Journey Performance | Analysis of a specific journey with completion funnel |
-| Periodic Overview | Summary of all activity over a time period |
-| Participant & Group Progress | Detailed report for an individual participant or group |
-| Engagement | Quiz, video and AI guide statistics |
+[[goto:/dashboard/analytics]]
 
-[[goto:/dashboard/analytics#reports]]
+The period is the one above the tabs: Last 7 days, Last 30 days, Last 90 days, Last 365 days or All time. The report names the period in its header.
+
+## The report window
+
+On a computer, the report opens in a window that shows the PDF itself. Scroll through it, then click **Download PDF** to save it, or **Close**. On a phone, the PDF downloads straight away.
 
 ## Report Types
 
+### Organization report
+
+**Report contents:**
+- Journeys started and completed in the period, the completion rate and the average time to complete. These are counted the same way as on the Overview tab.
+- Started and completed per day, week or month
+- Top journeys
+- A comparison with the previous period, when there was activity in that period
+- Active participants, new participants, total participants and poll responses
+- Quizzes: attempts, average score, pass rate, score distribution and the most attempted quizzes
+- Videos: views and how much was watched, when your journeys have videos
+- AI guides: chats, messages and the most active AI guide steps
+
 ### Journey Performance Report
 
-Generate a detailed analysis for a specific journey.
+**Report contents:**
+Everything in this report is about the chosen period:
+
+- Invitations sent, started, completed and completion rate. The completion rate is the share of the participants who started, as on the Journeys tab.
+- Completion funnel: the same steps and numbers as the funnel on the Journeys tab, in the order of the journey
+- Poll results of the journey: the votes in the period
+- Participant list with name, email, status and completion date: participants who were invited, started or finished in the period
+
+### Participant progress report
 
 **Report contents:**
-- Invitations, completed, completion rate and average time to complete
-- Completion funnel with step-by-step drop-off
-- Poll results of the journey
-- Participant list with name, email, status and completion date
+- Email, groups and the date of the first activity
+- Journeys started and completed, with the status of each journey. A journey inside another journey counts as completed when the participant finished it there.
+- Quiz performance: attempts, average score, pass rate and best score
+- Video and AI guide use, when there is any
 
-**How to generate:**
-1. Go to Analytics → Reports
-2. Select a journey from the dropdown (1)
-3. Click "Preview" (2) to see how the report will look
-4. Click "Download PDF" (3) to save the report
-
-### Periodic Overview Report
-
-Get a summary of all organizational activity over a selected period.
+### Group progress report
 
 **Report contents:**
-- Invitations, completed, completion rate and average time
-- New participants, total participants and poll responses
-- Activity over time
-- Top journeys
-- A comparison with the previous period
-
-**How to generate:**
-1. Go to Analytics → Reports
-2. Select a period: Last 7 days, Last 30 days, Last 90 days or Last 365 days
-3. Click "Preview" to see how the report will look
-4. Click "Download PDF" to save the report
-
-### Participant & Group Progress Report
-
-Track progress for individual participants or entire groups.
-
-**Report contents for participants:**
-- Participant information (email, group membership)
-- Journey activity statistics
-- Quiz performance (attempts, scores, pass rate)
-- Video engagement data
-
-**Report contents for groups:**
-- Group information and member count
+- The number of members
 - Journeys started, journeys completed, completion rate and average quiz score
 - Top performers
-
-**How to generate:**
-1. Go to Analytics → Reports
-2. In the Participant & Group Progress card, use the search field
-3. Type a name or email to search for participants or groups
-4. Select a participant or group from the results
-5. Click "Preview" to see how the report will look
-6. Click "Download PDF" to save the report
-
-### Engagement Report
-
-See how participants use quizzes, videos and AI guides in all journeys.
-
-**Report contents:**
-- Quiz statistics (attempts, average score, pass rate)
-- Most attempted quizzes
-- Video statistics (views, average watched)
-- Most watched videos
-- AI guide statistics (chats, messages, average chat duration)
-- Most active AI guide steps
-
-**How to generate:**
-1. Go to Analytics → Reports
-2. Select a period: Last 7 days, Last 30 days, Last 90 days or Last 365 days
-3. Click "Preview" to see how the report will look
-4. Click "Download PDF" to save the report
-
-## Preview Function
-
-Every report has a **Preview** button. The preview shows the figures, charts and tables of the report on screen. Click **Download PDF** in the preview window to save the report.
-
-The PDF can look slightly different from the preview. The PDF uses the logo and colors of your active theme and has page numbers. The preview always shows the Gryffi logo.
-
-## Quick Export Buttons
-
-You can also download a PDF from two other tabs in Analytics:
-
-| Location | Action |
-|----------|--------|
-| Journeys tab | **Export PDF** next to the journey selector exports the selected journey |
-| Participants tab | **Export PDF** in the participant details window exports the progress of that participant |
-
-For a group report, use the Participant & Group Progress card on the Reports tab.
 
 ## PDF Customization
 
@@ -132,6 +83,5 @@ See: custom-themes
 
 ## Related Features
 
-- [[goto:/dashboard/analytics#reports]] - View reports
 - [[goto:/dashboard/analytics]] - Analytics dashboard
-- See: analytics-overview, poll-results, end-user-management, end-user-groups
+- See: analytics-overview, poll-results, reward-tracking, end-user-management, end-user-groups

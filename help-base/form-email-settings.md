@@ -27,7 +27,7 @@ Gryffi fills them in for private journeys, public journeys and the preview. The 
 
 ### No recipient
 
-Leave **Send form to** empty if you only want to see the answers in Analytics. Participants can still submit the form and continue the journey. The submission is saved on the Forms tab in Analytics, and no email is sent.
+Leave **Send form to** empty if you only want to see the answers in Analytics. Participants can still submit the form and continue the journey. The submission is saved in Analytics (tab Responses, Forms), and no email is sent.
 
 See: form-submissions
 
@@ -39,7 +39,7 @@ The notification email contains:
 - The name and email address of the participant who submitted the form
 - A download link for each uploaded file
 
-Uploaded files are never attached to the email. Each file is stored in Gryffi, and the email has a unique download link per file. Download links work for **30 days**. After that, makers can still download the files on the Forms tab in Analytics.
+Uploaded files are never attached to the email. Each file is stored in Gryffi, and the email has a unique download link per file. Download links work for **30 days**. After that, makers can still download the files in Analytics, tab Responses, under Forms.
 
 See: form-file-uploads, form-submissions
 
@@ -51,7 +51,7 @@ See: language-settings
 
 ### Delivery Reliability
 
-The submission is always saved before the email is sent. If the email cannot be delivered, the submission is not lost. It stays on the Forms tab in Analytics, marked "Email not sent".
+The submission is always saved before the email is sent. If the email cannot be delivered, the submission is not lost. It stays in Analytics (tab Responses, Forms), marked "Email not sent".
 
 See: form-submissions
 

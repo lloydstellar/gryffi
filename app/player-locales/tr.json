@@ -18,7 +18,9 @@
       "connectionError": "Bağlantı sorunları yaşıyorum. Lütfen tekrar deneyin.",
       "guideUnavailable": "Şu anda soruları yanıtlayamıyorum. Bir sonraki adıma geçebilirsiniz.",
       "sources": "Kaynaklar",
-      "showSource": "{{number}}. kaynağı göster"
+      "showSource": "{{number}}. kaynağı göster",
+      "askLabel": "{{name}} için sorunuz",
+      "optionalHint": "Soru sormak isteğe bağlıdır."
     },
     "content": {
       "invalidVideoUrl": "Geçersiz video URL'si",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Google gizlilik politikası"
     },
     "navigation": {
-      "whenReady": "Hazır olduğunuzda:",
       "journeyComplete": "Keşif tamamlandı!",
       "leaveJourney": "Keşiften ayrıl?",
       "leaveJourneyMessage": "Bu keşiften ayrılmak istediğinizden emin misiniz? İlerlemeniz kaydedildi.",
       "leaveConfirm": "Ayrıl",
       "stayContinue": "Kal",
-      "doAgain": "Bu keşfi yeniden yapmak ister misiniz?"
+      "doAgain": "Bu keşfi yeniden yapmak ister misiniz?",
+      "chooseRoute": "Nasıl devam etmek istediğinizi seçin",
+      "canClose": "Bu sayfayı şimdi kapatabilirsiniz."
     },
     "pacing": {
       "readyToContinue": "Şimdi devam edebilirsiniz",
       "takeYourTimeMinutes": "Keşfetmek için {{minutes}} dakika ayırın",
-      "takeYourTimeSeconds": "Acele etmeyin... {{seconds}}s",
-      "keepWatching": "İzlemeye devam edin... {{seconds}}s",
-      "chatWithGuide": "Rehberle sohbet edin ({{count}}/{{total}} mesaj)"
+      "chatWithGuide": "Rehberle sohbet edin ({{count}}/{{total}} mesaj)",
+      "wait": "Birazdan devam edebilirsiniz.",
+      "keepWatchingCalm": "Videoyu izlemeye devam edin. Düğme birazdan görünecek."
     },
     "form": {
       "title": "Form",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "Sadece MP3"
-        }
+        },
+        "choose": "Bir dosya seçin"
       },
       "imageRejected": "Bu görsel yüklenemiyor. Lütfen başka bir görsel seçin.",
       "imageCheckUnavailable": "Görselinizi şu anda kontrol edemedik. Lütfen birkaç dakika sonra tekrar deneyin.",
       "fieldRequired": "Bu alanı doldurun.",
       "invalidEmail": "Geçerli bir e-posta adresi girin, örneğin ad@sirket.com.",
-      "fileRequired": "\"{{field}}\" için bir dosya seçin."
+      "fileRequired": "\"{{field}}\" için bir dosya seçin.",
+      "optional": "isteğe bağlı",
+      "chooseOne": "Seçeneklerden birini seçin."
     },
     "quiz": {
       "title": "Sınav",
@@ -93,12 +99,10 @@
       "finish": "Cevapları gönder",
       "correct": "Doğru!",
       "incorrect": "Tam değil",
-      "score": "Puanınız",
       "passed": "Test başarıldı!",
       "completed": "Sınav tamamlandı",
       "allCorrect": "Hepsi doğru!",
       "singleCorrect": "Doğru cevap!",
-      "nextStepHint": "Yolculuk devam ediyor. Aşağıdan bir sonraki adımı seçin.",
       "failed": "Devam etmek için {{required}} doğru cevaba ihtiyacınız var",
       "questionsCorrect": "{{correct}} / {{total}} doğru",
       "retake": "Testi tekrar yap",
@@ -112,7 +116,8 @@
       "voteRecorded": "Oyunuz kaydedildi",
       "respondents": "{{count}} katılımcı",
       "respondentsPlural": "{{count}} katılımcı",
-      "chooseFirst": "Önce bir cevap seçin, ardından \"Oy ver\" düğmesine tıklayın."
+      "chooseFirst": "Önce bir cevap seçin, ardından \"Oy ver\" düğmesine tıklayın.",
+      "yourChoice": "sizin seçiminiz"
     },
     "space": {
       "dragHint": "Etrafına bakmak için sürükle",
@@ -123,29 +128,31 @@
       "zoomIn": "Yakınlaştır",
       "zoomOut": "Uzaklaştır",
       "centerOnMarker": "Nerede olduğunuzu gösterin",
-      "panoramaLoadFailed": "360° fotoğraf yüklenemedi. Tekrar denemek için sayfayı yenile."
+      "panoramaLoadFailed": "360° fotoğraf yüklenemedi. Tekrar denemek için sayfayı yenile.",
+      "closeFloorplan": "Kat planını kapat"
     },
     "stepTypes": {
       "reward": "Ödül"
     },
     "reward": {
       "congratulations": "Tebrikler!",
-      "youAreNumber": "Bu ödülü alan #{{position}}. kişisiniz!",
       "yourCode": "Ödül kodunuz",
       "redeemAt": "Kullanılacak yer",
       "terms": "Şartlar ve koşullar",
       "validUntil": "Geçerlilik tarihi",
-      "downloadCoupon": "Kuponu indir",
+      "downloadCoupon": "PDF olarak indir",
       "emailSent": "Bir kopya e-postanıza gönderildi",
       "alreadyClaimed": "Bu keşif için zaten bir ödül aldınız",
       "noMoreRewards": "Üzgünüz, tüm ödüller tükendi",
       "claimFailed": "Ödülünüz alınamadı. Sayfayı yeniden yükleyin ve tekrar deneyin.",
-      "previewMode": "Önizleme modu - Gerçek kod oluşturulmadı",
+      "previewMode": "Önizleme: gerçek bir kod oluşturulmaz",
       "claimed": "Ödül alındı",
       "soldOut": {
         "title": "Ne yazık!",
         "message": "Maalesef ödül almak için çok geç kaldınız. Tüm ödüller dağıtıldı."
-      }
+      },
+      "copyCode": "Kodu kopyala",
+      "codeCopied": "Kod kopyalandı"
     },
     "tts": {
       "listen": "Dinle",
@@ -247,6 +254,15 @@
       "message": "Daha önce buradaydınız. Kaldığınız yerden devam etmek ister misiniz?",
       "continue": "Kaldığım yerden devam et",
       "restart": "Baştan başla"
+    },
+    "kind": {
+      "read": "Okuma",
+      "video": "Video",
+      "space": "Alan",
+      "guide": "Sohbet",
+      "poll": "Anket",
+      "questionsOne": "1 soru",
+      "questionsOther": "{{count}} soru"
     }
   }
 }

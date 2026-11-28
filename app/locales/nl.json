@@ -1499,12 +1499,11 @@
       "maxRecipientsMinDesc": "Kan niet lager zijn dan {{min}} (codes al uitgegeven)",
       "preview": {
         "congratulations": "Gefeliciteerd!",
-        "youAreNumber": "Je bent nummer #{{position}} die deze beloning claimt!",
         "yourCode": "Jouw beloningscode",
         "redeemAt": "In te wisselen bij",
         "terms": "Voorwaarden",
         "validUntil": "Geldig tot",
-        "downloadCoupon": "Download de bon",
+        "downloadCoupon": "Download als pdf",
         "emailSent": "Een kopie is naar je e-mail gestuurd",
         "alreadyClaimed": "Je hebt al een beloning geclaimd voor deze expeditie",
         "noMoreRewards": "Sorry, alle beloningen zijn al geclaimd",
@@ -1734,6 +1733,11 @@
         "text": "Dit was de demo-expeditie. Wil je zien hoe hij in elkaar zit, of zelf beginnen?",
         "viewInBuilder": "Bekijk deze expeditie in de bouwer",
         "createFirst": "Maak je eerste expeditie"
+      },
+      "device": {
+        "label": "Bekijk als",
+        "phone": "Telefoon",
+        "desktop": "Computer"
       }
     },
     "mobileWarning": {
@@ -2804,13 +2808,16 @@
       "polls": "Peilingen",
       "rewards": "Beloningen",
       "reports": "Rapporten",
-      "forms": "Formulieren"
+      "forms": "Formulieren",
+      "answers": "Antwoorden"
     },
     "dateRange": {
       "last7days": "Laatste 7 dagen",
       "last30days": "Laatste 30 dagen",
       "last90days": "Laatste 90 dagen",
-      "label": "Periode"
+      "label": "Periode",
+      "last365days": "Laatste 365 dagen",
+      "allTime": "Alles"
     },
     "kpi": {
       "journeysStarted": "Gestarte expedities",
@@ -2818,7 +2825,9 @@
       "avgDuration": "Gem. tijd per stap",
       "activeUsers": "Actieve deelnemers",
       "started": "Gestart",
-      "completed": "Voltooid"
+      "completed": "Voltooid",
+      "completedOf": "{{completed}} van {{started}} voltooid",
+      "byParticipants": "door {{count}} deelnemers"
     },
     "chart": {
       "started": "Gestart",
@@ -2828,7 +2837,11 @@
       "journeyPerformance": "Prestaties per expeditie",
       "completionTrend": "Voltooiingstrend",
       "topJourneys": "Best presterende expedities",
-      "noJourneyData": "Geen expeditiedata beschikbaar voor deze periode"
+      "noJourneyData": "Geen expeditiedata beschikbaar voor deze periode",
+      "trendTitle": "Gestart en voltooid",
+      "trendSentence": "In deze periode: {{started}} gestart, {{completed}} voltooid.",
+      "trendEmpty": "In deze periode is niemand aan een expeditie begonnen.",
+      "weekOf": "Week van {{date}}"
     },
     "journeys": {
       "title": "Analyse per expeditie",
@@ -2838,7 +2851,9 @@
       "funnel": "Voortgang van deelnemers per stap",
       "stepPerformance": "Prestaties per stap",
       "dailyTrend": "Activiteit per dag",
-      "noStepData": "Nog geen gegevens per stap"
+      "noStepData": "Nog geen gegevens per stap",
+      "funnelSentence": "{{started}} gestart. {{completed}} kwamen tot het einde.",
+      "branchNote": "Splitsing: deelnemers kiezen een route"
     },
     "users": {
       "title": "Analyse per deelnemer",
@@ -2851,7 +2866,8 @@
       "stepsCompleted": "stappen voltooid",
       "completed": "Voltooid",
       "quizPerformance": "Quizresultaten",
-      "lastActivity": "Laatste activiteit"
+      "lastActivity": "Laatste activiteit",
+      "openDetails": "Details van {{name}} openen"
     },
     "replay": {
       "title": "Expeditie terugkijken",
@@ -2865,6 +2881,8 @@
       "quizzes": "Quizzen",
       "chats": "AI-chats",
       "status": "Status",
+      "statusCompleted": "Voltooid",
+      "statusNotCompleted": "Niet voltooid",
       "timing": "Tijd",
       "started": "Gestart",
       "completed": "Voltooid",
@@ -2912,7 +2930,8 @@
       "passRate": "Slagingspercentage",
       "totalAttempts": "Totaal aantal pogingen",
       "topPerformers": "Beste resultaten",
-      "journeysStarted": "Expedities gestart"
+      "journeysStarted": "Expedities gestart",
+      "wholeOrganization": "Hele organisatie"
     },
     "table": {
       "journey": "Expeditie",
@@ -2927,7 +2946,7 @@
       "dropOff": "Uitval",
       "user": "Deelnemer",
       "group": "Groep",
-      "journeysCompleted": "Expedities",
+      "journeysCompleted": "Voltooide expedities",
       "avgQuizScore": "Quizscore",
       "lastActivity": "Laatste activiteit",
       "members": "Leden",
@@ -2936,7 +2955,8 @@
       "quiz": "Quiz",
       "attempts": "Pogingen",
       "bestScore": "Beste",
-      "avgScore": "Gem"
+      "avgScore": "Gem",
+      "stoppedHere": "Gestopt"
     },
     "actions": {
       "viewDetails": "Details bekijken"
@@ -3069,7 +3089,9 @@
       "videosWatched": "Bekeken video's",
       "videoViews": "Videoweergaven",
       "inProgress": "Bezig",
-      "createdAt": "Aangemaakt"
+      "createdAt": "Aangemaakt",
+      "organisation": "Organisatierapport",
+      "close": "Sluiten"
     },
     "polls": {
       "title": "Resultaten van peilingen",
@@ -3137,7 +3159,8 @@
       "sortOldest": "Oudste eerst",
       "sortBySubmitter": "Op persoon (A-Z)",
       "sortByForm": "Op formulier (A-Z)",
-      "noFilterResults": "Geen ingevulde formulieren voor deze filters."
+      "noFilterResults": "Geen ingevulde formulieren voor deze filters.",
+      "submittedAt": "Verstuurd op"
     },
     "filters": {
       "journey": "Expeditie",
@@ -3185,6 +3208,14 @@
       "notFound": "Deze resultaten zijn al verwijderd. Laad de pagina opnieuw.",
       "journeyFallback": "Verwijderde expeditie",
       "stepFallback": "Verwijderde stap"
+    },
+    "toolbar": {
+      "allResults": "Alle resultaten",
+      "showDeleted": "Verwijderde tonen",
+      "downloadPdf": "PDF downloaden"
+    },
+    "answers": {
+      "label": "Soort antwoorden"
     }
   },
   "subscription": {

@@ -2382,7 +2382,45 @@ const migrations = [
      UNION ALL
      SELECT id, journey_id, type, title, basic_props, advanced_props,
             true AS is_deleted, deleted_at, false AS is_start
-     FROM deleted_steps`
+     FROM deleted_steps`,
+
+  // ============================================
+  // PARTNERS (people who recommend Gryffi to organizations)
+  // ============================================
+  // A partner has their own organization (organization_id), a short name for
+  // their link (slug: /via/<slug>) and the code of the payment provider that
+  // credits them (affiliate_code). An organization that signs up through a
+  // partner's link keeps partner_id, so a later payment is credited to that
+  // partner, also from another device.
+  `CREATE TABLE IF NOT EXISTS partners (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,
+    slug VARCHAR(40) UNIQUE,
+    display_name VARCHAR(100) NOT NULL,
+    tagline VARCHAR(120),
+    language VARCHAR(5) NOT NULL DEFAULT 'en',
+    affiliate_code VARCHAR(64),
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('applied', 'active', 'ended')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ended_at TIMESTAMPTZ
+  )`,
+  `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS partner_id UUID REFERENCES partners(id) ON DELETE SET NULL`,
+  `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS partner_linked_at TIMESTAMPTZ`,
+  `CREATE INDEX IF NOT EXISTS idx_organizations_partner ON organizations(partner_id) WHERE partner_id IS NOT NULL`,
+  `DO $$
+   BEGIN
+     ALTER TABLE partners ENABLE ROW LEVEL SECURITY;
+     DROP POLICY IF EXISTS org_isolation ON partners;
+     CREATE POLICY org_isolation ON partners
+       USING (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid)
+       WITH CHECK (organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid);
+   END $$`,
+  // How often the partner's own page (/via/<slug>) was opened, once per visitor session
+  `ALTER TABLE partners ADD COLUMN IF NOT EXISTS via_views INTEGER NOT NULL DEFAULT 0`,
+  // First payment of an organization a partner referred (the operator hears of each one once)
+  `ALTER TABLE organizations ADD COLUMN IF NOT EXISTS partner_paid_at TIMESTAMPTZ`,
+  // When the partner got the email about their first paying organization
+  `ALTER TABLE partners ADD COLUMN IF NOT EXISTS first_paid_mail_at TIMESTAMPTZ`
 ];
 
 async function migrate() {

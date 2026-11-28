@@ -4,9 +4,10 @@
  *   node smoke.mjs <gryffi url> <setup code> <mocks url>
  *
  * Walks through the setup wizard, logs in, creates and publishes a journey,
- * invites a participant, takes the magic link from the email and opens the
- * journey as that participant. Run by run.sh, which starts Gryffi and the
- * stand-in AI and mail services (mocks.mjs) first.
+ * invites a participant, takes the magic link from the email, opens the
+ * journey as that participant and opens every tab of Analytics. Run by
+ * run.sh, which starts Gryffi and the stand-in AI and mail services
+ * (mocks.mjs) first.
  */
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
@@ -154,6 +155,18 @@ async function run() {
   await learner.goto(link);
   await learner.waitForSelector('text=Welcome to the smoke test', { timeout: 30000 });
   await learner.screenshot({ path: `${SHOTS}/3-player.png`, fullPage: true });
+
+  step('open every tab of Analytics');
+  await maker.goto(`${base}/dashboard/analytics`);
+  await maker.waitForLoadState('networkidle');
+  for (const tab of ['overview', 'journeys', 'users', 'groups', 'answers']) {
+    await maker.click(`#tabbtn-${tab}`);
+    await maker.waitForSelector(`#tab-${tab}.active`, { state: 'visible', timeout: 10000 });
+    await maker.waitForLoadState('networkidle');
+  }
+  await maker.click('#tabbtn-journeys');
+  await maker.waitForLoadState('networkidle');
+  await maker.screenshot({ path: `${SHOTS}/4-analytics.png`, fullPage: true });
 
   await browser.close();
   if (pageErrors.length) throw new Error(`errors in the browser:\n  ${pageErrors.join('\n  ')}`);

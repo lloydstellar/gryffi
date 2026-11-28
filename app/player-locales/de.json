@@ -18,7 +18,9 @@
       "connectionError": "Ich habe momentan Verbindungsprobleme. Bitte versuchen Sie es erneut.",
       "guideUnavailable": "Ich kann im Moment keine Fragen beantworten. Sie können mit dem nächsten Schritt weitermachen.",
       "sources": "Quellen",
-      "showSource": "Quelle {{number}} anzeigen"
+      "showSource": "Quelle {{number}} anzeigen",
+      "askLabel": "Ihre Frage an {{name}}",
+      "optionalHint": "Sie können Fragen stellen, müssen es aber nicht."
     },
     "content": {
       "invalidVideoUrl": "Ungültige Video-URL",
@@ -29,20 +31,21 @@
       "videoPrivacyLink": "Datenschutzerklärung von Google"
     },
     "navigation": {
-      "whenReady": "Wenn Sie bereit sind:",
       "journeyComplete": "Expedition abgeschlossen!",
       "leaveJourney": "Expedition verlassen?",
       "leaveJourneyMessage": "Möchten Sie diese Expedition wirklich verlassen? Ihr Fortschritt wurde gespeichert.",
       "leaveConfirm": "Verlassen",
       "stayContinue": "Bleiben",
-      "doAgain": "Möchten Sie diese Expedition noch einmal durchlaufen?"
+      "doAgain": "Möchten Sie diese Expedition noch einmal durchlaufen?",
+      "chooseRoute": "Wählen Sie, wie Sie weitermachen möchten",
+      "canClose": "Sie können diese Seite jetzt schließen."
     },
     "pacing": {
       "readyToContinue": "Sie können jetzt fortfahren",
       "takeYourTimeMinutes": "Nehmen Sie sich {{minutes}} Minute zum Erkunden",
-      "takeYourTimeSeconds": "Nehmen Sie sich Zeit... {{seconds}}s",
-      "keepWatching": "Weiterschauen... {{seconds}}s",
-      "chatWithGuide": "Mit dem Guide chatten ({{count}}/{{total}} Nachrichten)"
+      "chatWithGuide": "Mit dem Guide chatten ({{count}}/{{total}} Nachrichten)",
+      "wait": "Sie können gleich weitermachen.",
+      "keepWatchingCalm": "Schauen Sie das Video weiter. Die Schaltfläche erscheint gleich."
     },
     "form": {
       "title": "Formular",
@@ -77,13 +80,16 @@
           "image": "JPG, PNG, GIF, WebP",
           "document": "PDF, Word, TXT",
           "audio": "Nur MP3"
-        }
+        },
+        "choose": "Datei auswählen"
       },
       "imageRejected": "Dieses Bild kann nicht hochgeladen werden. Bitte wählen Sie ein anderes Bild.",
       "imageCheckUnavailable": "Wir konnten Ihr Bild gerade nicht prüfen. Bitte versuchen Sie es in ein paar Minuten erneut.",
       "fieldRequired": "Füllen Sie dieses Feld aus.",
       "invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein, zum Beispiel name@firma.de.",
-      "fileRequired": "Wählen Sie eine Datei für \"{{field}}\"."
+      "fileRequired": "Wählen Sie eine Datei für \"{{field}}\".",
+      "optional": "optional",
+      "chooseOne": "Wählen Sie eine der Möglichkeiten."
     },
     "quiz": {
       "title": "Quiz",
@@ -93,12 +99,10 @@
       "finish": "Antworten absenden",
       "correct": "Richtig!",
       "incorrect": "Nicht ganz richtig",
-      "score": "Ihre Punktzahl",
       "passed": "Quiz bestanden!",
       "completed": "Quiz abgeschlossen",
       "allCorrect": "Alles richtig!",
       "singleCorrect": "Richtig beantwortet!",
-      "nextStepHint": "Die Expedition geht weiter. Wähle unten den nächsten Schritt.",
       "failed": "Sie benötigen {{required}} richtige Antworten, um fortzufahren",
       "questionsCorrect": "{{correct}} von {{total}} richtig",
       "retake": "Quiz wiederholen",
@@ -112,7 +116,8 @@
       "voteRecorded": "Ihre Stimme wurde erfasst",
       "respondents": "{{count}} Teilnehmer",
       "respondentsPlural": "{{count}} Teilnehmer",
-      "chooseFirst": "Wählen Sie zuerst eine Antwort und klicken Sie dann auf \"Abstimmen\"."
+      "chooseFirst": "Wählen Sie zuerst eine Antwort und klicken Sie dann auf \"Abstimmen\".",
+      "yourChoice": "Ihre Wahl"
     },
     "space": {
       "dragHint": "Ziehen zum Umsehen",
@@ -123,29 +128,31 @@
       "zoomIn": "Vergrößern",
       "zoomOut": "Verkleinern",
       "centerOnMarker": "Zeigen, wo Sie sind",
-      "panoramaLoadFailed": "Das 360°-Foto konnte nicht geladen werden. Laden Sie die Seite neu, um es noch einmal zu versuchen."
+      "panoramaLoadFailed": "Das 360°-Foto konnte nicht geladen werden. Laden Sie die Seite neu, um es noch einmal zu versuchen.",
+      "closeFloorplan": "Grundriss schließen"
     },
     "stepTypes": {
       "reward": "Belohnung"
     },
     "reward": {
       "congratulations": "Herzlichen Glückwunsch!",
-      "youAreNumber": "Sie sind Nummer #{{position}}, die diese Belohnung erhält!",
       "yourCode": "Ihr Belohnungscode",
       "redeemAt": "Einlösen bei",
       "terms": "Bedingungen",
       "validUntil": "Gültig bis",
-      "downloadCoupon": "Coupon herunterladen",
+      "downloadCoupon": "Als PDF herunterladen",
       "emailSent": "Eine Kopie wurde an Ihre E-Mail gesendet",
       "alreadyClaimed": "Sie haben bereits eine Belohnung für diese Expedition beansprucht",
       "noMoreRewards": "Leider sind alle Belohnungen vergeben",
       "claimFailed": "Ihre Belohnung konnte nicht abgerufen werden. Laden Sie die Seite neu und versuchen Sie es noch einmal.",
-      "previewMode": "Vorschau-Modus - Kein echter Code generiert",
+      "previewMode": "Vorschau: Es wird kein echter Code erstellt",
       "claimed": "Belohnung erhalten",
       "soldOut": {
         "title": "Wie schade!",
         "message": "Leider waren Sie zu spät, um eine Belohnung zu erhalten. Alle Belohnungen wurden bereits vergeben."
-      }
+      },
+      "copyCode": "Code kopieren",
+      "codeCopied": "Code kopiert"
     },
     "tts": {
       "listen": "Vorlesen",
@@ -247,6 +254,15 @@
       "message": "Sie waren schon einmal hier. Möchten Sie dort weitermachen, wo Sie aufgehört haben?",
       "continue": "Dort weitermachen",
       "restart": "Neu beginnen"
+    },
+    "kind": {
+      "read": "Lesen",
+      "video": "Video",
+      "space": "Raum",
+      "guide": "Gespräch",
+      "poll": "Umfrage",
+      "questionsOne": "1 Frage",
+      "questionsOther": "{{count}} Fragen"
     }
   }
 }

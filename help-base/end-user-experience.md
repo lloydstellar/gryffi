@@ -48,11 +48,14 @@ Gryffi saves the progress. A participant can stop at any moment and continue lat
 
 A participant who already completed the journey sees "Welcome back" when the invitation allows another completion. They can click **Start again** or **View previous attempt**.
 
-### Mobile Experience
+### Phone and computer
 
-Optimized for mobile:
-- Touch-friendly buttons
-- Responsive layout
+Participants follow the same journey on a phone or a computer. Gryffi picks the layout from the width of the screen:
+
+- On a phone, the button to go to the next step stays at the bottom of the screen, within reach of the thumb.
+- On a computer, a photo, 360° photo or video sits next to the text.
+
+Makers can check both in the preview with **Phone** and **Computer**. See: journey-preview
 
 ## Completing Steps
 
@@ -70,15 +73,15 @@ Participants interact with:
 
 ## Controls for participants
 
-In each step, the participant sees where they are in the journey (1), for example Step 4 of 8. When the rest of the route depends on choices, it says Step 4 of about 8. On the first step, it also shows about how many minutes the journey takes.
+Above each step, the participant sees where they are in the journey (1), for example Step 4 of 8, with one block per step. When the rest of the route depends on choices, it says Step 4 of about 8. On the first step, it also shows about how many minutes the journey takes.
 
-**Listen** (2) reads the step aloud. **Aa** next to it switches to a dyslexia-friendly font.
+Each step starts with a short label that says what kind of step it is, for example Reading, Quiz · 3 questions or Form. Next to it, **Listen** (2) reads the step aloud and **Aa** switches to a dyslexia-friendly font.
+
+Every step ends the same way. When there is one way on, there is one button. When the participant chooses a route, the step asks "Choose how you want to continue" and shows the choices as a list.
 
 ### When Complete
 
-Participants see:
-- Completion message
-- Rewards (if configured)
+At the top of the last step, a message says that the participant has finished the journey and can close the page. A reward shows its code below it, with **Copy code** and **Download as PDF**.
 
 ## Related Features
 
