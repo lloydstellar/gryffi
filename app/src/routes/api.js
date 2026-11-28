@@ -9232,6 +9232,22 @@ router.delete('/analytics/deleted/steps/:id', async (req, res) => {
 // ============================================
 
 /**
+ * The viewer's time zone for charts per day: the browser sends its IANA name
+ * (?tz=Europe/Amsterdam), so a start at 00:30 counts on the viewer's day.
+ * Only names PostgreSQL knows are used; otherwise UTC.
+ */
+let knownTimeZones = null;
+async function chartTimeZone(req) {
+  const tz = typeof req.query.tz === 'string' ? req.query.tz : '';
+  if (!tz || tz.length > 64) return 'UTC';
+  if (!knownTimeZones) {
+    const result = await query('SELECT name FROM pg_timezone_names');
+    knownTimeZones = new Set(result.rows.map(row => row.name));
+  }
+  return knownTimeZones.has(tz) ? tz : 'UTC';
+}
+
+/**
  * Started, completed and the step funnel of one journey since a date, for
  * the Journeys tab and its PDF report (one calculation, so both agree).
  * Entering a step also counts as a start: the player did not send
@@ -9510,16 +9526,16 @@ router.get('/reports/overview', async (req, res) => {
     // days into weeks or months itself, so the PDF chart matches the screen
     const activityResult = await query(`
       SELECT 
-        DATE(eup.started_at) as period_date,
+        DATE(eup.started_at AT TIME ZONE $4) as period_date,
         COUNT(*) as started,
         COUNT(*) FILTER (WHERE eup.completed_at IS NOT NULL) as completed
       FROM end_user_progress eup
       JOIN invitations i ON eup.invitation_id = i.id
       WHERE i.organization_id = $1 AND eup.started_at >= $2
         AND ${liveResultsSql('eup', '$3', { hasStep: false })}
-      GROUP BY DATE(eup.started_at)
+      GROUP BY 1
       ORDER BY period_date ASC
-    `, [orgId, periodStart.toISOString(), showDeleted]);
+    `, [orgId, periodStart.toISOString(), showDeleted, await chartTimeZone(req)]);
     
     // Top journeys, ranked as on the Overview tab (/analytics/top-journeys):
     // most completions first, deleted journeys only with "Show deleted"
@@ -10948,9 +10964,10 @@ router.get('/analytics/summary', async (req, res) => {
     `, params);
     
     // Get daily trend from end_user_progress (more reliable than events)
+    const trendParams = [...params, await chartTimeZone(req)];
     const dailyTrend = await query(`
       SELECT 
-        DATE(eup.started_at) as date,
+        DATE(eup.started_at AT TIME ZONE $${trendParams.length}) as date,
         COUNT(*) as started,
         COUNT(CASE WHEN eup.completed_at IS NOT NULL THEN 1 END) as completed,
         COUNT(DISTINCT eup.end_user_id) as unique_users
@@ -10960,9 +10977,9 @@ router.get('/analytics/summary', async (req, res) => {
         AND eup.started_at >= $2
         ${journeyFilterProgress}
         AND ${liveProgress}
-      GROUP BY DATE(eup.started_at)
+      GROUP BY 1
       ORDER BY date
-    `, params);
+    `, trendParams);
     
     const started = parseInt(progressStats.rows[0]?.started) || 0;
     const completed = parseInt(progressStats.rows[0]?.completed) || 0;
@@ -12133,14 +12150,14 @@ router.get('/analytics/journey-funnel/:journeyId', async (req, res) => {
         GROUP BY participant
       )
       SELECT 
-        DATE(e.created_at) as date,
+        DATE(e.created_at AT TIME ZONE $5) as date,
         COUNT(DISTINCT CASE WHEN e.created_at = fs.started_at THEN e.participant END) as started,
         COUNT(DISTINCT CASE WHEN e.event_type = 'journey_completed' THEN e.participant END) as completed
       FROM events e
       LEFT JOIN first_start fs ON fs.participant = e.participant
-      GROUP BY DATE(e.created_at)
+      GROUP BY 1
       ORDER BY date
-    `, [journeyId, orgId, sinceDate, showDeleted]);
+    `, [journeyId, orgId, sinceDate, showDeleted, await chartTimeZone(req)]);
     
     res.json({
       success: true,
@@ -12281,7 +12298,10 @@ router.get('/analytics/groups-overview', async (req, res) => {
         g.id,
         g.name,
         g.description,
-        (SELECT COUNT(*) FROM end_user_group_members WHERE group_id = g.id) as member_count,
+        -- Deactivated participants do not count as members (as in the group editor)
+        (SELECT COUNT(*) FROM end_user_group_members gm
+         JOIN end_users eu ON eu.id = gm.end_user_id
+         WHERE gm.group_id = g.id AND eu.is_active IS NOT FALSE) as member_count,
         (SELECT COUNT(DISTINCT je.end_user_id) 
          FROM journey_events je
          JOIN end_user_group_members gm ON je.end_user_id = gm.end_user_id
@@ -12322,7 +12342,7 @@ router.get('/analytics/groups-overview', async (req, res) => {
          FROM journey_events je
          WHERE je.organization_id = $1 AND je.created_at >= $2
            AND ${liveResultsSql('je', '$3')}) as org_completion_rate,
-        (SELECT COUNT(*) FROM end_users WHERE organization_id = $1) as org_members,
+        (SELECT COUNT(*) FROM end_users WHERE organization_id = $1 AND is_active IS NOT FALSE) as org_members,
         (SELECT COUNT(DISTINCT end_user_id) FROM journey_events je
          WHERE je.organization_id = $1 AND je.created_at >= $2 AND je.end_user_id IS NOT NULL
            AND ${liveResultsSql('je', '$3')}) as org_active

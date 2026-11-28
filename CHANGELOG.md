@@ -3,6 +3,32 @@
 All notable changes to Gryffi Community Edition. Versions follow
 [semantic versioning](https://semver.org).
 
+## [0.13.1] - 2026-11-28
+
+Fixes in Analytics and for custom themes. This release does not change
+the database. You do not need to do anything.
+
+Analytics:
+
+- Charts per day count in your own time zone. Before, a day ran from
+  midnight to midnight UTC, and west of UTC every bar showed one day
+  too early.
+- Groups and "Whole organization" no longer count deactivated
+  participants as members.
+- The group report uses the period of the group window, also when the
+  period above the tabs changed after opening it.
+- A slow report that finishes after you closed its window, or opened
+  another one, no longer appears in the window.
+
+Player:
+
+- Custom themes with a dark card and light text: chosen answers,
+  messages, feedback and form fields get dark backgrounds, so the text
+  stays readable. The guide's chat bubble gets dark or white text when
+  the theme's text color is hard to read on it.
+- The question field of a guide chat uses the card and text colors of
+  the theme.
+
 ## [0.13.0] - 2026-11-28
 
 This release changes how the participant player and Analytics look. It

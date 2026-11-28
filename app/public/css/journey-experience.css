@@ -2144,6 +2144,43 @@ html:has(body.player-mode) {
   }
 }
 
+/* ---------- Custom theme with a dark card ----------
+   applyTheme (builder.js) sets body.theme-dark-card when the text color of
+   the theme is lighter than its card. The light surfaces of the player then
+   follow the card, so light text stays readable on them. */
+
+body.theme-dark-card #previewContent {
+  --j-line: color-mix(in srgb, var(--j-ink) 22%, var(--j-card));
+  --j-line-strong: var(--theme-card-border-custom, color-mix(in srgb, var(--j-ink) 38%, var(--j-card)));
+  --j-well: color-mix(in srgb, var(--j-ink) 9%, var(--j-card));
+  --j-tint: color-mix(in srgb, var(--j-primary) 22%, var(--j-card));
+  --j-ok-bg: color-mix(in srgb, #22c55e 20%, var(--j-card));
+  --j-err-bg: color-mix(in srgb, #ef4444 20%, var(--j-card));
+}
+
+/* Text in green or red: lighter shades, readable on the dark backgrounds */
+body.theme-dark-card #previewContent .journey-feedback--ok,
+body.theme-dark-card #previewContent .journey-result--passed .journey-result-icon,
+body.theme-dark-card #previewContent .journey-result--perfect .journey-result-icon {
+  color: #86efac;
+}
+
+body.theme-dark-card #previewContent .journey-feedback--err,
+body.theme-dark-card #previewContent .journey-result--failed .journey-result-icon,
+body.theme-dark-card #previewContent .journey-field-error {
+  color: #fca5a5;
+}
+
+body.theme-dark-card #previewContent .chat-input::placeholder,
+body.theme-dark-card #previewContent .journey-input::placeholder {
+  color: var(--j-ink-2);
+}
+
+body.theme-dark-card #previewContent .quiz-wizard-option:hover:not(.selected):not(.correct):not(.incorrect):not(.disabled),
+body.theme-dark-card #previewContent .journey-poll-option:hover:not(.selected):not(.showing-results) {
+  background: var(--j-tint);
+}
+
 /* ---------- Step bar ---------- */
 
 #previewContent .journey-stepbar {
@@ -3196,7 +3233,8 @@ html:has(body.player-mode) {
 #previewContent .chat-message.guide {
   background: var(--theme-chat-bubble-guide, #f3f4f6);
   border: 0;
-  color: var(--j-ink);
+  /* Set by applyTheme only when the theme's text color is hard to read here */
+  color: var(--theme-chat-bubble-guide-text, var(--j-ink));
 }
 
 #previewContent .journey-chat-label {
@@ -3218,6 +3256,8 @@ html:has(body.player-mode) {
   min-width: 0;
   min-height: 48px;
   padding: 10px 14px;
+  background: var(--j-card);
+  color: var(--j-ink);
   border: 1.5px solid var(--j-line-strong);
   border-radius: calc(var(--j-radius) - 2px);
   font-size: 16px;

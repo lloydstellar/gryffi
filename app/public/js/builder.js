@@ -22,6 +22,26 @@ function escapeHtml(str) {
 // crypto.randomUUID only exists in a secure context (HTTPS or localhost). A
 // self-hosted Gryffi can run over plain HTTP on a local network, so fall back
 // to a version 4 UUID from crypto.getRandomValues, which works everywhere.
+/**
+ * Relative luminance (0 to 1) of a hex color (#rgb or #rrggbb); null for
+ * anything else (a name, rgb()).
+ */
+function colorLuminance(color) {
+  const hex = String(color || '').trim().replace(/^#/, '');
+  if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) return null;
+  const full = hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex;
+  const [r, g, b] = [0, 2, 4].map(i => {
+    const c = parseInt(full.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** WCAG contrast ratio of two relative luminances */
+function contrastRatio(a, b) {
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
 function randomUuid() {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   const bytes = crypto.getRandomValues(new Uint8Array(16));
@@ -1185,6 +1205,21 @@ class FlowBuilder {
     `;
     
     styleEl.textContent = cssVars;
+    // Light text on a darker card gets dark versions of the player's light
+    // surfaces (journey-experience.css, body.theme-dark-card)
+    const cardLuminance = colorLuminance(tokens.cardBackground || '#ffffff');
+    const textLuminance = colorLuminance(tokens.textPrimary || '#1f2937');
+    document.body.classList.toggle('theme-dark-card',
+      cardLuminance !== null && textLuminance !== null && textLuminance > cardLuminance);
+    // The guide's chat bubble has its own color: when the text color of the
+    // theme is hard to read on it (below 4.5:1), use dark or light text
+    const bubbleLuminance = colorLuminance(tokens.chatBubbleGuide || '#f3f4f6');
+    let bubbleText = '';
+    if (bubbleLuminance !== null && textLuminance !== null && contrastRatio(bubbleLuminance, textLuminance) < 4.5) {
+      bubbleText = contrastRatio(bubbleLuminance, colorLuminance('#1f2937')) >= contrastRatio(bubbleLuminance, 1) ? '#1f2937' : '#ffffff';
+    }
+    if (bubbleText) document.documentElement.style.setProperty('--theme-chat-bubble-guide-text', bubbleText);
+    else document.documentElement.style.removeProperty('--theme-chat-bubble-guide-text');
     console.log('[Theme] CSS variables applied:', cssVars);
     console.log('[Theme] Style element in DOM:', document.getElementById('gryffi-theme-vars'));
     

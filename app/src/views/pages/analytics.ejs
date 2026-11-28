@@ -2515,6 +2515,16 @@
     // for the results of deleted journeys and steps too
     const SHOW_DELETED = <%- safeJson(!!showDeleted) %>;
     const DELETED_T = <%- safeJson(t('analytics.deleted', { returnObjects: true })) %>;
+    // Charts per day count in the viewer's time zone (the server groups by it)
+    const VIEWER_TZ = (() => {
+      try { return encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'); } catch { return 'UTC'; }
+    })();
+    // A day from the server ("2026-10-29", or that day at midnight UTC) as the
+    // same calendar day here; new Date() would make it the day before west of UTC
+    function calendarDay(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value));
+      return match ? new Date(+match[1], +match[2] - 1, +match[3]) : new Date(value);
+    }
     function withDeleted(url) {
       if (!SHOW_DELETED) return url;
       return url + (url.includes('?') ? '&' : '?') + 'include_deleted=1';
@@ -2831,7 +2841,7 @@
       
       try {
         // Load summary data
-        const summaryRes = await fetch(withDeleted(`/api/analytics/summary?days=${days}`));
+        const summaryRes = await fetch(withDeleted(`/api/analytics/summary?days=${days}&tz=${VIEWER_TZ}`));
         const summaryData = await summaryRes.json();
         console.log('[Analytics] Summary response:', summaryData);
         
@@ -2899,7 +2909,7 @@
     function activityBuckets(dailyTrend, days) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const rows = dailyTrend.map(d => ({ date: new Date(d.date), started: parseInt(d.started) || 0, completed: parseInt(d.completed) || 0 }));
+      const rows = dailyTrend.map(d => ({ date: calendarDay(d.date), started: parseInt(d.started) || 0, completed: parseInt(d.completed) || 0 }));
       let start = new Date(today);
       start.setDate(start.getDate() - (days - 1));
       if (days > 3650) {
@@ -3067,7 +3077,7 @@
       emptyEl.style.display = 'none';
       
       try {
-        const res = await fetch(withDeleted(`/api/analytics/journey-funnel/${journeyId}?days=${days}`));
+        const res = await fetch(withDeleted(`/api/analytics/journey-funnel/${journeyId}?days=${days}&tz=${VIEWER_TZ}`));
         const data = await res.json();
         console.log('[Analytics] Journey funnel response:', data);
         
@@ -3734,12 +3744,12 @@
     let currentDetailGroup = null;
     
     async function viewGroupDetail(groupId, groupName) {
-      currentDetailGroup = { id: groupId, name: groupName };
+      // The PDF of this window uses the period the window shows
+      const days = getPeriodDays();
+      currentDetailGroup = { id: groupId, name: groupName, days, periodLabel: getPeriodLabel() };
       document.getElementById('groupDetailName').textContent = groupName;
       document.getElementById('groupDetailModal').style.display = 'flex';
       document.getElementById('groupDetailContent').innerHTML = '<div class="loading-spinner"></div>';
-      
-      const days = getPeriodDays();
       
       try {
         const res = await fetch(withDeleted(`/api/analytics/group/${groupId}?days=${days}`));
@@ -4365,8 +4375,12 @@
     let currentReport = null; // { pdf, filename }
     let currentReportUrl = null;
     let reportModalOpener = null;
+    // Each report gets a number: a slow report that finishes after the window
+    // was closed or another report was asked for is thrown away
+    let reportRequest = 0;
     
     async function openPdfReport(title, build) {
+      const request = ++reportRequest;
       // Phones and browsers without a PDF viewer get the file straight away
       const canShow = navigator.pdfViewerEnabled !== false && window.matchMedia('(min-width: 768px)').matches;
       if (!canShow) {
@@ -4382,6 +4396,7 @@
       showReportModal(title);
       try {
         const result = await build();
+        if (request !== reportRequest) return;
         if (!result) { closeReportModal(); return; }
         currentReport = result;
         currentReportUrl = result.pdf.pdf.output('bloburl');
@@ -4392,7 +4407,7 @@
         document.getElementById('btnModalDownload').disabled = false;
       } catch (err) {
         console.error('[Reports] Could not make the PDF:', err);
-        showReportError();
+        if (request === reportRequest) showReportError();
       }
     }
     
@@ -4415,6 +4430,7 @@
     function closeReportModal() {
       const modal = document.getElementById('reportModal');
       if (!modal.classList.contains('active')) return;
+      reportRequest++;
       modal.classList.remove('active');
       document.body.style.overflow = '';
       const frame = document.getElementById('reportPdfFrame');
@@ -4462,7 +4478,8 @@
     
     function exportCurrentGroupPdf() {
       if (!currentDetailGroup) return;
-      openPdfReport(currentDetailGroup.name, () => generateGroupProgressPDF(currentDetailGroup.id, currentDetailGroup.name));
+      const { id, name, days, periodLabel } = currentDetailGroup;
+      openPdfReport(name, () => generateGroupProgressPDF(id, name, days, periodLabel));
     }
     
     let cachedLogoBase64 = null;
@@ -5310,7 +5327,7 @@
     
     // Generate Overview PDF
     async function generateOrganisationPDF(days) {
-      const response = await fetch(withDeleted(`/api/reports/overview?period=${days}`));
+      const response = await fetch(withDeleted(`/api/reports/overview?period=${days}&tz=${VIEWER_TZ}`));
       const data = await response.json();
       if (!data.success) throw new Error(data.error || 'report');
       const report = data.report;
@@ -5477,12 +5494,12 @@
     }
     
     // Generate Group Progress PDF
-    async function generateGroupProgressPDF(groupId, groupName) {
+    async function generateGroupProgressPDF(groupId, groupName, days, periodLabel) {
       const logoBase64 = await loadLogoForPDF();
       const logoDimensions = logoBase64 ? await getImageDimensions(logoBase64) : null;
       
       // Fetch group data
-      const res = await fetch(withDeleted(`/api/analytics/group/${groupId}?days=${getPeriodDays()}`));
+      const res = await fetch(withDeleted(`/api/analytics/group/${groupId}?days=${days}`));
       const data = await res.json();
       
       if (!data.success) throw new Error(data.error || 'report');
@@ -5496,7 +5513,7 @@
       
       const pdf = new PDFReport(
         groupName,
-        `${translations.reports?.groupProgress || 'Group Progress Report'} · ${getPeriodLabel()}`,
+        `${translations.reports?.groupProgress || 'Group Progress Report'} · ${periodLabel}`,
         logoBase64,
         logoDimensions
       );

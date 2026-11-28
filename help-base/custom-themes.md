@@ -102,6 +102,9 @@ A preset theme (8) is a starting point. Clicking it opens the editor with its co
 - Step cards
 - Progress bar
 - Chat messages of AI guides
+- Borders of answers, choices and form fields: the **Card Border** color, when you change it from the default
+
+A dark theme works too: when the text color is lighter than the card background, the player makes its light areas (chosen answers, messages, feedback) dark as well, so the text stays readable. When the text color is hard to read on the guide's chat bubble, the player uses dark or white text in that bubble.
 
 ### Emails
 
